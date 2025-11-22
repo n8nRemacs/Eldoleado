@@ -6,10 +6,12 @@
 
 ## Способ 1: Через Supabase Dashboard (РЕКОМЕНДУЕТСЯ)
 
+⚠️ **ВАЖНО**: Используй файл `001_multi_device_architecture_SAFE.sql` - он безопасно удаляет старую таблицу issue_types!
+
 1. Открой **Supabase Dashboard**: https://supabase.n8nsrv.ru
 2. В левом меню выбери **SQL Editor**
 3. Нажми **New Query** (Новый запрос)
-4. Открой файл `001_multi_device_architecture.sql` в VSCode
+4. Открой файл `001_multi_device_architecture_SAFE.sql` в VSCode
 5. Скопируй **весь** SQL код (Ctrl+A, Ctrl+C)
 6. Вставь в SQL Editor (Ctrl+V)
 7. Нажми **Run** (или Ctrl+Enter)
