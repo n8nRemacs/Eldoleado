@@ -1,0 +1,400 @@
+# Multi-Device Session Management - Android Implementation
+
+**Date:** 19.11.2025  
+**Priority:** HIGH  
+**Status:** 🔄 Backend Changes Required
+
+---
+
+## 🎯 New Requirement
+
+**Rule:** One operator can be logged in on **maximum 2 devices simultaneously:**
+- 1 mobile device (Android app)
+- 1 desktop device (web/desktop app)
+
+**Behavior when logging in:**
+- New mobile login → old mobile session **automatically terminated**
+- New desktop login → old desktop session **automatically terminated**
+- Mobile + desktop can coexist ✅
+
+---
+
+## 📊 Backend Architecture Changes
+
+### New Table: `operator_devices`
+
+```sql
+CREATE TABLE operator_devices (
+  id uuid PRIMARY KEY,
+  operator_id uuid,
+  tenant_id uuid,
+  device_type TEXT,              -- 'mobile' or 'desktop'
+  fcm_token TEXT,
+  session_token TEXT UNIQUE,     -- Your auth token
+  device_id TEXT,                -- Optional: Android device ID
+  device_info JSONB,             -- Optional: model, OS, app version
+  last_active_at TIMESTAMP,
+  created_at TIMESTAMP,
+  CONSTRAINT unique_operator_device_type UNIQUE(operator_id, device_type)
+);
+```
+
+**Key constraint:**
+```sql
+UNIQUE(operator_id, device_type)
+```
+This ensures: 1 operator = max 1 mobile session + 1 desktop session
+
+---
+
+## 🔄 Updated API Behavior
+
+### 1. Login (`POST /webhook/android-auth`)
+
+**Request (no changes):**
+```json
+{
+  "telegram_id": "1132511247",
+  "password": "your_password"
+}
+```
+
+**Response (no changes):**
+```json
+{
+  "success": true,
+  "session_token": "new-unique-token",
+  "operator_id": "uuid",
+  "name": "Operator Name"
+}
+```
+
+**Backend Logic (NEW):**
+```
+1. Validate credentials ✅
+2. Check if operator has existing mobile session
+   ├─ YES → Delete old mobile session from operator_devices
+   │         (Old device will be logged out automatically)
+   └─ NO → Continue
+3. Generate new session_token
+4. Insert into operator_devices:
+   - device_type = 'mobile'
+   - session_token = new token
+   - fcm_token = NULL (will be set later)
+5. Return new session_token
+```
+
+**What This Means for You:**
+- When user logs in on Device A
+- Then logs in on Device B with same credentials
+- Device A's session becomes invalid immediately
+- Device A will get 401 errors on next API call
+- Device A must handle 401 and redirect to login
+
+---
+
+### 2. Register FCM Token (`POST /webhook/android-register-fcm`)
+
+**Request (no changes):**
+```json
+{
+  "session_token": "your-token",
+  "fcm_token": "firebase-token"
+}
+```
+
+**Backend Logic (UPDATED):**
+```
+1. Find device by session_token in operator_devices
+2. Update fcm_token for this device
+3. Keep device_type = 'mobile'
+```
+
+---
+
+### 3. Logout (`POST /webhook/android-logout`)
+
+**Request (no changes):**
+```json
+Headers: Authorization: Bearer <session_token>
+```
+
+**Backend Logic (UPDATED):**
+```
+1. Find device by session_token in operator_devices
+2. Delete device record
+3. FCM token automatically removed
+```
+
+---
+
+### 4. All Other APIs
+
+**Authentication (UPDATED):**
+```
+1. Extract session_token from headers
+2. Check session_token exists in operator_devices
+3. Check device_type = 'mobile'
+4. Return operator_id and tenant_id
+```
+
+---
+
+## 📱 Required Android Changes
+
+### 1. Handle 401 Unauthorized
+
+**Current behavior:** Probably shows error
+
+**Required behavior:**
+```kotlin
+// In your API client/interceptor
+override fun onResponse(call: Call, response: Response): Response {
+    if (response.code == 401) {
+        // Session invalidated (logged in on another device)
+        sessionManager.clearSession()
+        navigateToLogin()
+        showToast("Вы вошли в систему с другого устройства")
+    }
+    return response
+}
+```
+
+**When to expect 401:**
+- Your device's session was replaced by login on another device
+- Session token expired (if we add TTL later)
+- Manual logout from another device
+
+---
+
+### 2. Optional: Send Device Info
+
+**Recommended fields to send during login:**
+
+```kotlin
+data class LoginRequest(
+    val telegram_id: String,
+    val password: String,
+    val device_info: DeviceInfo? = null  // Optional
+)
+
+data class DeviceInfo(
+    val device_id: String,        // Android ID
+    val device_model: String,     // "Samsung Galaxy S21"
+    val os_version: String,       // "Android 13"
+    val app_version: String       // "1.0.0"
+)
+
+// Generate device info
+fun getDeviceInfo(): DeviceInfo {
+    return DeviceInfo(
+        device_id = Settings.Secure.getString(
+            contentResolver, 
+            Settings.Secure.ANDROID_ID
+        ),
+        device_model = "${Build.MANUFACTURER} ${Build.MODEL}",
+        os_version = "Android ${Build.VERSION.RELEASE}",
+        app_version = BuildConfig.VERSION_NAME
+    )
+}
+```
+
+**Why send device_info?**
+- Shows user which device is logged in
+- Helps debug session issues
+- Future feature: "Logged in devices" screen
+
+**Backend will accept:**
+```json
+{
+  "telegram_id": "1132511247",
+  "password": "password",
+  "device_info": {
+    "device_id": "abc123xyz",
+    "device_model": "Samsung Galaxy S21",
+    "os_version": "Android 13",
+    "app_version": "1.0.0"
+  }
+}
+```
+
+---
+
+## 🧪 Test Scenarios
+
+### Scenario 1: Normal Login
+1. Login on Device A
+2. Verify session works
+3. Login on Device B with same credentials
+4. Verify Device A gets 401 on next API call
+5. Verify Device A redirects to login
+6. Verify Device B works normally
+
+### Scenario 2: Concurrent Logins
+1. Login on Device A
+2. Login on Device B (same credentials)
+3. Try to use API from Device A
+4. Expected: 401 Unauthorized
+5. Expected: Message "Вы вошли в систему с другого устройства"
+
+### Scenario 3: Logout and Relogin
+1. Login on Device A
+2. Logout from Device A
+3. Login on Device B
+4. Should work normally (no conflicts)
+
+### Scenario 4: Mobile + Desktop Coexistence
+1. Login on Android (Device A)
+2. Login on Web/Desktop (Device B)
+3. Both should work simultaneously ✅
+4. Login on another Android (Device C)
+5. Device A should get 401 ❌
+6. Device B (desktop) should still work ✅
+
+---
+
+## ⚠️ Important Notes
+
+### Session Replacement is Immediate
+
+When a new device logs in:
+- Old device session is deleted **before** response is sent
+- Old device doesn't receive notification
+- Old device discovers on next API call (401)
+
+### No Session Refresh
+
+- Session tokens don't expire (for now)
+- Session only invalidated by:
+  - Logout
+  - Login on another device of same type
+  - Manual admin action
+
+### Desktop vs Mobile
+
+Backend tracks device type:
+- Android app → `device_type = 'mobile'`
+- Web/Desktop → `device_type = 'desktop'`
+- Rule: Only one session per device_type
+
+---
+
+## 📋 Implementation Checklist
+
+### Must Have
+- [ ] Handle 401 responses globally
+- [ ] Clear session on 401
+- [ ] Redirect to login on 401
+- [ ] Show message "Вы вошли с другого устройства"
+- [ ] Test concurrent logins
+
+### Nice to Have
+- [ ] Send device_info during login
+- [ ] Add device_id (Android ID)
+- [ ] Add device_model and os_version
+- [ ] Show active device in settings
+- [ ] "Logout from all devices" button
+
+---
+
+## 🔄 Migration Path
+
+### Phase 1 (Immediate)
+1. Backend creates `operator_devices` table
+2. Backend updates authentication logic
+3. Android handles 401 responses
+4. **Test with 2 physical devices**
+
+### Phase 2 (Optional)
+1. Send device_info during login
+2. Add "Active Devices" screen
+3. Add "Logout from all devices" option
+
+---
+
+## 🎯 Expected User Experience
+
+**Scenario: User logs in on new phone**
+
+Old Phone:
+```
+[User opens app]
+[App tries to load appeals list]
+[Gets 401 Unauthorized]
+[Shows toast: "Вы вошли в систему с другого устройства"]
+[Redirects to login screen]
+```
+
+New Phone:
+```
+[User enters credentials]
+[Login successful]
+[App works normally]
+[Receives push notifications]
+```
+
+---
+
+## ❓ Questions for You
+
+1. **Device Info:** Do you want to send device info (model, OS, etc.) during login?
+   - Helps with debugging
+   - Can show "Logged in devices" list in future
+   - Not required, but recommended
+
+2. **401 Handling:** Do you have global error interceptor or need to add per-request?
+   - Recommend: OkHttp Interceptor for global 401 handling
+
+3. **User Message:** What message to show when session replaced?
+   - Current suggestion: "Вы вошли в систему с другого устройства"
+   - Or: "Ваша сессия завершена"
+
+---
+
+## 📞 Next Steps
+
+**Your Action:**
+1. Review this document
+2. Confirm device_info fields (optional)
+3. Implement 401 global handling
+4. Test with 2 devices
+
+**My Action:**
+1. Create `operator_devices` table
+2. Update all authentication APIs
+3. Test backend logic
+4. Notify when ready for testing
+
+**Timeline:** Backend changes ready in 1-2 hours after your confirmation.
+
+---
+
+## 🚀 When Ready to Test
+
+**Backend will notify:**
+```
+✅ operator_devices table created
+✅ API_Android_Auth updated
+✅ API_Android_Register_FCM updated
+✅ API_Android_Logout updated
+✅ API_Operator_Appeal_Detail updated
+✅ Ready for testing
+```
+
+**You test:**
+1. Login Device A → works
+2. Login Device B (same account) → works
+3. Device A tries API → gets 401
+4. Device A handles 401 → redirects to login
+5. **Confirm: ✅ Working as expected**
+
+---
+
+**Reply with:**
+- ✅ Ready to proceed
+- ⚠️ Questions/concerns
+- 📝 Additional requirements
+
+---
+
+**End of Document**

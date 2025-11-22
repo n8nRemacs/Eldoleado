@@ -1,0 +1,239 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "02498640-4ce7-4ae5-a21d-2342b713551c",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json || {};\nconst appeal = payload.appeal || {};\nconst out = payload.out_message || {};\nconst client = payload.client || {};\n\nreturn [{\n  json: {\n    tenant_id: payload.tenant_id || appeal.tenant_id || null,\n    operator_id: payload.operator_id || out.operator_id || null,\n    appeal_id: appeal.id || out.appeal_id || null,\n    channel: out.channel || payload.channel || 'telegram',\n    message_text: payload.message_text || out.text || '',\n    external_chat_id: payload.external_chat_id || out.external_chat_id || client.external_chat_id || null,\n    client_telegram_id: payload.client_telegram_id || client.telegram_id || null\n  }\n}];"
+      },
+      "id": "e062a693-cb2f-42ad-9a99-352b037c4b5a",
+      "name": "Prepare Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.tenant_id,\n  a.id AS appeal_id,\n  c.telegram_id AS client_telegram_id\nFROM appeals a\nJOIN clients c ON c.id = a.client_id\nWHERE a.id = '{{ $json.appeal_id }}'::uuid\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "43c9a54e-4d07-4498-b2ff-553c13d542fc",
+      "name": "Fetch Chat Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -320,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctxItem = $input.all()[0]?.json || {};\nconst baseItem = $input.all()[0]?.pairedItem?.item ? $items(0, 'Prepare Context')[0].json : {};\n\nreturn [{\n  json: {\n    tenant_id: ctxItem.tenant_id || baseItem.tenant_id || null,\n    operator_id: baseItem.operator_id || null,\n    appeal_id: ctxItem.appeal_id || baseItem.appeal_id || null,\n    message_text: baseItem.message_text,\n    channel: baseItem.channel || 'telegram',\n    external_chat_id: baseItem.external_chat_id || ctxItem.external_chat_id || null,\n    client_telegram_id: baseItem.client_telegram_id || ctxItem.client_telegram_id || null\n  }\n}];"
+      },
+      "id": "9c784a1d-60e3-4a31-b0ec-d3d40a700d67",
+      "name": "Merge Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst chatId = ctx.external_chat_id || ctx.client_telegram_id;\nif (!chatId) {\n  throw new Error('No chat id available for Telegram delivery');\n}\nreturn [{\n  json: {\n    chat_id: chatId,\n    message_text: ctx.message_text,\n    tenant_id: ctx.tenant_id,\n    operator_id: ctx.operator_id,\n    appeal_id: ctx.appeal_id,\n    channel: ctx.channel || 'telegram'\n  }\n}];"
+      },
+      "id": "7a3410c4-be1a-4708-9e87-00b81a65a374",
+      "name": "Prepare Telegram Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $('Execute Workflow Trigger').item.json.message_text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "6c5643d7-784d-497c-9d14-0103b17669ae",
+      "name": "Send Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -80
+      ],
+      "webhookId": "61c272e7-905c-460c-8ebc-b9ea78cc2ba1",
+      "credentials": {
+        "telegramApi": {
+          "id": "pp6VRePNlKLBuoCQ",
+          "name": "Client TG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel,\n  channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  NULLIF('{{ $('Prepare Telegram Payload').item.json.tenant_id }}','')::uuid,\n  '{{ $('Prepare Telegram Payload').item.json.appeal_id }}'::uuid,\n  'operator',\n  '{{ $('Prepare Telegram Payload').item.json.message_text }}',\n  '{{ $('Prepare Telegram Payload').item.json.channel }}',\n  (SELECT id FROM channels WHERE code = '{{ $('Prepare Telegram Payload').item.json.channel }}' LIMIT 1),\n  '{{ $('Send Telegram Message').item.json.message_id }}',\n  NULLIF('{{ $('Prepare Telegram Payload').item.json.chat_id }}','')\nRETURNING *;",
+        "options": {}
+      },
+      "id": "cf0186cf-2d6a-4a34-8004-bb6604f663fd",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message_id\": $('Send Telegram Message').item.json.message_id } }}",
+        "options": {}
+      },
+      "id": "269d3a96-9dd0-4ebe-90c7-815a72c42408",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Context": {
+      "main": [
+        [
+          {
+            "node": "Fetch Chat Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Chat Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Context": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Telegram Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Message History": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "message_text": "Test",
+        "appeal": {
+          "id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5"
+        },
+        "client": {},
+        "channel": "telegram",
+        "out_message": {
+          "channel": "telegram",
+          "appeal_id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+          "meta": {
+            "has_pricing": false,
+            "is_complete": false
+          }
+        },
+        "route_to": "BAT OUT Telegram"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

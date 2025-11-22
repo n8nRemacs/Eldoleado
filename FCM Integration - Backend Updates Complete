@@ -1,0 +1,399 @@
+# FCM Integration - Backend Updates Complete
+
+**Date:** 19.11.2025  
+**Status:** ✅ Updated per Android requirements
+
+---
+
+## 📦 Updated Data Payload
+
+### New Fields Added
+
+```json
+{
+  "type": "new_appeal",
+  "appeal_id": "uuid",
+  "client_name": "string",
+  "channel": "telegram|vk|whatsapp|avito|phone|form|max",
+  "notification_id": "1763556789_abc123xyz",
+  "sent_at": "2025-11-19T12:34:56.789Z",
+  "priority": "high"
+}
+```
+
+### Field Details
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `notification_id` | string | Unique ID: `{timestamp}_{random}` | `1763556789_abc123xyz` |
+| `sent_at` | ISO 8601 | Server timestamp when notification sent | `2025-11-19T12:34:56.789Z` |
+| `priority` | string | `high` or `default` | `high` |
+
+### Priority Logic
+
+- **new_appeal** → `priority: "high"` + Android priority: `high`
+- **status_update** → `priority: "default"` + Android priority: `normal`
+- **message** → `priority: "default"` + Android priority: `normal`
+- **promo** → `priority: "default"` + Android priority: `normal`
+
+---
+
+## 📱 Full Notification Structure
+
+```json
+{
+  "message": {
+    "token": "device_fcm_token",
+    "notification": {
+      "title": "🔔 Новое обращение",
+      "body": "Иван - telegram"
+    },
+    "data": {
+      "type": "new_appeal",
+      "appeal_id": "550e8400-e29b-41d4-a716-446655440000",
+      "client_name": "Иван",
+      "channel": "telegram",
+      "notification_id": "1763556789_abc123xyz",
+      "sent_at": "2025-11-19T12:34:56.789Z",
+      "priority": "high"
+    },
+    "android": {
+      "priority": "high"
+    }
+  }
+}
+```
+
+---
+
+## 🎯 Recommended Android Implementation
+
+### 1. Notification Channels Setup
+
+```kotlin
+private fun createNotificationChannels() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channels = listOf(
+            NotificationChannel(
+                "appeal_new",
+                "Новые обращения",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Уведомления о новых обращениях клиентов"
+                enableVibration(true)
+                enableLights(true)
+            },
+            
+            NotificationChannel(
+                "appeal_updates",
+                "Изменение статусов",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Обновления статусов обращений"
+            },
+            
+            NotificationChannel(
+                "appeal_messages",
+                "Сообщения",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Новые сообщения в обращениях"
+            },
+            
+            NotificationChannel(
+                "appeal_promo",
+                "Промо-материалы",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Рассылки и промо-материалы"
+                setSound(null, null)
+            }
+        )
+        
+        val manager = getSystemService(NotificationManager::class.java)
+        channels.forEach { manager.createNotificationChannel(it) }
+    }
+}
+```
+
+### 2. Handle Incoming Notifications
+
+```kotlin
+override fun onMessageReceived(remoteMessage: RemoteMessage) {
+    super.onMessageReceived(remoteMessage)
+    
+    // Extract all fields
+    val type = remoteMessage.data["type"] ?: "unknown"
+    val appealId = remoteMessage.data["appeal_id"]
+    val clientName = remoteMessage.data["client_name"]
+    val channel = remoteMessage.data["channel"]
+    val notificationId = remoteMessage.data["notification_id"]
+    val sentAt = remoteMessage.data["sent_at"]
+    val priority = remoteMessage.data["priority"]
+    
+    // Save to local DB for unread counter
+    saveNotificationToDb(
+        notificationId = notificationId,
+        type = type,
+        appealId = appealId,
+        title = remoteMessage.notification?.title,
+        body = remoteMessage.notification?.body,
+        sentAt = sentAt,
+        isRead = false
+    )
+    
+    // Determine channel
+    val channelId = when (type) {
+        "new_appeal" -> "appeal_new"
+        "status_update" -> "appeal_updates"
+        "message" -> "appeal_messages"
+        "promo" -> "appeal_promo"
+        else -> "appeal_new"
+    }
+    
+    // Show notification
+    showNotification(
+        channelId = channelId,
+        notificationId = notificationId,
+        title = remoteMessage.notification?.title ?: "Уведомление",
+        body = remoteMessage.notification?.body ?: "",
+        appealId = appealId,
+        clientName = clientName,
+        channel = channel
+    )
+    
+    // Update badge count
+    updateBadgeCount()
+}
+```
+
+### 3. Show Notification with Grouping
+
+```kotlin
+private fun showNotification(
+    channelId: String,
+    notificationId: String?,
+    title: String,
+    body: String,
+    appealId: String?,
+    clientName: String?,
+    channel: String?
+) {
+    val notificationManager = getSystemService(NotificationManager::class.java)
+    
+    // Create intent
+    val intent = Intent(this, AppealDetailActivity::class.java).apply {
+        putExtra("appeal_id", appealId)
+        putExtra("client_name", clientName)
+        putExtra("channel", channel)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    
+    val pendingIntent = PendingIntent.getActivity(
+        this, 
+        notificationId.hashCode(),
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    
+    // Group notifications
+    val groupKey = "appeal_notifications_group"
+    
+    // Build notification
+    val notification = NotificationCompat.Builder(this, channelId)
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle(title)
+        .setContentText(body)
+        .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+        .setAutoCancel(true)
+        .setContentIntent(pendingIntent)
+        .setGroup(groupKey)
+        .build()
+    
+    notificationManager.notify(notificationId.hashCode(), notification)
+    
+    // Show summary if 2+ notifications
+    val activeNotifications = notificationManager.activeNotifications
+    if (activeNotifications.size >= 2) {
+        showSummaryNotification(groupKey, activeNotifications.size)
+    }
+}
+
+private fun showSummaryNotification(groupKey: String, count: Int) {
+    val summaryNotification = NotificationCompat.Builder(this, "appeal_new")
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle("Обращения")
+        .setContentText("Новых уведомлений: $count")
+        .setGroup(groupKey)
+        .setGroupSummary(true)
+        .setAutoCancel(true)
+        .build()
+    
+    val notificationManager = getSystemService(NotificationManager::class.java)
+    notificationManager.notify(0, summaryNotification)
+}
+```
+
+### 4. Local Database for Notifications
+
+```kotlin
+@Entity(tableName = "notifications")
+data class NotificationEntity(
+    @PrimaryKey val notificationId: String,
+    val type: String,
+    val appealId: String?,
+    val title: String?,
+    val body: String?,
+    val sentAt: String?,
+    val isRead: Boolean = false,
+    val receivedAt: Long = System.currentTimeMillis()
+)
+
+@Dao
+interface NotificationDao {
+    @Query("SELECT COUNT(*) FROM notifications WHERE isRead = 0")
+    fun getUnreadCount(): Int
+    
+    @Query("SELECT * FROM notifications ORDER BY receivedAt DESC")
+    fun getAllNotifications(): List<NotificationEntity>
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(notification: NotificationEntity)
+    
+    @Query("UPDATE notifications SET isRead = 1 WHERE notificationId = :id")
+    fun markAsRead(id: String)
+    
+    @Query("DELETE FROM notifications WHERE receivedAt < :timestamp")
+    fun deleteOlderThan(timestamp: Long)
+}
+```
+
+### 5. Update Badge Count
+
+```kotlin
+private fun updateBadgeCount() {
+    val unreadCount = database.notificationDao().getUnreadCount()
+    
+    // Update app badge
+    ShortcutBadger.applyCount(applicationContext, unreadCount)
+    
+    // Or use NotificationManager badge
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = getSystemService(NotificationManager::class.java)
+            .getNotificationChannel("appeal_new")
+        channel?.apply {
+            setShowBadge(true)
+        }
+    }
+}
+```
+
+---
+
+## 🧪 Testing Checklist
+
+### Test Scenarios
+
+- [x] Register FCM token after login
+- [x] Receive `new_appeal` notification (HIGH priority)
+- [x] Verify all fields present: `notification_id`, `sent_at`, `priority`
+- [ ] Check notification uses correct channel (`appeal_new`)
+- [ ] Tap notification opens correct appeal screen
+- [ ] Save notification to local DB
+- [ ] Badge count updates correctly
+- [ ] Multiple notifications group properly
+- [ ] Summary notification shows at 5+
+- [ ] Mark notification as read
+- [ ] Test on Android 8.0+ and 13+
+
+---
+
+## 📊 Badge Count API (Coming Soon)
+
+**Endpoint:** `GET /webhook/android-unread-count`
+
+**Query Params:**
+- `session_token` (required)
+
+**Response:**
+```json
+{
+  "success": true,
+  "unread_count": 5
+}
+```
+
+**Usage:**
+- Call on app startup to sync badge
+- Call after marking notifications as read
+- Fallback to local DB count if API fails
+
+**Status:** Will be ready in 1-2 days
+
+---
+
+## 🎨 UI Suggestions
+
+### Notification List Screen
+
+```
+┌─────────────────────────────────┐
+│ 🔔 Уведомления            [⚙️] │
+├─────────────────────────────────┤
+│ ● 🔔 Новое обращение            │
+│   Иван - telegram               │
+│   5 минут назад                 │
+├─────────────────────────────────┤
+│   📊 Изменение статуса          │
+│   Петр - В работе               │
+│   15 минут назад                │
+├─────────────────────────────────┤
+│   💬 Новое сообщение            │
+│   Мария - WhatsApp              │
+│   1 час назад                   │
+└─────────────────────────────────┘
+```
+
+- Blue dot (●) = unread
+- Swipe to mark as read
+- Tap to open appeal
+- Long press → Delete
+
+---
+
+## ✅ Summary
+
+**What's Changed:**
+1. ✅ Added `notification_id` for unique tracking
+2. ✅ Added `sent_at` for sorting/display
+3. ✅ Added `priority` for channel selection
+4. ✅ Added `android.priority` for FCM delivery priority
+
+**All fields preserved:**
+- `client_name` ✅
+- `channel` ✅
+- `appeal_id` ✅
+- `type` ✅
+
+**Ready for:**
+- Badge counting
+- Notification history
+- Smart grouping
+- Priority-based channels
+
+**Next Steps:**
+1. Test with real device
+2. Implement notification list screen
+3. Sync badge count with backend API (when ready)
+
+---
+
+## 📞 Questions?
+
+Reply with any issues or additional requirements. Backend is ready for production testing.
+
+**Test when ready with real FCM token registered.**
+
+---
+
+**End of Update**

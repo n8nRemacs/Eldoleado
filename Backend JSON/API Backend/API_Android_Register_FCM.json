@@ -1,0 +1,240 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android-register-fcm",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "be7e6389-0004-4a25-a56b-693bd5dd7001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        0
+      ],
+      "webhookId": "android-register-fcm"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\n\nreturn {\n  operator_id: body.operator_id?.trim() || '',\n  session_token: body.session_token?.trim() || '',\n  fcm_token: body.fcm_token?.trim() || '',\n  device_info: body.device_info || {}\n};"
+      },
+      "id": "52539afd-3121-4360-8021-1a59da1751e4",
+      "name": "Parse Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operator_id }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.session_token }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.fcm_token }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "abb0b944-669d-49bb-9500-2b43e62bce1a",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE operators\nSET \n  fcm_token = '{{ $json.fcm_token }}',\n  fcm_token_updated_at = NOW()\nWHERE id = '{{ $json.operator_id }}'\n  AND session_token = '{{ $json.session_token }}'\n  AND is_active = true\nRETURNING id, fcm_token;",
+        "options": {}
+      },
+      "id": "9fb6bb4e-53c2-4036-8734-0d2a5e002d78",
+      "name": "Update FCM Token",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -16,
+        -112
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-result",
+              "leftValue": "={{ $input.item.json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "49307c5a-c4eb-4d0b-b554-03ff1a4c7138",
+      "name": "Check Update",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'FCM token registered', operator_id: $json.id } }}",
+        "options": {}
+      },
+      "id": "26d5fcf0-a796-471d-bca9-0a2d12d42280",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'Invalid operator or session' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "1a696aaf-736f-4b13-9f51-13fb8beac04c",
+      "name": "Error - Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'Missing required fields: operator_id, session_token, fcm_token' } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "8f2f7543-541f-4fb7-b272-1a25eff70689",
+      "name": "Error - Missing Fields",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        112
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Body": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Update FCM Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error - Missing Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update FCM Token": {
+      "main": [
+        [
+          {
+            "node": "Check Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Update": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error - Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

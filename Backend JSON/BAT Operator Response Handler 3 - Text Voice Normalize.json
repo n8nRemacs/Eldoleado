@@ -1,0 +1,612 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "93bb1db5-c418-47eb-acab-cc4fae5c32d6",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2240,
+        -1488
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "voice_condition",
+                    "leftValue": "={{ $json.media_type }}",
+                    "rightValue": "voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "text_condition",
+                    "leftValue": "={{ $json.media_type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2232037-cde1-47a0-9ebd-376a36f0bb88",
+      "name": "Is Voice or Text?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1536,
+        -1488
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.media_data.file_id }}",
+        "additionalFields": {}
+      },
+      "id": "b611f2c6-b571-4dc9-ab33-bc5369c6e07c",
+      "name": "Get Voice File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1248,
+        -1600
+      ],
+      "webhookId": "bfa8a0c0-2665-46a8-bd16-79587d65e8b1",
+      "credentials": {
+        "telegramApi": {
+          "id": "QIs2m5gKKih3bnhF",
+          "name": "Operator TG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1056,
+        -1600
+      ],
+      "id": "46ba347e-a34e-4b87-94a0-161ed7fbc3d0",
+      "name": "Transcribe Voice",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Execute Workflow Trigger').first().json;\nconst transcription = $input.first().json.text;\n\nreturn {\n  ...inputData,\n  text: transcription,\n  original_text: transcription\n};"
+      },
+      "id": "1c815f6b-591a-476d-b413-606b47fc8798",
+      "name": "Merge Transcription",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        -1600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\n\nreturn {\n  ...inputData,\n  original_text: inputData.text\n};"
+      },
+      "id": "2f4406db-f750-4ef6-910c-e174450dfed0",
+      "name": "Pass Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        -1376
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        -1488
+      ],
+      "id": "96c19137-1469-4d5f-8b59-ee10c29d65cf",
+      "name": "Merge Before AI"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.operator_text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Ты - редактор текстов для сервисного центра по ремонту техники.\n\nВАЖНО: Текст должен быть обращён напрямую к клиенту!\n\nТвоя задача:\n1. Исправь грамматические и орфографические ошибки\n2. Убери сленг, мат, пошлости\n3. Сделай текст профессиональным, но дружелюбным\n4. Сохрани прямое обращение к клиенту (на \"Вы\")\n5. Сохрани весь смысл и информацию\n6. НЕ превращай в обезличенный деловой стиль\n\nПримеры:\nВход: \"Замена дисплея, запчасть наша, дадим скидку 20, цена 5500\"\nВыход: \"Отлично! Замена дисплея, запчасть будет наша. Предоставим Вам скидку 20%, итоговая стоимость 5500₽.\"\n\nВерни ТОЛЬКО исправленный текст для отправки клиенту."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -352,
+        -1744
+      ],
+      "id": "6d6359ff-3a3c-468e-8ec1-f53122f421c9",
+      "name": "AI Text Normalizer"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sqlData = $('Execute a SQL query1').first().json;\nconst mergeData = $('Merge1').first().json;\nconst clientMsg = $('Execute a SQL query2').first().json; // или имя новой SQL ноды\n\nreturn {\n  tenant_id: sqlData.tenant_id,\n  channel: sqlData.ad_channel || mergeData.channel || 'telegram',\n  text: clientMsg.client_first_message,\n  response_text: mergeData.output,\n  media_type: mergeData.media_type || 'text',\n  media_data: mergeData.media_data || null,\n  client: {\n    id: sqlData.client_id,\n    name: sqlData.client_name,\n    telegram_id: sqlData.client_telegram_id,\n    phone: sqlData.client_phone\n  },\n  appeal: {\n    id: sqlData.id,\n    phone_model: sqlData.phone_model,\n    type: sqlData.type,\n    parts_owner: sqlData.parts_owner\n  },\n  extracted_data: {\n    type: sqlData.type,\n    model: sqlData.phone_model,\n    repair_type: sqlData.repair_type_name,\n    parts_owner: sqlData.parts_owner\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        -1488
+      ],
+      "id": "e30b4617-9f84-4729-8879-a19ae2a9efaf",
+      "name": "Prepare Response"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        -1152
+      ],
+      "id": "e55f40a9-df5a-4dcc-97d4-2e419ac4123c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.id as appeal_id,\n  a.tenant_id,\n  a.client_id,\n  c.telegram_id as client_telegram_id,\n  a.ad_channel as channel\nFROM appeals a\nJOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nWHERE a.id = '{{ $json.appeal_id }}'::uuid\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1968,
+        -1632
+      ],
+      "id": "1592ffb5-7612-4fcf-bfe0-78279f1e7e49",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1744,
+        -1488
+      ],
+      "id": "7752f952-af37-4ec7-b394-2fdf70d4d7a0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.*,\n  c.name as client_name,\n  c.phone as client_phone,\n  c.telegram_id as client_telegram_id,\n  b.name as brand_name,\n  m.name as model_name,\n  rt.name as repair_type_name\nFROM appeals a\nLEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nLEFT JOIN brands b ON b.id = a.brand_id\nLEFT JOIN models m ON m.id = a.model_id\nLEFT JOIN repair_types rt ON rt.id = a.repair_type_id\nWHERE a.id = '{{ $json.appeal.id }}'::uuid\n  AND a.tenant_id = '{{ $json.tenant_id }}'::uuid\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        -1664
+      ],
+      "id": "6d0315be-b1aa-4f3f-94bb-d9dc60f5dad2",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        -1488
+      ],
+      "id": "76bcc6cb-915f-44b5-b75a-3e9e7f8c8666",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  tenant_id: data.tenant_id,\n  channel: data.channel || 'telegram',\n  text: data.client_original_message, // текст клиента\n  response_text: data.output || data.response_text || '', // нормализованный AI ответ\n  media_type: data.media_type || 'text',\n  media_data: data.media_data || null,\n  client: {\n    id: data.client_id,\n    name: data.client_name,\n    telegram_id: data.client_telegram_id,\n    phone: data.client_phone || null\n  },\n  appeal: {\n    id: data.appeal_id,\n    phone_model: data.phone_model,\n    type: data.type || 'ремонт',\n    parts_owner: data.parts_owner\n  },\n  extracted_data: {\n    type: data.type || 'ремонт',\n    model: data.phone_model,\n    repair_type: data.repair_type_name,\n    parts_owner: data.parts_owner\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -1456
+      ],
+      "id": "2bb35f01-0442-4f0e-b1c6-5ef0fba5ddb0",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        -1488
+      ],
+      "id": "8194353c-f008-414b-8338-e08c859e0dda",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT message_text as client_first_message\nFROM messages_history\nWHERE appeal_id = '{{ $json.id }}'::uuid\n  AND message_type = 'client'\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\nORDER BY created_at ASC\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1088,
+        -1680
+      ],
+      "id": "b9a8b693-c16b-4444-a8fe-f76cfa03d401",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        -1520
+      ],
+      "id": "249d2173-75fe-46ab-bf8e-4c3c2abcb243",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  normalized_text: $json.response_text,\n  tenant_id: $json.tenant_id,\n  appeal_id: $json.appeal?.id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1888,
+        -1488
+      ],
+      "id": "30401b74-f7d6-4eb8-b2cd-018e08a6aed2",
+      "name": "Return Result"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Is Voice or Text?": {
+      "main": [
+        [
+          {
+            "node": "Get Voice File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pass Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Voice File": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Voice": {
+      "main": [
+        [
+          {
+            "node": "Merge Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Transcription": {
+      "main": [
+        [
+          {
+            "node": "Merge Before AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Text": {
+      "main": [
+        [
+          {
+            "node": "Merge Before AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Before AI": {
+      "main": [
+        [
+          {
+            "node": "AI Text Normalizer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Text Normalizer": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Text Normalizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Is Voice or Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "appeal_id": "a97dd39b-ed02-4a5e-92a5-4f69e7b5a23b",
+        "operator_id": "7b3aac9e-80c5-4787-b29f-f90fd763183a",
+        "operator_text": "????????????! ?????? ??????? ?????? 2 ????, ????????? 5500?",
+        "media_type": "text",
+        "text": "????????????! ?????? ??????? ?????? 2 ????, ????????? 5500?",
+        "action_source": "android_app",
+        "skip_notification": true
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

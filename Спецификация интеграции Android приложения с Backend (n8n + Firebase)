@@ -1,0 +1,896 @@
+# Спецификация интеграции Android приложения с Backend (n8n + Firebase)
+
+## Общая информация
+
+**Backend URL:** `https://n8n.n8nsrv.ru`  
+**Firebase Project ID:** `batterycrm`  
+**Формат данных:** JSON  
+**Кодировка:** UTF-8
+
+---
+
+## 1. Firebase Cloud Messaging (FCM) - Настройка
+
+### 1.1. Подключение Firebase к Android проекту
+
+**Файл конфигурации:** `google-services.json`  
+Получить у backend разработчика или скачать из Firebase Console.
+
+**Gradle зависимости:**
+```gradle
+// В build.gradle (Project level)
+buildscript {
+    dependencies {
+        classpath 'com.google.gms:google-services:4.4.0'
+    }
+}
+
+// В build.gradle (App level)
+plugins {
+    id 'com.google.gms.google-services'
+}
+
+dependencies {
+    // Firebase BoM для управления версиями
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    
+    // Firebase Cloud Messaging
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+    
+    // Firebase Analytics (опционально)
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+}
+```
+
+### 1.2. Получение FCM Device Token
+
+**Код в MainActivity или Application класс:**
+
+```kotlin
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
+
+class MainActivity : AppCompatActivity() {
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Получаем FCM token
+        getFCMToken()
+    }
+    
+    private fun getFCMToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FCM", "Fetching FCM token failed", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Получен токен устройства
+            val token = task.result
+            Log.d("FCM", "Device Token: $token")
+            
+            // Отправить токен на backend
+            registerDeviceToken(token)
+        }
+    }
+    
+    private fun registerDeviceToken(token: String) {
+        // Реализация отправки - см. раздел "API Endpoints"
+    }
+}
+```
+
+### 1.3. FCM Service для обработки уведомлений
+
+**Создайте класс MyFirebaseMessagingService:**
+
+```kotlin
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import android.util.Log
+
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    /**
+     * Вызывается когда приходит новое уведомление
+     */
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("FCM", "Message from: ${remoteMessage.from}")
+
+        // Проверяем наличие notification payload
+        remoteMessage.notification?.let {
+            Log.d("FCM", "Notification Title: ${it.title}")
+            Log.d("FCM", "Notification Body: ${it.body}")
+            
+            showNotification(it.title, it.body)
+        }
+
+        // Проверяем наличие data payload
+        if (remoteMessage.data.isNotEmpty()) {
+            Log.d("FCM", "Message data: ${remoteMessage.data}")
+            handleDataPayload(remoteMessage.data)
+        }
+    }
+
+    /**
+     * Вызывается когда токен обновляется
+     */
+    override fun onNewToken(token: String) {
+        Log.d("FCM", "Refreshed token: $token")
+        
+        // Отправить новый токен на backend
+        sendTokenToServer(token)
+    }
+
+    private fun showNotification(title: String?, message: String?) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "default_channel"
+
+        // Создаём notification channel для Android 8.0+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Default Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // Intent для открытия приложения при клике
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Создаём уведомление
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification) // Замените на вашу иконку
+            .setContentTitle(title ?: "Уведомление")
+            .setContentText(message ?: "")
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+    }
+
+    private fun handleDataPayload(data: Map<String, String>) {
+        // Обработка дополнительных данных
+        val type = data["type"]
+        val orderId = data["orderId"]
+        val timestamp = data["timestamp"]
+        
+        Log.d("FCM", "Data - Type: $type, OrderId: $orderId, Timestamp: $timestamp")
+        
+        // TODO: Обработать в зависимости от типа
+        when (type) {
+            "new_order" -> handleNewOrder(orderId)
+            "status_update" -> handleStatusUpdate(orderId)
+            "promo" -> handlePromo(data)
+        }
+    }
+    
+    private fun handleNewOrder(orderId: String?) {
+        // Логика обработки нового заказа
+    }
+    
+    private fun handleStatusUpdate(orderId: String?) {
+        // Логика обновления статуса
+    }
+    
+    private fun handlePromo(data: Map<String, String>) {
+        // Логика обработки промо
+    }
+
+    private fun sendTokenToServer(token: String) {
+        // Отправка токена на backend - см. раздел API
+    }
+}
+```
+
+**Регистрация Service в AndroidManifest.xml:**
+
+```xml
+<manifest>
+    <application>
+        <!-- Другие компоненты -->
+        
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        
+        <!-- Metadata для Firebase -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+    </application>
+    
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+</manifest>
+```
+
+---
+
+## 2. API Endpoints
+
+### 2.1. Регистрация FCM токена устройства
+
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/android-register-token`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "fcmToken": "string (required) - FCM Device Token",
+  "userId": "string (optional) - ID пользователя в системе",
+  "deviceInfo": {
+    "model": "string - Модель устройства (например: Samsung Galaxy S21)",
+    "osVersion": "string - Версия Android (например: 13)",
+    "appVersion": "string - Версия приложения (например: 1.0.0)",
+    "deviceId": "string - Уникальный ID устройства"
+  },
+  "timestamp": "string (ISO 8601) - Время регистрации"
+}
+```
+
+**Пример запроса:**
+```json
+{
+  "fcmToken": "dKxH8f_2Rk:APA91bF...",
+  "userId": "user_12345",
+  "deviceInfo": {
+    "model": "Samsung Galaxy S21",
+    "osVersion": "13",
+    "appVersion": "1.0.0",
+    "deviceId": "abc123def456"
+  },
+  "timestamp": "2025-11-18T10:30:00Z"
+}
+```
+
+**Response (Success 200):**
+```json
+{
+  "success": true,
+  "message": "Device registered successfully",
+  "deviceId": "generated_device_id",
+  "timestamp": "2025-11-18T10:30:00Z"
+}
+```
+
+**Response (Error 400/500):**
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+**Kotlin реализация:**
+```kotlin
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
+
+class ApiClient {
+    private val client = OkHttpClient()
+    private val baseUrl = "https://n8n.n8nsrv.ru"
+    
+    fun registerFCMToken(
+        fcmToken: String,
+        userId: String?,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val deviceInfo = JSONObject().apply {
+            put("model", Build.MODEL)
+            put("osVersion", Build.VERSION.RELEASE)
+            put("appVersion", BuildConfig.VERSION_NAME)
+            put("deviceId", getDeviceId())
+        }
+        
+        val jsonBody = JSONObject().apply {
+            put("fcmToken", fcmToken)
+            if (userId != null) put("userId", userId)
+            put("deviceInfo", deviceInfo)
+            put("timestamp", System.currentTimeMillis())
+        }
+        
+        val body = jsonBody.toString()
+            .toRequestBody("application/json".toMediaType())
+        
+        val request = Request.Builder()
+            .url("$baseUrl/webhook/android-register-token")
+            .post(body)
+            .build()
+        
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onError(e.message ?: "Network error")
+            }
+            
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        onSuccess(responseBody ?: "Success")
+                    } else {
+                        onError("Error: ${response.code}")
+                    }
+                }
+            }
+        })
+    }
+    
+    private fun getDeviceId(): String {
+        // Реализация получения уникального ID устройства
+        return android.provider.Settings.Secure.getString(
+            context.contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID
+        )
+    }
+}
+```
+
+### 2.2. Аутентификация пользователя
+
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/android-auth`
+
+**Request Body:**
+```json
+{
+  "phone": "string (required) - Номер телефона в формате +79001234567",
+  "password": "string (optional) - Пароль (если используется)",
+  "fcmToken": "string (optional) - FCM токен для автоматической регистрации"
+}
+```
+
+**Response (Success 200):**
+```json
+{
+  "success": true,
+  "userId": "user_12345",
+  "token": "jwt_auth_token_here",
+  "user": {
+    "id": "user_12345",
+    "phone": "+79001234567",
+    "name": "Иван Иванов",
+    "email": "ivan@example.com"
+  }
+}
+```
+
+### 2.3. Выход из аккаунта (отвязка токена)
+
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/android-logout`
+
+**Request Body:**
+```json
+{
+  "userId": "string (required) - ID пользователя",
+  "fcmToken": "string (required) - FCM токен для удаления"
+}
+```
+
+**Response (Success 200):**
+```json
+{
+  "success": true,
+  "message": "Device unregistered successfully"
+}
+```
+
+---
+
+## 3. Структура Push уведомлений
+
+### 3.1. Формат уведомления от сервера
+
+Firebase отправляет два типа payload:
+
+**Notification Payload (отображается автоматически):**
+```json
+{
+  "notification": {
+    "title": "Заголовок уведомления",
+    "body": "Текст уведомления"
+  }
+}
+```
+
+**Data Payload (требует обработки в приложении):**
+```json
+{
+  "data": {
+    "type": "new_order | status_update | promo | message",
+    "orderId": "12345",
+    "timestamp": "1700000000000",
+    "customField1": "value1",
+    "customField2": "value2"
+  }
+}
+```
+
+### 3.2. Типы уведомлений
+
+#### Тип 1: Новый заказ
+```json
+{
+  "notification": {
+    "title": "Новый заказ",
+    "body": "У вас новый заказ на замену батареи iPhone 12"
+  },
+  "data": {
+    "type": "new_order",
+    "orderId": "ORD-12345",
+    "deviceModel": "iPhone 12",
+    "timestamp": "1700000000000"
+  }
+}
+```
+
+**Обработка в приложении:**
+- Показать уведомление
+- При клике открыть экран с деталями заказа
+- Обновить счётчик непрочитанных заказов
+
+#### Тип 2: Обновление статуса
+```json
+{
+  "notification": {
+    "title": "Статус заказа изменён",
+    "body": "Ваш заказ #12345 в обработке"
+  },
+  "data": {
+    "type": "status_update",
+    "orderId": "ORD-12345",
+    "newStatus": "processing",
+    "timestamp": "1700000000000"
+  }
+}
+```
+
+**Обработка в приложении:**
+- Показать уведомление
+- Обновить статус заказа в локальной базе/кэше
+- При клике открыть детали заказа
+
+#### Тип 3: Промо-акция
+```json
+{
+  "notification": {
+    "title": "Акция!",
+    "body": "Скидка 20% на все услуги"
+  },
+  "data": {
+    "type": "promo",
+    "promoCode": "SAVE20",
+    "discountPercent": "20",
+    "validUntil": "2025-12-31",
+    "timestamp": "1700000000000"
+  }
+}
+```
+
+**Обработка в приложении:**
+- Показать уведомление
+- При клике открыть экран промо-акций
+- Сохранить промокод для быстрого доступа
+
+#### Тип 4: Сообщение от оператора
+```json
+{
+  "notification": {
+    "title": "Новое сообщение",
+    "body": "Оператор ответил на ваше обращение"
+  },
+  "data": {
+    "type": "message",
+    "chatId": "CHAT-789",
+    "messageId": "MSG-456",
+    "senderId": "operator_123",
+    "timestamp": "1700000000000"
+  }
+}
+```
+
+**Обработка в приложении:**
+- Показать уведомление
+- Обновить список чатов
+- При клике открыть конкретный чат
+
+---
+
+## 4. Обработка Permissions
+
+### 4.1. Запрос разрешения на уведомления (Android 13+)
+
+```kotlin
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
+class MainActivity : AppCompatActivity() {
+    
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Разрешение получено
+            getFCMToken()
+        } else {
+            // Разрешение отклонено
+            showPermissionDeniedDialog()
+        }
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Проверяем и запрашиваем разрешение
+        checkNotificationPermission()
+    }
+    
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Разрешение уже есть
+                    getFCMToken()
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    // Показать объяснение пользователю
+                    showPermissionRationale()
+                }
+                else -> {
+                    // Запросить разрешение
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            // Android 12 и ниже - разрешение не требуется
+            getFCMToken()
+        }
+    }
+    
+    private fun showPermissionRationale() {
+        AlertDialog.Builder(this)
+            .setTitle("Разрешение на уведомления")
+            .setMessage("Приложению необходимо разрешение для отправки push-уведомлений о новых заказах и сообщениях")
+            .setPositiveButton("Разрешить") { _, _ ->
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+    
+    private fun showPermissionDeniedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Уведомления отключены")
+            .setMessage("Вы не будете получать уведомления о новых заказах. Вы можете включить их в настройках")
+            .setPositiveButton("Настройки") { _, _ ->
+                openAppSettings()
+            }
+            .setNegativeButton("Позже", null)
+            .show()
+    }
+    
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        intent.data = Uri.parse("package:$packageName")
+        startActivity(intent)
+    }
+}
+```
+
+---
+
+## 5. Тестирование
+
+### 5.1. Тестовый запрос для регистрации токена
+
+**cURL пример:**
+```bash
+curl -X POST https://n8n.n8nsrv.ru/webhook/android-register-token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fcmToken": "test_token_123",
+    "userId": "test_user",
+    "deviceInfo": {
+      "model": "Test Device",
+      "osVersion": "13",
+      "appVersion": "1.0.0"
+    }
+  }'
+```
+
+### 5.2. Проверка токена
+
+В логах приложения вы должны увидеть:
+```
+D/FCM: Device Token: dKxH8f_2Rk6yGF3jN8pQT5:APA91bF...
+```
+
+Скопируйте этот токен и используйте для ручного тестирования push-уведомлений.
+
+### 5.3. Логирование
+
+Добавьте логирование во все критические точки:
+
+```kotlin
+import android.util.Log
+
+private const val TAG = "FCM_DEBUG"
+
+// При получении токена
+Log.d(TAG, "FCM Token obtained: $token")
+
+// При регистрации на сервере
+Log.d(TAG, "Registering token on server...")
+
+// При получении уведомления
+Log.d(TAG, "Notification received: title=$title, body=$body")
+
+// При обработке data payload
+Log.d(TAG, "Data payload: $data")
+
+// При ошибках
+Log.e(TAG, "Error: ${error.message}", error)
+```
+
+---
+
+## 6. Best Practices
+
+### 6.1. Безопасность
+- ✅ Никогда не храните FCM токен в SharedPreferences без шифрования
+- ✅ Всегда используйте HTTPS для API запросов
+- ✅ Валидируйте все данные из push-уведомлений перед использованием
+- ✅ Не доверяйте data payload слепо - проверяйте типы и форматы
+
+### 6.2. Производительность
+- ✅ Регистрируйте токен асинхронно, не блокируя UI
+- ✅ Кэшируйте токен локально, отправляйте на сервер только при изменении
+- ✅ Используйте WorkManager для надёжной отправки токена в фоне
+- ✅ Обрабатывайте уведомления в фоне быстро (< 10 секунд)
+
+### 6.3. UX
+- ✅ Группируйте похожие уведомления (например, несколько новых заказов)
+- ✅ Используйте notification channels для разных типов уведомлений
+- ✅ Добавьте настройки для управления типами уведомлений
+- ✅ Показывайте badge с количеством непрочитанных уведомлений
+
+### 6.4. Обработка ошибок
+```kotlin
+fun registerDeviceTokenSafely(token: String) {
+    try {
+        apiClient.registerFCMToken(
+            fcmToken = token,
+            userId = getUserId(),
+            onSuccess = { response ->
+                Log.d(TAG, "Token registered successfully")
+                saveTokenRegistrationStatus(true)
+            },
+            onError = { error ->
+                Log.e(TAG, "Failed to register token: $error")
+                // Повторить попытку позже через WorkManager
+                scheduleTokenRegistrationRetry(token)
+            }
+        )
+    } catch (e: Exception) {
+        Log.e(TAG, "Exception during token registration", e)
+        Crashlytics.recordException(e)
+    }
+}
+
+private fun scheduleTokenRegistrationRetry(token: String) {
+    val workRequest = OneTimeWorkRequestBuilder<TokenRegistrationWorker>()
+        .setInputData(workDataOf("fcmToken" to token))
+        .setBackoffCriteria(
+            BackoffPolicy.EXPONENTIAL,
+            10, TimeUnit.SECONDS
+        )
+        .build()
+    
+    WorkManager.getInstance(context).enqueue(workRequest)
+}
+```
+
+---
+
+## 7. Troubleshooting
+
+### Проблема: Токен не генерируется
+**Решение:**
+- Проверьте, что `google-services.json` добавлен в проект
+- Убедитесь, что Firebase правильно инициализирован
+- Проверьте логи: `adb logcat | grep FCM`
+
+### Проблема: Уведомления не приходят
+**Решение:**
+- Проверьте, что токен зарегистрирован на сервере
+- Убедитесь, что приложение имеет разрешение POST_NOTIFICATIONS
+- Проверьте, что notification channel создан (Android 8.0+)
+- Убедитесь, что батарея не оптимизирована для приложения
+
+### Проблема: Уведомления приходят только когда приложение открыто
+**Решение:**
+- Проверьте настройки Battery Optimization
+- Убедитесь, что MyFirebaseMessagingService правильно зарегистрирован в манифесте
+- Проверьте, что используется правильный формат уведомлений (notification + data payload)
+
+---
+
+## 8. Контакты и поддержка
+
+**Backend Developer:** [Ваше имя]  
+**API Documentation:** https://n8n.n8nsrv.ru/api/docs  
+**Firebase Console:** https://console.firebase.google.com/project/batterycrm
+
+**Для получения:**
+- `google-services.json` файла
+- Тестовых учётных данных
+- Дополнительных API endpoints
+
+Обращайтесь к backend разработчику.
+
+---
+
+## 9. Changelog
+
+**Version 1.0 (2025-11-18)**
+- Первая версия документации
+- Базовая интеграция FCM
+- API endpoints для регистрации токенов
+- Примеры типов уведомлений
+
+---
+
+## 10. Приложения
+
+### Пример полного рабочего кода MainActivity
+
+```kotlin
+package com.example.batterycrm
+
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.google.firebase.messaging.FirebaseMessaging
+
+class MainActivity : AppCompatActivity() {
+    
+    private val TAG = "MainActivity"
+    private lateinit var apiClient: ApiClient
+    
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            getFCMToken()
+        } else {
+            showPermissionDeniedDialog()
+        }
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        
+        apiClient = ApiClient(this)
+        
+        // Проверяем и запрашиваем разрешение на уведомления
+        checkNotificationPermission()
+    }
+    
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    getFCMToken()
+                }
+                else -> {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            getFCMToken()
+        }
+    }
+    
+    private fun getFCMToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            
+            val token = task.result
+            Log.d(TAG, "FCM Token: $token")
+            
+            // Регистрируем токен на сервере
+            registerDeviceToken(token)
+        }
+    }
+    
+    private fun registerDeviceToken(token: String) {
+        val userId = getUserId() // Получить из вашей системы аутентификации
+        
+        apiClient.registerFCMToken(
+            fcmToken = token,
+            userId = userId,
+            onSuccess = { response ->
+                Log.d(TAG, "Device registered successfully: $response")
+            },
+            onError = { error ->
+                Log.e(TAG, "Failed to register device: $error")
+            }
+        )
+    }
+    
+    private fun getUserId(): String? {
+        // Получить ID пользователя из SharedPreferences или вашей системы авторизации
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        return prefs.getString("user_id", null)
+    }
+    
+    private fun showPermissionDeniedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Уведомления отключены")
+            .setMessage("Разрешите уведомления для получения информации о заказах")
+            .setPositiveButton("Настройки") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+            .setNegativeButton("Позже", null)
+            .show()
+    }
+}
+```
+
+---
+
+**Конец документации**

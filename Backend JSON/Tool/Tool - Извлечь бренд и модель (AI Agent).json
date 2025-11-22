@@ -1,0 +1,839 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7346d257-f85f-484e-8c11-6501a685bf2c",
+      "name": "Workflow Tool Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst text = input.text || '';\nconst conversationHistory = input.conversation_history || 'Первое сообщение';\n\nconsole.log('=== Tool: Извлечь бренд и модель ===');\nconsole.log('Text:', text);\n\nconst systemPrompt = `Ты - эксперт по определению моделей iPhone.\n\nЗАДАЧА: Найди в тексте клиента точное название модели устройства.\n\nПРАВИЛА:\n1. Ищи упоминания iPhone и номер модели (например: \"iPhone 12 Pro\", \"14 Pro Max\", \"айфон 15\")\n2. Бренд всегда Apple\n3. Если нашел - верни found: true и название модели\n4. Если НЕ нашел - верни found: false\n\nФОРМАТ ОТВЕТА (строго JSON без markdown):\n{\n  \"found\": true,\n  \"model\": \"iPhone 12 Pro\",\n  \"confidence\": 0.95\n}\n\nПРИМЕРЫ:\nТекст: \"Замена дисплея на iPhone 12 Pro\" → found: true, model: \"iPhone 12 Pro\"\nТекст: \"Хочу отремонтировать 14 про\" → found: true, model: \"iPhone 14 Pro\"\nТекст: \"Здравствуйте\" → found: false\n\n---\n\nТЕКСТ КЛИЕНТА:\n${text}\n\nИСТОРИЯ ДИАЛОГА:\n${conversationHistory}\n\n---\n\nНайди модель устройства и верни JSON.`;\n\nreturn {\n  text: text,\n  conversation_history: conversationHistory,\n  chatInput: systemPrompt\n};"
+      },
+      "id": "9eb65325-7b02-4e2e-bbcb-2ba2e8766397",
+      "name": "Подготовить контекст",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7bdd8c46-72e7-4e72-9c11-73c863a725f2",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.1
+        }
+      },
+      "id": "d60757d1-9a30-475a-b613-b2ab5aea1875",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        448
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $('Подготовить контекст').first().json;\nconst aiResponse = $input.first().json;\n\nconsole.log('=== AI Response (Model Detection) ===');\nconsole.log('Raw:', JSON.stringify(aiResponse, null, 2));\n\nlet output = aiResponse.output || aiResponse.text || JSON.stringify(aiResponse);\n\nconsole.log('Output text:', output);\n\nlet parsed;\ntry {\n  let cleaned = output.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  const jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) cleaned = jsonMatch[0];\n  parsed = JSON.parse(cleaned);\n  console.log('✅ Parsed:', parsed);\n} catch (e) {\n  console.error('❌ Parse error:', e.message);\n  return [{\n    json: {\n      brand: null,\n      brand_id: null,\n      model: null,\n      model_id: null,\n      found: false,\n      message: 'Не удалось распарсить ответ AI'\n    }\n  }];\n}\n\n// ✅ ИСПРАВЛЕНИЕ: Проверяем parsed.model вместо parsed.model_name\nif (!parsed.found || !parsed.model) {\n  console.log('⚠️ Model not found or not provided');\n  return [{\n    json: {\n      brand: null,\n      brand_id: null,\n      model: null,\n      model_id: null,\n      found: false,\n      message: 'Модель не определена. Попроси клиента уточнить.'\n    }\n  }];\n}\n\n// ✅ ИСПРАВЛЕНИЕ: AI уже вернул model_id и brand_id!\n// Не нужно искать в базе, просто используем что AI вернул\nconsole.log('✅ Model found:', parsed.model);\n\nreturn [{\n  json: {\n    brand: parsed.brand || 'Apple',\n    brand_id: parsed.brand_id || 'b808bcda-1db3-46ca-8f2b-9885fe4c0e42',\n    model: parsed.model,\n    model_id: parsed.model_id,\n    found: true,\n    confidence: parsed.confidence || 0.9,\n    message: `Определена модель: ${parsed.model}`\n  }\n}];"
+      },
+      "id": "91ac624e-210f-4e2a-a71e-35272ca83583",
+      "name": "Обработать ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        208
+      ]
+    }
+  ],
+  "connections": {
+    "Workflow Tool Trigger": {
+      "main": [
+        [
+          {
+            "node": "Подготовить контекст",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовить контекст": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Обработать ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Workflow Tool Trigger": [
+      {
+        "channel": "telegram",
+        "external_user_id": "6416413182",
+        "external_chat_id": "6416413182",
+        "text": "Замена дисплея на iPhone 14 Pro Max\n\nЗамена дисплея на iPhone 14 Pro Max",
+        "timestamp": "2025-10-22T18:02:56.000Z",
+        "client_phone": null,
+        "client_name": "РемАкс",
+        "client_email": null,
+        "media": {
+          "has_voice": false,
+          "voice_transcribed_text": null,
+          "has_images": false,
+          "images": [],
+          "has_video": false,
+          "videos": [],
+          "has_document": false,
+          "documents": []
+        },
+        "meta": {
+          "external_message_id": "1020",
+          "ad_channel": "telegram",
+          "ad_id": null,
+          "original_media_type": "text",
+          "raw": {
+            "message_id": 1021,
+            "from": {
+              "id": 6416413182,
+              "is_bot": false,
+              "first_name": "РемАкс",
+              "username": "RemAcsRu",
+              "language_code": "ru"
+            },
+            "chat": {
+              "id": 6416413182,
+              "first_name": "РемАкс",
+              "username": "RemAcsRu",
+              "type": "private"
+            },
+            "date": 1761156208,
+            "text": "Замена дисплея на iPhone 14 Pro Max"
+          },
+          "username": "RemAcsRu",
+          "batched": true,
+          "batch_size": 2,
+          "batch_wait_time": 20,
+          "original_messages": [
+            {
+              "timestamp": "2025-10-22T18:02:56.000Z",
+              "type": "text",
+              "text_length": 35
+            },
+            {
+              "timestamp": "2025-10-22T18:03:28.000Z",
+              "type": "text",
+              "text_length": 35
+            }
+          ],
+          "combined_at": "2025-10-22T18:03:42.767Z"
+        },
+        "prefilled_data": {
+          "model": null,
+          "parts_owner": null
+        },
+        "external_message_id": "1020",
+        "success": true,
+        "client": {
+          "id": "f08a1543-c066-4aa0-847b-bd8f1321ee75",
+          "phone": null,
+          "name": "РемАкс",
+          "telegram_id": "6416413182",
+          "vk_id": null,
+          "whatsapp_id": null,
+          "avito_id": null,
+          "was_merged": false
+        },
+        "client_found": true,
+        "appeal": {
+          "id": "b3b210ab-c6c2-470a-bc6f-b11fa66dde3a",
+          "stage": "Первичный контакт"
+        },
+        "appeal_id": "b3b210ab-c6c2-470a-bc6f-b11fa66dde3a",
+        "conversation_history": "Первое сообщение в диалоге\n\n[НОВОЕ] Клиент: Замена дисплея на iPhone 14 Pro Max\n\nЗамена дисплея на iPhone 14 Pro Max",
+        "current_state": {
+          "type": null,
+          "type_identified": false,
+          "brand": null,
+          "brand_id": null,
+          "model": null,
+          "model_id": null,
+          "repair_type": null,
+          "repair_type_id": null,
+          "parts_owner": null,
+          "estimated_cost": null,
+          "stage": "Первичный контакт"
+        },
+        "completeness": {
+          "has_type": false,
+          "has_brand": false,
+          "has_model": false,
+          "has_repair_type": false,
+          "has_parts_owner": false,
+          "has_cost": false
+        },
+        "missing_fields": "тип обращения, бренд, модель",
+        "brands_list": "- Apple",
+        "models_list": "- Apple Watch SE\n- iPhone 14\n- Apple Watch 7\n- iPhone 12\n- iPhone 13\n- iPhone 17 Pro Max\n- iPhone 17 Air\n- iPhone 17 Pro\n- iPhone 17\n- iPhone 16 Pro Max\n- iPhone 16 Plus\n- iPhone 16 Pro\n- iPhone 16e\n- iPhone 16\n- iPhone 15 Pro Max\n- iPhone 15 Plus\n- iPhone 15 Pro\n- iPhone 15\n- iPhone 14 Pro Max\n- iPhone 14 Plus\n- iPhone 14 Pro\n- iPhone 13 Pro Max\n- iPhone 13 Mini\n- iPhone 13 Pro\n- iPhone 12 Pro Max\n- iPhone 12 Mini\n- iPhone 12 Pro\n- iPhone 11 Pro Max\n- iPhone 11 Pro\n- iPhone 11\n- iPhone XS Max\n- iPhone XS\n- iPhone XR\n- iPhone X\n- iPhone 8 Plus\n- iPhone 8\n- iPhone 7 Plus\n- iPhone 7\n- iPhone 6S Plus\n- iPhone 6S\n- iPhone 6 Plus\n- iPhone 6\n- iPhone SE 2022\n- iPhone SE 2020\n- iPhone SE\n- iPhone 5S\n- iPhone 5C\n- iPhone 5\n- iPhone 4S\n- iPhone 4",
+        "repair_types_list": "- Дисплей\n- Батарея\n- Зарядка\n- Задняя крышка\n- Камера\n- Звук\n- ПО",
+        "available_brands": [
+          {
+            "id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42",
+            "name": "Apple",
+            "normalized_name": "Apple"
+          }
+        ],
+        "available_models": [
+          {
+            "id": "2ea180e2-d222-4b1c-b9b1-bd44282317e3",
+            "name": "Apple Watch SE",
+            "aliases": [
+              "watch se",
+              "apple watch se"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "95c4b502-2a2d-409b-bb83-2c673fe5e712",
+            "name": "iPhone 14",
+            "aliases": [
+              "14",
+              "iphone 14"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "bc1e6eab-f69d-403e-9279-2401ae36b80c",
+            "name": "Apple Watch 7",
+            "aliases": [
+              "watch 7",
+              "apple watch 7"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "fd640267-7bfc-4838-abeb-c56a736c3bbc",
+            "name": "iPhone 12",
+            "aliases": [
+              "12",
+              "iphone 12"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "3510589f-b29c-4abb-ad7d-20772d0c0ce2",
+            "name": "iPhone 13",
+            "aliases": [
+              "13",
+              "iphone 13"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "06c4da66-dbb2-4b53-b794-b121013955e1",
+            "name": "iPhone 17 Pro Max",
+            "aliases": [
+              "17 Pro Max",
+              "iPhone 17 ProMax",
+              "17ProMax",
+              "айфон 17 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "12762a33-edbc-4fbb-be4f-3ae45de6fadb",
+            "name": "iPhone 17 Air",
+            "aliases": [
+              "17 Air",
+              "iPhone 17Air",
+              "17Air",
+              "айфон 17 эйр"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "22ebc456-33fa-4886-8267-9520094845e4",
+            "name": "iPhone 17 Pro",
+            "aliases": [
+              "17 Pro",
+              "iPhone 17Pro",
+              "17Pro",
+              "айфон 17 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "590f89b8-0455-42a8-a021-b24c5fd24554",
+            "name": "iPhone 17",
+            "aliases": [
+              "17",
+              "iPhone17",
+              "айфон 17"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "2750e012-465a-40cb-97bd-bac39082e1c1",
+            "name": "iPhone 16 Pro Max",
+            "aliases": [
+              "16 Pro Max",
+              "iPhone 16 ProMax",
+              "16ProMax",
+              "айфон 16 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "e14ab3b7-ee70-4eda-b2f5-1dfe7f5b59b0",
+            "name": "iPhone 16 Plus",
+            "aliases": [
+              "16 Plus",
+              "iPhone 16Plus",
+              "16Plus",
+              "айфон 16 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "e8b2796d-2556-4687-8478-dcf642b082f6",
+            "name": "iPhone 16 Pro",
+            "aliases": [
+              "16 Pro",
+              "iPhone 16Pro",
+              "16Pro",
+              "айфон 16 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "88ee2923-e188-48cf-be3f-4cdfc045cb54",
+            "name": "iPhone 16e",
+            "aliases": [
+              "16e",
+              "iPhone16e",
+              "айфон 16е"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "1054a50e-8152-4890-a5f7-38f15b1c3185",
+            "name": "iPhone 16",
+            "aliases": [
+              "16",
+              "iPhone16",
+              "айфон 16"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "f0d03972-980a-42bb-86c5-2612fd9b497a",
+            "name": "iPhone 15 Pro Max",
+            "aliases": [
+              "15 Pro Max",
+              "iPhone 15 ProMax",
+              "15ProMax",
+              "айфон 15 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "60b85201-104a-46b2-a8da-1b17d3baf793",
+            "name": "iPhone 15 Plus",
+            "aliases": [
+              "15 Plus",
+              "iPhone 15Plus",
+              "15Plus",
+              "айфон 15 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "c1429b45-8915-4412-a6b3-eb4090cd8f1c",
+            "name": "iPhone 15 Pro",
+            "aliases": [
+              "15 Pro",
+              "iPhone 15Pro",
+              "15Pro",
+              "айфон 15 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "1105de5f-3e11-4aa8-a075-7c922f8a85c8",
+            "name": "iPhone 15",
+            "aliases": [
+              "15",
+              "iPhone15",
+              "айфон 15"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "03201ca8-8376-44f9-8968-8dbf340f21e5",
+            "name": "iPhone 14 Pro Max",
+            "aliases": [
+              "14 Pro Max",
+              "iPhone 14 ProMax",
+              "14ProMax",
+              "айфон 14 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "7dd1d704-e48f-49d9-b30b-bd11931fa63d",
+            "name": "iPhone 14 Plus",
+            "aliases": [
+              "14 Plus",
+              "iPhone 14Plus",
+              "14Plus",
+              "айфон 14 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "4042566e-715e-4a8b-9b9f-0953932ac286",
+            "name": "iPhone 14 Pro",
+            "aliases": [
+              "14 Pro",
+              "iPhone 14Pro",
+              "14Pro",
+              "айфон 14 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "4a534968-077f-4802-a3df-fcfd5b35005d",
+            "name": "iPhone 13 Pro Max",
+            "aliases": [
+              "13 Pro Max",
+              "iPhone 13 ProMax",
+              "13ProMax",
+              "айфон 13 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "a0f1179b-5647-4065-887d-aea42779a0d3",
+            "name": "iPhone 13 Mini",
+            "aliases": [
+              "13 Mini",
+              "iPhone 13Mini",
+              "13Mini",
+              "айфон 13 мини"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "1966af2c-07f9-4974-ae05-e6f50590fc89",
+            "name": "iPhone 13 Pro",
+            "aliases": [
+              "13 Pro",
+              "iPhone 13Pro",
+              "13Pro",
+              "айфон 13 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "dd36f164-2351-46e8-9d02-413f7e05768d",
+            "name": "iPhone 12 Pro Max",
+            "aliases": [
+              "12 Pro Max",
+              "iPhone 12 ProMax",
+              "12ProMax",
+              "айфон 12 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "abf7d20c-187c-4d93-9363-6c3b3ee1be18",
+            "name": "iPhone 12 Mini",
+            "aliases": [
+              "12 Mini",
+              "iPhone 12Mini",
+              "12Mini",
+              "айфон 12 мини"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "3e04ce11-7e81-45c4-926a-d52fe67b2fd8",
+            "name": "iPhone 12 Pro",
+            "aliases": [
+              "12 Pro",
+              "iPhone 12Pro",
+              "12Pro",
+              "айфон 12 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "dc202d87-5c42-4029-b8d8-a2f1bf3f7fb5",
+            "name": "iPhone 11 Pro Max",
+            "aliases": [
+              "11 Pro Max",
+              "iPhone 11 ProMax",
+              "11ProMax",
+              "айфон 11 про макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "5d0c068d-8245-433f-9cf3-19c1aed19dfc",
+            "name": "iPhone 11 Pro",
+            "aliases": [
+              "11 Pro",
+              "iPhone 11Pro",
+              "11Pro",
+              "айфон 11 про"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "2aab59a2-b394-4bd1-8be4-edbb007ba6b5",
+            "name": "iPhone 11",
+            "aliases": [
+              "11",
+              "iPhone11",
+              "айфон 11"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "21bca69b-8733-49fd-80ed-aa580f952c47",
+            "name": "iPhone XS Max",
+            "aliases": [
+              "XS Max",
+              "iPhone XSMax",
+              "XSMax",
+              "Xs Max",
+              "айфон икс эс макс",
+              "айфон хс макс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "eac293ad-5416-4b8f-a43d-4291e837d573",
+            "name": "iPhone XS",
+            "aliases": [
+              "XS",
+              "iPhone XS",
+              "Xs",
+              "айфон икс эс",
+              "айфон хс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "c01e25e9-88ee-4b98-89a7-db2590734400",
+            "name": "iPhone XR",
+            "aliases": [
+              "XR",
+              "iPhone XR",
+              "Xr",
+              "айфон икс эр",
+              "айфон хр"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "cafe7d28-ada6-46fa-a364-e16dac6ce3a6",
+            "name": "iPhone X",
+            "aliases": [
+              "X",
+              "iPhone X",
+              "10",
+              "айфон икс",
+              "айфон 10"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "ed41c85d-597f-4df1-97a6-d712074109b0",
+            "name": "iPhone 8 Plus",
+            "aliases": [
+              "8 Plus",
+              "iPhone 8Plus",
+              "8Plus",
+              "айфон 8 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "a5698e13-e2ba-4363-83ed-d32a229d8d08",
+            "name": "iPhone 8",
+            "aliases": [
+              "8",
+              "iPhone8",
+              "айфон 8"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "b15e919d-6920-479b-9cc1-9a24172db177",
+            "name": "iPhone 7 Plus",
+            "aliases": [
+              "7 Plus",
+              "iPhone 7Plus",
+              "7Plus",
+              "айфон 7 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "d3c395e9-7083-439e-ac57-ec17913c9faf",
+            "name": "iPhone 7",
+            "aliases": [
+              "7",
+              "iPhone7",
+              "айфон 7"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "d6431103-40b4-40c7-afbf-6b34f1e98447",
+            "name": "iPhone 6S Plus",
+            "aliases": [
+              "6S Plus",
+              "6s Plus",
+              "iPhone 6SPlus",
+              "6SPlus",
+              "айфон 6с плюс",
+              "айфон 6 эс плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "36fc794d-32a9-4863-bb10-adcb20ad88d1",
+            "name": "iPhone 6S",
+            "aliases": [
+              "6S",
+              "6s",
+              "iPhone 6S",
+              "айфон 6с",
+              "айфон 6 эс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "3054e5bb-cd3e-47c2-864e-aed9c347f72b",
+            "name": "iPhone 6 Plus",
+            "aliases": [
+              "6 Plus",
+              "iPhone 6Plus",
+              "6Plus",
+              "айфон 6 плюс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "410f84f9-0566-4751-8cfc-52b240cdffa4",
+            "name": "iPhone 6",
+            "aliases": [
+              "6",
+              "iPhone6",
+              "айфон 6"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "80ad646b-04cd-4904-98d5-4cd83d04cedb",
+            "name": "iPhone SE 2022",
+            "aliases": [
+              "SE 2022",
+              "SE2022",
+              "iPhone SE 3",
+              "SE3",
+              "iPhone SE третий",
+              "айфон се 2022",
+              "СЕ 2022"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "5adc2909-f77e-4e34-b1d0-b4ba9e0277c5",
+            "name": "iPhone SE 2020",
+            "aliases": [
+              "SE 2020",
+              "SE2020",
+              "iPhone SE 2",
+              "SE2",
+              "iPhone SE второй",
+              "айфон се 2020",
+              "СЕ 2020"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "320b6259-8bac-4820-a03e-e5e0a3a1bcd8",
+            "name": "iPhone SE",
+            "aliases": [
+              "SE",
+              "iPhone SE",
+              "айфон се",
+              "айфон эс и",
+              "СЕ"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "2d463dd8-c4c3-41ed-8b66-8a665dab4f49",
+            "name": "iPhone 5S",
+            "aliases": [
+              "5S",
+              "5s",
+              "iPhone 5S",
+              "айфон 5с",
+              "айфон 5 эс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "0f625bd2-9837-434e-9485-142f7a60a6fc",
+            "name": "iPhone 5C",
+            "aliases": [
+              "5C",
+              "5c",
+              "iPhone 5C",
+              "айфон 5ц",
+              "айфон 5 цэ"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "88a842c2-6f22-4ee5-ae9f-9def3215484d",
+            "name": "iPhone 5",
+            "aliases": [
+              "5",
+              "iPhone5",
+              "айфон 5"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "822f45cf-54fb-44de-b9a7-6bb5f1b232fe",
+            "name": "iPhone 4S",
+            "aliases": [
+              "4S",
+              "4s",
+              "iPhone 4S",
+              "айфон 4с",
+              "айфон 4 эс"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          },
+          {
+            "id": "22c7e143-9e31-4c83-8d94-1deca0c5517b",
+            "name": "iPhone 4",
+            "aliases": [
+              "4",
+              "iPhone4",
+              "айфон 4"
+            ],
+            "brand_id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42"
+          }
+        ],
+        "available_repair_types": [
+          {
+            "id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+            "name": "Дисплей",
+            "description": "Замена дисплея/стекла"
+          },
+          {
+            "id": "34962870-282f-43ca-a99a-32d6279b65b6",
+            "name": "Батарея",
+            "description": "Замена аккумулятора"
+          },
+          {
+            "id": "ab65d134-44cb-4d6b-9cc0-c75ffa0a607d",
+            "name": "Зарядка",
+            "description": "Ремонт разъёма"
+          },
+          {
+            "id": "16842909-4f35-47d0-b92f-e86370a7aa32",
+            "name": "Задняя крышка",
+            "description": "Замена задней крышки"
+          },
+          {
+            "id": "28f9ac2e-e792-4d4c-97ed-47556a87eb80",
+            "name": "Камера",
+            "description": "Ремонт/замена камеры"
+          },
+          {
+            "id": "1bd55721-5e70-4a8e-ae5f-2c1387e58dc9",
+            "name": "Звук",
+            "description": "Динамик/микрофон"
+          },
+          {
+            "id": "6cd94e2f-52d4-4b23-a071-7501f6f68106",
+            "name": "ПО",
+            "description": "Программные работы"
+          }
+        ],
+        "sessionId": "b3b210ab-c6c2-470a-bc6f-b11fa66dde3a",
+        "tool_type_result": {
+          "type": "ремонт",
+          "confidence": 0.9,
+          "reasoning": "Клиент хочет отремонтировать устройство, что явно указывает на необходимость ремонта."
+        }
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

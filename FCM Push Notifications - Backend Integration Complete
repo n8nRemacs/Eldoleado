@@ -1,0 +1,357 @@
+# FCM Push Notifications - Backend Integration Complete
+
+**Date:** 19.11.2025  
+**Status:** ✅ Backend Ready for Testing  
+**Prepared for:** Android Developer
+
+---
+
+## 🎯 What's Ready
+
+### 1. Database Structure
+**Table:** `operators`
+
+New fields added:
+```sql
+fcm_token TEXT NULL
+fcm_token_updated_at TIMESTAMP NULL
+```
+
+### 2. API Endpoints
+
+#### **Register FCM Token**
+**Endpoint:** `POST /webhook/android-register-fcm`
+
+**Request Body:**
+```json
+{
+  "session_token": "operator_session_token_here",
+  "fcm_token": "firebase_device_token_here"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "FCM token registered successfully",
+  "operator_id": "uuid",
+  "fcm_token_updated_at": "2025-11-19T12:32:09.192627Z"
+}
+```
+
+**Error Responses:**
+- `400`: Missing required fields
+- `401`: Invalid session token
+- `500`: Database error
+
+#### **Logout (Clears FCM Token)**
+**Endpoint:** `POST /webhook/android-logout`
+
+**Request Body:**
+```json
+{
+  "session_token": "operator_session_token_here"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+---
+
+## 📱 Push Notification Format
+
+### Notification Payload Structure
+
+```json
+{
+  "notification": {
+    "title": "🔔 Новое обращение",
+    "body": "Имя клиента - канал"
+  },
+  "data": {
+    "type": "new_appeal",
+    "appeal_id": "uuid",
+    "client_name": "string",
+    "channel": "telegram|vk|whatsapp|avito|phone|form|max"
+  }
+}
+```
+
+### Notification Types
+
+| Type | Description | When Sent |
+|------|-------------|-----------|
+| `new_appeal` | Новое обращение клиента | Когда AI обработал сообщение и готов ответ |
+| `status_update` | Изменение статуса обращения | (Planned) |
+| `message` | Новое сообщение в обращении | (Planned) |
+| `promo` | Рассылка от оператора | (Planned) |
+
+---
+
+## 🔧 Implementation Steps for Android
+
+### Step 1: Firebase Setup
+1. Add Firebase SDK to your Android project
+2. Configure `google-services.json`
+3. Add dependencies:
+```gradle
+implementation 'com.google.firebase:firebase-messaging:23.x.x'
+```
+
+### Step 2: Get FCM Token
+
+```kotlin
+FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+    if (task.isSuccessful) {
+        val token = task.result
+        // Send token to backend
+        registerFCMToken(token)
+    }
+}
+```
+
+### Step 3: Register Token with Backend
+
+**When to register:**
+- After successful login (when you have `session_token`)
+- When token refreshes (in `onNewToken` callback)
+
+**Example:**
+```kotlin
+fun registerFCMToken(fcmToken: String, sessionToken: String) {
+    val client = OkHttpClient()
+    val json = JSONObject().apply {
+        put("session_token", sessionToken)
+        put("fcm_token", fcmToken)
+    }
+    
+    val body = json.toString().toRequestBody("application/json".toMediaType())
+    val request = Request.Builder()
+        .url("https://n8n.n8nsrv.ru/webhook/android-register-fcm")
+        .post(body)
+        .build()
+    
+    client.newCall(request).enqueue(object : Callback {
+        override fun onResponse(call: Call, response: Response) {
+            if (response.isSuccessful) {
+                Log.d("FCM", "Token registered successfully")
+            }
+        }
+        override fun onFailure(call: Call, e: IOException) {
+            Log.e("FCM", "Failed to register token", e)
+        }
+    })
+}
+```
+
+### Step 4: Handle Token Refresh
+
+```kotlin
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        
+        // Get session_token from local storage
+        val sessionToken = getSessionToken()
+        if (sessionToken != null) {
+            registerFCMToken(token, sessionToken)
+        }
+    }
+}
+```
+
+### Step 5: Handle Incoming Notifications
+
+```kotlin
+override fun onMessageReceived(remoteMessage: RemoteMessage) {
+    super.onMessageReceived(remoteMessage)
+    
+    // Extract data
+    val notificationType = remoteMessage.data["type"]
+    val appealId = remoteMessage.data["appeal_id"]
+    val clientName = remoteMessage.data["client_name"]
+    val channel = remoteMessage.data["channel"]
+    
+    // Show notification
+    val notification = remoteMessage.notification
+    if (notification != null) {
+        showNotification(
+            title = notification.title ?: "Уведомление",
+            body = notification.body ?: "",
+            appealId = appealId
+        )
+    }
+}
+
+private fun showNotification(title: String, body: String, appealId: String?) {
+    val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    
+    // Create notification channel (Android 8.0+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            "appeal_notifications",
+            "Обращения клиентов",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        notificationManager.createNotificationChannel(channel)
+    }
+    
+    // Create intent to open appeal
+    val intent = Intent(this, AppealDetailActivity::class.java).apply {
+        putExtra("appeal_id", appealId)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    
+    val pendingIntent = PendingIntent.getActivity(
+        this, 0, intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    
+    // Build notification
+    val notification = NotificationCompat.Builder(this, "appeal_notifications")
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle(title)
+        .setContentText(body)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setAutoCancel(true)
+        .setContentIntent(pendingIntent)
+        .build()
+    
+    notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+}
+```
+
+### Step 6: Logout (Clear Token)
+
+**When to call:**
+- User explicitly logs out
+- Session expires
+
+```kotlin
+fun logout(sessionToken: String) {
+    val client = OkHttpClient()
+    val json = JSONObject().apply {
+        put("session_token", sessionToken)
+    }
+    
+    val body = json.toString().toRequestBody("application/json".toMediaType())
+    val request = Request.Builder()
+        .url("https://n8n.n8nsrv.ru/webhook/android-logout")
+        .post(body)
+        .build()
+    
+    client.newCall(request).execute()
+    
+    // Clear local session
+    clearSessionToken()
+}
+```
+
+---
+
+## 🧪 Testing
+
+### Test Endpoints Available
+
+**Base URL:** `https://n8n.n8nsrv.ru`
+
+### Test Sequence
+
+1. **Login** → Get `session_token`
+   ```
+   POST /webhook/android-auth
+   ```
+
+2. **Register FCM Token**
+   ```
+   POST /webhook/android-register-fcm
+   Body: {
+     "session_token": "your_token",
+     "fcm_token": "your_firebase_token"
+   }
+   ```
+
+3. **Trigger Test Notification**
+   - Create a test appeal in the system
+   - Backend will automatically send FCM push
+
+4. **Check Notification Received** in Android app
+
+5. **Logout**
+   ```
+   POST /webhook/android-logout
+   Body: {
+     "session_token": "your_token"
+   }
+   ```
+
+---
+
+## ⚠️ Important Notes
+
+### Security
+- Always use HTTPS
+- Store `session_token` securely (EncryptedSharedPreferences)
+- Never log FCM tokens in production
+
+### Error Handling
+- Handle network errors gracefully
+- Retry failed token registrations
+- Show user-friendly error messages
+
+### Best Practices
+1. Register FCM token **after** successful login
+2. Update token on refresh (`onNewToken`)
+3. Clear token on logout
+4. Handle notification tap to open relevant screen
+5. Test on both foreground and background states
+
+---
+
+## 📋 Checklist for Android Developer
+
+- [ ] Firebase SDK integrated
+- [ ] FCM token obtained on app start
+- [ ] Token registration API called after login
+- [ ] `onNewToken` callback implemented
+- [ ] Notification receiving implemented
+- [ ] Notification tap handling implemented
+- [ ] Logout clears FCM token
+- [ ] Tested in foreground
+- [ ] Tested in background
+- [ ] Tested notification tap navigation
+
+---
+
+## 🤝 Next Steps
+
+**Please confirm when ready:**
+
+1. ✅ Firebase setup complete
+2. ✅ Token registration working
+3. ✅ Notifications receiving
+4. ✅ Ready for production testing
+
+**Questions or issues?** Reply to this document with:
+- What's implemented
+- What's blocking (if any)
+- Any questions about the integration
+
+---
+
+## 📞 Contact
+
+**Backend Status:** Ready  
+**Waiting for:** Android implementation confirmation  
+**Test Environment:** https://n8n.n8nsrv.ru
+
+---
+
+**End of Report**

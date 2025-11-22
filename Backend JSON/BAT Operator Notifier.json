@@ -1,0 +1,852 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "42bff8b2-97cb-4f65-ac96-79069adf5c2a",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\n\n// Экранирование HTML\nconst esc = s => (s ?? '').toString()\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\n// Данные\nconst prop = d.propertyName || {};\nconst meta = prop.meta || {};\nconst raw = meta.raw || {};\nconst appeal = d.appeal || {};\nconst client = d.client || {};\nconst extractedData = d.extracted_data || {};\n\nconsole.log('╔═══ PREPARE NOTIFICATION ═══');\nconsole.log('Input data:', JSON.stringify(d, null, 2));\n\n// Извлекаем все нужные поля\nconst channel = d.channel ?? prop.channel ?? meta.ad_channel ?? '';\nconst clientName = client.name ?? prop.client_name ?? d.client_name ?? '';\nconst clientPhone = client.phone ?? prop.client_phone ?? '';\nconst appealId = appeal.id ?? d.appeal_id ?? '';\n\n// Данные обращения - приоритет extractedData\nconst appealType = extractedData.type ?? appeal.type ?? '';\nconst phoneModel = extractedData.model ?? appeal.phone_model ?? '';\nconst repairType = extractedData.repair_type ?? appeal.malfunction_category ?? '';\nconst partsOwner = extractedData.parts_owner ?? appeal.parts_owner ?? '';\n\n// Стоимость\nconst estimatedCost = appeal.estimated_cost ? `${appeal.estimated_cost}₽` : '';\nconst partsCost = appeal.parts_cost ? `${appeal.parts_cost}₽` : '';\n\n// Текст клиента\nconst lastText = (d.text && d.text.trim()) ? d.text : (prop.text || raw.text || '');\n\n// Берем реальный ответ AI\nconst aiResponseClean = d.response_text || d.ai_response || meta.ai_response || '';\n\nconsole.log('Extracted values:');\nconsole.log('- clientName:', clientName);\nconsole.log('- phoneModel:', phoneModel);\nconsole.log('- repairType:', repairType);\nconsole.log('- appealType:', appealType);\nconsole.log('- partsOwner:', partsOwner);\nconsole.log('- aiResponse:', aiResponseClean);\nconsole.log('- tenant_id:', d.tenant_id);\nconsole.log('- media_type:', d.media_type);\n\n// Формируем строки для полного текста\nconst fullLines = [];\nfullLines.push('<b>🔔 Новое обращение</b>\\n');\n\nif (clientName) fullLines.push(`<b>👤 Клиент:</b> ${esc(clientName)}`);\nif (clientPhone) fullLines.push(`<b>📱 Телефон:</b> ${esc(clientPhone)}`);\nif (channel) fullLines.push(`<b>💬 Канал:</b> ${esc(channel)}`);\n\nif (clientName || clientPhone || channel) fullLines.push('');\n\nconst modelIcon = phoneModel && phoneModel !== 'не определена' ? '✅' : '❌';\nconst repairIcon = repairType && repairType !== 'не определена' ? '✅' : '❌';\nconst typeIcon = appealType && appealType !== 'не определен' ? '✅' : '❌';\n\nif (phoneModel) fullLines.push(`<b>${modelIcon} Устройство:</b> ${esc(phoneModel)}`);\nif (repairType) fullLines.push(`<b>${repairIcon} Проблема:</b> ${esc(repairType)}`);\nif (partsOwner) fullLines.push(`<b>📦 Запчасть:</b> ${esc(partsOwner)}`);\nif (appealType) fullLines.push(`<b>${typeIcon} Тип:</b> ${esc(appealType)}`);\n\nif (estimatedCost) fullLines.push(`<b>💰 Стоимость ремонта:</b> ${estimatedCost}`);\nif (partsCost) fullLines.push(`<b>🔩 Стоимость запчасти:</b> ${partsCost}`);\n\nif (fullLines.length > 2) fullLines.push('');\n\nif (lastText) {\n  fullLines.push('<b>💬 Сообщение клиента:</b>');\n  fullLines.push(`\"${esc(lastText)}\"`);\n  fullLines.push('');\n}\n\nif (aiResponseClean) {\n  fullLines.push('<b>🤖 Предложенный ответ:</b>');\n  fullLines.push(`\"${esc(aiResponseClean)}\"`);\n  fullLines.push('');\n}\n\n// Формируем строки для короткого текста (без сообщений)\nconst shortLines = [];\nshortLines.push('<b>🔔 Новое обращение</b>\\n');\n\nif (clientName) shortLines.push(`<b>👤 Клиент:</b> ${esc(clientName)}`);\nif (clientPhone) shortLines.push(`<b>📱 Телефон:</b> ${esc(clientPhone)}`);\nif (channel) shortLines.push(`<b>💬 Канал:</b> ${esc(channel)}`);\n\nif (clientName || clientPhone || channel) shortLines.push('');\n\nif (phoneModel) shortLines.push(`<b>${modelIcon} Устройство:</b> ${esc(phoneModel)}`);\nif (repairType) shortLines.push(`<b>${repairIcon} Проблема:</b> ${esc(repairType)}`);\nif (partsOwner) shortLines.push(`<b>📦 Запчасть:</b> ${esc(partsOwner)}`);\nif (appealType) shortLines.push(`<b>${typeIcon} Тип:</b> ${esc(appealType)}`);\n\nif (estimatedCost) shortLines.push(`<b>💰 Стоимость ремонта:</b> ${estimatedCost}`);\nif (partsCost) shortLines.push(`<b>🔩 Стоимость запчасти:</b> ${partsCost}`);\n\nconst shortText = shortLines.join('\\n');\nconst fullText = fullLines.join('\\n') + (appealId ? `\\n<code>${appealId}</code>` : '');\n\nconsole.log('✅ Notification prepared');\n\nreturn {\n  ...d,\n  operator_notification: {\n    text: fullText,\n    short_text: shortText,\n    appeal_id: appealId || null,\n    client_id: client.id || null,\n    client_name: clientName,\n    client_phone: clientPhone,\n    channel: channel,\n    external_chat_id: d.external_chat_id,\n    media_type: d.media_type || 'text',\n    media_data: d.media_data || null,\n    parse_mode: 'HTML',\n    disable_web_page_preview: true,\n    original_response_text: aiResponseClean\n  }\n};"
+      },
+      "id": "ae0c7f15-64e3-4f05-8d69-66c98926d01f",
+      "name": "Prepare Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  telegram_id,\n  fcm_token,\n  name\nFROM operators\nWHERE is_active = true\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND (telegram_id IS NOT NULL OR fcm_token IS NOT NULL);",
+        "options": {}
+      },
+      "id": "828af8c1-b64b-4496-b0d8-717599c40a62",
+      "name": "Get Active Operators",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        256,
+        -752
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем ПОЛНЫЕ данные из Prepare Notification\nconst prepareData = $('Prepare Notification').first().json;\n\n// Получаем операторов\nconst operators = $input.all();\n\nconsole.log('=== MERGE NOTIFICATION WITH OPERATORS ===');\nconsole.log('Operators count:', operators.length);\nconsole.log('PrepareData keys:', Object.keys(prepareData));\nconsole.log('tenant_id from prepareData:', prepareData.tenant_id);\n\n// Извлекаем нужные данные для удобства\nconst notificationText = prepareData.message || prepareData.text || prepareData.telegram_message;\nconst appealId = prepareData.appeal?.id || prepareData.appeal_id;\n\n// Для каждого оператора создаём ПОЛНЫЙ пакет данных\nconst result = operators.map(operator => {\n  const operatorData = operator.json;\n  \n  return {\n    // КРИТИЧЕСКИ ВАЖНО: Сначала копируем ВСЕ данные из Prepare Notification\n    ...prepareData,\n    \n    // Затем добавляем специфичные для оператора поля\n    id: operatorData.id,\n    telegram_id: operatorData.telegram_id,\n    fcm_token: operatorData.fcm_token,\n    name: operatorData.name,\n    \n    // Убеждаемся что эти поля точно есть для Send to Operators\n    notification_text: notificationText,\n    appeal_id: appealId\n  };\n});\n\nconsole.log('✅ Merged! First item keys:', Object.keys(result[0]));\nconsole.log('tenant_id in result[0]:', result[0].tenant_id);\nconsole.log('Has operator_notification:', !!result[0].operator_notification);\nconsole.log('Has client:', !!result[0].client);\nconsole.log('Has appeal:', !!result[0].appeal);\nconsole.log('Has fcm_token:', !!result[0].fcm_token);\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -752
+      ],
+      "id": "a983f8c5-0ac0-4efb-a20e-aecaff44689d",
+      "name": "Merge Notification with Operators"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.telegram_id }}",
+        "text": "={{ $json.operator_notification.short_text }}",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "0d900ee6-297f-4d77-b1a7-477c2ff23459",
+      "name": "Send to Operators",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -976
+      ],
+      "webhookId": "db5dc1f9-a11e-439a-8c9c-cf08ee285839",
+      "credentials": {
+        "telegramApi": {
+          "id": "QIs2m5gKKih3bnhF",
+          "name": "Operator TG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH vals AS (\n  SELECT\n    '{{ $('Merge Notification with Operators').item.json.tenant_id || \"\" }}' AS tenant_id_text,\n    NULLIF('{{ $('Merge Notification with Operators').item.json.telegram_id || \"\" }}','') AS op_tg,\n    '{{ $('Merge Notification with Operators').item.json.id || \"\" }}' AS op_id_text,\n    '{{ $('Merge Notification with Operators').item.json.appeal_id || \"\" }}' AS appeal_id_text,\n    '{{ $('Merge Notification with Operators').item.json.client.id || \"\" }}' AS client_id_text,\n    '{{ $('Merge Notification with Operators').item.json.meta?.ai_response || $('Merge Notification with Operators').item.json.text || \"\" }}' AS ai_response,\n    '{{ $json.message_id || \"\" }}'  AS message_id,\n    '[]' AS missing_fields_json\n),\nvalidated AS (\n  SELECT\n    CASE WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN tenant_id_text::uuid ELSE NULL END AS tenant_id,\n    op_tg,\n    CASE WHEN op_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN op_id_text::uuid ELSE NULL END AS op_id,\n    CASE WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN appeal_id_text::uuid ELSE NULL END AS appeal_id,\n    CASE WHEN client_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN client_id_text::uuid ELSE NULL END AS client_id,\n    ai_response,\n    message_id,\n    missing_fields_json::jsonb AS missing_fields\n  FROM vals\n),\nins AS (\n  INSERT INTO operator_actions (\n    tenant_id,\n    operator_telegram_id,\n    operator_id,\n    action_type,\n    details\n  )\n  SELECT\n    v.tenant_id,\n    v.op_tg,\n    v.op_id,\n    'notify_appeal_ready',\n    jsonb_build_object(\n      'appeal_id', v.appeal_id,\n      'client_id', v.client_id,\n      'ai_response', v.ai_response,\n      'message_id', v.message_id,\n      'missing_fields', v.missing_fields,\n      'notification_sent', true\n    )\n  FROM validated v\n  WHERE v.op_tg IS NOT NULL\n    AND v.op_id IS NOT NULL\n    AND v.tenant_id IS NOT NULL\n  RETURNING *\n)\nSELECT * FROM ins;",
+        "options": {}
+      },
+      "id": "d00efada-de16-4378-915a-16618765d464",
+      "name": "Log Notification",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        2208,
+        -752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH vals AS (\n  SELECT\n    '{{ $json.tenant_id || \"\" }}' AS tenant_id_text,\n    '{{ $json.appeal?.id || \"\" }}' AS appeal_id_text\n),\nvalidated AS (\n  SELECT\n    CASE\n      WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN tenant_id_text::uuid\n      ELSE NULL\n    END AS tenant_id,\n    CASE\n      WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN appeal_id_text::uuid\n      ELSE NULL\n    END AS appeal_id\n  FROM vals\n)\nUPDATE appeals a\nSET\n  stage = 'Требуется уточнение',\n  operation_mode = 'manual',\n  updated_at = NOW()\nFROM validated v\nWHERE v.appeal_id IS NOT NULL\n  AND v.tenant_id IS NOT NULL\n  AND a.id = v.appeal_id\n  AND a.tenant_id = v.tenant_id\nRETURNING a.*;",
+        "options": {}
+      },
+      "id": "ae98c039-11ac-4d26-bc47-617cd1b88b1d",
+      "name": "Update Appeal Stage",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        2480,
+        -752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        -528
+      ],
+      "id": "8766b741-e4b4-4824-8eda-11a45d44b954",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json || {});\nconst one =\n  items.find(i => i.__base) ||\n  items.find(i => i.appeal) ||\n  items[0] || {};\nreturn one;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        -528
+      ],
+      "id": "e55a607c-64d5-4335-a36e-cb9fcd72f898",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nreturn {\n  message_id: data.result?.message_id || data.message_id,\n  appeal_id: $(\"Prepare Notification\").item.json.appeal_id || $(\"Prepare Notification\").item.json.appeal?.id,\n  operator_telegram_id: data.result?.chat?.id || data.chat?.id,\n  tenant_id: $(\"Prepare Notification\").item.json.tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        -752
+      ],
+      "id": "0d7a6d69-c24f-4ec7-9673-1a759938d1af",
+      "name": "Extract Message ID"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_actions (\n  tenant_id,\n  operator_telegram_id,\n  action_type,\n  details,\n  context_appeal_id\n)\nVALUES (\n  '{{ $json.tenant_id }}'::uuid,\n  '{{ $json.operator_telegram_id }}',\n  'notify_appeal_ready',\n  jsonb_build_object(\n    'appeal_id', '{{ $json.appeal_id }}',\n    'message_id', {{ $json.message_id }},\n    'ai_response', '{{ $(\"Merge Notification with Operators\").item.json.operator_notification.original_response_text || \"\" }}'\n  ),\n  '{{ $json.appeal_id }}'::uuid\n)\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1936,
+        -752
+      ],
+      "id": "b1a3ec6a-d105-47df-b2ba-762840d7cdde",
+      "name": "Log Operator Action",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_message_appeal_map (\n  tenant_id,\n  operator_telegram_id,\n  message_id,\n  appeal_id\n)\nVALUES (\n  '{{ $json.tenant_id }}'::uuid,\n  '{{ $json.operator_telegram_id }}',\n  {{ $json.message_id }},\n  '{{ $json.appeal_id }}'::uuid\n)\nON CONFLICT (tenant_id, operator_telegram_id, message_id) \nDO UPDATE SET appeal_id = EXCLUDED.appeal_id\nRETURNING tenant_id, operator_telegram_id, message_id, appeal_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1632,
+        -752
+      ],
+      "id": "6fadef4f-dc4e-49c0-8181-4eb57da4d6d7",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"operators_notified\": $('Get Active Operators').all().length } }}",
+        "options": {}
+      },
+      "id": "952b9c53-0b04-4fcc-821d-d267f1b27b8f",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2848,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Ldeg4SOqteYuYZbx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Ldeg4SOqteYuYZbx",
+          "cachedResultName": "BAT_FCM_Sender"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        -752
+      ],
+      "id": "ee616448-8ee2-47c9-9f9a-2da4df6d9211",
+      "name": "Call 'BAT_FCM_Sender'"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  tenant_id: $json.tenant_id,\n  notification_type: 'new_appeal',\n  appeal_id: $json.appeal_id,\n  title: '🔔 Новое обращение',\n  body: `${$json.client?.name || 'Клиент'} - ${$json.operator_notification?.channel || 'канал'}`,\n  data: {\n    client_name: $json.client?.name || '',\n    channel: $json.operator_notification?.channel || ''\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -752
+      ],
+      "id": "01b1f5bf-c648-40ac-86df-ff38fdad1413",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification": {
+      "main": [
+        [
+          {
+            "node": "Get Active Operators",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Active Operators": {
+      "main": [
+        [
+          {
+            "node": "Merge Notification with Operators",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Notification with Operators": {
+      "main": [
+        [
+          {
+            "node": "Send to Operators",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Operators": {
+      "main": [
+        []
+      ]
+    },
+    "Log Notification": {
+      "main": [
+        [
+          {
+            "node": "Update Appeal Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Appeal Stage": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message ID": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Operator Action": {
+      "main": [
+        [
+          {
+            "node": "Log Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Log Operator Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'BAT_FCM_Sender'": {
+      "main": [
+        [
+          {
+            "node": "Extract Message ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Call 'BAT_FCM_Sender'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "channel": "telegram",
+        "external_user_id": "1132511247",
+        "external_chat_id": "1132511247",
+        "text": "Мне нужен ремонт телефона\nЗамен экрана от потека",
+        "timestamp": "2025-11-15T09:21:17.000Z",
+        "client_phone": null,
+        "client_name": "РемАкс MD",
+        "client_email": null,
+        "media": {
+          "has_voice": false,
+          "voice_transcribed_text": null,
+          "has_images": false,
+          "images": [],
+          "has_video": false,
+          "videos": [],
+          "has_document": false,
+          "documents": []
+        },
+        "meta": {
+          "external_message_id": "1091",
+          "ad_channel": "telegram",
+          "ad_id": null,
+          "original_media_type": "text",
+          "raw": {
+            "message_id": 1091,
+            "from": {
+              "id": 1132511247,
+              "is_bot": false,
+              "first_name": "РемАкс MD",
+              "username": "RemacsMD",
+              "language_code": "ru",
+              "is_premium": true
+            },
+            "chat": {
+              "id": 1132511247,
+              "first_name": "РемАкс MD",
+              "username": "RemacsMD",
+              "type": "private"
+            },
+            "date": 1763198477,
+            "text": "Мне нужен ремонт телефона\nЗамен экрана от потека"
+          },
+          "username": "RemacsMD",
+          "batched": true,
+          "batch_size": 1,
+          "batch_wait_time": 20,
+          "original_messages": [
+            {
+              "timestamp": "2025-11-15T09:21:17.000Z",
+              "type": "text",
+              "text_length": 48
+            }
+          ],
+          "combined_at": "2025-11-15T09:21:39.982Z"
+        },
+        "prefilled_data": {
+          "model": null,
+          "parts_owner": null
+        },
+        "bot_token": "8411509872:AAFmR4xk6kJFBgKsYdXRJAULhxHWe1McJQ8",
+        "external_message_id": "1091",
+        "tenant_id": "a0000000-0000-0000-0000-000000000001",
+        "tenant_name": "Default Tenant",
+        "tenant_config": {
+          "token": "8411509872:AAFmR4xk6kJFBgKsYdXRJAULhxHWe1McJQ8"
+        },
+        "success": true,
+        "client": {
+          "id": "94f3bf7c-f2f3-4dc1-bdfb-e9d9d7a8ba93",
+          "phone": null,
+          "name": "РемАкс MD",
+          "telegram_id": "1132511247",
+          "vk_id": null,
+          "whatsapp_id": null,
+          "avito_id": null,
+          "was_merged": false
+        },
+        "client_found": true,
+        "appeal": {
+          "id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+          "client_id": "94f3bf7c-f2f3-4dc1-bdfb-e9d9d7a8ba93",
+          "phone_brand": null,
+          "phone_model": null,
+          "malfunction_category": null,
+          "malfunction_type": null,
+          "problem_description": null,
+          "appeal_status": null,
+          "stage": "Первичный контакт",
+          "ad_channel": null,
+          "ad_id": "null",
+          "estimated_cost": null,
+          "estimated_time": null,
+          "appointment_datetime": null,
+          "master_id": null,
+          "qr_code": null,
+          "livesklad_order_id": null,
+          "synced_with_livesklad": false,
+          "synced_at": null,
+          "visited_at": null,
+          "completed_at": null,
+          "notified_2h_after_contact": false,
+          "notified_1day_before": false,
+          "notified_2h_before": false,
+          "notified_after_completion": false,
+          "notified_review_request": false,
+          "notified_warranty_reminder": false,
+          "created_at": "2025-11-15T09:21:40.489Z",
+          "updated_at": "2025-11-15T09:21:55.139Z",
+          "device_type_id": null,
+          "brand_id": null,
+          "model_id": null,
+          "deal_type_id": null,
+          "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+          "ad_channel_id": "c5c20ca5-2d6e-42cf-8a5e-cec4a6a549a5",
+          "operation_mode": "assist",
+          "notified_": false,
+          "type": "ремонт",
+          "type_confidence": "0.00",
+          "type_identified": false,
+          "type_reasoning": null,
+          "pending_operator_approval": false,
+          "draft_response": null,
+          "routing_history": [
+            {
+              "route": "partial",
+              "action": "ask_model",
+              "reasoning": "Данные извлечены принудительными вызовами tools",
+              "timestamp": "2025-11-15T09:21:55.117Z"
+            }
+          ],
+          "parts_owner": "наша",
+          "client_parts": false,
+          "tenant_id": "a0000000-0000-0000-0000-000000000001",
+          "location_id": null
+        },
+        "appeal_id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+        "conversation_history": "[09:21] Клиент: Мне нужен ремонт телефона\nЗамен экрана от потека\n\n[НОВОЕ] Клиент: Мне нужен ремонт телефона\nЗамен экрана от потека",
+        "current_state": {
+          "type": null,
+          "type_identified": false,
+          "brand": null,
+          "brand_id": null,
+          "model": null,
+          "model_id": null,
+          "repair_type": null,
+          "repair_type_id": null,
+          "parts_owner": null,
+          "estimated_cost": null,
+          "stage": "Первичный контакт"
+        },
+        "completeness": {
+          "has_type": false,
+          "has_brand": false,
+          "has_model": false,
+          "has_repair_type": false,
+          "has_parts_owner": false,
+          "has_cost": false
+        },
+        "missing_fields": "модель",
+        "brands_list": "- Apple",
+        "models_list": "",
+        "repair_types_list": "- Дисплей\n- Батарея\n- Зарядка\n- Задняя крышка\n- Камера\n- Звук\n- ПО",
+        "available_brands": [
+          {
+            "id": "b808bcda-1db3-46ca-8f2b-9885fe4c0e42",
+            "name": "Apple",
+            "normalized_name": "Apple"
+          }
+        ],
+        "available_models": [],
+        "available_repair_types": [
+          {
+            "id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+            "name": "Дисплей",
+            "description": "Замена дисплея/стекла"
+          },
+          {
+            "id": "34962870-282f-43ca-a99a-32d6279b65b6",
+            "name": "Батарея",
+            "description": "Замена аккумулятора"
+          },
+          {
+            "id": "ab65d134-44cb-4d6b-9cc0-c75ffa0a607d",
+            "name": "Зарядка",
+            "description": "Ремонт разъёма"
+          },
+          {
+            "id": "16842909-4f35-47d0-b92f-e86370a7aa32",
+            "name": "Задняя крышка",
+            "description": "Замена задней крышки"
+          },
+          {
+            "id": "28f9ac2e-e792-4d4c-97ed-47556a87eb80",
+            "name": "Камера",
+            "description": "Ремонт/замена камеры"
+          },
+          {
+            "id": "1bd55721-5e70-4a8e-ae5f-2c1387e58dc9",
+            "name": "Звук",
+            "description": "Динамик/микрофон"
+          },
+          {
+            "id": "6cd94e2f-52d4-4b23-a071-7501f6f68106",
+            "name": "ПО",
+            "description": "Программные работы"
+          }
+        ],
+        "sessionId": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+        "tool_type_result": {
+          "type": "ремонт",
+          "confidence": 0.9,
+          "reasoning": "Клиент хочет отремонтировать iPhone, что явно указывает на необходимость починки устройства."
+        },
+        "tool_model_result": {
+          "brand": null,
+          "brand_id": null,
+          "model": null,
+          "model_id": null,
+          "found": false,
+          "message": "Модель не определена. Попроси клиента уточнить."
+        },
+        "tool_repair_result": {
+          "repair_type": "Дисплей",
+          "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+          "found": true,
+          "confidence": 0.95,
+          "reasoning": "Клиент упомянул 'экран'"
+        },
+        "tool_parts_result": {
+          "parts_owner": "наша",
+          "confidence": 1,
+          "reasoning": "В запросе не упоминается, что клиент принесет свою деталь, поэтому по умолчанию используется запчасть сервисного центра."
+        },
+        "extracted_data": {
+          "type": "ремонт",
+          "model": null,
+          "model_id": null,
+          "brand_id": null,
+          "repair_type": "Дисплей",
+          "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+          "parts_owner": "наша"
+        },
+        "next_action": "ask_model",
+        "chatInput": "Данные об обращении клиента (уже извлечены):\n- Тип: ремонт\n- Модель: не определена\n- Проблема: Дисплей\n- Запчасть: наша\n\nЧто не хватает: модель\n\nСообщение клиента: \"Мне нужен ремонт телефона\nЗамен экрана от потека\"\n\n\n\nТвоя задача: Сформировать дружелюбный ответ клиенту.",
+        "is_first_message": false,
+        "should_greet": false,
+        "response_text": "Здравствуйте! У нас есть информация о замене дисплея, но не хватает модели вашего телефона. Можете, пожалуйста, уточнить, какая модель у вас?",
+        "reasoning": "Данные извлечены принудительными вызовами tools",
+        "parse_error": false,
+        "should_call_approver": true,
+        "approval_data": {
+          "channel": "telegram",
+          "external_chat_id": "1132511247",
+          "appeal_id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+          "client_name": "РемАкс MD",
+          "response_text": "Здравствуйте! У нас есть информация о замене дисплея, но не хватает модели вашего телефона. Можете, пожалуйста, уточнить, какая модель у вас?",
+          "reasoning": "Данные извлечены принудительными вызовами tools",
+          "next_action": "ask_model",
+          "appeal": {
+            "id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+            "client_id": "94f3bf7c-f2f3-4dc1-bdfb-e9d9d7a8ba93",
+            "phone_brand": null,
+            "phone_model": null,
+            "malfunction_category": null,
+            "malfunction_type": null,
+            "problem_description": null,
+            "appeal_status": null,
+            "stage": "Первичный контакт",
+            "ad_channel": null,
+            "ad_id": "null",
+            "estimated_cost": null,
+            "estimated_time": null,
+            "appointment_datetime": null,
+            "master_id": null,
+            "qr_code": null,
+            "livesklad_order_id": null,
+            "synced_with_livesklad": false,
+            "synced_at": null,
+            "visited_at": null,
+            "completed_at": null,
+            "notified_2h_after_contact": false,
+            "notified_1day_before": false,
+            "notified_2h_before": false,
+            "notified_after_completion": false,
+            "notified_review_request": false,
+            "notified_warranty_reminder": false,
+            "created_at": "2025-11-15T09:21:40.489Z",
+            "updated_at": "2025-11-15T09:21:55.139Z",
+            "device_type_id": null,
+            "brand_id": null,
+            "model_id": null,
+            "deal_type_id": null,
+            "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+            "ad_channel_id": "c5c20ca5-2d6e-42cf-8a5e-cec4a6a549a5",
+            "operation_mode": "assist",
+            "notified_": false,
+            "type": "ремонт",
+            "type_confidence": "0.00",
+            "type_identified": false,
+            "type_reasoning": null,
+            "pending_operator_approval": false,
+            "draft_response": null,
+            "routing_history": [
+              {
+                "route": "partial",
+                "action": "ask_model",
+                "reasoning": "Данные извлечены принудительными вызовами tools",
+                "timestamp": "2025-11-15T09:21:55.117Z"
+              }
+            ],
+            "parts_owner": "наша",
+            "client_parts": false,
+            "tenant_id": "a0000000-0000-0000-0000-000000000001",
+            "location_id": null
+          },
+          "client": {
+            "id": "94f3bf7c-f2f3-4dc1-bdfb-e9d9d7a8ba93",
+            "phone": null,
+            "name": "РемАкс MD",
+            "telegram_id": "1132511247",
+            "vk_id": null,
+            "whatsapp_id": null,
+            "avito_id": null,
+            "was_merged": false
+          },
+          "extracted_data": {
+            "type": "ремонт",
+            "model": null,
+            "model_id": null,
+            "brand_id": null,
+            "repair_type": "Дисплей",
+            "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+            "parts_owner": "наша"
+          },
+          "completeness": {
+            "missing": [
+              "модель"
+            ]
+          },
+          "propertyName": {
+            "channel": "telegram",
+            "external_chat_id": "1132511247",
+            "text": "Здравствуйте! У нас есть информация о замене дисплея, но не хватает модели вашего телефона. Можете, пожалуйста, уточнить, какая модель у вас?",
+            "meta": {
+              "ai_response": "Здравствуйте! У нас есть информация о замене дисплея, но не хватает модели вашего телефона. Можете, пожалуйста, уточнить, какая модель у вас?",
+              "reasoning": "Данные извлечены принудительными вызовами tools",
+              "appeal": {
+                "id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
+                "client_id": "94f3bf7c-f2f3-4dc1-bdfb-e9d9d7a8ba93",
+                "phone_brand": null,
+                "phone_model": null,
+                "malfunction_category": null,
+                "malfunction_type": null,
+                "problem_description": null,
+                "appeal_status": null,
+                "stage": "Первичный контакт",
+                "ad_channel": null,
+                "ad_id": "null",
+                "estimated_cost": null,
+                "estimated_time": null,
+                "appointment_datetime": null,
+                "master_id": null,
+                "qr_code": null,
+                "livesklad_order_id": null,
+                "synced_with_livesklad": false,
+                "synced_at": null,
+                "visited_at": null,
+                "completed_at": null,
+                "notified_2h_after_contact": false,
+                "notified_1day_before": false,
+                "notified_2h_before": false,
+                "notified_after_completion": false,
+                "notified_review_request": false,
+                "notified_warranty_reminder": false,
+                "created_at": "2025-11-15T09:21:40.489Z",
+                "updated_at": "2025-11-15T09:21:55.139Z",
+                "device_type_id": null,
+                "brand_id": null,
+                "model_id": null,
+                "deal_type_id": null,
+                "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+                "ad_channel_id": "c5c20ca5-2d6e-42cf-8a5e-cec4a6a549a5",
+                "operation_mode": "assist",
+                "notified_": false,
+                "type": "ремонт",
+                "type_confidence": "0.00",
+                "type_identified": false,
+                "type_reasoning": null,
+                "pending_operator_approval": false,
+                "draft_response": null,
+                "routing_history": [
+                  {
+                    "route": "partial",
+                    "action": "ask_model",
+                    "reasoning": "Данные извлечены принудительными вызовами tools",
+                    "timestamp": "2025-11-15T09:21:55.117Z"
+                  }
+                ],
+                "parts_owner": "наша",
+                "client_parts": false,
+                "tenant_id": "a0000000-0000-0000-0000-000000000001",
+                "location_id": null
+              },
+              "extracted_data": {
+                "type": "ремонт",
+                "model": null,
+                "model_id": null,
+                "brand_id": null,
+                "repair_type": "Дисплей",
+                "repair_type_id": "9e1fa155-7982-42f3-9a2b-c625c0e899aa",
+                "parts_owner": "наша"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

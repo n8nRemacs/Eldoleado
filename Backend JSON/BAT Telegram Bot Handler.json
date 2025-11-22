@@ -1,0 +1,347 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Parse Telegram event and extract appeal_id from reply_to_message\nconst src = $input.first().json;\nconst raw = src.meta?.raw || {};\n\nconst channel = src.channel || src.meta?.ad_channel || null;\nconst external_chat_id = src.external_chat_id || raw.chat?.id?.toString() || null;\nconst external_user_id = src.external_user_id || raw.from?.id?.toString() || null;\nconst external_message_id = src.external_message_id || src.meta?.external_message_id || raw.message_id?.toString() || null;\nconst text = (typeof src.text === 'string' && src.text.trim().length) ? src.text : (raw.text || '');\nconst timestamp = src.timestamp || (raw.date ? new Date(raw.date * 1000).toISOString() : null);\n\n// Extract appeal_id from reply_to_message\nlet appeal_id = null;\nlet client_telegram_id = null;\n\nif (src.message?.reply_to_message) {\n  const replyText = src.message.reply_to_message.text || '';\n  \n  // Parse appeal_id from notification text\n  // Format: \"🔔 Новое обращение #XXXXX-XXXX-XXXX\"\n  const appealMatch = replyText.match(/#([0-9a-f-]{36})/i);\n  if (appealMatch) {\n    appeal_id = appealMatch[1];\n  }\n  \n  // Try to extract from callback_data if exists\n  if (!appeal_id && src.message.reply_to_message.reply_markup) {\n    const buttons = src.message.reply_to_message.reply_markup.inline_keyboard || [];\n    for (const row of buttons) {\n      for (const button of row) {\n        if (button.callback_data) {\n          try {\n            const data = JSON.parse(button.callback_data);\n            if (data.appeal_id) {\n              appeal_id = data.appeal_id;\n              break;\n            }\n          } catch (e) {\n            // Not JSON, try regex\n            const match = button.callback_data.match(/appeal_id[\":]\\s*[\"']?([0-9a-f-]{36})/i);\n            if (match) {\n              appeal_id = match[1];\n              break;\n            }\n          }\n        }\n      }\n      if (appeal_id) break;\n    }\n  }\n}\n\nconsole.log('=== PARSE TELEGRAM EVENT ===');\nconsole.log('Appeal ID extracted:', appeal_id);\nconsole.log('Text:', text);\n\nreturn {\n  ...src,\n  channel,\n  external_chat_id,\n  external_user_id,\n  external_message_id,\n  text,\n  timestamp,\n  appeal_id,\n  client_telegram_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        800
+      ],
+      "id": "88ac8541-7474-4e16-934e-89e433a284a1",
+      "name": "Parse Telegram Event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn {\n  ...data,\n  channel: 'telegram',\n  bot_token: '8411509872:AAFmR4xk6kJFBgKsYdXRJAULhxHWe1McJQ8'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        800
+      ],
+      "id": "57ff30b5-2f0f-4b96-ad6a-428147f87780",
+      "name": "Add Channel Info"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nlet senderTelegramId = null;\nlet senderName = null;\n\nif (data.callback_query) {\n  senderTelegramId = data.callback_query.from.id.toString();\n  senderName = data.callback_query.from.first_name || data.callback_query.from.username || 'Unknown';\n} else if (data.edited_message) {\n  senderTelegramId = data.edited_message.from.id.toString();\n  senderName = data.edited_message.from.first_name || data.edited_message.from.username || 'Unknown';\n} else if (data.message) {\n  senderTelegramId = data.message.from.id.toString();\n  senderName = data.message.from.first_name || data.message.from.username || 'Unknown';\n}\n\nconsole.log('=== TELEGRAM BOT HANDLER ===');\nconsole.log('Sender Telegram ID:', senderTelegramId);\nconsole.log('Sender Name:', senderName);\nconsole.log('Event type:', data.callback_query ? 'callback_query' : data.edited_message ? 'edited_message' : 'message');\n\nreturn {\n  ...data,\n  sender_telegram_id: senderTelegramId,\n  sender_name: senderName\n};"
+      },
+      "id": "3f6d5367-2641-4974-8988-156f5ca653f7",
+      "name": "Extract Sender Info1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "operator-1",
+              "leftValue": "={{ $json.sender_telegram_id }}",
+              "rightValue": "=1132511247",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "operator-2",
+              "leftValue": "={{ $json.sender_telegram_id }}",
+              "rightValue": "OPERATOR_TELEGRAM_ID_2",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "c1359d16-04a3-4eaf-b231-3cb293649ed2",
+      "name": "Is from Operator?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        464,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "QLpLHjX6YFsYUl4M",
+        "options": {}
+      },
+      "id": "94b5b273-b9e1-4391-ae7f-a6e3316f4af4",
+      "name": "Call Response Handler (Part 1)1",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        992,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Логируем успешную обработку события оператора\nconst data = $input.first().json;\n\nconsole.log('=== OPERATOR EVENT PROCESSED ===');\nconsole.log('Result:', JSON.stringify(data, null, 2));\n\nreturn {\n  success: true,\n  processed_by: 'Response Handler',\n  sender: $('Extract Sender Info1').first().json.sender_name,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "79b513ff-fb09-4e69-8267-d6dae56ad95a",
+      "name": "Log Operator Result1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Обработка сообщений от клиентов (не операторов)\nconst data = $input.first().json;\nconst senderInfo = $('Extract Sender Info1').first().json;\n\nconsole.log('=== NOT FROM OPERATOR ===');\nconsole.log('Sender:', senderInfo.sender_name, '(' + senderInfo.sender_telegram_id + ')');\nconsole.log('This should be routed to Client Handler');\n\n// В будущем здесь можно вызвать обработчик клиентских сообщений\n// Например: BAT IN Telegram\n\nreturn {\n  success: false,\n  reason: 'not_from_operator',\n  sender_telegram_id: senderInfo.sender_telegram_id,\n  sender_name: senderInfo.sender_name,\n  message: 'This event is from a client, not an operator. Should be handled by client message handler.',\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "8a988d7d-e9a8-4fb4-b8bb-7d168dd85348",
+      "name": "Handle Client Message1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "edited_message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1136,
+        800
+      ],
+      "id": "6c4f1ffc-e0d9-49a0-9576-f1031247ff2f",
+      "name": "Telegram Trigger1",
+      "webhookId": "f4981853-cb34-4926-8123-915d550b2315",
+      "credentials": {
+        "telegramApi": {
+          "id": "QIs2m5gKKih3bnhF",
+          "name": "Operator TG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query !== undefined }}",
+                    "rightValue": "undefined",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "ec4db797-fb38-4acc-ad70-e778933f5be0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e7526128-d0b6-446c-b98f-70455b53d072",
+                    "leftValue": "={{ $json.edited_message !== undefined }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Edited"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5f720595-53d9-46fc-8dd7-48e76af98be6",
+                    "leftValue": "={{ $json.message !== undefined }}",
+                    "rightValue": "Output 2 (message) → Is from Operator?",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        0,
+        784
+      ],
+      "id": "102382ed-e1db-430f-be1c-277c6e2c810d",
+      "name": "Event Type Router1"
+    }
+  ],
+  "connections": {
+    "Parse Telegram Event": {
+      "main": [
+        [
+          {
+            "node": "Extract Sender Info1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Channel Info": {
+      "main": [
+        [
+          {
+            "node": "Parse Telegram Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Sender Info1": {
+      "main": [
+        [
+          {
+            "node": "Event Type Router1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is from Operator?1": {
+      "main": [
+        [
+          {
+            "node": "Call Response Handler (Part 1)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Client Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Response Handler (Part 1)1": {
+      "main": [
+        [
+          {
+            "node": "Log Operator Result1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Add Channel Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Type Router1": {
+      "main": [
+        [
+          {
+            "node": "Is from Operator?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is from Operator?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is from Operator?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

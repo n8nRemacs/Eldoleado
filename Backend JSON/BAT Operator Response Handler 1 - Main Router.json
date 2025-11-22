@@ -1,0 +1,437 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        -64
+      ],
+      "id": "a5e8eba6-fdc4-41f4-9994-a32a88528b89",
+      "name": "When Called from Telegram Bot"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('=== INCOMING ===');\n\nlet parsed = {};\n\nif (data.callback_query) {\n  const cb = data.callback_query;\n  const [action, appealId] = cb.data.split(':');\n  parsed = {\n    event_type: 'callback',\n    action: action,\n    appeal_id: appealId,\n    operator_telegram_id: cb.from.id.toString(),\n    operator_name: cb.from.first_name || 'Оператор',\n    callback_query_id: cb.id,\n    message_id: cb.message.message_id,\n    chat_id: cb.message.chat.id,\n    tenant_id: data.tenant_id || 'a0000000-0000-0000-0000-000000000001'\n  };\n} else if (data.message || data.edited_message) {\n  const msg = data.message || data.edited_message;\n  let mediaType = 'text';\n  let mediaData = {};\n  \n  if (msg.voice) {\n    mediaType = 'voice';\n    mediaData = { file_id: msg.voice.file_id, duration: msg.voice.duration };\n  } else if (msg.photo) {\n    mediaType = 'photo';\n    const photo = msg.photo[msg.photo.length - 1];\n    mediaData = { file_id: photo.file_id };\n  } else if (msg.video) {\n    mediaType = 'video';\n    mediaData = { file_id: msg.video.file_id };\n  }\n  \n  const text = msg.text || msg.caption || '';\n  const urlPattern = /https?:\\/\\/[^\\s]+/;\n  const isUrl = urlPattern.test(text) && !msg.photo && !msg.video && !msg.voice;\n  \n  let appealId = null;\n  if (msg.reply_to_message?.text) {\n    const match = msg.reply_to_message.text.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);\n    if (match) appealId = match[0];\n  }\n  \n  parsed = {\n    event_type: 'message',\n    media_type: isUrl ? 'url' : mediaType,\n    text: text,\n    caption: msg.caption || null,\n    media_data: mediaData,\n    operator_telegram_id: msg.from.id.toString(),\n    operator_name: msg.from.first_name || 'Оператор',\n    message_id: msg.message_id,\n    chat_id: msg.chat.id,\n    appeal_id: appealId,\n    tenant_id: data.tenant_id || 'a0000000-0000-0000-0000-000000000001'\n  };\n}\n\nreturn parsed;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "dd733316-27ee-4a6e-a9dc-513390a70680",
+      "name": "Parse Data"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.*,\n  c.name as client_name,\n  c.telegram_id,\n  c.vk_id,\n  c.whatsapp_id,\n  b.name as brand_name,\n  m.name as model_name,\n  rt.name as repair_type_name,\n  (\n    SELECT message_text \n    FROM messages_history \n    WHERE appeal_id = a.id \n      AND tenant_id = a.tenant_id\n      AND message_type = 'client'\n    ORDER BY created_at DESC \n    LIMIT 1\n  ) as last_client_message\nFROM appeals a\nLEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN repair_types rt ON rt.id = a.repair_type_id\nWHERE a.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND a.id = '{{ $json.appeal_id }}'::uuid\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "25197d11-c095-416e-b5ed-d2a67f730bd0",
+      "name": "Load Context",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $json;\nconst operator = $('Parse Data').first().json;\n\nreturn {\n  ...operator,\n  client_id: context.client_id,\n  external_chat_id: context.telegram_id || context.vk_id || context.whatsapp_id,\n  context: context\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "454d6f4c-256f-4e7d-a73b-506ea1fc4bd6",
+      "name": "Merge Context"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cb111111-1111-1111-1111-111111111111",
+              "leftValue": "={{ $json.event_type }}",
+              "rightValue": "callback",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -64
+      ],
+      "id": "20bd9db9-1870-49b0-8b42-e644a4dfd5d6",
+      "name": "Is Callback?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  COALESCE(\n    (SELECT final_text FROM agent_training_samples \n     WHERE tenant_id = '{{ $json.tenant_id }}'::uuid \n       AND appeal_id = '{{ $json.appeal_id }}'::uuid \n     ORDER BY created_at DESC LIMIT 1),\n    (SELECT details->>'ai_response' FROM operator_actions \n     WHERE tenant_id = '{{ $json.tenant_id }}'::uuid \n       AND details->>'appeal_id' = '{{ $json.appeal_id }}' \n       AND action_type = 'notify_appeal_ready' \n     ORDER BY created_at DESC LIMIT 1),\n    'Ответ не найден'\n  ) as response_to_send;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        608,
+        -160
+      ],
+      "id": "21ce61ff-cb9f-4819-9493-0f305f61ab75",
+      "name": "Load Latest Response",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseData = $json;\nconst contextData = $('Merge Context').first().json;\n\nreturn {\n  tenant_id: contextData.tenant_id,\n  appeal_id: contextData.appeal_id,\n  client_id: contextData.client_id,\n  operator_telegram_id: contextData.operator_telegram_id,\n  operator_name: contextData.operator_name,\n  response_to_send: responseData.response_to_send,\n  operator_action: 'approved',\n  channel: contextData.context.ad_channel_id,\n  external_chat_id: contextData.external_chat_id,\n  callback_query_id: contextData.callback_query_id,\n  chat_id: contextData.chat_id,\n  message_id: contextData.message_id,\n  media_type: 'text',\n  media_data: null\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -160
+      ],
+      "id": "942aeca9-5412-4491-a3ac-080377f4dcfd",
+      "name": "Prepare Callback Data"
+    },
+    {
+      "parameters": {
+        "workflowId": "pWb4n4ko3L8NvtXW",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -432
+      ],
+      "id": "aa3a03f6-84f0-4cce-8c8b-2dcdb0e18dd8",
+      "name": "Handler Send Response",
+      "notes": "Замените SEND_RESPONSE_WORKFLOW_ID на реальный ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "pv111111-1111-1111-1111-111111111111",
+              "leftValue": "={{ $json.media_type }}",
+              "rightValue": "photo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "pv222222-2222-2222-2222-222222222222",
+              "leftValue": "={{ $json.media_type }}",
+              "rightValue": "video",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "pv333333-3333-3333-3333-333333333333",
+              "leftValue": "={{ $json.media_type }}",
+              "rightValue": "url",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        608,
+        48
+      ],
+      "id": "b1e84b27-a5ea-46a3-b985-7c47035f04c8",
+      "name": "Is Photo/Video/URL?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cp111111-1111-1111-1111-111111111111",
+              "leftValue": "={{ $json.caption || $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -16
+      ],
+      "id": "0fced696-cb9c-4f5d-87e8-1f1f9cd17129",
+      "name": "Has Caption?"
+    },
+    {
+      "parameters": {
+        "workflowId": "JTmnrItQ7FnggqPU",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        128
+      ],
+      "id": "25ef031b-fc6c-44b9-bc93-21632974b290",
+      "name": "Handler 3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const msgData = $('Merge Context').first().json;\n\nreturn {\n  tenant_id: msgData.tenant_id,\n  appeal_id: msgData.appeal_id,\n  client_id: msgData.client_id,\n  operator_telegram_id: msgData.operator_telegram_id,\n  operator_name: msgData.operator_name,\n  response_to_send: msgData.text || '',\n  operator_action: 'direct_media',\n  channel: msgData.context.ad_channel,\n  external_chat_id: msgData.external_chat_id,\n  media_type: msgData.media_type,\n  media_data: msgData.media_data,\n  chat_id: msgData.chat_id,\n  message_id: msgData.message_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        -176
+      ],
+      "id": "e1814efa-2f2a-4c43-ba0a-9aa2ca1fecf4",
+      "name": "Prepare Direct Send"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        -256
+      ],
+      "id": "c17c578f-a6b2-4597-975f-7ac13ab9789d",
+      "name": "Respond"
+    }
+  ],
+  "connections": {
+    "When Called from Telegram Bot": {
+      "main": [
+        [
+          {
+            "node": "Parse Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Data": {
+      "main": [
+        [
+          {
+            "node": "Load Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Context": {
+      "main": [
+        [
+          {
+            "node": "Merge Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Context": {
+      "main": [
+        [
+          {
+            "node": "Is Callback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Callback?": {
+      "main": [
+        [
+          {
+            "node": "Load Latest Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Photo/Video/URL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Latest Response": {
+      "main": [
+        [
+          {
+            "node": "Prepare Callback Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Callback Data": {
+      "main": [
+        [
+          {
+            "node": "Handler Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handler Send Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Photo/Video/URL?": {
+      "main": [
+        [
+          {
+            "node": "Has Caption?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handler 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Caption?": {
+      "main": [
+        [
+          {
+            "node": "Handler 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Direct Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handler 3": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Direct Send": {
+      "main": [
+        [
+          {
+            "node": "Handler Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

@@ -1,0 +1,236 @@
+# Android - Logout Flow Issue
+
+**Date:** 19.11.2025  
+**Priority:** HIGH  
+**Status:** ⚠️ Requires Fix
+
+---
+
+## 🐛 Problem Description
+
+After calling `/webhook/android-logout`, the app still uses the old `session_token` from local cache, even though the backend has successfully deleted it from the database.
+
+**Current Behavior:**
+1. User presses logout
+2. App calls `POST /webhook/android-logout` 
+3. Backend deletes token from DB ✅
+4. App returns `{success: true}` ✅
+5. **BUT:** App still shows as logged in and continues using old token ❌
+
+**Root Cause:**
+The app is not clearing the locally cached `session_token` after successful logout.
+
+---
+
+## ✅ Expected Behavior
+
+1. User presses logout
+2. App calls `POST /webhook/android-logout` with current token
+3. Backend responds `{success: true}`
+4. **App must:**
+   - Clear `session_token` from SharedPreferences/DataStore
+   - Clear `fcm_token` from local cache
+   - Clear any user session data
+   - Redirect to login screen
+   - Prevent auto-login on next app start
+
+---
+
+## 🔧 Required Fix
+
+### Current Implementation (Assumed)
+
+```kotlin
+fun logout(sessionToken: String) {
+    val client = OkHttpClient()
+    val json = JSONObject().apply {
+        put("session_token", sessionToken)
+    }
+    
+    val body = json.toString().toRequestBody("application/json".toMediaType())
+    val request = Request.Builder()
+        .url("https://n8n.n8nsrv.ru/webhook/android-logout")
+        .addHeader("Authorization", "Bearer $sessionToken")
+        .post(body)
+        .build()
+    
+    client.newCall(request).execute()
+    
+    // ❌ MISSING: Clear local session
+}
+```
+
+### Required Implementation
+
+```kotlin
+fun logout() {
+    val sessionToken = getSessionToken() ?: return
+    
+    // Call backend
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://n8n.n8nsrv.ru/webhook/android-logout")
+        .addHeader("Authorization", "Bearer $sessionToken")
+        .post("".toRequestBody())
+        .build()
+    
+    try {
+        val response = client.newCall(request).execute()
+        
+        if (response.isSuccessful) {
+            // ✅ Clear local data regardless of backend response
+            clearLocalSession()
+            
+            // ✅ Navigate to login
+            navigateToLogin()
+        } else {
+            // ✅ Even if backend fails, clear local data
+            clearLocalSession()
+            navigateToLogin()
+        }
+    } catch (e: Exception) {
+        Log.e("Logout", "Failed to call backend", e)
+        
+        // ✅ Still clear local data
+        clearLocalSession()
+        navigateToLogin()
+    }
+}
+
+private fun clearLocalSession() {
+    // Clear SharedPreferences/DataStore
+    val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs.edit().apply {
+        remove("session_token")
+        remove("fcm_token")
+        remove("operator_id")
+        remove("operator_name")
+        // Add any other session-related keys
+        apply()
+    }
+    
+    // Or if using DataStore:
+    // dataStore.edit { preferences ->
+    //     preferences.remove(SESSION_TOKEN_KEY)
+    //     preferences.remove(FCM_TOKEN_KEY)
+    // }
+    
+    Log.d("Logout", "Local session cleared")
+}
+
+private fun navigateToLogin() {
+    val intent = Intent(this, LoginActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    startActivity(intent)
+    finish()
+}
+```
+
+---
+
+## 🧪 Test Cases
+
+### Test 1: Normal Logout
+1. Login successfully
+2. Verify token saved locally
+3. Click logout button
+4. Verify API called successfully
+5. **Verify local storage cleared**
+6. **Verify redirected to login screen**
+7. Close and reopen app
+8. **Verify shows login screen (no auto-login)**
+
+### Test 2: Logout with Network Error
+1. Login successfully
+2. Turn off WiFi/mobile data
+3. Click logout button
+4. API call fails (expected)
+5. **Verify local storage STILL cleared**
+6. **Verify redirected to login screen**
+
+### Test 3: Logout with Invalid Token
+1. Manually set invalid token in local storage
+2. Click logout button
+3. Backend returns error (expected)
+4. **Verify local storage STILL cleared**
+5. **Verify redirected to login screen**
+
+---
+
+## ⚠️ Critical Requirements
+
+1. **ALWAYS clear local storage after logout attempt** (even if API fails)
+2. **ALWAYS redirect to login screen** (clear navigation stack)
+3. **NEVER auto-login** after logout (check this on app restart)
+4. **Clear ALL session-related data:**
+   - session_token
+   - fcm_token
+   - operator_id
+   - operator_name
+   - Any cached user data
+
+---
+
+## 🔍 How to Test Backend
+
+### Check if token deleted from DB:
+
+```bash
+# After logout, this should return empty
+curl -X POST https://n8n.n8nsrv.ru/webhook/android-logout \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Response: {"success": true}
+
+# Now try to use same token - should fail with 401
+curl -X GET "https://n8n.n8nsrv.ru/webhook/api/operator/appeals/list?limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Expected: 401 Unauthorized or empty result
+```
+
+---
+
+## 📋 Checklist
+
+- [ ] Logout button calls API correctly
+- [ ] Local storage (SharedPreferences/DataStore) cleared after logout
+- [ ] FCM token cleared from local cache
+- [ ] Navigation stack cleared (FLAG_ACTIVITY_CLEAR_TASK)
+- [ ] Redirects to login screen
+- [ ] No auto-login after app restart
+- [ ] Works even if API call fails
+- [ ] Works even if network is offline
+- [ ] Tested on real device
+- [ ] Tested app restart after logout
+
+---
+
+## 💡 Additional Recommendation
+
+Consider adding a "Force Logout" option in debug/settings menu:
+
+```kotlin
+fun forceLogout() {
+    clearLocalSession()
+    navigateToLogin()
+    Toast.makeText(this, "Force logged out", Toast.LENGTH_SHORT).show()
+}
+```
+
+This is useful for testing and troubleshooting.
+
+---
+
+## 📞 Questions?
+
+**Backend Status:** ✅ Working correctly  
+**Issue Location:** Android local session management  
+**Next Step:** Fix local storage clearing after logout
+
+Reply when fixed and tested.
+
+---
+
+**End of Task**

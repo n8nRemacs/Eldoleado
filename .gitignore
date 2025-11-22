@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Временные файлы
+*.tmp
+*.bak
+*.log
+
+# Secrets (на всякий случай)
+.env
+secrets.json
+credentials.json
+
+# Android build
+app/build/
+app/.gradle/
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+build/
+local.properties
+
+# n8n workflows backup
+workflows_backup/
+
+# Git
+*.orig

@@ -1,0 +1,141 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "form",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "39820b0b-a59e-41d8-b548-c397a65d1f5b",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "form-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const formData = $input.first().json;\n\n// Извлекаем данные из формы/квиза\n// Поддерживаем различные варианты названий полей\nconst phone = formData.phone || formData.telephone || formData.mobile || formData.cell || null;\nconst name = formData.name || formData.full_name || formData.client_name || formData.customer_name || null;\nconst phoneModel = formData.phone_model || formData.model || formData.device_model || formData.device || null;\nconst message = formData.message || formData.comment || formData.description || formData.text || '';\n\n// Дополнительные поля\nconst email = formData.email || null;\nconst source = formData.source || formData.utm_source || formData.form_source || 'form';\nconst formId = formData.form_id || formData.quiz_id || formData.id || null;\nconst formName = formData.form_name || formData.quiz_name || null;\n\n// Формируем текст сообщения\nlet messageText = '';\n\n// Добавляем модель телефона если указана\nif (phoneModel) {\n  messageText += `Модель: ${phoneModel}\\\\n`;\n}\n\n// Добавляем основное сообщение\nif (message) {\n  messageText += message;\n}\n\n// Если текста совсем нет\nif (!messageText.trim()) {\n  messageText = '[Заявка с формы без текста]';\n}\n\n// Очищаем и нормализуем телефон\nlet cleanPhone = null;\nif (phone) {\n  cleanPhone = phone.replace(/\\\\D/g, '');\n  \n  // Если начинается с 8, меняем на 7\n  if (cleanPhone.length === 11 && cleanPhone.startsWith('8')) {\n    cleanPhone = '7' + cleanPhone.substring(1);\n  }\n  \n  // Если начинается с 9 (без кода страны), добавляем 7\n  if (cleanPhone.length === 10 && cleanPhone.startsWith('9')) {\n    cleanPhone = '7' + cleanPhone;\n  }\n  \n  // Добавляем +\n  if (cleanPhone) {\n    cleanPhone = '+' + cleanPhone;\n  }\n}\n\nreturn {\n  channel: 'form',\n  external_user_id: cleanPhone?.replace(/\\\\+/g, '') || email || 'unknown',\n  external_chat_id: cleanPhone || email || 'unknown',\n  \n  text: messageText.trim(),\n  timestamp: new Date().toISOString(),\n  \n  client_phone: cleanPhone,\n  client_name: name,\n  client_email: email,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: false,\n    images: [],\n    has_video: false,\n    videos: [],\n    has_document: false\n  },\n  \n  meta: {\n    external_message_id: formId || Date.now().toString(),\n    ad_channel: 'form',\n    ad_id: null,\n    original_media_type: 'text',\n    raw: formData,\n    form_source: source,\n    form_id: formId,\n    form_name: formName\n  },\n  \n  prefilled_data: {\n    model: phoneModel,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "2a784909-75d9-46fa-9dba-3be9ae9ba689",
+      "name": "Normalize Form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.CLIENT_RESOLVER_WORKFLOW_ID }}",
+        "options": {}
+      },
+      "id": "e650cfe1-5df0-4c05-823c-5c01eaca330f",
+      "name": "Execute Client Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \\\"success\\\": true, \\\"message\\\": \\\"Спасибо! Мы свяжемся с вами в ближайшее время.\\\" } }}",
+        "options": {}
+      },
+      "id": "b42d8824-da11-42c4-80f1-58f8374a9a65",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        896,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "rRO6sxLqiCdgvLZz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
+          "cachedResultName": "BAT_Tenant_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        0
+      ],
+      "id": "9168577b-2691-4a26-abbd-0333e92cf428",
+      "name": "Execute Tenant Resolver"
+    }
+  ],
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Form": {
+      "main": [
+        [
+          {
+            "node": "Execute Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Client Resolver": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}
