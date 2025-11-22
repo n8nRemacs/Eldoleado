@@ -6,58 +6,7 @@
 -- ============================================================================
 
 -- ============================================================================
--- 1. НОВАЯ ТАБЛИЦА: appeal_devices (Устройства в заявке)
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS appeal_devices (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  appeal_id UUID NOT NULL REFERENCES appeals(id) ON DELETE CASCADE,
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
-
-  -- Устройство
-  brand_id UUID REFERENCES brands(id),
-  model_id UUID REFERENCES models(id),
-  device_type_id UUID REFERENCES device_types(id),
-
-  -- Текстовое представление (для отображения)
-  phone_model VARCHAR(255), -- "iPhone 14 Pro", "Samsung Galaxy S21"
-
-  -- Дополнительные идентификаторы
-  serial_number VARCHAR(255),
-  imei VARCHAR(255),
-
-  -- Статус устройства в заявке
-  status VARCHAR(50) DEFAULT 'active',
-  -- Варианты: 'active', 'cancelled', 'completed'
-
-  -- Статус обсуждения (для фокуса диалога)
-  discussion_status VARCHAR(50) DEFAULT 'pending',
-  -- Варианты: 'pending', 'discussing', 'discussed', 'cancelled'
-
-  -- Порядок упоминания клиентом (для последовательного обсуждения)
-  device_order INT DEFAULT 1,
-
-  -- Заметки
-  notes TEXT,
-
-  -- Метаданные
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Индексы для производительности
-CREATE INDEX IF NOT EXISTS idx_appeal_devices_appeal ON appeal_devices(appeal_id);
-CREATE INDEX IF NOT EXISTS idx_appeal_devices_tenant ON appeal_devices(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_appeal_devices_status ON appeal_devices(status);
-CREATE INDEX IF NOT EXISTS idx_appeal_devices_discussion ON appeal_devices(discussion_status);
-
--- Комментарии для документации
-COMMENT ON TABLE appeal_devices IS 'Устройства в рамках одной заявки (поддержка нескольких устройств)';
-COMMENT ON COLUMN appeal_devices.discussion_status IS 'Статус обсуждения: pending (не обсуждалось), discussing (обсуждается сейчас), discussed (завершено), cancelled (отменено)';
-COMMENT ON COLUMN appeal_devices.device_order IS 'Порядок упоминания клиентом (1, 2, 3...) для последовательного обсуждения';
-
--- ============================================================================
--- 2. НОВАЯ ТАБЛИЦА: repair_categories (Типы/категории ремонта)
+-- 1. НОВАЯ ТАБЛИЦА: repair_categories (Типы/категории ремонта)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS repair_categories (
@@ -135,6 +84,57 @@ COMMENT ON TABLE issue_types IS 'Конкретные проблемы для к
 COMMENT ON COLUMN issue_types.repair_category_id IS 'Привязка к категории (напр. "Разбит" → "Дисплей")';
 
 -- ============================================================================
+-- 3. НОВАЯ ТАБЛИЦА: appeal_devices (Устройства в заявке)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS appeal_devices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  appeal_id UUID NOT NULL REFERENCES appeals(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+
+  -- Устройство
+  brand_id UUID REFERENCES brands(id),
+  model_id UUID REFERENCES models(id),
+  device_type_id UUID REFERENCES device_types(id),
+
+  -- Текстовое представление (для отображения)
+  phone_model VARCHAR(255), -- "iPhone 14 Pro", "Samsung Galaxy S21"
+
+  -- Дополнительные идентификаторы
+  serial_number VARCHAR(255),
+  imei VARCHAR(255),
+
+  -- Статус устройства в заявке
+  status VARCHAR(50) DEFAULT 'active',
+  -- Варианты: 'active', 'cancelled', 'completed'
+
+  -- Статус обсуждения (для фокуса диалога)
+  discussion_status VARCHAR(50) DEFAULT 'pending',
+  -- Варианты: 'pending', 'discussing', 'discussed', 'cancelled'
+
+  -- Порядок упоминания клиентом (для последовательного обсуждения)
+  device_order INT DEFAULT 1,
+
+  -- Заметки
+  notes TEXT,
+
+  -- Метаданные
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Индексы для производительности
+CREATE INDEX IF NOT EXISTS idx_appeal_devices_appeal ON appeal_devices(appeal_id);
+CREATE INDEX IF NOT EXISTS idx_appeal_devices_tenant ON appeal_devices(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_appeal_devices_status ON appeal_devices(status);
+CREATE INDEX IF NOT EXISTS idx_appeal_devices_discussion ON appeal_devices(discussion_status);
+
+-- Комментарии для документации
+COMMENT ON TABLE appeal_devices IS 'Устройства в рамках одной заявки (поддержка нескольких устройств)';
+COMMENT ON COLUMN appeal_devices.discussion_status IS 'Статус обсуждения: pending (не обсуждалось), discussing (обсуждается сейчас), discussed (завершено), cancelled (отменено)';
+COMMENT ON COLUMN appeal_devices.device_order IS 'Порядок упоминания клиентом (1, 2, 3...) для последовательного обсуждения';
+
+-- ============================================================================
 -- 4. НОВАЯ ТАБЛИЦА: appeal_repairs (Ремонты/проблемы в заявке)
 -- ============================================================================
 
@@ -202,7 +202,7 @@ COMMENT ON COLUMN appeal_repairs.priority IS 'Приоритет обсужде�
 COMMENT ON COLUMN appeal_repairs.parts_owner IS 'Чья запчасть: наша, клиентская, не требуется';
 
 -- ============================================================================
--- 3. ОБНОВЛЕНИЕ ТАБЛИЦЫ: appeals (добавление новых полей)
+-- 5. ОБНОВЛЕНИЕ ТАБЛИЦЫ: appeals (добавление новых полей)
 -- ============================================================================
 
 -- Контекст диалога
@@ -230,7 +230,7 @@ ADD COLUMN IF NOT EXISTS last_greeting_at TIMESTAMPTZ;
 COMMENT ON COLUMN appeals.last_greeting_at IS 'Время последнего приветствия (для проверки нужно ли здороваться снова)';
 
 -- ============================================================================
--- 4. НОВАЯ ТАБЛИЦА: context_fields_config (Конфигурация полей для сбора)
+-- 6. НОВАЯ ТАБЛИЦА: context_fields_config (Конфигурация полей для сбора)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS context_fields_config (
@@ -282,7 +282,7 @@ COMMENT ON COLUMN context_fields_config.is_required IS 'Обязательное
 COMMENT ON COLUMN context_fields_config.collection_order IS 'Порядок сбора (1 - первым, 2 - вторым, ...)';
 
 -- ============================================================================
--- 5. ТЕСТОВЫЕ ДАННЫЕ: repair_categories и issue_types
+-- 7. ТЕСТОВЫЕ ДАННЫЕ: repair_categories и issue_types
 -- ============================================================================
 
 DO $$
@@ -437,7 +437,7 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- 6. ТЕСТОВЫЕ ДАННЫЕ: context_fields_config
+-- 8. ТЕСТОВЫЕ ДАННЫЕ: context_fields_config
 -- ============================================================================
 
 -- Получаем tenant_id (предполагается что есть дефолтный тенант)
@@ -472,7 +472,7 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- 6. ФУНКЦИЯ: Автоматическое обновление updated_at
+-- 9. ФУНКЦИЯ: Автоматическое обновление updated_at
 -- ============================================================================
 
 -- Функция для обновления timestamp
@@ -506,7 +506,7 @@ CREATE TRIGGER update_context_fields_config_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
--- 7. VIEW: Удобный просмотр заявок с устройствами и ремонтами
+-- 10. VIEW: Удобный просмотр заявок с устройствами и ремонтами
 -- ============================================================================
 
 CREATE OR REPLACE VIEW v_appeals_with_devices AS
@@ -577,7 +577,7 @@ GROUP BY a.id, c.name, c.phone;
 COMMENT ON VIEW v_appeals_with_devices IS 'Удобное представление заявок с устройствами и ремонтами (для API)';
 
 -- ============================================================================
--- 8. МИГРАЦИЯ СУЩЕСТВУЮЩИХ ДАННЫХ (если есть старые заявки)
+-- 11. МИГРАЦИЯ СУЩЕСТВУЮЩИХ ДАННЫХ (если есть старые заявки)
 -- ============================================================================
 
 -- Переносим данные из appeals в appeal_devices и appeal_repairs
