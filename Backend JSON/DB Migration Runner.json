@@ -1,0 +1,337 @@
+{
+  "name": "DB Migration Runner",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f5c6d7e8-9a0b-1c2d-3e4f-567890abcdef",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- МИГРАЦИЯ: Multi-Device & Conversation Focus Architecture\n-- Дата: 2025-11-22\n-- Описание: Добавление поддержки нескольких устройств в одной заявке\n--           + система управления фокусом диалога\n-- ============================================================================\n\n-- ============================================================================\n-- 1. НОВАЯ ТАБЛИЦА: appeal_devices (Устройства в заявке)\n-- ============================================================================\n\nCREATE TABLE IF NOT EXISTS appeal_devices (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  appeal_id UUID NOT NULL REFERENCES appeals(id) ON DELETE CASCADE,\n  tenant_id UUID NOT NULL REFERENCES tenants(id),\n\n  -- Устройство\n  brand_id UUID REFERENCES brands(id),\n  model_id UUID REFERENCES models(id),\n  device_type_id UUID REFERENCES device_types(id),\n\n  -- Текстовое представление (для отображения)\n  phone_model VARCHAR(255), -- \"iPhone 14 Pro\", \"Samsung Galaxy S21\"\n\n  -- Дополнительные идентификаторы\n  serial_number VARCHAR(255),\n  imei VARCHAR(255),\n\n  -- Статус устройства в заявке\n  status VARCHAR(50) DEFAULT 'active',\n  -- Варианты: 'active', 'cancelled', 'completed'\n\n  -- Статус обсуждения (для фокуса диалога)\n  discussion_status VARCHAR(50) DEFAULT 'pending',\n  -- Варианты: 'pending', 'discussing', 'discussed', 'cancelled'\n\n  -- Порядок упоминания клиентом (для последовательного обсуждения)\n  device_order INT DEFAULT 1,\n\n  -- Заметки\n  notes TEXT,\n\n  -- Метаданные\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Индексы для производительности\nCREATE INDEX IF NOT EXISTS idx_appeal_devices_appeal ON appeal_devices(appeal_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_devices_tenant ON appeal_devices(tenant_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_devices_status ON appeal_devices(status);\nCREATE INDEX IF NOT EXISTS idx_appeal_devices_discussion ON appeal_devices(discussion_status);\n\n-- Комментарии для документации\nCOMMENT ON TABLE appeal_devices IS 'Устройства в рамках одной заявки (поддержка нескольких устройств)';\nCOMMENT ON COLUMN appeal_devices.discussion_status IS 'Статус обсуждения: pending (не обсуждалось), discussing (обсуждается сейчас), discussed (завершено), cancelled (отменено)';\nCOMMENT ON COLUMN appeal_devices.device_order IS 'Порядок упоминания клиентом (1, 2, 3...) для последовательного обсуждения';",
+        "additionalFields": {}
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Step 1: Create appeal_devices",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 2. НОВАЯ ТАБЛИЦА: repair_categories (Типы/категории ремонта)\n-- ============================================================================\n\nCREATE TABLE IF NOT EXISTS repair_categories (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  tenant_id UUID REFERENCES tenants(id),\n\n  -- Название категории\n  name VARCHAR(100) NOT NULL, -- \"Дисплей\", \"АКБ\", \"Корпус\", \"Звук\", \"Связь\"\n  code VARCHAR(50) UNIQUE, -- \"display\", \"battery\", \"body\", \"sound\", \"connection\"\n  description TEXT,\n\n  -- Иконка для UI\n  icon VARCHAR(50), -- \"📱\", \"🔋\", \"📦\", \"🔊\", \"📡\"\n\n  -- Порядок отображения\n  display_order INT DEFAULT 0,\n\n  -- Статус\n  is_active BOOLEAN DEFAULT true,\n\n  -- Метаданные\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Индексы\nCREATE INDEX IF NOT EXISTS idx_repair_categories_tenant ON repair_categories(tenant_id);\nCREATE INDEX IF NOT EXISTS idx_repair_categories_active ON repair_categories(is_active);\n\n-- Комментарии\nCOMMENT ON TABLE repair_categories IS 'Категории ремонта: Дисплей, АКБ, Корпус, Звук, Связь и т.д.';\nCOMMENT ON COLUMN repair_categories.code IS 'Уникальный код для программного использования';",
+        "additionalFields": {}
+      },
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Step 2: Create repair_categories",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 3. НОВАЯ ТАБЛИЦА: issue_types (Конкретные проблемы/неисправности)\n-- ============================================================================\n\nCREATE TABLE IF NOT EXISTS issue_types (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  tenant_id UUID REFERENCES tenants(id),\n  repair_category_id UUID NOT NULL REFERENCES repair_categories(id) ON DELETE CASCADE,\n\n  -- Название проблемы\n  name VARCHAR(100) NOT NULL, -- \"Разбит\", \"Полосы\", \"Не работает тачскрин\"\n  code VARCHAR(50), -- \"cracked\", \"lines\", \"touchscreen_broken\"\n  description TEXT,\n\n  -- Стоимость и время по умолчанию\n  default_cost DECIMAL(10,2),\n  default_time VARCHAR(50), -- \"30 минут\", \"1 час\"\n\n  -- Порядок отображения\n  display_order INT DEFAULT 0,\n\n  -- Статус\n  is_active BOOLEAN DEFAULT true,\n\n  -- Метаданные\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Индексы\nCREATE INDEX IF NOT EXISTS idx_issue_types_tenant ON issue_types(tenant_id);\nCREATE INDEX IF NOT EXISTS idx_issue_types_category ON issue_types(repair_category_id);\nCREATE INDEX IF NOT EXISTS idx_issue_types_active ON issue_types(is_active);\n\n-- Уникальность (для одного tenant + category не должно быть дубликатов кода)\nCREATE UNIQUE INDEX IF NOT EXISTS idx_issue_types_unique\nON issue_types(tenant_id, repair_category_id, code)\nWHERE code IS NOT NULL;\n\n-- Комментарии\nCOMMENT ON TABLE issue_types IS 'Конкретные проблемы для каждой категории ремонта';\nCOMMENT ON COLUMN issue_types.repair_category_id IS 'Привязка к категории (напр. \"Разбит\" → \"Дисплей\")';",
+        "additionalFields": {}
+      },
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Step 3: Create issue_types",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 4. НОВАЯ ТАБЛИЦА: appeal_repairs (Ремонты/проблемы в заявке)\n-- ============================================================================\n\nCREATE TABLE IF NOT EXISTS appeal_repairs (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  appeal_id UUID NOT NULL REFERENCES appeals(id) ON DELETE CASCADE,\n  appeal_device_id UUID NOT NULL REFERENCES appeal_devices(id) ON DELETE CASCADE,\n  tenant_id UUID NOT NULL REFERENCES tenants(id),\n\n  -- Категория ремонта (уровень 1)\n  repair_category_id UUID REFERENCES repair_categories(id),\n  repair_category_name VARCHAR(100), -- \"Дисплей\", \"АКБ\", \"Корпус\"\n\n  -- Конкретная проблема (уровень 2)\n  issue_type_id UUID REFERENCES issue_types(id),\n  issue_type_name VARCHAR(100), -- \"Разбит\", \"Вздутая\", \"Не работает\"\n\n  -- Совместимость со старой схемой (DEPRECATED)\n  repair_type_id UUID REFERENCES repair_types(id),\n  repair_type_name VARCHAR(255),\n\n  -- Детали ремонта\n  parts_owner VARCHAR(50) DEFAULT 'наша',\n  -- Варианты: 'наша', 'клиентская', 'не требуется'\n\n  estimated_cost DECIMAL(10,2),\n  estimated_time VARCHAR(50), -- '30 минут', '2 часа', '1 день'\n\n  -- Статус ремонта\n  status VARCHAR(50) DEFAULT 'pending',\n  -- Варианты: 'pending', 'confirmed', 'rejected', 'in_progress', 'completed'\n\n  -- Статус обсуждения (для фокуса диалога)\n  discussion_status VARCHAR(50) DEFAULT 'pending',\n  -- Варианты: 'pending', 'discussing', 'confirmed', 'rejected'\n\n  -- Приоритет (для очередности обсуждения)\n  priority INT DEFAULT 1, -- 1 = высокий, 2 = средний, 3 = низкий\n\n  -- Описание проблемы от клиента\n  problem_description TEXT,\n\n  -- Заметки оператора\n  notes TEXT,\n\n  -- Метаданные\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Индексы\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_appeal ON appeal_repairs(appeal_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_device ON appeal_repairs(appeal_device_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_tenant ON appeal_repairs(tenant_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_category ON appeal_repairs(repair_category_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_issue ON appeal_repairs(issue_type_id);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_status ON appeal_repairs(status);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_discussion ON appeal_repairs(discussion_status);\nCREATE INDEX IF NOT EXISTS idx_appeal_repairs_priority ON appeal_repairs(priority);\n\n-- Комментарии\nCOMMENT ON TABLE appeal_repairs IS 'Ремонты/проблемы для каждого устройства в заявке';\nCOMMENT ON COLUMN appeal_repairs.discussion_status IS 'Статус обсуждения: pending, discussing, confirmed, rejected';\nCOMMENT ON COLUMN appeal_repairs.priority IS 'Приоритет обсуждения (1-высокий, 2-средний, 3-низкий)';\nCOMMENT ON COLUMN appeal_repairs.parts_owner IS 'Чья запчасть: наша, клиентская, не требуется';",
+        "additionalFields": {}
+      },
+      "id": "d4e5f6a7-b8c9-0123-def1-234567890123",
+      "name": "Step 4: Create appeal_repairs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1050, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 3. ОБНОВЛЕНИЕ ТАБЛИЦЫ: appeals (добавление новых полей)\n-- ============================================================================\n\n-- Контекст диалога\nALTER TABLE appeals\nADD COLUMN IF NOT EXISTS conversation_context JSONB DEFAULT '{}';\n\nCOMMENT ON COLUMN appeals.conversation_context IS 'Контекст диалога: упомянутые устройства, история переключений, clarifications';\n\n-- Статус заполнения контекста\nALTER TABLE appeals\nADD COLUMN IF NOT EXISTS context_completion_status JSONB DEFAULT '{}';\n\nCOMMENT ON COLUMN appeals.context_completion_status IS 'Статус заполнения: fields_collected, required_fields_count, completion_percentage';\n\n-- Фокус диалога\nALTER TABLE appeals\nADD COLUMN IF NOT EXISTS conversation_focus JSONB DEFAULT '{}';\n\nCOMMENT ON COLUMN appeals.conversation_focus IS 'Текущий фокус: current_device_id, current_repair_id, focus_history, last_updated_by, auto_switch';\n\n-- Последнее приветствие (для проверки \"прошло > 24 часа\")\nALTER TABLE appeals\nADD COLUMN IF NOT EXISTS last_greeting_at TIMESTAMPTZ;\n\nCOMMENT ON COLUMN appeals.last_greeting_at IS 'Время последнего приветствия (для проверки нужно ли здороваться снова)';",
+        "additionalFields": {}
+      },
+      "id": "e5f6a7b8-c9d0-1234-ef12-345678901234",
+      "name": "Step 5: Update appeals table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 4. НОВАЯ ТАБЛИЦА: context_fields_config (Конфигурация полей для сбора)\n-- ============================================================================\n\nCREATE TABLE IF NOT EXISTS context_fields_config (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  tenant_id UUID NOT NULL REFERENCES tenants(id),\n  deal_type_id UUID REFERENCES deal_types(id), -- NULL = для всех типов\n\n  -- Конфигурация поля\n  field_name VARCHAR(100) NOT NULL, -- 'type', 'model_id', 'repair_type_id', 'parts_owner'\n  field_label VARCHAR(255) NOT NULL, -- 'Тип обращения', 'Модель устройства'\n  field_type VARCHAR(50) DEFAULT 'text', -- 'text', 'select', 'number', 'boolean'\n\n  -- Параметры сбора\n  is_required BOOLEAN DEFAULT false, -- Обязательное поле?\n  collection_order INT, -- Порядок сбора (1, 2, 3...)\n\n  -- AI Tool для извлечения\n  tool_name VARCHAR(100), -- 'Tool-Type', 'Tool-Model', 'Tool-Repair', 'Tool-Parts'\n\n  -- Промпт для AI (опционально)\n  prompt_template TEXT, -- Шаблон вопроса клиенту\n\n  -- Правила валидации (опционально)\n  validation_rules JSONB, -- { \"min_length\": 3, \"max_length\": 100, \"pattern\": \"...\" }\n\n  -- Значение по умолчанию\n  default_value VARCHAR(255),\n\n  -- Статус\n  is_active BOOLEAN DEFAULT true,\n\n  -- Метаданные\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Индексы\nCREATE INDEX IF NOT EXISTS idx_context_fields_tenant ON context_fields_config(tenant_id);\nCREATE INDEX IF NOT EXISTS idx_context_fields_deal_type ON context_fields_config(deal_type_id);\nCREATE INDEX IF NOT EXISTS idx_context_fields_active ON context_fields_config(is_active);\n\n-- Уникальность (один field_name для одного tenant + deal_type)\nCREATE UNIQUE INDEX IF NOT EXISTS idx_context_fields_unique\nON context_fields_config(tenant_id, field_name, COALESCE(deal_type_id, '00000000-0000-0000-0000-000000000000'::uuid));\n\n-- Комментарии\nCOMMENT ON TABLE context_fields_config IS 'Конфигурация полей для сбора контекста (гибкая настройка для разных типов сделок)';\nCOMMENT ON COLUMN context_fields_config.is_required IS 'Обязательное поле для перехода в \"Обработка заявки\"';\nCOMMENT ON COLUMN context_fields_config.collection_order IS 'Порядок сбора (1 - первым, 2 - вторым, ...)';",
+        "additionalFields": {}
+      },
+      "id": "f6a7b8c9-d0e1-2345-f123-456789012345",
+      "name": "Step 6: Create context_fields_config",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 5. ТЕСТОВЫЕ ДАННЫЕ: repair_categories и issue_types\n-- ============================================================================\n\nDO $$\nDECLARE\n  default_tenant_id UUID;\n  category_display_id UUID;\n  category_battery_id UUID;\n  category_body_id UUID;\n  category_sound_id UUID;\n  category_connection_id UUID;\n  category_camera_id UUID;\n  category_ports_id UUID;\nBEGIN\n  -- Ищем первый активный тенант\n  SELECT id INTO default_tenant_id\n  FROM tenants\n  WHERE is_active = true\n  LIMIT 1;\n\n  IF default_tenant_id IS NOT NULL THEN\n\n    -- ========================================\n    -- Категории ремонта\n    -- ========================================\n\n    INSERT INTO repair_categories (tenant_id, name, code, icon, display_order)\n    VALUES\n      (default_tenant_id, 'Дисплей', 'display', '📱', 1),\n      (default_tenant_id, 'АКБ', 'battery', '🔋', 2),\n      (default_tenant_id, 'Корпус', 'body', '📦', 3),\n      (default_tenant_id, 'Звук', 'sound', '🔊', 4),\n      (default_tenant_id, 'Связь', 'connection', '📡', 5),\n      (default_tenant_id, 'Камера', 'camera', '📷', 6),\n      (default_tenant_id, 'Разъемы', 'ports', '🔌', 7)\n    ON CONFLICT DO NOTHING;\n\n    -- Получаем ID категорий для добавления проблем\n    SELECT id INTO category_display_id FROM repair_categories WHERE code = 'display' LIMIT 1;\n    SELECT id INTO category_battery_id FROM repair_categories WHERE code = 'battery' LIMIT 1;\n    SELECT id INTO category_body_id FROM repair_categories WHERE code = 'body' LIMIT 1;\n    SELECT id INTO category_sound_id FROM repair_categories WHERE code = 'sound' LIMIT 1;\n    SELECT id INTO category_connection_id FROM repair_categories WHERE code = 'connection' LIMIT 1;\n    SELECT id INTO category_camera_id FROM repair_categories WHERE code = 'camera' LIMIT 1;\n    SELECT id INTO category_ports_id FROM repair_categories WHERE code = 'ports' LIMIT 1;\n\n    -- Проблемы для категории \"Дисплей\"\n    IF category_display_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_display_id, 'Разбит', 'cracked', 8500, '40 минут', 1),\n        (default_tenant_id, category_display_id, 'Полосы', 'lines', 8500, '40 минут', 2),\n        (default_tenant_id, category_display_id, 'Не работает тачскрин', 'touchscreen_broken', 8500, '40 минут', 3),\n        (default_tenant_id, category_display_id, 'Не показывает картинку', 'no_display', 8500, '40 минут', 4),\n        (default_tenant_id, category_display_id, 'Пятна на экране', 'spots', 8500, '40 минут', 5)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"АКБ\"\n    IF category_battery_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_battery_id, 'Вздутая', 'swollen', 3500, '30 минут', 1),\n        (default_tenant_id, category_battery_id, 'Износ', 'wear', 3500, '30 минут', 2),\n        (default_tenant_id, category_battery_id, 'Не держит заряд', 'not_holding', 3500, '30 минут', 3),\n        (default_tenant_id, category_battery_id, 'Быстро разряжается', 'fast_drain', 3500, '30 минут', 4),\n        (default_tenant_id, category_battery_id, 'Не заряжается', 'not_charging', 3500, '30 минут', 5)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"Корпус\"\n    IF category_body_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_body_id, 'Задняя крышка сломана', 'back_cover_broken', 2500, '20 минут', 1),\n        (default_tenant_id, category_body_id, 'Погнут', 'bent', 4500, '1 час', 2),\n        (default_tenant_id, category_body_id, 'Кнопки', 'buttons', 1500, '15 минут', 3),\n        (default_tenant_id, category_body_id, 'Рамка повреждена', 'frame_damaged', 3000, '30 минут', 4)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"Звук\"\n    IF category_sound_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_sound_id, 'Нет полифонии', 'no_polyphony', 2000, '30 минут', 1),\n        (default_tenant_id, category_sound_id, 'Не слышит абонента', 'cant_hear', 2000, '30 минут', 2),\n        (default_tenant_id, category_sound_id, 'Абонент не слышит', 'not_heard', 2000, '30 минут', 3),\n        (default_tenant_id, category_sound_id, 'Хрипит динамик', 'speaker_distortion', 2000, '30 минут', 4),\n        (default_tenant_id, category_sound_id, 'Тихий звук', 'low_volume', 2000, '30 минут', 5)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"Связь\"\n    IF category_connection_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_connection_id, 'Не работает WiFi', 'wifi_broken', 3000, '45 минут', 1),\n        (default_tenant_id, category_connection_id, 'Нет сигнала сети', 'no_signal', 3500, '1 час', 2),\n        (default_tenant_id, category_connection_id, 'Bluetooth не подключается', 'bluetooth_broken', 2500, '40 минут', 3),\n        (default_tenant_id, category_connection_id, 'GPS не работает', 'gps_broken', 3000, '45 минут', 4)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"Камера\"\n    IF category_camera_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_camera_id, 'Не работает основная камера', 'main_camera_broken', 4500, '40 минут', 1),\n        (default_tenant_id, category_camera_id, 'Не работает фронтальная камера', 'front_camera_broken', 3500, '30 минут', 2),\n        (default_tenant_id, category_camera_id, 'Мутные фото', 'blurry_photos', 2000, '20 минут', 3),\n        (default_tenant_id, category_camera_id, 'Стекло камеры разбито', 'camera_glass_broken', 1500, '15 минут', 4)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    -- Проблемы для категории \"Разъемы\"\n    IF category_ports_id IS NOT NULL THEN\n      INSERT INTO issue_types (tenant_id, repair_category_id, name, code, default_cost, default_time, display_order)\n      VALUES\n        (default_tenant_id, category_ports_id, 'Разъем зарядки сломан', 'charging_port_broken', 2500, '30 минут', 1),\n        (default_tenant_id, category_ports_id, 'Разъем наушников не работает', 'headphone_jack_broken', 2000, '25 минут', 2),\n        (default_tenant_id, category_ports_id, 'Плохой контакт при зарядке', 'loose_charging', 2000, '25 минут', 3)\n      ON CONFLICT DO NOTHING;\n    END IF;\n\n    RAISE NOTICE '✅ Тестовые данные для repair_categories и issue_types добавлены';\n\n  ELSE\n    RAISE WARNING 'Активный тенант не найден! Пропускаем добавление тестовых данных.';\n  END IF;\nEND $$;",
+        "additionalFields": {}
+      },
+      "id": "a7b8c9d0-e1f2-3456-1234-567890123456",
+      "name": "Step 7: Insert test data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 6. ТЕСТОВЫЕ ДАННЫЕ: context_fields_config\n-- ============================================================================\n\nDO $$\nDECLARE\n  default_tenant_id UUID;\nBEGIN\n  -- Ищем первый активный тенант\n  SELECT id INTO default_tenant_id\n  FROM tenants\n  WHERE is_active = true\n  LIMIT 1;\n\n  -- Если нашли тенант, добавляем конфигурацию полей\n  IF default_tenant_id IS NOT NULL THEN\n    INSERT INTO context_fields_config\n      (tenant_id, field_name, field_label, is_required, collection_order, tool_name, field_type, default_value)\n    VALUES\n      -- Обязательные поля\n      (default_tenant_id, 'type', 'Тип обращения', true, 1, 'Tool-Type', 'select', NULL),\n      (default_tenant_id, 'model_id', 'Модель устройства', true, 2, 'Tool-Model', 'select', NULL),\n      (default_tenant_id, 'repair_type_id', 'Тип ремонта', true, 3, 'Tool-Repair', 'select', NULL),\n\n      -- Опциональные поля\n      (default_tenant_id, 'parts_owner', 'Чья запчасть', false, 4, 'Tool-Parts', 'select', 'наша')\n    ON CONFLICT DO NOTHING;\n\n    RAISE NOTICE 'Конфигурация полей добавлена для tenant_id: %', default_tenant_id;\n  ELSE\n    RAISE WARNING 'Активный тенант не найден! Пропускаем добавление конфигурации полей.';\n  END IF;\nEND $$;",
+        "additionalFields": {}
+      },
+      "id": "b8c9d0e1-f2a3-4567-2345-678901234567",
+      "name": "Step 8: Insert context config",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 7. ФУНКЦИЯ: Автоматическое обновление updated_at\n-- ============================================================================\n\n-- Функция для обновления timestamp\nCREATE OR REPLACE FUNCTION update_updated_at_column()\nRETURNS TRIGGER AS $$\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\n\n-- Триггеры для автоматического обновления updated_at\nDROP TRIGGER IF EXISTS update_repair_categories_updated_at ON repair_categories;\nCREATE TRIGGER update_repair_categories_updated_at\n  BEFORE UPDATE ON repair_categories\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();\n\nDROP TRIGGER IF EXISTS update_issue_types_updated_at ON issue_types;\nCREATE TRIGGER update_issue_types_updated_at\n  BEFORE UPDATE ON issue_types\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();\n\nDROP TRIGGER IF EXISTS update_appeal_devices_updated_at ON appeal_devices;\nCREATE TRIGGER update_appeal_devices_updated_at\n  BEFORE UPDATE ON appeal_devices\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();\n\nDROP TRIGGER IF EXISTS update_appeal_repairs_updated_at ON appeal_repairs;\nCREATE TRIGGER update_appeal_repairs_updated_at\n  BEFORE UPDATE ON appeal_repairs\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();\n\nDROP TRIGGER IF EXISTS update_context_fields_config_updated_at ON context_fields_config;\nCREATE TRIGGER update_context_fields_config_updated_at\n  BEFORE UPDATE ON context_fields_config\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();",
+        "additionalFields": {}
+      },
+      "id": "c9d0e1f2-a3b4-5678-3456-789012345678",
+      "name": "Step 9: Create triggers",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 600],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- 8. VIEW: Удобный просмотр заявок с устройствами и ремонтами\n-- ============================================================================\n\nCREATE OR REPLACE VIEW v_appeals_with_devices AS\nSELECT\n  a.id as appeal_id,\n  a.tenant_id,\n  a.client_id,\n  a.stage,\n  a.type as appeal_type,\n  a.operation_mode,\n  a.conversation_focus,\n  a.last_greeting_at,\n\n  -- Клиент\n  c.name as client_name,\n  c.phone as client_phone,\n\n  -- Устройства (агрегация)\n  COALESCE(\n    jsonb_agg(\n      DISTINCT jsonb_build_object(\n        'device_id', ad.id,\n        'model', ad.phone_model,\n        'brand_id', ad.brand_id,\n        'model_id', ad.model_id,\n        'status', ad.status,\n        'discussion_status', ad.discussion_status,\n        'device_order', ad.device_order\n      ) ORDER BY ad.device_order\n    ) FILTER (WHERE ad.id IS NOT NULL),\n    '[]'::jsonb\n  ) as devices,\n\n  -- Ремонты (агрегация)\n  COALESCE(\n    jsonb_agg(\n      DISTINCT jsonb_build_object(\n        'repair_id', ar.id,\n        'device_id', ar.appeal_device_id,\n        'repair_type', ar.repair_type_name,\n        'parts_owner', ar.parts_owner,\n        'cost', ar.estimated_cost,\n        'time', ar.estimated_time,\n        'status', ar.status,\n        'discussion_status', ar.discussion_status,\n        'priority', ar.priority\n      ) ORDER BY ar.priority\n    ) FILTER (WHERE ar.id IS NOT NULL),\n    '[]'::jsonb\n  ) as repairs,\n\n  -- Общая стоимость\n  COALESCE(SUM(ar.estimated_cost) FILTER (WHERE ar.status != 'rejected'), 0) as total_cost,\n\n  -- Счётчики\n  COUNT(DISTINCT ad.id) FILTER (WHERE ad.status = 'active') as devices_count,\n  COUNT(DISTINCT ar.id) FILTER (WHERE ar.status != 'rejected') as repairs_count,\n\n  a.created_at,\n  a.updated_at\n\nFROM appeals a\nLEFT JOIN clients c ON c.id = a.client_id\nLEFT JOIN appeal_devices ad ON ad.appeal_id = a.id\nLEFT JOIN appeal_repairs ar ON ar.appeal_id = a.id\nGROUP BY a.id, c.name, c.phone;\n\nCOMMENT ON VIEW v_appeals_with_devices IS 'Удобное представление заявок с устройствами и ремонтами (для API)';",
+        "additionalFields": {}
+      },
+      "id": "d0e1f2a3-b4c5-6789-4567-890123456789",
+      "name": "Step 10: Create VIEW",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 600],
+      "credentials": {
+        "postgres": {
+          "id": "supabase_postgres",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      status: 'success',\n      message: '✅ Миграция Multi-Device Architecture завершена успешно!',\n      created: [\n        'Таблица repair_categories (7 категорий)',\n        'Таблица issue_types (~40 проблем)',\n        'Таблица appeal_devices',\n        'Таблица appeal_repairs',\n        'Таблица context_fields_config',\n        'Обновлена таблица appeals (4 новых поля)',\n        'VIEW v_appeals_with_devices',\n        'Триггеры для updated_at',\n        'Тестовые данные для всех справочников'\n      ],\n      next_step: 'Обновить n8n воркеры (AI Tools)'\n    }\n  }\n];"
+      },
+      "id": "e1f2a3b4-c5d6-7890-5678-901234567890",
+      "name": "Migration Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 600]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Step 1: Create appeal_devices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 1: Create appeal_devices": {
+      "main": [
+        [
+          {
+            "node": "Step 2: Create repair_categories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2: Create repair_categories": {
+      "main": [
+        [
+          {
+            "node": "Step 3: Create issue_types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 3: Create issue_types": {
+      "main": [
+        [
+          {
+            "node": "Step 4: Create appeal_repairs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 4: Create appeal_repairs": {
+      "main": [
+        [
+          {
+            "node": "Step 5: Update appeals table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 5: Update appeals table": {
+      "main": [
+        [
+          {
+            "node": "Step 6: Create context_fields_config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 6: Create context_fields_config": {
+      "main": [
+        [
+          {
+            "node": "Step 7: Insert test data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 7: Insert test data": {
+      "main": [
+        [
+          {
+            "node": "Step 8: Insert context config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 8: Insert context config": {
+      "main": [
+        [
+          {
+            "node": "Step 9: Create triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 9: Create triggers": {
+      "main": [
+        [
+          {
+            "node": "Step 10: Create VIEW",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 10: Create VIEW": {
+      "main": [
+        [
+          {
+            "node": "Migration Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "id": "db-migration-runner-001",
+  "meta": {
+    "instanceId": "battcrm-n8n"
+  },
+  "tags": []
+}
