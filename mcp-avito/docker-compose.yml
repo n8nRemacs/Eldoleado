@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  avito-api:
+    build: .
+    container_name: avito-messenger-api
+    ports:
+      - "8765:8765"
+    environment:
+      - AVITO_CLIENT_ID=${AVITO_CLIENT_ID}
+      - AVITO_CLIENT_SECRET=${AVITO_CLIENT_SECRET}
+      - AVITO_USER_ID=${AVITO_USER_ID}
+      - REDIS_URL=redis://redis:6379
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8765
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=60
+      - MAX_CONNECTIONS=20
+      - API_KEY=${API_KEY}
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: avito-redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

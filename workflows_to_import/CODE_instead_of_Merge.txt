@@ -1,0 +1,20 @@
+// Замена Merge node на Code node
+// Просто пропускает данные из любого входа без ожидания
+
+const items = $input.all();
+
+console.log('=== CODE MERGE ===');
+console.log('Received items:', items.length);
+
+if (items.length === 0) {
+  console.log('No items received');
+  return [];
+}
+
+// Берём первый item с данными
+const result = items[0].json;
+
+console.log('Passing through:', Object.keys(result));
+console.log('Appeal ID:', result.appeal?.id);
+
+return result;

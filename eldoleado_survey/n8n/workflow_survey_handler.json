@@ -1,0 +1,164 @@
+{
+  "name": "Eldoleado Survey Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "eldoleado-survey",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-1",
+      "name": "Webhook - Survey Submit",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "eldoleado_survey_responses",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "values": [
+            { "column": "q1_workshop_age", "value": "={{ $json.q1_workshop_age }}" },
+            { "column": "q2_employees", "value": "={{ $json.q2_employees }}" },
+            { "column": "q3_clients_per_month", "value": "={{ $json.q3_clients_per_month }}" },
+            { "column": "q4_average_check", "value": "={{ $json.q4_average_check }}" },
+            { "column": "q5_city", "value": "={{ $json.q5_city }}" },
+            { "column": "q6_channels", "value": "={{ $json.q6_channels }}" },
+            { "column": "q6_channels_other", "value": "={{ $json.q6_channels_other }}" },
+            { "column": "q7_main_channel", "value": "={{ $json.q7_main_channel }}" },
+            { "column": "q7_main_channel_other", "value": "={{ $json.q7_main_channel_other }}" },
+            { "column": "q8_channel_confusion", "value": "={{ $json.q8_channel_confusion }}" },
+            { "column": "q9_confusion_problem_score", "value": "={{ $json.q9_confusion_problem_score }}" },
+            { "column": "q10_after_hours_frequency", "value": "={{ $json.q10_after_hours_frequency }}" },
+            { "column": "q11_after_hours_handling", "value": "={{ $json.q11_after_hours_handling }}" },
+            { "column": "q12_lost_clients_slow_response", "value": "={{ $json.q12_lost_clients_slow_response }}" },
+            { "column": "q13_after_hours_problem_score", "value": "={{ $json.q13_after_hours_problem_score }}" },
+            { "column": "q14_calls_per_day", "value": "={{ $json.q14_calls_per_day }}" },
+            { "column": "q15_call_logging", "value": "={{ $json.q15_call_logging }}" },
+            { "column": "q16_forget_agreements", "value": "={{ $json.q16_forget_agreements }}" },
+            { "column": "q17_record_calls", "value": "={{ $json.q17_record_calls }}" },
+            { "column": "q18_calls_problem_score", "value": "={{ $json.q18_calls_problem_score }}" },
+            { "column": "q19_suppliers_count", "value": "={{ $json.q19_suppliers_count }}" },
+            { "column": "q20_search_parts", "value": "={{ $json.q20_search_parts }}" },
+            { "column": "q20_search_parts_other", "value": "={{ $json.q20_search_parts_other }}" },
+            { "column": "q21_time_to_compare", "value": "={{ $json.q21_time_to_compare }}" },
+            { "column": "q22_price_mismatch", "value": "={{ $json.q22_price_mismatch }}" },
+            { "column": "q23_suppliers_problem_score", "value": "={{ $json.q23_suppliers_problem_score }}" },
+            { "column": "q24_client_sources", "value": "={{ $json.q24_client_sources }}" },
+            { "column": "q24_client_sources_other", "value": "={{ $json.q24_client_sources_other }}" },
+            { "column": "q25_ad_budget", "value": "={{ $json.q25_ad_budget }}" },
+            { "column": "q26_has_marketer", "value": "={{ $json.q26_has_marketer }}" },
+            { "column": "q27_marketer_cost", "value": "={{ $json.q27_marketer_cost }}" },
+            { "column": "q28_marketer_satisfaction", "value": "={{ $json.q28_marketer_satisfaction }}" },
+            { "column": "q29_track_conversion", "value": "={{ $json.q29_track_conversion }}" },
+            { "column": "q30_knows_cac", "value": "={{ $json.q30_knows_cac }}" },
+            { "column": "q30_cac_amount", "value": "={{ $json.q30_cac_amount }}" },
+            { "column": "q31_marketing_problem_score", "value": "={{ $json.q31_marketing_problem_score }}" },
+            { "column": "q32_repeat_clients", "value": "={{ $json.q32_repeat_clients }}" },
+            { "column": "q33_client_database", "value": "={{ $json.q33_client_database }}" },
+            { "column": "q33_crm_name", "value": "={{ $json.q33_crm_name }}" },
+            { "column": "q34_remind_clients", "value": "={{ $json.q34_remind_clients }}" },
+            { "column": "q35_reminder_method", "value": "={{ $json.q35_reminder_method }}" },
+            { "column": "q36_retention_problem_score", "value": "={{ $json.q36_retention_problem_score }}" },
+            { "column": "q37_rank_messengers", "value": "={{ $json.q37_rank_messengers }}" },
+            { "column": "q37_rank_night_messages", "value": "={{ $json.q37_rank_night_messages }}" },
+            { "column": "q37_rank_suppliers", "value": "={{ $json.q37_rank_suppliers }}" },
+            { "column": "q37_rank_phone_agreements", "value": "={{ $json.q37_rank_phone_agreements }}" },
+            { "column": "q37_rank_advertising", "value": "={{ $json.q37_rank_advertising }}" },
+            { "column": "q37_rank_retention", "value": "={{ $json.q37_rank_retention }}" },
+            { "column": "q38_magic_wand", "value": "={{ $json.q38_magic_wand }}" },
+            { "column": "q39_time_waster", "value": "={{ $json.q39_time_waster }}" },
+            { "column": "q40_current_software_spend", "value": "={{ $json.q40_current_software_spend }}" },
+            { "column": "q41_willingness_to_pay", "value": "={{ $json.q41_willingness_to_pay }}" },
+            { "column": "q42_important_function", "value": "={{ $json.q42_important_function }}" },
+            { "column": "q42_function_price", "value": "={{ $json.q42_function_price }}" },
+            { "column": "q43_too_expensive", "value": "={{ $json.q43_too_expensive }}" },
+            { "column": "q44_suspiciously_cheap", "value": "={{ $json.q44_suspiciously_cheap }}" },
+            { "column": "q45_tried_crm", "value": "={{ $json.q45_tried_crm }}" },
+            { "column": "q45_quit_reason", "value": "={{ $json.q45_quit_reason }}" },
+            { "column": "q46_must_have_features", "value": "={{ $json.q46_must_have_features }}" },
+            { "column": "q47_want_beta", "value": "={{ $json.q47_want_beta }}" },
+            { "column": "q48_contact", "value": "={{ $json.q48_contact }}" },
+            { "column": "q49_referrals", "value": "={{ $json.q49_referrals }}" },
+            { "column": "user_agent", "value": "={{ $json.user_agent }}" },
+            { "column": "completion_time_seconds", "value": "={{ $json.completion_time_seconds }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "postgres-1",
+      "name": "PostgreSQL - Save Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 300],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "BatteryCRM PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🆕 Новая анкета Eldoleado!\n\n📍 Город: {{ $json.q5_city }}\n👥 Сотрудников: {{ $json.q2_employees }}\n📞 Контакт: {{ $json.q48_contact }}\n\n🎯 Хочет бета-тест: {{ $json.q47_want_beta }}\n⏱️ Время заполнения: {{ Math.round($json.completion_time_seconds / 60) }} мин",
+        "additionalFields": {}
+      },
+      "id": "telegram-1",
+      "name": "Telegram - Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [680, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - Survey Submit": {
+      "main": [
+        [
+          { "node": "PostgreSQL - Save Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "PostgreSQL - Save Response": {
+      "main": [
+        [
+          { "node": "Respond to Webhook", "type": "main", "index": 0 },
+          { "node": "Telegram - Notify", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "Survey" },
+    { "name": "Eldoleado" }
+  ],
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

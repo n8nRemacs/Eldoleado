@@ -1,0 +1,545 @@
+{
+  "updatedAt": "2025-11-23T04:00:03.000Z",
+  "createdAt": "2025-11-14T04:46:18.560Z",
+  "id": "U7Zak2jQ0rVG0fmp",
+  "name": "API_Android_Auth",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android/auth/login",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "06ca83d7-ee4f-43cc-a834-b2fa2fcf8f35",
+      "name": "Webhook - Auth Login",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        192
+      ],
+      "webhookId": "android-auth-login"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, tenant_id, name, email, username, password_hash, is_active, location_id\nFROM operators\nWHERE (email = '{{ $json.body.login }}' OR username = '{{ $json.body.login }}')\nAND is_active = true\nLIMIT 1;",
+        "options": {
+          "queryBatching": "independently"
+        }
+      },
+      "id": "b0bd0db4-ddd1-4b8c-9e8d-056d068dbeef",
+      "name": "Postgres - Find Operator",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -1264,
+        192
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "operator-found",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "operator-active",
+              "leftValue": "={{ $json.is_active }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a892a92f-e6f1-4565-9434-d3b21ae7f379",
+      "name": "IF - Operator Exists & Active",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "password-valid",
+              "leftValue": "={{ $json.password_valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a635e3c3-7538-42f0-a9c9-64d812cb07da",
+      "name": "IF - Password Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"operator_id\": \"{{ $json.operator_id }}\",\n  \"tenant_id\": \"{{ $json.tenant_id }}\",\n  \"name\": \"{{ $json.name }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"location_id\": \"{{ $json.location_id }}\",\n  \"session_token\": \"{{ $json.session_token }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "faa17d5c-871a-48fb-9041-de8a14b48a71",
+      "name": "Response - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"invalid_password\"\n}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "532199be-cee9-41b1-86ac-c20399dbee45",
+      "name": "Response - Invalid Password",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"operator_not_found_or_inactive\"\n}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5f231342-8ba6-4d7e-a309-f778567781a4",
+      "name": "Response - Not Found",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -832,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  '{{ $('Postgres - Find Operator').item.json.id }}' as operator_id,\n  '{{ $('Postgres - Find Operator').item.json.tenant_id }}' as tenant_id,\n  '{{ $('Postgres - Find Operator').item.json.name }}' as name,\n  '{{ $('Postgres - Find Operator').item.json.email }}' as email,\n  '{{ $('Postgres - Find Operator').item.json.location_id }}' as location_id,\n  (password_hash = crypt('{{ $('Webhook - Auth Login').item.json.body.password }}', password_hash)) as password_valid\nFROM operators\nWHERE id = '{{ $('Postgres - Find Operator').item.json.id }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -832,
+        96
+      ],
+      "id": "4949de6e-ec75-45ba-bb06-e0071b938659",
+      "name": "Postgres - Verify Password",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook - Auth Login').first().json.body || {};\nconst operatorData = $input.first().json;\nconst deviceInfo = body.device_info || null;\nconst deviceId = deviceInfo?.device_id || null;\nconst deviceInfoJson = deviceInfo ? JSON.stringify(deviceInfo) : null;\n\nreturn {\n  ...operatorData,\n  device_info: deviceInfo,\n  device_id: deviceId,\n  device_info_json: deviceInfoJson\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "539d6a22-3f9d-4858-bf26-fbb37903dd61",
+      "name": "Parse Device Info"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM operator_devices \nWHERE operator_id = '{{ $json.operator_id }}'::uuid\n  AND device_type = 'mobile'\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid;\n\nSELECT \n  '{{ $json.operator_id }}' as operator_id,\n  '{{ $json.tenant_id }}' as tenant_id,\n  '{{ $json.name }}' as name,\n  '{{ $json.email }}' as email,\n  '{{ $json.location_id }}' as location_id,\n  '{{ $json.device_id }}' as device_id,\n  '{{ $json.device_info_json }}' as device_info_json;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -160,
+        -16
+      ],
+      "id": "84d5f55f-14a3-4de0-a9d6-af4b1289d584",
+      "name": "Delete Old Mobile Session",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst crypto = require('crypto');\nconst sessionToken = crypto.randomUUID();\n\nreturn {\n  operator_id: inputData.operator_id,\n  tenant_id: inputData.tenant_id,\n  name: inputData.name,\n  email: inputData.email,\n  location_id: inputData.location_id,\n  device_id: inputData.device_id,\n  device_info_json: inputData.device_info_json,\n  session_token: sessionToken\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "bc956648-cb69-4b52-9624-22023d09c9f6",
+      "name": "Generate Session Token"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_devices (\n  operator_id,\n  tenant_id,\n  device_type,\n  session_token,\n  fcm_token,\n  device_id,\n  device_info,\n  created_at,\n  last_active_at\n) VALUES (\n  '{{ $json.operator_id }}'::uuid,\n  '{{ $json.tenant_id }}'::uuid,\n  'mobile',\n  '{{ $json.session_token }}',\n  NULL,\n  {{ $json.device_id && $json.device_id !== 'null' ? \"'\" + $json.device_id + \"'\" : \"NULL\" }},\n  {{ $json.device_info_json ? \"'\" + $json.device_info_json + \"'::jsonb\" : \"NULL\" }},\n  NOW(),\n  NOW()\n) RETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        -16
+      ],
+      "id": "00c88884-4421-4302-8027-7ea07b28340e",
+      "name": "Insert into operator_devices",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const operatorData = $('Parse Device Info').first().json;\nconst sessionToken = $('Generate Session Token').first().json.session_token;\n\nreturn {\n  operator_id: operatorData.operator_id,\n  tenant_id: operatorData.tenant_id,\n  name: operatorData.name,\n  email: operatorData.email,\n  location_id: operatorData.location_id,\n  session_token: sessionToken\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -16
+      ],
+      "id": "ee33b662-aed4-4e6e-b0a6-afc9dfbd7a05",
+      "name": "Prepare Response Data"
+    }
+  ],
+  "connections": {
+    "Webhook - Auth Login": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Find Operator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Find Operator": {
+      "main": [
+        [
+          {
+            "node": "IF - Operator Exists & Active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Operator Exists & Active": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Verify Password",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response - Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Password Valid": {
+      "main": [
+        [
+          {
+            "node": "Parse Device Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response - Invalid Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Verify Password": {
+      "main": [
+        [
+          {
+            "node": "IF - Password Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Device Info": {
+      "main": [
+        [
+          {
+            "node": "Delete Old Mobile Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Old Mobile Session": {
+      "main": [
+        [
+          {
+            "node": "Generate Session Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Session Token": {
+      "main": [
+        [
+          {
+            "node": "Insert into operator_devices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert into operator_devices": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response Data": {
+      "main": [
+        [
+          {
+            "node": "Response - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook - Auth Login": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.n8nsrv.ru",
+            "user-agent": "okhttp/4.12.0",
+            "content-length": "183",
+            "accept-encoding": "gzip",
+            "content-type": "application/json; charset=UTF-8",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "195.54.40.108",
+            "x-forwarded-host": "n8n.n8nsrv.ru",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "device_info": {
+              "app_version": "1.0",
+              "device_id": "85194be5a493d381",
+              "device_model": "Google sdk_gphone64_x86_64",
+              "os_version": "Android 16"
+            },
+            "login": "test_operator",
+            "password": "test123"
+          },
+          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/android/auth/login",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "1e7481d2-b73f-45e4-ab06-9b51c04f762f",
+  "versionCounter": 25,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-14T04:46:18.571Z",
+      "createdAt": "2025-11-14T04:46:18.571Z",
+      "role": "workflow:owner",
+      "workflowId": "U7Zak2jQ0rVG0fmp",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ]
+}

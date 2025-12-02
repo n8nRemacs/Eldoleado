@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  form-api:
+    build: .
+    container_name: form-submission-api
+    ports:
+      - "8770:8770"
+    environment:
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8770
+      - API_KEY=${API_KEY}
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=60
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8770/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

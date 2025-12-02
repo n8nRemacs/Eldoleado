@@ -1,0 +1,24 @@
+<!-- Добавить эти цвета в app/src/main/res/values/colors.xml если отсутствуют -->
+
+<!-- Основные цвета текста -->
+<color name="text_secondary">#8A8A8E</color>
+<color name="text_primary">#000000</color>
+
+<!-- Цвета каналов -->
+<color name="channel_whatsapp">#25D366</color>
+<color name="channel_telegram">#26A4E3</color>
+<color name="channel_avito">#4A65F6</color>
+<color name="channel_generic">#BDBDBD</color>
+
+<!-- Цвета статусов -->
+<color name="status_new">#4CAF50</color>
+<color name="status_in_progress">#FF9800</color>
+<color name="status_completed">#9E9E9E</color>
+
+<!-- Акцентные цвета -->
+<color name="orange_primary">#FF7A00</color>
+<color name="blue_primary">#2196F3</color>
+
+<!-- Фоновые цвета -->
+<color name="gray_light">#F5F5F5</color>
+<color name="chip_background">#F2F4F7</color>

@@ -1,0 +1,396 @@
+{
+  "updatedAt": "2025-12-01T08:28:05.000Z",
+  "createdAt": "2025-11-06T06:01:04.561Z",
+  "id": "gRvt4FVGZqXXyfW6",
+  "name": "API_Android_Normalize",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/android/appeals/:id/normalize",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "83f30d77-55e3-4a04-b792-af1fb98ac570",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -176
+      ],
+      "webhookId": "unique-normalize"
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Parse Token').first().json;\nconst tokenData = $input.first().json;\n\nconst params = webhookData.params || {};\nconst body = webhookData.body || {};\n\nreturn {\n  appeal_id: params.id || null,\n  operator_text: body.response_text || body.operator_text || null,\n  operator_id: tokenData.operator_id,\n  tenant_id: tokenData.tenant_id,\n  session_token: webhookData.session_token\n};"
+      },
+      "id": "55ff8c8c-64d6-4bb3-ab36-f1308376205f",
+      "name": "Parse Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JTmnrItQ7FnggqPU",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JTmnrItQ7FnggqPU",
+          "cachedResultName": "BAT Operator Response Handler 3 - Text Voice Normalize"
+        },
+        "options": {}
+      },
+      "id": "ee5bea21-fd75-464f-be22-d5c7691fa852",
+      "name": "Call Handler 3",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  success: true,\n  normalized_text: $json.normalized_text || $json.operator_text\n};"
+      },
+      "id": "5a751d80-08ca-4243-9d3e-606c4dd8f44d",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "5b1e1156-909d-4560-9f76-ab1c054ddc77",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\n\nreturn {\n  ...ctx,\n  media_type: 'text',\n  text: ctx.operator_text,\n  appeal_id: ctx.appeal_id,\n  operator_id: ctx.operator_id,  // Ð±ÑƒÐ´ÐµÑ‚ Ð¸Ð· Ð²Ð°Ð»Ð¸Ð´Ð°Ñ†Ð¸Ð¸ Ñ‚Ð¾ÐºÐµÐ½Ð°\n  action_source: 'android_app',\n  skip_notification: true\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -176
+      ],
+      "id": "c27c7eba-5241-41e3-bb28-8f1b43a946df",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nlet token = null;\n\nconst authHeader = headers.authorization || headers.Authorization || '';\nif (authHeader.startsWith('Bearer ') || authHeader.startsWith('bearer ')) {\n  token = authHeader.substring(7);\n}\n\nif (!token) {\n  token = headers['x-session-token'] || headers['X-Session-Token'];\n}\n\nreturn { ...($json || {}), session_token: token || null };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -176
+      ],
+      "id": "8fdfb2f6-7f4c-4790-ad9f-0b7d56213569",
+      "name": "Parse Token"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  od.operator_id,\n  od.tenant_id,\n  od.device_type\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -528,
+        -176
+      ],
+      "id": "16b73c7f-5187-4f84-a270-aae322d86e73",
+      "name": "Validate Token",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a43216f3-d7a4-44a6-a6e3-8c04f9bca9a2",
+              "leftValue": "={{ $json.operator_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        -176
+      ],
+      "id": "8c09132c-3e12-4147-b4ba-a862029f2461",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -64,
+        16
+      ],
+      "id": "4f55b00e-bd7d-44ee-a312-47f7eeca3731",
+      "name": "Respond 401"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Params": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Handler 3": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Call Handler 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Token": {
+      "main": [
+        [
+          {
+            "node": "Validate Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Token": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Parse Params",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.n8nsrv.ru",
+            "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; ru-RU) WindowsPowerShell/5.1.19041.3570",
+            "content-length": "68",
+            "authorization": "Bearer invalid",
+            "content-type": "application/json",
+            "expect": "100-continue",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "195.54.40.108",
+            "x-forwarded-host": "n8n.n8nsrv.ru",
+            "x-forwarded-proto": "https",
+            "x-session-token": "invalid",
+            "accept-encoding": "gzip"
+          },
+          "params": {
+            "id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5"
+          },
+          "query": {},
+          "body": {
+            "session_token": "invalid",
+            "response_text": "Test"
+          },
+          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/unique-normalize/api/operator/appeals/:id/normalize",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "69ea7a01-f182-45ee-aaa8-66f9d9026467",
+  "versionCounter": 27,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-06T06:01:04.576Z",
+      "createdAt": "2025-11-06T06:01:04.576Z",
+      "role": "workflow:owner",
+      "workflowId": "gRvt4FVGZqXXyfW6",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ]
+}

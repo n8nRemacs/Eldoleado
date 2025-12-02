@@ -1,0 +1,336 @@
+{
+  "updatedAt": "2025-12-02T07:53:42.000Z",
+  "createdAt": "2025-11-29T12:29:01.389Z",
+  "id": "eGiWLthVzJRc9uFH",
+  "name": "API_Android_Device_Update",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "PATCH",
+        "path": "android/appeal-devices/:id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1440,
+        192
+      ],
+      "id": "41cdaf59-4be8-4298-8733-395ac78c4f9d",
+      "name": "Webhook",
+      "webhookId": "android-device-update"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst body = $json.body || {};\nconst params = $json.params || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  device_id: params.id || '',\n  brand_id: body.brand_id,\n  brand_name: body.brand_name,\n  model_id: body.model_id,\n  model_name: body.model_name,\n  phone_model: body.phone_model\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        192
+      ],
+      "id": "be41f820-573c-4152-b5c7-75e64bd53b2f",
+      "name": "Parse Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.operator_id, od.tenant_id\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -960,
+        192
+      ],
+      "id": "5e937c00-4dff-42a8-bb93-e590aafc5aa0",
+      "name": "Get Tenant",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row?.tenant_id || null;\n\nconst prev = $('Parse Request').first()?.json || {};\n\nreturn {\n  ...prev,\n  tenant_id,\n  authorized: !!tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        192
+      ],
+      "id": "92a9bb7e-fbfe-42e5-a26e-d255e7d44580",
+      "name": "Check Auth"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.authorized }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        192
+      ],
+      "id": "92964cb1-c340-4318-ace6-63795d125be7",
+      "name": "Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        352
+      ],
+      "id": "6a239f04-e565-43d5-9e2f-3b843ae687c9",
+      "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appeal_devices\nSET\n  brand_id = CASE WHEN '{{ $json.brand_id }}' = 'undefined' THEN brand_id ELSE NULLIF('{{ $json.brand_id }}', 'null')::uuid END,\n  brand_name = CASE WHEN '{{ $json.brand_name }}' = 'undefined' THEN brand_name ELSE NULLIF('{{ $json.brand_name }}', 'null') END,\n  model_id = CASE WHEN '{{ $json.model_id }}' = 'undefined' THEN model_id ELSE NULLIF('{{ $json.model_id }}', 'null')::uuid END,\n  model_name = CASE WHEN '{{ $json.model_name }}' = 'undefined' THEN model_name ELSE NULLIF('{{ $json.model_name }}', 'null') END,\n  phone_model = CASE WHEN '{{ $json.phone_model }}' = 'undefined' THEN phone_model ELSE NULLIF('{{ $json.phone_model }}', 'null') END,\n  updated_at = NOW()\nWHERE id = '{{ $json.device_id }}'::uuid\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id, brand_id, brand_name, model_id, model_name, phone_model;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -240,
+        32
+      ],
+      "id": "57466387-b006-48e7-a531-f357ba7ced02",
+      "name": "SQL Update",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first()?.json;\nconst row = Array.isArray(result) ? result[0] : result;\n\nif (!row || !row.id) {\n  return { success: false, error: 'update_failed' };\n}\n\nreturn {\n  success: true,\n  device: row\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        32
+      ],
+      "id": "a789ad3a-2232-4373-a916-dc885bfdf5b6",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        32
+      ],
+      "id": "a72800ec-569b-4e65-8f86-2ae0044e30a4",
+      "name": "Respond Result"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Get Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tenant": {
+      "main": [
+        [
+          {
+            "node": "Check Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Auth": {
+      "main": [
+        [
+          {
+            "node": "Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorized?": {
+      "main": [
+        [
+          {
+            "node": "SQL Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Update": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d2c79b3e-dc97-4277-8827-334bfa18f793",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-29T12:29:01.397Z",
+      "createdAt": "2025-11-29T12:29:01.397Z",
+      "role": "workflow:owner",
+      "workflowId": "eGiWLthVzJRc9uFH",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ]
+}

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldoleado — Анкета для владельцев мастерских</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">Eldoleado</div>
+            <p class="tagline">AI-помощник для сервисного бизнеса</p>
+        </header>
+
+        <div class="intro">
+            <h1>Анкета для владельцев мастерских</h1>
+            <p class="subtitle">Исследование потребностей сервисного бизнеса</p>
+            <div class="meta">
+                <span class="time">⏱️ Время заполнения: 10-15 минут</span>
+                <span class="bonus">🎁 Бонус: Бесплатное тестирование + скидка 50% на первый год</span>
+            </div>
+        </div>
+
+        <form id="surveyForm" class="survey-form">
+            <!-- БЛОК 1: О вашей мастерской -->
+            <section class="block" data-block="1">
+                <h2><span class="block-number">1</span> О вашей мастерской</h2>
+
+                <div class="question" data-q="1">
+                    <label class="question-label">1. Как давно работает ваша мастерская?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q1" value="less_1_year" required> Меньше года</label>
+                        <label class="option"><input type="radio" name="q1" value="1_3_years"> 1-3 года</label>
+                        <label class="option"><input type="radio" name="q1" value="3_5_years"> 3-5 лет</label>
+                        <label class="option"><input type="radio" name="q1" value="more_5_years"> Больше 5 лет</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="2">
+                    <label class="question-label">2. Сколько человек работает?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q2" value="only_me" required> Только я</label>
+                        <label class="option"><input type="radio" name="q2" value="2_3"> 2-3 человека</label>
+                        <label class="option"><input type="radio" name="q2" value="4_10"> 4-10 человек</label>
+                        <label class="option"><input type="radio" name="q2" value="more_10"> Больше 10</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="3">
+                    <label class="question-label">3. Сколько клиентов в месяц (примерно)?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q3" value="up_to_30" required> До 30</label>
+                        <label class="option"><input type="radio" name="q3" value="30_70"> 30-70</label>
+                        <label class="option"><input type="radio" name="q3" value="70_150"> 70-150</label>
+                        <label class="option"><input type="radio" name="q3" value="more_150"> Больше 150</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="4">
+                    <label class="question-label">4. Средний чек (₽)?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q4" value="up_to_1500" required> До 1 500</label>
+                        <label class="option"><input type="radio" name="q4" value="1500_3000"> 1 500 — 3 000</label>
+                        <label class="option"><input type="radio" name="q4" value="3000_5000"> 3 000 — 5 000</label>
+                        <label class="option"><input type="radio" name="q4" value="more_5000"> Больше 5 000</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="5">
+                    <label class="question-label">5. Город</label>
+                    <input type="text" name="q5" class="text-input" placeholder="Введите город" required>
+                </div>
+            </section>
+
+            <!-- БЛОК 2: Каналы связи с клиентами -->
+            <section class="block" data-block="2">
+                <h2><span class="block-number">2</span> Каналы связи с клиентами</h2>
+
+                <div class="question" data-q="6">
+                    <label class="question-label">6. Через какие каналы пишут клиенты? <span class="hint">(несколько вариантов)</span></label>
+                    <div class="options checkbox-options">
+                        <label class="option"><input type="checkbox" name="q6" value="whatsapp"> WhatsApp</label>
+                        <label class="option"><input type="checkbox" name="q6" value="telegram"> Telegram</label>
+                        <label class="option"><input type="checkbox" name="q6" value="avito"> Авито чат</label>
+                        <label class="option"><input type="checkbox" name="q6" value="vk"> VK</label>
+                        <label class="option"><input type="checkbox" name="q6" value="calls"> Звонки</label>
+                        <label class="option other-option">
+                            <input type="checkbox" name="q6" value="other" id="q6_other_check">
+                            Другое: <input type="text" name="q6_other" class="inline-input" placeholder="уточните" disabled>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="7">
+                    <label class="question-label">7. Какой канал самый частый?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q7" value="whatsapp" required> WhatsApp</label>
+                        <label class="option"><input type="radio" name="q7" value="telegram"> Telegram</label>
+                        <label class="option"><input type="radio" name="q7" value="avito"> Авито</label>
+                        <label class="option"><input type="radio" name="q7" value="calls"> Звонки</label>
+                        <label class="option other-option">
+                            <input type="radio" name="q7" value="other" id="q7_other_check">
+                            Другое: <input type="text" name="q7_other" class="inline-input" placeholder="уточните" disabled>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="8">
+                    <label class="question-label">8. Бывает путаница когда клиент пишет в разных местах?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q8" value="often" required> Часто</label>
+                        <label class="option"><input type="radio" name="q8" value="sometimes"> Иногда</label>
+                        <label class="option"><input type="radio" name="q8" value="rarely"> Редко</label>
+                        <label class="option"><input type="radio" name="q8" value="never"> Никогда</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="9">
+                    <label class="question-label">9. Насколько это проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q9" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 3: Ответы в нерабочее время -->
+            <section class="block" data-block="3">
+                <h2><span class="block-number">3</span> Ответы в нерабочее время</h2>
+
+                <div class="question" data-q="10">
+                    <label class="question-label">10. Как часто клиенты пишут вечером/ночью/в выходные?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q10" value="constantly" required> Постоянно (больше 30%)</label>
+                        <label class="option"><input type="radio" name="q10" value="often"> Часто (10-30%)</label>
+                        <label class="option"><input type="radio" name="q10" value="sometimes"> Иногда (до 10%)</label>
+                        <label class="option"><input type="radio" name="q10" value="rarely"> Редко</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="11">
+                    <label class="question-label">11. Что делаете с такими сообщениями?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q11" value="immediately" required> Отвечаю сразу (даже ночью)</label>
+                        <label class="option"><input type="radio" name="q11" value="morning"> Отвечаю утром</label>
+                        <label class="option"><input type="radio" name="q11" value="whenever"> Как получится</label>
+                        <label class="option"><input type="radio" name="q11" value="autoresponder"> Использую автоответчик</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="12">
+                    <label class="question-label">12. Теряли клиентов из-за того что не ответили быстро?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q12" value="yes_often" required> Да, часто</label>
+                        <label class="option"><input type="radio" name="q12" value="yes_sometimes"> Да, иногда</label>
+                        <label class="option"><input type="radio" name="q12" value="maybe"> Возможно, но не уверен</label>
+                        <label class="option"><input type="radio" name="q12" value="no"> Нет</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="13">
+                    <label class="question-label">13. Насколько это проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q13" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 4: Звонки -->
+            <section class="block" data-block="4">
+                <h2><span class="block-number">4</span> Звонки</h2>
+
+                <div class="question" data-q="14">
+                    <label class="question-label">14. Сколько звонков в день (примерно)?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q14" value="up_to_5" required> До 5</label>
+                        <label class="option"><input type="radio" name="q14" value="5_15"> 5-15</label>
+                        <label class="option"><input type="radio" name="q14" value="15_30"> 15-30</label>
+                        <label class="option"><input type="radio" name="q14" value="more_30"> Больше 30</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="15">
+                    <label class="question-label">15. Где фиксируете результат звонка?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q15" value="crm" required> В CRM</label>
+                        <label class="option"><input type="radio" name="q15" value="notes"> В блокноте / заметках</label>
+                        <label class="option"><input type="radio" name="q15" value="memory"> В голове</label>
+                        <label class="option"><input type="radio" name="q15" value="nowhere"> Нигде</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="16">
+                    <label class="question-label">16. Бывает что забываете о чём договорились по телефону?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q16" value="often" required> Часто</label>
+                        <label class="option"><input type="radio" name="q16" value="sometimes"> Иногда</label>
+                        <label class="option"><input type="radio" name="q16" value="rarely"> Редко</label>
+                        <label class="option"><input type="radio" name="q16" value="never"> Никогда</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="17">
+                    <label class="question-label">17. Записываете звонки?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q17" value="yes_all" required> Да, все</label>
+                        <label class="option"><input type="radio" name="q17" value="yes_some"> Да, некоторые</label>
+                        <label class="option"><input type="radio" name="q17" value="no_want"> Нет, но хотел бы</label>
+                        <label class="option"><input type="radio" name="q17" value="no_dont_need"> Нет, не нужно</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="18">
+                    <label class="question-label">18. Насколько это проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q18" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 5: Прайсы и поставщики -->
+            <section class="block" data-block="5">
+                <h2><span class="block-number">5</span> Прайсы и поставщики</h2>
+
+                <div class="question" data-q="19">
+                    <label class="question-label">19. Сколько у вас поставщиков запчастей?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q19" value="1_2" required> 1-2</label>
+                        <label class="option"><input type="radio" name="q19" value="3_5"> 3-5</label>
+                        <label class="option"><input type="radio" name="q19" value="6_10"> 6-10</label>
+                        <label class="option"><input type="radio" name="q19" value="more_10"> Больше 10</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="20">
+                    <label class="question-label">20. Как ищете нужную запчасть и цену?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q20" value="manual" required> Открываю каждый прайс вручную</label>
+                        <label class="option"><input type="radio" name="q20" value="contact"> Звоню/пишу поставщикам</label>
+                        <label class="option"><input type="radio" name="q20" value="aggregator"> Есть агрегатор / общая таблица</label>
+                        <label class="option other-option">
+                            <input type="radio" name="q20" value="other" id="q20_other_check">
+                            Другое: <input type="text" name="q20_other" class="inline-input" placeholder="уточните" disabled>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="21">
+                    <label class="question-label">21. Сколько времени уходит найти и сравнить цены на одну запчасть?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q21" value="up_to_5min" required> До 5 минут</label>
+                        <label class="option"><input type="radio" name="q21" value="5_15min"> 5-15 минут</label>
+                        <label class="option"><input type="radio" name="q21" value="15_30min"> 15-30 минут</label>
+                        <label class="option"><input type="radio" name="q21" value="more_30min"> Больше 30 минут</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="22">
+                    <label class="question-label">22. Бывало что называли клиенту цену, а потом оказывалось дороже?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q22" value="often" required> Часто</label>
+                        <label class="option"><input type="radio" name="q22" value="sometimes"> Иногда</label>
+                        <label class="option"><input type="radio" name="q22" value="rarely"> Редко</label>
+                        <label class="option"><input type="radio" name="q22" value="never"> Никогда</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="23">
+                    <label class="question-label">23. Насколько это проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q23" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 6: Маркетинг и реклама -->
+            <section class="block" data-block="6">
+                <h2><span class="block-number">6</span> Маркетинг и реклама</h2>
+
+                <div class="question" data-q="24">
+                    <label class="question-label">24. Откуда приходят клиенты? <span class="hint">(несколько вариантов)</span></label>
+                    <div class="options checkbox-options">
+                        <label class="option"><input type="checkbox" name="q24" value="avito"> Авито</label>
+                        <label class="option"><input type="checkbox" name="q24" value="2gis_yandex"> 2ГИС / Яндекс.Карты</label>
+                        <label class="option"><input type="checkbox" name="q24" value="referrals"> Сарафан / рекомендации</label>
+                        <label class="option"><input type="checkbox" name="q24" value="target"> Таргет (VK, Яндекс)</label>
+                        <label class="option other-option">
+                            <input type="checkbox" name="q24" value="other" id="q24_other_check">
+                            Другое: <input type="text" name="q24_other" class="inline-input" placeholder="уточните" disabled>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="25">
+                    <label class="question-label">25. Сколько тратите на рекламу в месяц (всего)?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q25" value="nothing" required> Не трачу</label>
+                        <label class="option"><input type="radio" name="q25" value="up_to_5000"> До 5 000₽</label>
+                        <label class="option"><input type="radio" name="q25" value="5000_15000"> 5 000 — 15 000₽</label>
+                        <label class="option"><input type="radio" name="q25" value="15000_30000"> 15 000 — 30 000₽</label>
+                        <label class="option"><input type="radio" name="q25" value="more_30000"> Больше 30 000₽</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="26">
+                    <label class="question-label">26. Есть ли маркетолог / авитолог?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q26" value="in_house" required> Да, в штате</label>
+                        <label class="option"><input type="radio" name="q26" value="outsource"> Да, на аутсорсе</label>
+                        <label class="option"><input type="radio" name="q26" value="myself"> Нет, сам занимаюсь</label>
+                        <label class="option"><input type="radio" name="q26" value="no_marketing"> Нет, не занимаюсь рекламой</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="27">
+                    <label class="question-label">27. Если есть — сколько платите ему в месяц?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q27" value="up_to_10000" required> До 10 000₽</label>
+                        <label class="option"><input type="radio" name="q27" value="10000_25000"> 10 000 — 25 000₽</label>
+                        <label class="option"><input type="radio" name="q27" value="25000_50000"> 25 000 — 50 000₽</label>
+                        <label class="option"><input type="radio" name="q27" value="more_50000"> Больше 50 000₽</label>
+                        <label class="option"><input type="radio" name="q27" value="no_marketer"> Нет маркетолога</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="28">
+                    <label class="question-label">28. Довольны ли его работой?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q28" value="yes_fully" required> Да, полностью</label>
+                        <label class="option"><input type="radio" name="q28" value="partially"> Частично</label>
+                        <label class="option"><input type="radio" name="q28" value="no"> Нет</label>
+                        <label class="option"><input type="radio" name="q28" value="no_marketer"> Нет маркетолога</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="29">
+                    <label class="question-label">29. Считаете конверсию (заявки → клиенты)?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q29" value="yes_always" required> Да, постоянно</label>
+                        <label class="option"><input type="radio" name="q29" value="sometimes"> Иногда</label>
+                        <label class="option"><input type="radio" name="q29" value="no_want"> Нет, но хотел бы</label>
+                        <label class="option"><input type="radio" name="q29" value="no_dont_see_point"> Нет, не вижу смысла</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="30">
+                    <label class="question-label">30. Знаете сколько стоит привлечь одного клиента?</label>
+                    <div class="options">
+                        <label class="option cac-option">
+                            <input type="radio" name="q30" value="yes" required id="q30_yes">
+                            Да, примерно <input type="number" name="q30_amount" class="inline-input number-input" placeholder="₽" disabled> ₽
+                        </label>
+                        <label class="option"><input type="radio" name="q30" value="no"> Нет, не считал</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="31">
+                    <label class="question-label">31. Насколько маркетинг/реклама — проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q31" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 7: Удержание клиентов -->
+            <section class="block" data-block="7">
+                <h2><span class="block-number">7</span> Удержание клиентов</h2>
+
+                <div class="question" data-q="32">
+                    <label class="question-label">32. Какой процент клиентов возвращается повторно?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q32" value="less_10" required> Меньше 10%</label>
+                        <label class="option"><input type="radio" name="q32" value="10_25"> 10-25%</label>
+                        <label class="option"><input type="radio" name="q32" value="25_50"> 25-50%</label>
+                        <label class="option"><input type="radio" name="q32" value="more_50"> Больше 50%</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="33">
+                    <label class="question-label">33. Как ведёте базу клиентов?</label>
+                    <div class="options">
+                        <label class="option crm-option">
+                            <input type="radio" name="q33" value="crm" required id="q33_crm">
+                            CRM (какая? <input type="text" name="q33_crm_name" class="inline-input" placeholder="название" disabled>)
+                        </label>
+                        <label class="option"><input type="radio" name="q33" value="excel"> Excel / Google Таблицы</label>
+                        <label class="option"><input type="radio" name="q33" value="notes"> Блокнот / заметки в телефоне</label>
+                        <label class="option"><input type="radio" name="q33" value="contacts"> Контакты в телефоне</label>
+                        <label class="option"><input type="radio" name="q33" value="nothing"> Никак</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="34">
+                    <label class="question-label">34. Напоминаете о себе старым клиентам?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q34" value="yes_regularly" required> Да, регулярно</label>
+                        <label class="option"><input type="radio" name="q34" value="sometimes"> Иногда</label>
+                        <label class="option"><input type="radio" name="q34" value="no_want"> Нет, но хотел бы</label>
+                        <label class="option"><input type="radio" name="q34" value="no_dont_see_point"> Нет, не вижу смысла</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="35">
+                    <label class="question-label">35. Если напоминаете — как?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q35" value="manual" required> Вручную пишу</label>
+                        <label class="option"><input type="radio" name="q35" value="mailing"> Рассылка</label>
+                        <label class="option"><input type="radio" name="q35" value="auto"> Автоматические напоминания</label>
+                        <label class="option"><input type="radio" name="q35" value="dont_remind"> Не напоминаю</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="36">
+                    <label class="question-label">36. Насколько удержание — проблема?</label>
+                    <div class="scale-container">
+                        <input type="range" name="q36" min="1" max="10" value="5" class="scale-input">
+                        <div class="scale-labels">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        <div class="scale-value">5</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 8: Главные боли -->
+            <section class="block" data-block="8">
+                <h2><span class="block-number">8</span> Главные боли</h2>
+
+                <div class="question" data-q="37">
+                    <label class="question-label">37. Проранжируйте проблемы от 1 (болит сильнее всего) до 6:</label>
+                    <div class="ranking-container">
+                        <div class="ranking-item">
+                            <select name="q37_messengers" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Разные мессенджеры, всё разбросано</span>
+                        </div>
+                        <div class="ranking-item">
+                            <select name="q37_night" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Клиенты пишут ночью, не успеваю отвечать</span>
+                        </div>
+                        <div class="ranking-item">
+                            <select name="q37_suppliers" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Копаться в прайсах поставщиков</span>
+                        </div>
+                        <div class="ranking-item">
+                            <select name="q37_phone" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Забываю о чём договорились по телефону</span>
+                        </div>
+                        <div class="ranking-item">
+                            <select name="q37_advertising" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Реклама дорогая и непонятно работает ли</span>
+                        </div>
+                        <div class="ranking-item">
+                            <select name="q37_retention" class="ranking-select" required>
+                                <option value="">—</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                            <span>Клиенты не возвращаются повторно</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question" data-q="38">
+                    <label class="question-label">38. Если бы волшебная палочка решила ОДНУ проблему — какую?</label>
+                    <textarea name="q38" class="textarea-input" placeholder="Опишите свободно..." required></textarea>
+                </div>
+
+                <div class="question" data-q="39">
+                    <label class="question-label">39. Что отнимает больше всего времени из того, что не хочется делать?</label>
+                    <textarea name="q39" class="textarea-input" placeholder="Опишите свободно..." required></textarea>
+                </div>
+            </section>
+
+            <!-- БЛОК 9: Готовность платить -->
+            <section class="block" data-block="9">
+                <h2><span class="block-number">9</span> Готовность платить</h2>
+
+                <div class="question" data-q="40">
+                    <label class="question-label">40. Сколько сейчас тратите на софт/сервисы в месяц?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q40" value="nothing" required> Ничего</label>
+                        <label class="option"><input type="radio" name="q40" value="up_to_1000"> До 1 000₽</label>
+                        <label class="option"><input type="radio" name="q40" value="1000_3000"> 1 000 — 3 000₽</label>
+                        <label class="option"><input type="radio" name="q40" value="3000_5000"> 3 000 — 5 000₽</label>
+                        <label class="option"><input type="radio" name="q40" value="more_5000"> Больше 5 000₽</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="41">
+                    <label class="question-label">41. Представьте сервис, который:</label>
+                    <ul class="feature-list">
+                        <li>Собирает все мессенджеры в одно окно</li>
+                        <li>Отвечает клиентам ночью</li>
+                        <li>Ищет запчасти по всем поставщикам</li>
+                        <li>Записывает звонки и фиксирует договорённости</li>
+                        <li>Напоминает клиентам о вас</li>
+                    </ul>
+                    <label class="question-label sub-question">Сколько бы платили за такое в месяц?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q41" value="up_to_1000" required> До 1 000₽</label>
+                        <label class="option"><input type="radio" name="q41" value="1000_2000"> 1 000 — 2 000₽</label>
+                        <label class="option"><input type="radio" name="q41" value="2000_3000"> 2 000 — 3 000₽</label>
+                        <label class="option"><input type="radio" name="q41" value="3000_5000"> 3 000 — 5 000₽</label>
+                        <label class="option"><input type="radio" name="q41" value="more_5000"> Больше 5 000₽</label>
+                        <label class="option"><input type="radio" name="q41" value="would_not_pay"> Не стал бы платить</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="42">
+                    <label class="question-label">42. А за ОДНУ самую важную функцию — сколько бы платили?</label>
+                    <div class="two-inputs">
+                        <div class="input-group">
+                            <label>Функция:</label>
+                            <input type="text" name="q42_function" class="text-input" placeholder="Какая функция?" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Цена:</label>
+                            <input type="number" name="q42_price" class="text-input number-input" placeholder="₽/мес" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question" data-q="43">
+                    <label class="question-label">43. При какой цене скажете «слишком дорого»?</label>
+                    <div class="input-with-suffix">
+                        <input type="number" name="q43" class="text-input number-input" placeholder="Введите сумму" required>
+                        <span class="suffix">₽</span>
+                    </div>
+                </div>
+
+                <div class="question" data-q="44">
+                    <label class="question-label">44. При какой цене скажете «подозрительно дёшево»?</label>
+                    <div class="input-with-suffix">
+                        <input type="number" name="q44" class="text-input number-input" placeholder="Введите сумму" required>
+                        <span class="suffix">₽</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- БЛОК 10: Завершение -->
+            <section class="block" data-block="10">
+                <h2><span class="block-number">10</span> Завершение</h2>
+
+                <div class="question" data-q="45">
+                    <label class="question-label">45. Пробовали CRM или ботов раньше?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q45" value="yes_using" required> Да, пользуюсь сейчас</label>
+                        <label class="option quit-option">
+                            <input type="radio" name="q45" value="yes_quit" id="q45_quit">
+                            Да, но бросил (почему? <input type="text" name="q45_quit_reason" class="inline-input" placeholder="причина" disabled>)
+                        </label>
+                        <label class="option"><input type="radio" name="q45" value="no"> Нет, не пробовал</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="46">
+                    <label class="question-label">46. Что должен делать сервис, чтобы вы точно платили 2 000-3 000₽/мес?</label>
+                    <textarea name="q46" class="textarea-input" placeholder="Опишите свободно..." required></textarea>
+                </div>
+
+                <div class="question" data-q="47">
+                    <label class="question-label">47. Хотите участвовать в тестировании + получить скидку 50% на первый год?</label>
+                    <div class="options">
+                        <label class="option"><input type="radio" name="q47" value="yes" required> Да</label>
+                        <label class="option"><input type="radio" name="q47" value="maybe"> Может быть</label>
+                        <label class="option"><input type="radio" name="q47" value="no"> Нет</label>
+                    </div>
+                </div>
+
+                <div class="question" data-q="48">
+                    <label class="question-label">48. Контакт для связи (телефон или Telegram):</label>
+                    <input type="text" name="q48" class="text-input" placeholder="+7... или @username" required>
+                </div>
+
+                <div class="question" data-q="49">
+                    <label class="question-label">49. Можете порекомендовать 1-2 знакомых владельцев мастерских для опроса?</label>
+                    <textarea name="q49" class="textarea-input" placeholder="Имена и контакты (необязательно)"></textarea>
+                </div>
+            </section>
+
+            <div class="submit-section">
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-text">Отправить анкету</span>
+                    <span class="btn-loader" style="display: none;">Отправка...</span>
+                </button>
+                <p class="privacy-note">Ваши данные защищены и используются только для исследования</p>
+            </div>
+        </form>
+
+        <div class="success-message" id="successMessage" style="display: none;">
+            <div class="success-icon">✓</div>
+            <h2>Спасибо за участие!</h2>
+            <p>Ваши ответы помогут создать продукт, который реально решает ваши проблемы.</p>
+            <p class="contact-info">Мы свяжемся с вами в ближайшее время.</p>
+        </div>
+
+        <footer class="footer">
+            <p><strong>Eldoleado</strong> — AI-помощник для сервисного бизнеса</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

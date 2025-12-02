@@ -1,0 +1,336 @@
+{
+  "updatedAt": "2025-12-02T07:53:49.000Z",
+  "createdAt": "2025-11-29T12:30:31.554Z",
+  "id": "RDfhYYdzKp5En9uz",
+  "name": "API_Android_Repair_Create",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android/appeal-repairs",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        -64
+      ],
+      "id": "f2bb1ff8-e69f-4c2d-9ccb-1e2dd0112f59",
+      "name": "Webhook",
+      "webhookId": "android-repair-create"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst body = $json.body || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  device_id: body.device_id || '',\n  appeal_id: body.appeal_id || '',\n  repair_category_id: body.repair_category_id || null,\n  repair_category_name: body.repair_category_name || null,\n  issue_type_id: body.issue_type_id || null,\n  issue_type_name: body.issue_type_name || null,\n  parts_owner: body.parts_owner || 'наша'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "ef88e823-50a3-4a70-8a30-b6e12a05b7f0",
+      "name": "Parse Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.operator_id, od.tenant_id\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        112,
+        -64
+      ],
+      "id": "51654425-ef02-4d56-8180-a970d1fd58de",
+      "name": "Get Tenant",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row?.tenant_id || null;\n\nconst prev = $('Parse Request').first()?.json || {};\n\nreturn {\n  ...prev,\n  tenant_id,\n  authorized: !!tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -64
+      ],
+      "id": "5e68d154-84f8-48a6-afd1-e4e380505798",
+      "name": "Check Auth"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.authorized }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -64
+      ],
+      "id": "3cf1ccc9-b490-4d59-b6b5-6111eb8358e3",
+      "name": "Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        832,
+        96
+      ],
+      "id": "805d0d46-6837-47da-9c53-750a78f2e7ac",
+      "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO appeal_repairs (\n  appeal_id, appeal_device_id, tenant_id,\n  repair_category_id, repair_category_name,\n  issue_type_id, issue_type_name,\n  parts_owner, priority\n)\nSELECT\n  ad.appeal_id,\n  ad.id,\n  '{{ $json.tenant_id }}'::uuid,\n  NULLIF('{{ $json.repair_category_id }}', 'null')::uuid,\n  NULLIF('{{ $json.repair_category_name }}', 'null'),\n  NULLIF('{{ $json.issue_type_id }}', 'null')::uuid,\n  NULLIF('{{ $json.issue_type_name }}', 'null'),\n  COALESCE(NULLIF('{{ $json.parts_owner }}', 'null'), 'наша'),\n  COALESCE((SELECT MAX(priority) + 1 FROM appeal_repairs WHERE appeal_device_id = '{{ $json.device_id }}'::uuid), 1)\nFROM appeal_devices ad\nWHERE ad.id = '{{ $json.device_id }}'::uuid\n  AND ad.tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id, repair_category_name, issue_type_name, parts_owner;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        832,
+        -224
+      ],
+      "id": "3c1da154-1716-4e88-a406-9646548ed880",
+      "name": "SQL Create",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first()?.json;\nconst row = Array.isArray(result) ? result[0] : result;\n\nif (!row || !row.id) {\n  return { success: false, error: 'creation_failed' };\n}\n\nreturn {\n  success: true,\n  repair: row\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        -224
+      ],
+      "id": "18d8ecfd-2ed4-4cd1-b914-640035a4969e",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -224
+      ],
+      "id": "adfc09ef-34f0-4e14-9a3c-4a1bf73d94a6",
+      "name": "Respond Result"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Get Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tenant": {
+      "main": [
+        [
+          {
+            "node": "Check Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Auth": {
+      "main": [
+        [
+          {
+            "node": "Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorized?": {
+      "main": [
+        [
+          {
+            "node": "SQL Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Create": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "422537b9-cb5e-42c2-a447-bb8e1f818b16",
+  "versionCounter": 10,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-29T12:30:31.559Z",
+      "createdAt": "2025-11-29T12:30:31.559Z",
+      "role": "workflow:owner",
+      "workflowId": "RDfhYYdzKp5En9uz",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ]
+}

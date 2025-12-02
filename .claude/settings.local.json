@@ -22,7 +22,20 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(claude logout:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(./gradlew.bat assembleDebug)",
+      "Bash(where:*)",
+      "Bash(findstr:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew.bat:*)",
+      "Bash(adb devices:*)",
+      "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\" devices)",
+      "Bash(\"$LOCALAPPDATA/Android/Sdk/emulator/emulator.exe\" -list-avds)",
+      "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\" install:*)",
+      "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\" shell am start -n com.batterycrm.app/.MainActivity)",
+      "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\" shell monkey -p com.batterycrm.app -c android.intent.category.LAUNCHER 1)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

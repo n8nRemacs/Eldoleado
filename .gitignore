@@ -50,3 +50,5 @@ workflows_backup/
 
 # Git
 *.orig
+node_modules
+.dev_credentials

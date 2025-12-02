@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  max-api:
+    build: .
+    container_name: max-bot-api
+    ports:
+      - "8768:8768"
+    environment:
+      - MAX_ACCESS_TOKEN=${MAX_ACCESS_TOKEN}
+      - MAX_WEBHOOK_SECRET=${MAX_WEBHOOK_SECRET}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8768
+      - API_KEY=${API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8768/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

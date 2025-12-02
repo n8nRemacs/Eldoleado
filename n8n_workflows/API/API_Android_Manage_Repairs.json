@@ -1,0 +1,496 @@
+{
+  "name": "API_Android_Manage_Repairs",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "api/appeal-repairs",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-800, -200],
+      "id": "webhook-create",
+      "name": "Webhook Create",
+      "webhookId": "appeal-repairs-create"
+    },
+    {
+      "parameters": {
+        "path": "api/appeal-repairs/:id",
+        "httpMethod": "PATCH",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-800, 0],
+      "id": "webhook-update",
+      "name": "Webhook Update",
+      "webhookId": "appeal-repairs-update"
+    },
+    {
+      "parameters": {
+        "path": "api/appeal-repairs/:id",
+        "httpMethod": "DELETE",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-800, 200],
+      "id": "webhook-delete",
+      "name": "Webhook Delete",
+      "webhookId": "appeal-repairs-delete"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst body = $json.body || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  action: 'create',\n  device_id: body.device_id || '',\n  appeal_id: body.appeal_id || '',\n  repair_category_id: body.repair_category_id || null,\n  repair_category_name: body.repair_category_name || null,\n  issue_type_id: body.issue_type_id || null,\n  issue_type_name: body.issue_type_name || null,\n  parts_owner: body.parts_owner || 'наша'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-560, -200],
+      "id": "parse-create",
+      "name": "Parse Create"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst body = $json.body || {};\nconst params = $json.params || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  action: 'update',\n  repair_id: params.id || '',\n  repair_category_id: body.repair_category_id,\n  repair_category_name: body.repair_category_name,\n  issue_type_id: body.issue_type_id,\n  issue_type_name: body.issue_type_name,\n  parts_owner: body.parts_owner\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-560, 0],
+      "id": "parse-update",
+      "name": "Parse Update"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst params = $json.params || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  action: 'delete',\n  repair_id: params.id || ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-560, 200],
+      "id": "parse-delete",
+      "name": "Parse Delete"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [-320, 0],
+      "id": "merge-inputs",
+      "name": "Merge Inputs"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.operator_id, od.tenant_id\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [-80, 0],
+      "id": "get-tenant",
+      "name": "Get Tenant",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row?.tenant_id || null;\n\nconst prev = $('Merge Inputs').first()?.json || {};\n\nreturn {\n  ...prev,\n  tenant_id,\n  authorized: !!tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [160, 0],
+      "id": "check-auth",
+      "name": "Check Auth"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.authorized }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [400, 0],
+      "id": "if-authorized",
+      "name": "Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [640, 160],
+      "id": "respond-401",
+      "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "create",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "update",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "delete",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "delete",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [640, -160],
+      "id": "switch-action",
+      "name": "Switch Action"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO appeal_repairs (\n  appeal_id, appeal_device_id, tenant_id,\n  repair_category_id, repair_category_name,\n  issue_type_id, issue_type_name,\n  parts_owner, priority\n)\nSELECT\n  ad.appeal_id,\n  ad.id,\n  '{{ $json.tenant_id }}'::uuid,\n  NULLIF('{{ $json.repair_category_id }}', '')::uuid,\n  NULLIF('{{ $json.repair_category_name }}', ''),\n  NULLIF('{{ $json.issue_type_id }}', '')::uuid,\n  NULLIF('{{ $json.issue_type_name }}', ''),\n  COALESCE(NULLIF('{{ $json.parts_owner }}', ''), 'наша'),\n  COALESCE((SELECT MAX(priority) + 1 FROM appeal_repairs WHERE appeal_device_id = '{{ $json.device_id }}'::uuid), 1)\nFROM appeal_devices ad\nWHERE ad.id = '{{ $json.device_id }}'::uuid\n  AND ad.tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id, repair_category_name, issue_type_name, parts_owner;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [880, -280],
+      "id": "sql-create",
+      "name": "SQL Create",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appeal_repairs\nSET\n  repair_category_id = CASE WHEN '{{ $json.repair_category_id }}' = 'undefined' THEN repair_category_id ELSE NULLIF('{{ $json.repair_category_id }}', '')::uuid END,\n  repair_category_name = CASE WHEN '{{ $json.repair_category_name }}' = 'undefined' THEN repair_category_name ELSE NULLIF('{{ $json.repair_category_name }}', '') END,\n  issue_type_id = CASE WHEN '{{ $json.issue_type_id }}' = 'undefined' THEN issue_type_id ELSE NULLIF('{{ $json.issue_type_id }}', '')::uuid END,\n  issue_type_name = CASE WHEN '{{ $json.issue_type_name }}' = 'undefined' THEN issue_type_name ELSE NULLIF('{{ $json.issue_type_name }}', '') END,\n  parts_owner = CASE WHEN '{{ $json.parts_owner }}' = 'undefined' THEN parts_owner ELSE COALESCE(NULLIF('{{ $json.parts_owner }}', ''), parts_owner) END,\n  updated_at = NOW()\nWHERE id = '{{ $json.repair_id }}'::uuid\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id, repair_category_name, issue_type_name, parts_owner;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [880, -120],
+      "id": "sql-update",
+      "name": "SQL Update",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM appeal_repairs\nWHERE id = '{{ $json.repair_id }}'::uuid\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [880, 40],
+      "id": "sql-delete",
+      "name": "SQL Delete",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first()?.json;\nconst row = Array.isArray(result) ? result[0] : result;\n\nif (!row || !row.id) {\n  return { success: false, error: 'operation_failed' };\n}\n\nreturn {\n  success: true,\n  repair: row\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, -120],
+      "id": "format-result",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1360, -120],
+      "id": "respond-result",
+      "name": "Respond Result"
+    }
+  ],
+  "connections": {
+    "Webhook Create": {
+      "main": [
+        [
+          {
+            "node": "Parse Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Update": {
+      "main": [
+        [
+          {
+            "node": "Parse Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Delete": {
+      "main": [
+        [
+          {
+            "node": "Parse Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Create": {
+      "main": [
+        [
+          {
+            "node": "Merge Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Update": {
+      "main": [
+        [
+          {
+            "node": "Merge Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Delete": {
+      "main": [
+        [
+          {
+            "node": "Merge Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Inputs": {
+      "main": [
+        [
+          {
+            "node": "Get Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tenant": {
+      "main": [
+        [
+          {
+            "node": "Check Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Auth": {
+      "main": [
+        [
+          {
+            "node": "Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Switch Action",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Action": {
+      "main": [
+        [
+          {
+            "node": "SQL Create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SQL Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Create": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Update": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Delete": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Microphone body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34c-4.4,0 -8,3.6 -8,8v12c0,4.4 3.6,8 8,8s8,-3.6 8,-8v-12c0,-4.4 -3.6,-8 -8,-8z"/>
+
+    <!-- Microphone stand curve -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M68,52v2c0,7.7 -6.3,14 -14,14s-14,-6.3 -14,-14v-2h-4v2c0,9.2 6.9,16.8 16,17.9V76h-6v4h16v-4h-6v-6.1c9.1,-1.1 16,-8.7 16,-17.9v-2h-4z"/>
+
+    <!-- Recording indicator dot -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M54,44m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+
+</vector>

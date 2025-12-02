@@ -1,0 +1,274 @@
+{
+  "updatedAt": "2025-11-23T04:06:30.000Z",
+  "createdAt": "2025-10-26T11:38:12.745Z",
+  "id": "rRO6sxLqiCdgvLZz",
+  "name": "BAT_Tenant_Resolver",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1232,
+        -96
+      ],
+      "id": "2fa44237-42de-4ae8-8aa9-6b4bceb1dbdf",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// Определяем параметры для поиска tenant\nconst channel = data.channel;\nlet lookupKey = '';\nlet lookupValue = '';\n\nif (channel === 'telegram' && data.bot_token) {\n  lookupKey = 'telegram_bot_token';\n  lookupValue = data.bot_token;\n} else if (channel === 'vk' && data.app_id) {\n  lookupKey = 'vk_app_id';\n  lookupValue = data.app_id;\n} else if (channel === 'whatsapp' && data.phone_id) {\n  lookupKey = 'whatsapp_phone_id';\n  lookupValue = data.phone_id;\n} else if (channel === 'avito' && data.client_id) {\n  lookupKey = 'avito_client_id';\n  lookupValue = data.client_id;\n}\n\nreturn {\n  ...data,\n  lookup_key: lookupKey,\n  lookup_value: lookupValue\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        -96
+      ],
+      "id": "562d9faf-4cce-4e01-b3f2-c369a93d6e83",
+      "name": "Prepare Lookup"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  t.id as tenant_id,\n  t.name as tenant_name,\n  t.is_active,\n  tc.value as config\nFROM tenants t\nLEFT JOIN tenant_configs tc ON tc.tenant_id = t.id\nWHERE tc.key = '{{ $json.lookup_key }}'\n  AND tc.value->>'token' = '{{ $json.lookup_value }}'\n  AND t.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -816,
+        -96
+      ],
+      "id": "459a02e1-319e-4895-9e78-069b7d6f1f38",
+      "name": "Find Tenant",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0db731ef-8563-4d63-ae88-3523d6fbc0b4",
+              "leftValue": "={{ $json.tenant_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -608,
+        -96
+      ],
+      "id": "9afb5f96-b2f3-4e05-842b-db11917d6aa3",
+      "name": "Tenant Found?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  ...$('Prepare Lookup').first().json,\n  tenant_id: 'a0000000-0000-0000-0000-000000000001',\n  tenant_name: 'Default Tenant',\n  tenant_config: {}\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "b827f353-708b-4d57-a1bf-1f4aacf66fd4",
+      "name": "Use Default Tenant"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "b8a634ad-0cc8-43ca-b491-caa0be9c1144",
+      "name": "Merge Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tenantData = $input.first().json;\nconst originalData = $('When Executed by Another Workflow').first().json;\n\nreturn {\n  ...originalData,\n  tenant_id: tenantData.tenant_id,\n  tenant_name: tenantData.tenant_name,\n  tenant_config: tenantData.config || tenantData.tenant_config || {}\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "eaf8d7dc-ed17-4712-b9be-2d6e393b7fd2",
+      "name": "Attach Tenant"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lookup": {
+      "main": [
+        [
+          {
+            "node": "Find Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Tenant": {
+      "main": [
+        [
+          {
+            "node": "Tenant Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tenant Found?": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Use Default Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Default Tenant": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Attach Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "069348b4-b737-460a-a099-6e188c8e76c7",
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-10-26T11:38:12.768Z",
+      "createdAt": "2025-10-26T11:38:12.768Z",
+      "role": "workflow:owner",
+      "workflowId": "rRO6sxLqiCdgvLZz",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "updatedAt": "2025-12-01T08:42:50.000Z",
+  "createdAt": "2025-11-09T07:50:30.418Z",
+  "id": "HrKckjh2tCO4kjR4",
+  "name": "API_Android_Send_Promo",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/android/appeals/{id}/promo",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "843f62d0-6be5-4a5e-816c-103be202fb1e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        16
+      ],
+      "webhookId": "operator-send-promo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = JSON.parse($input.item.json.body);\n\nreturn {\n  appeal_id: body.appeal_id || null,\n  telegram_id: body.telegram_id || null,\n  tenant_id: body.tenant_id || null\n};"
+      },
+      "id": "819ff6cb-669a-4a5c-a7bb-1c3ef071c503",
+      "name": "Parse Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $vars.BAT_Promo_Sender }}",
+        "options": {}
+      },
+      "id": "31c6701a-17f1-41b3-b67c-a9df826aba76",
+      "name": "Call BAT_Promo_Sender",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Promo sending initiated\" } }}",
+        "options": {}
+      },
+      "id": "6bc90778-ba88-40e9-bd85-ca51e575c9f3",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        16
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Params": {
+      "main": [
+        [
+          {
+            "node": "Call BAT_Promo_Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call BAT_Promo_Sender": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "cdb2bf1c-7056-4f27-9cbb-d94f17519652",
+  "versionCounter": 25,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-09T07:50:30.461Z",
+      "createdAt": "2025-11-09T07:50:30.461Z",
+      "role": "workflow:owner",
+      "workflowId": "HrKckjh2tCO4kjR4",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-02T07:52:39.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-01",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ]
+}

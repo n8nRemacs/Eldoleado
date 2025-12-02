@@ -1,0 +1,413 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/context",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        -272
+      ],
+      "webhookId": "neo4j-context",
+      "id": "61599988-3b67-4634-9885-ab61b0b7b07e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst clientId = body.client_id || null;\nconst action = body.action || 'get_context'; // get_context, disambiguation, enrichment_suggestion\n\nreturn {\n  clientId,\n  action\n};"
+      },
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -272
+      ],
+      "id": "c30e1c57-2a9a-4a88-b4db-2f6cd7e1aeb2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "get_context"
+            }
+          ]
+        }
+      },
+      "name": "Is Get Context?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -272
+      ],
+      "id": "ec10c2ad-2656-43a3-9227-6d285d52d86e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "disambiguation"
+            }
+          ]
+        }
+      },
+      "name": "Is Disambiguation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -64
+      ],
+      "id": "a9009d70-04e8-47ed-815c-858e464d90bb"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "enrichment_suggestion"
+            }
+          ]
+        }
+      },
+      "name": "Is Enrichment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        128
+      ],
+      "id": "89658880-a0d8-4d39-ba48-b8e710eb535c"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})\n      OPTIONAL MATCH (c)-[:OWNS]->(d:Device)\n      OPTIONAL MATCH (d)-[:HAS_PROBLEM]->(p:Problem)-[:OF_TYPE]->(pt:ProblemType)\n      OPTIONAL MATCH (c)-[:HAS_CHANNEL]->(ch:Channel)\n      OPTIONAL MATCH (c)-[:CUSTOMER_OF]->(v:Vertical)\n      OPTIONAL MATCH (t:Touchpoint)-[:ABOUT_DEVICE]->(d)\n      WHERE t.timestamp > datetime() - duration('P7D')\n      RETURN c, \n             collect(DISTINCT {id: d.id, brand: d.brand, model: d.model, owner_label: d.owner_label}) as devices,\n             collect(DISTINCT {id: p.id, status: p.status, type: pt.code}) as problems,\n             collect(DISTINCT {type: ch.type, identifier: ch.identifier}) as channels,\n             collect(DISTINCT v.type) as verticals\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Get Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -32,
+        -272
+      ],
+      "id": "13d0cd60-ba3a-4a32-8a60-f7afc308b683",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})-[:OWNS]->(d:Device)\n      OPTIONAL MATCH (t:Touchpoint)-[:ABOUT_DEVICE]->(d)\n      WHERE t.timestamp > datetime() - duration('P1D')\n      WITH d, max(t.timestamp) as lastMentioned, count(t) as mentionCount\n      OPTIONAL MATCH (d)-[:HAS_PROBLEM]->(p:Problem {status: 'in_progress'})\n      RETURN d.id as id, \n             d.brand as brand, \n             d.model as model, \n             d.owner_label as owner_label,\n             lastMentioned,\n             mentionCount,\n             p IS NOT NULL as hasActiveRepair\n      ORDER BY \n        CASE WHEN lastMentioned IS NOT NULL THEN 0 ELSE 1 END,\n        lastMentioned DESC,\n        hasActiveRepair DESC,\n        mentionCount DESC\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Disambiguation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -32,
+        -64
+      ],
+      "id": "d62e16d0-be99-4430-9ae3-a3714aee1ecb",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})\n      OPTIONAL MATCH (c)-[:HAS_CHANNEL]->(ch:Channel)\n      RETURN c.id as clientId,\n             collect({type: ch.type, identifier: ch.identifier, verified: ch.verified}) as existingChannels\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Get Channels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -32,
+        128
+      ],
+      "id": "c6c6a0de-e2af-4a50-9f6d-5572f71fe263",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM enrichment_paths WHERE enabled = true ORDER BY priority DESC, conversion_rate DESC",
+        "options": {}
+      },
+      "name": "Get Enrichment Paths",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        176,
+        128
+      ],
+      "id": "1dd73124-e14d-41ce-94fc-6a81ab3234c2",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const neo4jResult = $('Neo4j Get Channels').first()?.json || {};\nconst enrichmentPaths = $('Get Enrichment Paths').all().map(i => i.json);\n\nconst data = neo4jResult.results?.[0]?.data?.[0]?.row || [];\nconst existingChannels = data[1] || [];\nconst existingTypes = new Set(existingChannels.map(ch => ch.type));\n\n// Находим подходящие пути обогащения\nconst suggestions = enrichmentPaths\n  .filter(path => {\n    // Есть исходный канал\n    const hasFrom = existingTypes.has(path.from_channel_type);\n    // Нет целевого канала\n    const needsTo = !existingTypes.has(path.to_channel_type);\n    return hasFrom && needsTo;\n  })\n  .slice(0, 3); // топ 3 предложения\n\nreturn {\n  success: true,\n  clientId: data[0],\n  existingChannels,\n  suggestions\n};"
+      },
+      "name": "Build Enrichment Suggestions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        128
+      ],
+      "id": "790fa8e7-1657-403f-8ee6-92f7ea8196e9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nconst data = result.results?.[0]?.data?.[0]?.row || [];\n\nreturn {\n  success: true,\n  client: data[0],\n  devices: data[1] || [],\n  problems: data[2] || [],\n  channels: data[3] || [],\n  verticals: data[4] || []\n};"
+      },
+      "name": "Format Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -272
+      ],
+      "id": "e33e02d4-b020-4c76-baf5-19072f11a3ac"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nconst data = result.results?.[0]?.data || [];\n\nconst devices = data.map(d => ({\n  id: d.row[0],\n  brand: d.row[1],\n  model: d.row[2],\n  owner_label: d.row[3],\n  lastMentioned: d.row[4],\n  mentionCount: d.row[5],\n  hasActiveRepair: d.row[6]\n}));\n\n// Определяем нужно ли уточнение\nlet needsClarification = false;\nlet suggestedDevice = null;\nlet clarificationReason = null;\n\nif (devices.length === 0) {\n  needsClarification = false; // нет устройств\n} else if (devices.length === 1) {\n  suggestedDevice = devices[0]; // единственное устройство\n} else {\n  const recentlyMentioned = devices.filter(d => d.lastMentioned);\n  \n  if (recentlyMentioned.length === 1) {\n    suggestedDevice = recentlyMentioned[0]; // только одно упоминали сегодня\n  } else if (recentlyMentioned.length > 1) {\n    needsClarification = true;\n    clarificationReason = 'multiple_mentioned_today';\n  } else {\n    // Ни одно не упоминали сегодня\n    const withActiveRepair = devices.filter(d => d.hasActiveRepair);\n    if (withActiveRepair.length === 1) {\n      suggestedDevice = withActiveRepair[0]; // есть активный ремонт\n    } else {\n      needsClarification = true;\n      clarificationReason = 'none_mentioned_recently';\n    }\n  }\n}\n\nreturn {\n  success: true,\n  devices,\n  needsClarification,\n  suggestedDevice,\n  clarificationReason\n};"
+      },
+      "name": "Format Disambiguation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -64
+      ],
+      "id": "0417e863-01be-48c9-8374-917fb4658cf2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -64
+      ],
+      "id": "c0e65988-ff00-4eb4-adcb-07390b59179b"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Is Get Context?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Disambiguation?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Enrichment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Get Context?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Get Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Disambiguation?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Disambiguation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Enrichment?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Get Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Get Context": {
+      "main": [
+        [
+          {
+            "node": "Format Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Disambiguation": {
+      "main": [
+        [
+          {
+            "node": "Format Disambiguation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Get Channels": {
+      "main": [
+        [
+          {
+            "node": "Get Enrichment Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Enrichment Paths": {
+      "main": [
+        [
+          {
+            "node": "Build Enrichment Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Enrichment Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Context": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Disambiguation": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  instagram-api:
+    build: .
+    container_name: instagram-graph-api
+    ports:
+      - "8769:8769"
+    environment:
+      - INSTAGRAM_ACCESS_TOKEN=${INSTAGRAM_ACCESS_TOKEN}
+      - INSTAGRAM_ACCOUNT_ID=${INSTAGRAM_ACCOUNT_ID}
+      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
+      - WEBHOOK_VERIFY_TOKEN=${WEBHOOK_VERIFY_TOKEN}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8769
+      - API_KEY=${API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8769/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
