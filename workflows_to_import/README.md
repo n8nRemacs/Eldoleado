@@ -1,30 +1,15 @@
-# Neo4j Workflows для импорта в n8n
+# Neo4j Workflows — API Reference
 
-## Содержимое папки
+Все Neo4j workflows уже активны на сервере n8n. Исходники хранятся в `n8n_workflows/Core/`.
 
-| Файл | Назначение | Эндпоинт |
-|------|------------|----------|
-| `BAT Neo4j CRUD.json` | Базовые CRUD операции с защитой от инъекций | POST /neo4j/crud |
-| `BAT Neo4j Sync.json` | Синхронизация PostgreSQL → Neo4j | POST /neo4j/sync |
-| `BAT Neo4j Touchpoint Tracker.json` | Трекинг точек касания для disambiguation | POST /neo4j/touchpoint |
+## Workflows на сервере
 
----
-
-## Порядок установки
-
-### 1. Создать индексы в Neo4j
-
-Выполнить скрипт `database/neo4j/001_create_indexes.cypher` в Neo4j Browser:
-```
-https://45.144.177.128:7474/browser/
-```
-
-### 2. Импортировать workflows в n8n
-
-1. Открыть n8n
-2. Перейти в Workflows → Import from file
-3. Импортировать файлы из этой папки
-4. Активировать workflows
+| Workflow | Эндпоинт | Файл |
+|----------|----------|------|
+| BAT Neo4j CRUD | POST /webhook/neo4j/crud | `n8n_workflows/Core/BAT_Neo4j_CRUD.json` |
+| BAT Neo4j Sync | POST /webhook/neo4j/sync | `n8n_workflows/Core/BAT_Neo4j_Sync.json` |
+| BAT Neo4j Touchpoint Tracker | POST /webhook/neo4j/touchpoint | `n8n_workflows/Core/BAT_Neo4j_Touchpoint_Tracker.json` |
+| BAT Neo4j Context Builder | POST /webhook/neo4j/context | `n8n_workflows/Core/BAT_Neo4j_Context_Builder.json` |
 
 ---
 
@@ -32,7 +17,7 @@ https://45.144.177.128:7474/browser/
 
 ### BAT Neo4j CRUD
 
-**Endpoint:** `POST /neo4j/crud`
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/neo4j/crud`
 
 #### Операции с узлами
 
@@ -118,7 +103,7 @@ https://45.144.177.128:7474/browser/
 
 ### BAT Neo4j Sync
 
-**Endpoint:** `POST /neo4j/sync`
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/neo4j/sync`
 
 Синхронизирует сущности из PostgreSQL в Neo4j.
 
@@ -189,11 +174,11 @@ https://45.144.177.128:7474/browser/
 
 ### BAT Neo4j Touchpoint Tracker
 
-**Endpoint:** `POST /neo4j/touchpoint`
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint`
 
 Создаёт Touchpoint узел и связи для отслеживания упоминаний устройств.
 
-**Пример (входящее сообщение об устройстве):**
+**Полный пример:**
 ```json
 {
   "client_id": "client-uuid",
@@ -218,13 +203,88 @@ https://45.144.177.128:7474/browser/
 
 ---
 
+### BAT Neo4j Context Builder
+
+**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/neo4j/context`
+
+Получает контекст клиента из графа для AI-обработки.
+
+#### Действия (action):
+
+**get_context** — полный контекст клиента:
+```json
+{
+  "client_id": "client-uuid",
+  "action": "get_context"
+}
+```
+
+Ответ:
+```json
+{
+  "success": true,
+  "client": {...},
+  "devices": [{"id": "...", "brand": "Apple", "model": "iPhone 12", "owner_label": "свой"}],
+  "problems": [{"id": "...", "status": "in_progress", "type": "display"}],
+  "channels": [{"type": "whatsapp", "identifier": "+7..."}],
+  "verticals": ["phone_repair"]
+}
+```
+
+**disambiguation** — определение устройства для ответа:
+```json
+{
+  "client_id": "client-uuid",
+  "action": "disambiguation"
+}
+```
+
+Ответ:
+```json
+{
+  "success": true,
+  "devices": [...],
+  "needsClarification": false,
+  "suggestedDevice": {"id": "...", "brand": "Apple", "model": "iPhone 12"},
+  "clarificationReason": null
+}
+```
+
+Логика disambiguation:
+- 1 устройство → suggestedDevice, без уточнения
+- Сегодня упоминали только одно → suggestedDevice
+- Сегодня упоминали несколько → needsClarification = true
+- Есть активный ремонт → приоритет этому устройству
+
+**enrichment_suggestion** — предложения по обогащению профиля:
+```json
+{
+  "client_id": "client-uuid",
+  "action": "enrichment_suggestion"
+}
+```
+
+Ответ:
+```json
+{
+  "success": true,
+  "clientId": "...",
+  "existingChannels": [{"type": "whatsapp", "identifier": "..."}],
+  "suggestions": [
+    {"from_channel_type": "whatsapp", "to_channel_type": "telegram", "mechanism": "...", "conversion_rate": 0.15}
+  ]
+}
+```
+
+---
+
 ## Интеграция в основной поток
 
 ### Вызов из BAT Client Creator
 
 После `INSERT INTO clients`:
 ```javascript
-// HTTP Request к /neo4j/sync
+// HTTP Request к /webhook/neo4j/sync
 {
   "entity_type": "client",
   "operation": "create",
@@ -239,7 +299,7 @@ https://45.144.177.128:7474/browser/
 
 После сохранения сообщения:
 ```javascript
-// HTTP Request к /neo4j/touchpoint
+// HTTP Request к /webhook/neo4j/touchpoint
 {
   "client_id": "{{ $json.client_id }}",
   "message_id": "{{ $json.message_id }}",
@@ -252,7 +312,7 @@ https://45.144.177.128:7474/browser/
 
 Перед генерацией ответа (для disambiguation):
 ```javascript
-// HTTP Request к /neo4j/context
+// HTTP Request к /webhook/neo4j/context
 {
   "client_id": "{{ $json.client_id }}",
   "action": "disambiguation"

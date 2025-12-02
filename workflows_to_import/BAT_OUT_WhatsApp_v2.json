@@ -1,0 +1,131 @@
+{
+  "name": "BAT OUT WhatsApp v2",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "388efee2-c3c7-480b-aabf-1afe3f446bf4",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [-288, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wappi.pro/api/sync/message/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chatId\": \"{{ $json.out_message.external_chat_id }}\",\n  \"text\": \"{{ $json.out_message.message_text }}\"\n}",
+        "options": {}
+      },
+      "id": "e6105e16-4425-4544-8b1b-1cdb7c7dc5b2",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [-64, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nif (!response.sent) {\n  console.error('WhatsApp send failed:', response);\n}\n\nconst inMessage = $('Execute Workflow Trigger').first().json;\n\n// Определяем тип touchpoint\nconst actionSource = inMessage.out_message?.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...inMessage,\n  whatsapp_response: response,\n  message_id: response.messageId || Date.now().toString(),\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection\n};"
+      },
+      "id": "9afa9714-f9dc-4481-869b-a573ae546f17",
+      "name": "Process WhatsApp Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [160, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'whatsapp',\n  (SELECT id FROM channels WHERE code = 'whatsapp' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "id": "1984b91d-dbf3-4a0f-a800-e3d344daa442",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [384, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  client_id: $('Process WhatsApp Response').item.json.out_message.client_id,\n  appeal_id: $('Process WhatsApp Response').item.json.out_message.appeal_id,\n  channel: 'whatsapp',\n  direction: $('Process WhatsApp Response').item.json.touchpoint_direction,\n  type: 'message',\n  tenant_id: $('Process WhatsApp Response').item.json.out_message.tenant_id,\n  creates_entity: false\n}) }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "touchpoint-register-out",
+      "name": "Register Touchpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [608, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Process WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process WhatsApp Response": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Message History": {
+      "main": [
+        [
+          {
+            "node": "Register Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Out"
+    }
+  ]
+}

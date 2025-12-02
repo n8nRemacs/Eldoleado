@@ -1,0 +1,232 @@
+{
+  "name": "BAT Neo4j Touchpoint Register",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/touchpoint/register",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-880, -80],
+      "webhookId": "neo4j-touchpoint-register",
+      "id": "webhook-1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Валидация входных данных для Touchpoint Register\n// Логика:\n// - inbound + outbound за период → mutual\n// - inbound + promo за период + creates_entity → mutual\n// - inbound + promo БЕЗ creates_entity → остаётся inbound\n// - promo → всегда promo (mutual вычисляется позже при inbound)\n\nconst ALLOWED_CHANNELS = ['whatsapp', 'telegram', 'vk', 'avito', 'max', 'phone', 'email', 'web', 'form', 'in_person'];\nconst ALLOWED_DIRECTIONS = ['inbound', 'outbound', 'promo']; // mutual вычисляется автоматически\nconst ALLOWED_TYPES = ['message', 'call', 'visit', 'promo', 'form'];\n\nconst body = $json.body || {};\n\nconst client_id = body.client_id;\nconst appeal_id = body.appeal_id || null;\nconst channel = body.channel || 'unknown';\nconst requested_direction = body.direction || 'inbound'; // inbound, outbound или promo\nconst type = body.type || 'message';\nconst tenant_id = body.tenant_id || null;\nconst mutual_period_days = body.mutual_period_days || 30; // настраиваемый период\n// Флаг: создаются ли сущности (Appeal, Device, Problem, Order)\n// Если true и был promo - это \"реальный диалог\" → mutual\nconst creates_entity = body.creates_entity || false;\n\n// Валидация\nif (!client_id) {\n  throw new Error('client_id is required');\n}\n\nif (!ALLOWED_DIRECTIONS.includes(requested_direction)) {\n  throw new Error(`Invalid direction: ${requested_direction}. Allowed: ${ALLOWED_DIRECTIONS.join(', ')}. 'mutual' is calculated automatically.`);\n}\n\nconst touchpoint_id = crypto.randomUUID();\n\nreturn {\n  touchpoint_id,\n  client_id,\n  appeal_id,\n  channel,\n  requested_direction, // то что запросили (inbound/outbound/promo)\n  type,\n  tenant_id,\n  mutual_period_days,\n  creates_entity, // создаются ли сущности в этом диалоге\n  timestamp: new Date().toISOString(),\n  _validation: 'passed'\n};"
+      },
+      "name": "Parse & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-656, -80],
+      "id": "parse-validate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      // Для inbound: ищем outbound ИЛИ (promo если creates_entity=true)\n      // Для outbound: ищем inbound\n      // Для promo: не ищем (promo не триггерит mutual сразу)\n      MATCH (t:Touchpoint)-[:FROM|TO]->(c:Client {id: $clientId})\n      WHERE t.channel = $channel \n        AND t.timestamp > datetime() - duration('P' + $periodDays + 'D')\n        AND (\n          // Стандартная логика: outbound <-> inbound\n          (t.direction = $oppositeDirection)\n          OR\n          // Особый случай: promo → inbound с созданием сущности = mutual\n          ($requestedDirection = 'inbound' AND $createsEntity = true AND t.direction = 'promo')\n        )\n      RETURN count(t) > 0 as triggers_mutual\n    `,\n    parameters: {\n      clientId: $json.client_id,\n      channel: $json.channel,\n      requestedDirection: $json.requested_direction,\n      oppositeDirection: $json.requested_direction === 'inbound' ? 'outbound' : 'inbound',\n      createsEntity: $json.creates_entity,\n      periodDays: String($json.mutual_period_days)\n    }\n  }]\n}) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Check Opposite Touchpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [-432, -80],
+      "id": "check-opposite",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "bkJBnz7p38fXY4AN",
+          "name": "Neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const neo4jResult = $json;\nconst inputData = $('Parse & Validate').first()?.json || {};\n\n// Для promo - сразу promo, без проверки mutual\n// promo не триггерит mutual сам по себе\nif (inputData.requested_direction === 'promo') {\n  console.log('═══ PROMO TOUCHPOINT ═══');\n  console.log('Promo does not trigger mutual calculation');\n  return {\n    ...inputData,\n    triggers_mutual: false,\n    final_direction: 'promo'\n  };\n}\n\n// Для inbound/outbound - проверяем результат Neo4j\nlet triggersMutual = false;\nif (neo4jResult.results?.[0]?.data?.[0]?.row?.[0] === true) {\n  triggersMutual = true;\n}\n\n// Определяем финальный direction:\n// Если есть противоположный touchpoint за период → mutual\n// Особый случай: inbound + promo + creates_entity → mutual\n// Если нет → оставляем requested_direction\nconst final_direction = triggersMutual ? 'mutual' : inputData.requested_direction;\n\nconsole.log('═══ DETERMINE DIRECTION ═══');\nconsole.log('Requested:', inputData.requested_direction);\nconsole.log('Creates entity:', inputData.creates_entity);\nconsole.log('Triggers mutual:', triggersMutual);\nconsole.log('Final direction:', final_direction);\n\nreturn {\n  ...inputData,\n  triggers_mutual: triggersMutual,\n  final_direction: final_direction\n};"
+      },
+      "name": "Determine Direction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-208, -80],
+      "id": "determine-direction"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const data = $json;\n  const statements = [];\n  \n  // 1. Создаём Touchpoint узел\n  statements.push({\n    statement: `\n      CREATE (t:Touchpoint {\n        id: $id,\n        timestamp: datetime($timestamp),\n        type: $type,\n        channel: $channel,\n        direction: $direction\n      })\n      RETURN t\n    `,\n    parameters: {\n      id: data.touchpoint_id,\n      timestamp: data.timestamp,\n      type: data.type,\n      channel: data.channel,\n      direction: data.final_direction\n    }\n  });\n  \n  // 2. Связь с Client в зависимости от direction\n  if (data.final_direction === 'inbound') {\n    // inbound: клиент → нам (FROM)\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:FROM]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  } else if (data.final_direction === 'outbound' || data.final_direction === 'promo') {\n    // outbound/promo: мы → клиенту (TO)\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:TO]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  } else if (data.final_direction === 'mutual') {\n    // mutual: обе связи (диалог состоялся)\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:FROM]->(c)\n        CREATE (t)-[:TO]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  }\n  \n  JSON.stringify({ statements });\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Create Touchpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [16, -80],
+      "id": "create-touchpoint",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "bkJBnz7p38fXY4AN",
+          "name": "Neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO touchpoints (\n  id,\n  client_id,\n  appeal_id,\n  type,\n  channel,\n  direction,\n  tenant_id,\n  created_at\n) VALUES (\n  '{{ $('Determine Direction').item.json.touchpoint_id }}'::uuid,\n  '{{ $('Determine Direction').item.json.client_id }}'::uuid,\n  {{ $('Determine Direction').item.json.appeal_id ? \"'\" + $('Determine Direction').item.json.appeal_id + \"'::uuid\" : 'NULL' }},\n  '{{ $('Determine Direction').item.json.type }}',\n  '{{ $('Determine Direction').item.json.channel }}',\n  '{{ $('Determine Direction').item.json.final_direction }}',\n  {{ $('Determine Direction').item.json.tenant_id ? \"'\" + $('Determine Direction').item.json.tenant_id + \"'::uuid\" : 'NULL' }},\n  NOW()\n)\nRETURNING *;",
+        "options": {}
+      },
+      "name": "Save to PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [240, -80],
+      "id": "save-pg",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const neo4jResult = $('Neo4j Create Touchpoint').first()?.json || {};\nconst pgResult = $json;\nconst inputData = $('Determine Direction').first()?.json || {};\n\n// Проверка на ошибки Neo4j\nif (neo4jResult.errors && neo4jResult.errors.length > 0) {\n  const errorMessages = neo4jResult.errors.map(e => e.message).join('; ');\n  return {\n    success: false,\n    error: 'Neo4j error: ' + errorMessages\n  };\n}\n\nreturn {\n  success: true,\n  touchpoint_id: inputData.touchpoint_id,\n  requested_direction: inputData.requested_direction,\n  final_direction: inputData.final_direction,\n  was_upgraded_to_mutual: inputData.triggers_mutual,\n  creates_entity: inputData.creates_entity,\n  channel: inputData.channel,\n  client_id: inputData.client_id,\n  neo4j_created: true,\n  pg_created: !!pgResult.id\n};"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [464, -80],
+      "id": "format-response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [688, -80],
+      "id": "respond"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate": {
+      "main": [
+        [
+          {
+            "node": "Check Opposite Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Opposite Touchpoint": {
+      "main": [
+        [
+          {
+            "node": "Determine Direction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Direction": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Create Touchpoint": {
+      "main": [
+        [
+          {
+            "node": "Save to PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Core"
+    }
+  ]
+}

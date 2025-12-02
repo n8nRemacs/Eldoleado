@@ -1,7 +1,7 @@
 # START - Контекст для продолжения работы
 
 ## Дата и время последнего обновления
-**3 декабря 2025, 17:20 (UTC+4)**
+**3 декабря 2025, 21:30 (UTC+4)**
 
 ---
 
@@ -30,6 +30,11 @@
    - Теги: BattCRM + раздел (API, Core, In, Out, Tool, TaskWork)
    - Neo4j CRUD работает через webhook
 
+5. **Система Touchpoints (НОВОЕ)**
+   - 4 типа касаний: `inbound`, `outbound`, `promo`, `mutual`
+   - Автоматическое определение `mutual` по парам
+   - `promo` → `mutual` только если создаются сущности (appeal, device, etc.)
+
 ---
 
 ## Структура проекта
@@ -54,6 +59,34 @@ Eldoleado/
 └── scripts/                # Скрипты автоматизации
     └── sync_n8n_workflows.py
 ```
+
+---
+
+## Система Touchpoints (касаний)
+
+### Типы касаний:
+
+| Тип | Направление | Ожидаем ответ? | Участвует в mutual |
+|-----|-------------|----------------|-------------------|
+| `inbound` | Клиент → Нам | Да (отвечаем) | Да |
+| `outbound` | Мы → Клиент | Да | Да |
+| `promo` | Мы → Клиент | Нет | Только с creates_entity |
+| `mutual` | Двусторонний | - | Результат |
+
+### Логика:
+- `inbound` + есть `outbound` за период → `mutual`
+- `inbound` + `promo` + `creates_entity=true` → `mutual`
+- `inbound` + только `promo` без сущностей → остаётся `inbound`
+- `promo` → всегда `promo` (mutual вычисляется при inbound)
+
+### Workflows в `workflows_to_import/`:
+- `BAT_Neo4j_Touchpoint_Register.json` — регистрация touchpoints
+- `BAT_Appeal_Manager_v2.json` — с интеграцией touchpoints (inbound)
+- `BAT_OUT_Telegram_v2.json` — с touchpoints (outbound/promo)
+- `BAT_OUT_WhatsApp_v2.json` — с touchpoints (outbound/promo)
+- `BAT_OUT_VK_v2.json` — с touchpoints (outbound/promo)
+- `BAT_OUT_Avito_v2.json` — с touchpoints (outbound/promo)
+- `BAT_OUT_MAX_v2.json` — с touchpoints (outbound/promo)
 
 ---
 
@@ -144,15 +177,17 @@ curl -X POST ... -d '{"operation": "delete", "nodeType": "Client", "nodeId": "id
 
 ## Следующие шаги
 
-1. **Интегрировать Neo4j в основной поток:**
-   - BAT Client Creator → вызывать Neo4j Sync
-   - BAT Universal Batcher → вызывать Touchpoint Tracker
-   - BAT AI Appeal Router → вызывать Context Builder
+1. **Импортировать touchpoint workflows в n8n:**
+   - Все файлы из `workflows_to_import/`
+   - Заменить старые OUT workflows на v2 версии
 
-2. **Создать дополнительные Neo4j workflows:**
-   - Neo4j Sync (PostgreSQL → Neo4j)
-   - Neo4j Touchpoint Tracker
-   - Neo4j Context Builder
+2. **Продумать механику объединения клиентов:**
+   - Когда два клиента оказываются одним человеком
+   - Как мержить данные в Neo4j и PostgreSQL
+
+3. **Продумать соц.инжиниринг для enrichment:**
+   - Как получать дополнительные контакты клиента
+   - Телефон → WhatsApp, Telegram → телефон, etc.
 
 ---
 

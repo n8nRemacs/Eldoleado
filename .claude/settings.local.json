@@ -48,7 +48,8 @@
       "Bash(C:/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe logcat -d)",
       "Bash(C:/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe logcat -c)",
       "Bash(ping:*)",
-      "Bash(nslookup:*)"
+      "Bash(nslookup:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []

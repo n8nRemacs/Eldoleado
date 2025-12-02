@@ -55,5 +55,5 @@ Replace MainActivity declaration with:
 
 ## Test Login
 
-- Username: `test_operator`
+- Username: `test@batterycrm.tu`
 - Password: `test123`
