@@ -1,0 +1,153 @@
+{
+  "name": "BAT Neo4j Touchpoint Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/touchpoint",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        -100
+      ],
+      "webhookId": "neo4j-touchpoint",
+      "id": "touchpoint-webhook-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Валидация входных данных для Touchpoint\nconst ALLOWED_CHANNELS = ['whatsapp', 'telegram', 'vk', 'avito', 'max', 'phone', 'email', 'web', 'in_person'];\nconst ALLOWED_DIRECTIONS = ['inbound', 'outbound'];\nconst ALLOWED_TYPES = ['message', 'call', 'visit', 'retargeting', 'email', 'form'];\n\nconst body = $json.body || {};\n\nconst client_id = body.client_id;\nconst message_id = body.message_id || crypto.randomUUID();\nconst channel = body.channel || 'unknown';\nconst direction = body.direction || 'inbound';\nconst type = body.type || 'message';\nconst mentioned_device_id = body.mentioned_device_id || null;\nconst mentioned_problem_id = body.mentioned_problem_id || null;\nconst confidence = body.confidence || 1.0;\nconst explicit = body.explicit !== false; // по умолчанию true\n\n// Валидация обязательных полей\nif (!client_id) {\n  throw new Error('client_id is required');\n}\n\n// Валидация channel (мягкая - пропускаем unknown)\nif (channel !== 'unknown' && !ALLOWED_CHANNELS.includes(channel)) {\n  console.log(`Warning: Unknown channel type: ${channel}`);\n}\n\nif (!ALLOWED_DIRECTIONS.includes(direction)) {\n  throw new Error(`Invalid direction: ${direction}. Allowed: ${ALLOWED_DIRECTIONS.join(', ')}`);\n}\n\nreturn {\n  client_id,\n  message_id,\n  channel,\n  direction,\n  type,\n  mentioned_device_id,\n  mentioned_problem_id,\n  confidence,\n  explicit,\n  timestamp: new Date().toISOString(),\n  _validation: 'passed'\n};"
+      },
+      "name": "Parse & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        -100
+      ],
+      "id": "touchpoint-parse-001"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const data = $json;\n  const statements = [];\n  \n  // 1. Создаём Touchpoint узел\n  statements.push({\n    statement: `\n      CREATE (t:Touchpoint {\n        id: $id,\n        timestamp: datetime($timestamp),\n        type: $type,\n        channel: $channel,\n        direction: $direction\n      })\n      RETURN t\n    `,\n    parameters: {\n      id: data.message_id,\n      timestamp: data.timestamp,\n      type: data.type,\n      channel: data.channel,\n      direction: data.direction\n    }\n  });\n  \n  // 2. Связь FROM/TO с Client\n  const edgeType = data.direction === 'inbound' ? 'FROM' : 'TO';\n  statements.push({\n    statement: `\n      MATCH (t:Touchpoint {id: $touchpointId})\n      MATCH (c:Client {id: $clientId})\n      CREATE (t)-[:${edgeType}]->(c)\n      RETURN t, c\n    `,\n    parameters: {\n      touchpointId: data.message_id,\n      clientId: data.client_id\n    }\n  });\n  \n  // 3. Если упоминается устройство - связь ABOUT_DEVICE\n  if (data.mentioned_device_id) {\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (d:Device {id: $deviceId})\n        CREATE (t)-[:ABOUT_DEVICE {confidence: $confidence, explicit: $explicit}]->(d)\n        RETURN t, d\n      `,\n      parameters: {\n        touchpointId: data.message_id,\n        deviceId: data.mentioned_device_id,\n        confidence: data.confidence,\n        explicit: data.explicit\n      }\n    });\n  }\n  \n  // 4. Если упоминается проблема - связь ABOUT_PROBLEM\n  if (data.mentioned_problem_id) {\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (p:Problem {id: $problemId})\n        CREATE (t)-[:ABOUT_PROBLEM {confidence: $confidence, explicit: $explicit}]->(p)\n        RETURN t, p\n      `,\n      parameters: {\n        touchpointId: data.message_id,\n        problemId: data.mentioned_problem_id,\n        confidence: data.confidence,\n        explicit: data.explicit\n      }\n    });\n  }\n  \n  JSON.stringify({ statements })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Create Touchpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -280,
+        -100
+      ],
+      "id": "touchpoint-neo4j-create",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\n\n// Проверка на ошибки Neo4j\nif (result.errors && result.errors.length > 0) {\n  const errorMessages = result.errors.map(e => e.message).join('; ');\n  return {\n    success: false,\n    error: errorMessages\n  };\n}\n\n// Считаем успешные операции\nconst successfulStatements = result.results?.filter(r => r.data?.length > 0) || [];\n\nreturn {\n  success: true,\n  touchpoint_created: successfulStatements.length > 0,\n  edges_created: successfulStatements.length - 1 // первый - узел, остальные - рёбра\n};"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -100
+      ],
+      "id": "touchpoint-format-response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -100
+      ],
+      "id": "touchpoint-respond"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Create Touchpoint": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}
