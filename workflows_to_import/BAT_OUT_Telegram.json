@@ -1,0 +1,105 @@
+{
+  "name": "BAT OUT Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $json.out_message.external_chat_id }}",
+        "text": "={{ $json.out_message.message_text }}",
+        "additionalFields": {}
+      },
+      "id": "send-telegram-message",
+      "name": "Send Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [220, 0],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_BOT_CRED_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst inData = $('Execute Workflow Trigger').first().json;\n\nreturn {\n  ...inData,\n  telegram_response: response,\n  message_id: response.message_id?.toString() || Date.now().toString(),\n  sent_at: new Date().toISOString(),\n  success: true\n};"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel,\n  channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'telegram',\n  (SELECT id FROM channels WHERE code = 'telegram' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "id": "save-history",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [660, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "workflow-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "Process Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Response": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Out"
+    }
+  ]
+}

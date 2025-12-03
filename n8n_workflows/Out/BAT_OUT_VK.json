@@ -1,0 +1,198 @@
+{
+  "id": "3qluqpU6q269XuVK",
+  "name": "BAT OUT VK",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "out-vk",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "32d56797-4fad-4b4f-a093-b1a2db786443",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "out-vk-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vk.com/method/messages.send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "vkApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "peer_id",
+              "value": "={{ $json.out_message.external_chat_id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.out_message.message_text }}"
+            },
+            {
+              "name": "random_id",
+              "value": "={{ Math.floor(Math.random() * 1000000000) }}"
+            },
+            {
+              "name": "v",
+              "value": "5.131"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9c803ae6-5b4b-4071-b63f-61abf228dbb2",
+      "name": "Send VK Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\n// Проверяем успешность отправки\nif (response.error) {\n  throw new Error(`VK API Error: ${response.error.error_msg}`);\n}\n\nconst inMessage = $('Webhook Trigger').first().json;\n\nreturn {\n  ...inMessage,\n  vk_response: response.response,\n  message_id: response.response?.toString() || 'unknown',\n  sent_at: new Date().toISOString()\n};"
+      },
+      "id": "bed5919a-dd02-46e3-a846-25746c587a2b",
+      "name": "Process VK Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'vk',\n  (SELECT id FROM channels WHERE code = 'vk' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "id": "0131cb44-a098-41dd-9efd-cfc9a773da22",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message_id\": $json.message_id, \"channel\": \"vk\" } }}",
+        "options": {}
+      },
+      "id": "c6890867-1331-4a1c-bd78-d56be356c3b7",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "37676a04-7b2a-467d-b22c-a009a3ac2665",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -192
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send VK Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send VK Message": {
+      "main": [
+        [
+          {
+            "node": "Process VK Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process VK Response": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Message History": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send VK Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:03:34.766Z",
+      "createdAt": "2025-11-23T04:03:34.766Z",
+      "id": "IbDkJphbr4EygdRZ",
+      "name": "Out"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:04:30.000Z",
+  "createdAt": "2025-10-14T06:46:37.310Z"
+}

@@ -1,0 +1,393 @@
+{
+  "id": "DaKs09InHidK2phf",
+  "name": "BAT Message Router",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// Определяем куда отправить ответ\nconst channel = data.channel;\n\n// Формируем OUT Message\nconst outMessage = {\n  channel: channel,\n  external_chat_id: data.external_chat_id,\n  external_user_id: data.external_user_id,\n  message_text: data.final_response || data.ai_response,\n  appeal_id: data.appeal.id,\n  client_id: data.client.id,\n  meta: {\n    appeal_stage: data.stage,\n    has_pricing: !!data.pricing,\n    is_complete: data.completeness?.is_complete || false\n  }\n};\n\nreturn {\n  ...data,\n  out_message: outMessage,\n  route_to: `BAT OUT ${channel.charAt(0).toUpperCase() + channel.slice(1)}`\n};"
+      },
+      "id": "a1a82f0e-3b8b-42c9-8bdb-08e7b0048e03",
+      "name": "Prepare OUT Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=v1s1eefpYkPCfikZ",
+        "options": {}
+      },
+      "id": "67d4acad-1662-4227-b8e9-8bc02a892eb3",
+      "name": "Execute OUT Telegram",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=3qluqpU6q269XuVK",
+        "options": {}
+      },
+      "id": "19e07a58-c76e-450d-86e6-330f5dfe351a",
+      "name": "Execute OUT VK",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=YOs2tLdOlJAqY17o",
+        "options": {}
+      },
+      "id": "f8a620d8-c7e8-4c92-a14b-d0e400f63dcd",
+      "name": "Execute OUT WhatsApp",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=ktU66Uf8f654kHvk",
+        "options": {}
+      },
+      "id": "16e30402-d64f-4575-9e7b-e12735854517",
+      "name": "Execute OUT Avito",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"sent_to\": \"{{ $json.channel }}\"\n}",
+        "options": {}
+      },
+      "id": "db57474a-9b55-4117-8588-48a252d706c1",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        304
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "92cc1f47-aeda-4bd9-a970-e121cc287e1c",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1104,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.out_message.channel }}",
+                    "rightValue": "telegram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7b6c4bd1-3a7d-4adc-9227-b4270b99d2d2"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "telegram"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b5a0c5fc-fb09-4fde-bdc9-5dc00ef30606",
+                    "leftValue": "={{ $json.out_message.channel }}",
+                    "rightValue": "vk",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "vk"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "47cd3b61-a9e0-4b86-977d-27bf4790a6ca",
+                    "leftValue": "={{ $json.out_message.channel }}",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "whatsapp"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2c394714-d563-4630-a5de-5016b13910ed",
+                    "leftValue": "={{ $json.out_message.channel }}",
+                    "rightValue": "avito",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "avito"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "640e4646-3fb2-4222-ba84-d819b2a17802",
+                    "leftValue": "={{ $json.out_message.channel }}",
+                    "rightValue": "max",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "max"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -688,
+        256
+      ],
+      "id": "a916faa4-6df0-4b3d-b4c2-b4991314e6d2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "workflowId": "=RBGRJXr4o68VBJ6X",
+        "options": {}
+      },
+      "id": "87179598-cc6d-4a6c-9d63-ddc906144d58",
+      "name": "Execute OUT Max",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        640
+      ]
+    }
+  ],
+  "connections": {
+    "Prepare OUT Message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute OUT Telegram": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute OUT VK": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute OUT WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute OUT Avito": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare OUT Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Execute OUT Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute OUT VK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute OUT WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute OUT Avito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute OUT Max",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute OUT Max": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:08:17.000Z",
+  "createdAt": "2025-10-14T07:01:30.868Z"
+}

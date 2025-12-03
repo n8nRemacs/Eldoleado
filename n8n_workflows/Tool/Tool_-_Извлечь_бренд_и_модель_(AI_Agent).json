@@ -1,0 +1,144 @@
+{
+  "id": "W0uWBGk9LFJ6gfwC",
+  "name": "Tool - Извлечь бренд и модель (AI Agent)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7346d257-f85f-484e-8c11-6501a685bf2c",
+      "name": "Workflow Tool Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst text = input.text || '';\nconst conversationHistory = input.conversation_history || 'Первое сообщение';\n\nconsole.log('=== Tool: Извлечь бренд и модель ===');\nconsole.log('Text:', text);\n\nconst systemPrompt = `Ты - эксперт по определению моделей iPhone.\n\nЗАДАЧА: Найди в тексте клиента точное название модели устройства.\n\nПРАВИЛА:\n1. Ищи упоминания iPhone и номер модели (например: \"iPhone 12 Pro\", \"14 Pro Max\", \"айфон 15\")\n2. Бренд всегда Apple\n3. Если нашел - верни found: true и название модели\n4. Если НЕ нашел - верни found: false\n\nФОРМАТ ОТВЕТА (строго JSON без markdown):\n{\n  \"found\": true,\n  \"model\": \"iPhone 12 Pro\",\n  \"confidence\": 0.95\n}\n\nПРИМЕРЫ:\nТекст: \"Замена дисплея на iPhone 12 Pro\" → found: true, model: \"iPhone 12 Pro\"\nТекст: \"Хочу отремонтировать 14 про\" → found: true, model: \"iPhone 14 Pro\"\nТекст: \"Здравствуйте\" → found: false\n\n---\n\nТЕКСТ КЛИЕНТА:\n${text}\n\nИСТОРИЯ ДИАЛОГА:\n${conversationHistory}\n\n---\n\nНайди модель устройства и верни JSON.`;\n\nreturn {\n  text: text,\n  conversation_history: conversationHistory,\n  chatInput: systemPrompt\n};"
+      },
+      "id": "9eb65325-7b02-4e2e-bbcb-2ba2e8766397",
+      "name": "Подготовить контекст",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7bdd8c46-72e7-4e72-9c11-73c863a725f2",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.1
+        }
+      },
+      "id": "d60757d1-9a30-475a-b613-b2ab5aea1875",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        448
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $('Подготовить контекст').first().json;\nconst aiResponse = $input.first().json;\n\nconsole.log('=== AI Response (Model Detection) ===');\nconsole.log('Raw:', JSON.stringify(aiResponse, null, 2));\n\nlet output = aiResponse.output || aiResponse.text || JSON.stringify(aiResponse);\n\nconsole.log('Output text:', output);\n\nlet parsed;\ntry {\n  let cleaned = output.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  const jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) cleaned = jsonMatch[0];\n  parsed = JSON.parse(cleaned);\n  console.log('✅ Parsed:', parsed);\n} catch (e) {\n  console.error('❌ Parse error:', e.message);\n  return [{\n    json: {\n      brand: null,\n      brand_id: null,\n      model: null,\n      model_id: null,\n      found: false,\n      message: 'Не удалось распарсить ответ AI'\n    }\n  }];\n}\n\n// ✅ ИСПРАВЛЕНИЕ: Проверяем parsed.model вместо parsed.model_name\nif (!parsed.found || !parsed.model) {\n  console.log('⚠️ Model not found or not provided');\n  return [{\n    json: {\n      brand: null,\n      brand_id: null,\n      model: null,\n      model_id: null,\n      found: false,\n      message: 'Модель не определена. Попроси клиента уточнить.'\n    }\n  }];\n}\n\n// ✅ ИСПРАВЛЕНИЕ: AI уже вернул model_id и brand_id!\n// Не нужно искать в базе, просто используем что AI вернул\nconsole.log('✅ Model found:', parsed.model);\n\nreturn [{\n  json: {\n    brand: parsed.brand || 'Apple',\n    brand_id: parsed.brand_id || 'b808bcda-1db3-46ca-8f2b-9885fe4c0e42',\n    model: parsed.model,\n    model_id: parsed.model_id,\n    found: true,\n    confidence: parsed.confidence || 0.9,\n    message: `Определена модель: ${parsed.model}`\n  }\n}];"
+      },
+      "id": "91ac624e-210f-4e2a-a71e-35272ca83583",
+      "name": "Обработать ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        208
+      ]
+    }
+  ],
+  "connections": {
+    "Workflow Tool Trigger": {
+      "main": [
+        [
+          {
+            "node": "Подготовить контекст",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовить контекст": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Обработать ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:02:03.765Z",
+      "createdAt": "2025-11-23T04:02:03.765Z",
+      "id": "JkzPlhYcdcsJtFGG",
+      "name": "Tool"
+    }
+  ],
+  "updatedAt": "2025-11-25T14:26:22.000Z",
+  "createdAt": "2025-10-18T12:59:59.248Z"
+}

@@ -1,0 +1,696 @@
+{
+  "id": "hwYfaLAKCwaWpoQk",
+  "name": "BAT Universal Batcher",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "436137ef-6e7a-4ffe-a9b3-e6822af3bbd2",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        432,
+        11216
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nconst batchKey = `${msg.channel}:${msg.external_chat_id}`;\nreturn {\n  batch_key: batchKey,\n  queue_key: `queue:${batchKey}`,\n  last_seen_key: `last_seen:${batchKey}`,\n  lock_key: `lock:${batchKey}`,\n  now_iso: new Date().toISOString(),\n  message: msg\n};"
+      },
+      "id": "f107911a-680b-4d40-8eb1-fae577ddf58d",
+      "name": "Prepare Keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        11216
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $json.queue_key }}",
+        "messageData": "={{ JSON.stringify($json.message) }}",
+        "tail": true
+      },
+      "id": "03f2c731-8818-44b6-8c11-1a6eff6484a1",
+      "name": "Push to Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        912,
+        11216
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.last_seen_key }}",
+        "value": "={{ $json.now_iso }}"
+      },
+      "id": "49b76acc-c115-4fb8-b641-a554704a9aa0",
+      "name": "Update Last Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        11216
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.lock_key }}",
+        "options": {}
+      },
+      "id": "37f9b41b-5615-49a3-9ea8-5515538afd59",
+      "name": "Get Lock",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        11216
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.value === null || $json.value === undefined || $json.value === '' }}",
+              "value2": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f49f62b-fb9b-49c5-a46c-be12620b10e9",
+      "name": "Lock Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        11216
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $node[\"Prepare Keys\"].json[\"lock_key\"]",
+        "value": "busy",
+        "expire": true,
+        "ttl": 300
+      },
+      "id": "b7fbd432-d857-49f2-85ad-1d456cc741c5",
+      "name": "Acquire Lock (TTL 300s)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        11104
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {success:true, queued:true, is_first:false, batch_key:$('Prepare Keys').item.json.batch_key} }}",
+        "options": {}
+      },
+      "id": "4594b748-aaa6-4066-980f-64eb76a58867",
+      "name": "Respond Queued",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        11312
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {success:true, queued:true, is_first:true, debounce_s:20, batch_key:$('Prepare Keys').item.json.batch_key} }}",
+        "options": {}
+      },
+      "id": "fd0f3b99-e253-44db-b42e-357bc8396f56",
+      "name": "Respond First",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "c8a24706-e292-41b6-8d25-9808828612a6",
+      "name": "Wait 20s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        11104
+      ],
+      "webhookId": "batcher-wait-20"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $node[\"Prepare Keys\"].json[\"lock_key\"]",
+        "options": {}
+      },
+      "id": "c7f76032-48c0-4920-b952-93e03a6c76d8",
+      "name": "Get Last Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2336,
+        11104
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const last = $json.value ? Date.parse($json.value) : 0;\nconst quiet = Date.now() - last >= 10000;\nreturn { quiet };"
+      },
+      "id": "35697910-177e-487f-b455-2fc021174619",
+      "name": "Quiet ≥ 20s?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.quiet === true }}",
+              "value2": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "57635b51-8219-48aa-9f9e-ce47a4485435",
+      "name": "Silence Reached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $('Prepare Keys').item.json.queue_key }}",
+        "options": {}
+      },
+      "id": "c12d5280-ed01-475f-8e89-9cf3f35bf23b",
+      "name": "Get Queue Snapshot",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2960,
+        11104
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// получаем массив либо из .value либо из .propertyName\nconst raw = Array.isArray($json.value) ? $json.value : ($json.propertyName || []);\nconst items = raw.map(s => {\n  try {\n    return JSON.parse(s);\n  } catch (e) {\n    return { text: String(s) };\n  }\n});\nreturn { snapshot: items, count: items.length };\n"
+      },
+      "id": "06db2c69-28fb-4156-acf5-8512f4df140e",
+      "name": "Normalize Snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.count }}",
+              "operation": "smaller",
+              "value2": 1
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3d5f189b-fd61-4c2d-9f19-d09db41448a7",
+      "name": "Empty Snapshot?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Prepare Keys').item.json.queue_key }}"
+      },
+      "id": "c8a12b39-ff64-4608-95f4-e7a4bb657e8c",
+      "name": "Delete Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3568,
+        11104
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем массив строк-JSON или объектов\nconst rawArr = $json.snapshot || [];\n\n// Парсим каждую строку в объект, если нужно\nconst messages = rawArr.map(s => {\n  try {\n    return typeof s === 'string' ? JSON.parse(s) : s;\n  } catch {\n    return { text: String(s) };\n  }\n});\n\n// Если нет сообщений — возвращаем корректный пустой выход\nif (messages.length === 0) {\n  return [\n    {\n      json: {\n        error: 'empty_batch'\n      }\n    }\n  ];\n}\n\n// Сортируем по timestamp\nconst toTs = (m) => {\n  const t = m.timestamp ? Date.parse(m.timestamp) : NaN;\n  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;\n};\nmessages.sort((a, b) => toTs(a) - toTs(b));\n\n// Собираем тексты\nconst texts = messages\n  .map(m => m.media?.voice_transcribed_text\n    ? `[Голосовое]: ${m.media.voice_transcribed_text}`\n    : (m.text || ''))\n  .filter(t => t.trim());\n\n// Получаем итоговый текст\nconst combinedText = texts.join('\\n\\n');\n\n// Берём первый как базу\nconst base = messages[0];\n\n// Находим последний с raw\nconst lastWithRaw = [...messages].reverse().find(m => m?.meta?.raw);\n\n// Формируем выходной объект\nconst output = {\n  ...base,\n  text: combinedText,\n  meta: {\n    ...base.meta,\n    ...(lastWithRaw?.meta?.raw ? { raw: lastWithRaw.meta.raw } : {}),\n    batched: true,\n    batch_size: messages.length,\n    batch_wait_time: 20,\n    original_messages: messages.map(m => ({\n      timestamp: m.timestamp,\n      type: m.meta?.original_media_type || 'text',\n      text_length: (m.text || '').length\n    })),\n    combined_at: new Date().toISOString()\n  }\n};\n\n// Возвращаем как массив с ключом json\nreturn [\n  {\n    json: output\n  }\n];\n"
+      },
+      "id": "f2abe0d1-1ac0-40f7-84d1-b9d0fb226e7f",
+      "name": "Combine Messages (Single Output)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3776,
+        11104
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Prepare Keys').item.json.lock_key }}"
+      },
+      "id": "f75ec9f3-5f87-4068-863c-ea7d26accb74",
+      "name": "Release Lock",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        4000,
+        11104
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "OUjTFzd7k4tdoAjh",
+        "options": {}
+      },
+      "id": "8a5d7160-d669-4d78-be3a-415a181b25c0",
+      "name": "→ Client Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        4960,
+        11120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('After Release Lock:', $input.first().json);\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4208,
+        11104
+      ],
+      "id": "79cce2bc-ba42-4f2e-8e02-8c05746dc89c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "98ba6925-1ab6-4724-ba43-d38d04784ea8",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "empty_batch",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4416,
+        11104
+      ],
+      "id": "ca12e4d5-fc86-4690-8e9d-1f6b28ccd412",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Безопасный доступ к данным нод по имени\nfunction fromNode(name) {\n  try {\n    const arr = $items(name);\n    return (arr && arr.length > 0) ? (arr[0].json || null) : null;\n  } catch (e) {\n    return null;\n  }\n}\n\nconst input = $input.first()?.json || {};\nconst src = input;\n\n// Универсальная выборка\nfunction pick(existing, ...cands) {\n  if (existing !== undefined && existing !== null && `${existing}` !== '') return existing;\n  for (const c of cands) {\n    if (c !== undefined && c !== null && `${c}` !== '') return c;\n  }\n  return existing ?? null;\n}\n\n// Источники «истины»\nconst prop = src.propertyName || {};\nconst meta = prop.meta || {};\nconst raw = meta.raw || {};\n\n// Базовые поля\nconst channel = pick(src.channel, prop.channel, meta.ad_channel);\nconst external_chat_id = pick(src.external_chat_id, prop.external_chat_id, raw.chat?.id?.toString());\nconst external_user_id = pick(src.external_user_id, prop.external_user_id, raw.from?.id?.toString());\nconst external_message_id = pick(src.external_message_id, prop.external_message_id, meta.external_message_id, raw.message_id?.toString());\nconst timestamp = pick(src.timestamp, prop.timestamp, meta.timestamp, raw.date ? new Date(raw.date * 1000).toISOString() : null);\n\n// Текст\nlet text = (src.text ?? '').trim();\nif (!text) text = prop.text || raw.text || '';\n\n// Клиент (пока пустой, заполнится в Client Resolver)\nconst clientSrc = src.client || {};\nconst client = { ...clientSrc };\n\n// Appeal (пока пустой, заполнится в Appeal Manager)\nconst appealSrc = src.appeal || {};\nconst appeal = appealSrc.id ? {\n  id: appealSrc.id,\n  stage: appealSrc.stage,\n  phone_model: appealSrc.phone_model,\n  model_id: appealSrc.model_id,\n  problem_description: appealSrc.problem_description,\n  operation_mode: appealSrc.operation_mode,\n  is_new: appealSrc.is_new,\n  estimated_cost: appealSrc.estimated_cost,\n  estimated_time: appealSrc.estimated_time\n} : null;\n\n// Итоговый контракт\nconst out = {\n  ...src,\n  ...(channel != null ? { channel } : {}),\n  ...(external_chat_id != null ? { external_chat_id } : {}),\n  ...(external_user_id != null ? { external_user_id } : {}),\n  ...(external_message_id != null ? { external_message_id } : {}),\n  ...(timestamp != null ? { timestamp } : {}),\n  ...(text ? { text } : {}),\n  ...(Object.keys(client).length ? { client } : {}),\n  ...(appeal ? { appeal } : {})\n};\n\nif (out.success === undefined) out.success = true;\n\n// Добавляем tenant_id из входного потока\nif (src.tenant_id) {\n  out.tenant_id = src.tenant_id;\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        11120
+      ],
+      "id": "e08a588f-b307-4d1f-9936-5e157ed7a73b",
+      "name": "Prepare Contract"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Keys": {
+      "main": [
+        [
+          {
+            "node": "Push to Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Queue": {
+      "main": [
+        [
+          {
+            "node": "Update Last Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Last Seen": {
+      "main": [
+        [
+          {
+            "node": "Get Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lock": {
+      "main": [
+        [
+          {
+            "node": "Lock Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock Exists?": {
+      "main": [
+        [
+          {
+            "node": "Acquire Lock (TTL 300s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acquire Lock (TTL 300s)": {
+      "main": [
+        [
+          {
+            "node": "Respond First",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond First": {
+      "main": [
+        [
+          {
+            "node": "Wait 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s": {
+      "main": [
+        [
+          {
+            "node": "Get Last Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Seen": {
+      "main": [
+        [
+          {
+            "node": "Quiet ≥ 20s?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quiet ≥ 20s?": {
+      "main": [
+        [
+          {
+            "node": "Silence Reached?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Silence Reached?": {
+      "main": [
+        [
+          {
+            "node": "Get Queue Snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queue Snapshot": {
+      "main": [
+        [
+          {
+            "node": "Normalize Snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Snapshot": {
+      "main": [
+        [
+          {
+            "node": "Empty Snapshot?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty Snapshot?": {
+      "main": [
+        [
+          {
+            "node": "Delete Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Queue": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages (Single Output)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Messages (Single Output)": {
+      "main": [
+        [
+          {
+            "node": "Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Release Lock": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Prepare Contract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Contract": {
+      "main": [
+        [
+          {
+            "node": "→ Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-01T12:43:19.000Z",
+  "createdAt": "2025-10-14T06:52:57.937Z"
+}

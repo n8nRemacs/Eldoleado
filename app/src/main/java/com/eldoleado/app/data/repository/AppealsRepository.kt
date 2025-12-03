@@ -179,6 +179,34 @@ class AppealsRepository(
             Gson().toJson(this.devices)
         } else null
 
+        // Извлекаем информацию из первого устройства
+        val firstDevice = this.devices?.firstOrNull()
+        // Собираем все ремонты из всех устройств
+        val allRepairs = this.devices?.flatMap { it.repairs ?: emptyList() } ?: emptyList()
+        val repairCategories = allRepairs.mapNotNull { it.repair_category_name }.distinct()
+        val issueTypes = allRepairs.mapNotNull { it.issue_type_name }.distinct()
+        val firstRepair = allRepairs.firstOrNull()
+
+        // Приоритет: device из response, потом из devices массива, потом phone_model
+        val deviceBrand = this.device?.brand
+            ?: firstDevice?.brand_name
+        val deviceModel = this.device?.model
+            ?: firstDevice?.model_name
+            ?: firstDevice?.phone_model
+            ?: appeal.phone_model
+
+        // Тип поломки - собираем из всех ремонтов
+        val issueTypeName = appeal.issue_type_name
+            ?: issueTypes.firstOrNull()
+            ?: firstRepair?.issue_type_name
+        val repairTypeName = appeal.repair_type_name
+            ?: repairCategories.firstOrNull()
+            ?: firstRepair?.repair_category_name
+
+        // Описание проблемы - можем использовать список категорий если нет описания
+        val problemDesc = appeal.problem_description
+            ?: if (repairCategories.isNotEmpty()) repairCategories.joinToString(", ") else null
+
         return AppealEntity(
             id = appeal.id ?: "",
             status = appeal.appeal_status,
@@ -187,15 +215,15 @@ class AppealsRepository(
             channelName = appeal.channel_name,
             clientName = this.client?.name,
             clientPhone = this.client?.phone,
-            deviceBrand = this.device?.brand,
-            deviceModel = this.device?.model,
+            deviceBrand = deviceBrand,
+            deviceModel = deviceModel,
             appealType = appeal.appeal_type,
             dealTypeName = appeal.deal_type_name,
-            repairTypeName = appeal.repair_type_name,
-            issueTypeName = appeal.issue_type_name,
+            repairTypeName = repairTypeName,
+            issueTypeName = issueTypeName,
             issueName = appeal.issue_name,
-            problemDescription = appeal.problem_description,
-            partsOwner = appeal.parts_owner,
+            problemDescription = problemDesc,
+            partsOwner = appeal.parts_owner ?: firstRepair?.parts_owner,
             aiResponse = this.ai_response?.response_text ?: appeal.ai_response,
             estimatedCost = appeal.estimated_cost?.toString(),
             estimatedTime = appeal.estimated_time,

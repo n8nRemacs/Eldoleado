@@ -1,0 +1,355 @@
+{
+  "id": "di4L7QpDGtqq0iVB",
+  "name": "BAT IN MAX",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "max",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "35e1360b-3bef-4062-ab32-6d209ccd5401",
+      "name": "MAX Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        160
+      ],
+      "webhookId": "max-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $input.first().json;\n\n// MAX.ru webhook structure\nconst msg = event.message || event;\nconst sender = msg.from || msg.sender;\n\n// Извлекаем текст сообщения\nconst messageText = msg.text || msg.body || '';\n\n// Определяем типы медиа\nconst hasPhoto = msg.type === 'image' || !!msg.image;\nconst hasVoice = msg.type === 'voice' || msg.type === 'audio' || !!msg.voice || !!msg.audio;\nconst hasVideo = msg.type === 'video' || !!msg.video;\nconst hasDocument = msg.type === 'document' || !!msg.document;\n\n// Извлекаем URL медиа\nconst urls = [];\nlet photoUrl = null;\nlet voiceUrl = null;\nlet videoUrl = null;\n\nif (msg.image?.url) {\n  photoUrl = msg.image.url;\n  urls.push(photoUrl);\n}\n\nif (msg.voice?.url || msg.audio?.url) {\n  voiceUrl = msg.voice?.url || msg.audio?.url;\n  urls.push(voiceUrl);\n}\n\nif (msg.video?.url) {\n  videoUrl = msg.video.url;\n  urls.push(videoUrl);\n}\n\nif (msg.document?.url) {\n  urls.push(msg.document.url);\n}\n\n// Извлекаем данные отправителя\nconst senderId = sender?.id || sender?.phone || msg.chat_id;\nconst senderName = sender?.name || sender?.display_name || null;\nconst senderPhone = sender?.phone || null;\n\n// Нормализуем телефон если есть\nlet cleanPhone = null;\nif (senderPhone) {\n  cleanPhone = senderPhone.replace(/\\D/g, '');\n  if (cleanPhone.length === 11 && cleanPhone.startsWith('8')) {\n    cleanPhone = '7' + cleanPhone.substring(1);\n  }\n  if (cleanPhone) {\n    cleanPhone = '+' + cleanPhone;\n  }\n}\n\nreturn {\n  has_voice: hasVoice,\n  voice_url: voiceUrl,\n  raw_event: event,\n  sender_id: senderId,\n  sender_name: senderName,\n  sender_phone: cleanPhone,\n  chat_id: msg.chat_id || senderId?.toString(),\n  message_id: msg.id || msg.message_id || Date.now().toString(),\n  message_text: messageText,\n  message_type: msg.type,\n  timestamp: msg.timestamp ? new Date(msg.timestamp * 1000).toISOString() : new Date().toISOString(),\n  has_photo: hasPhoto,\n  photo_url: photoUrl,\n  has_video: hasVideo,\n  video_url: videoUrl,\n  has_document: hasDocument,\n  urls: urls\n};"
+      },
+      "id": "5257c399-9b7e-4335-bb7d-4915861406d7",
+      "name": "Extract MAX Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.voice_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "63ff44a4-4e5b-4b19-becb-5ac622ed5585",
+      "name": "Download Voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -112,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        112,
+        48
+      ],
+      "id": "86db0f37-4088-4aff-92ce-d991abe912f8",
+      "name": "Transcribe Voice",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Extract MAX Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'max',\n  external_user_id: data.sender_id?.toString(),\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: data.sender_phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'max',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_event\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "d24284d1-3b51-4740-b0c4-117f058aae7f",
+      "name": "Normalize with Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'max',\n  external_user_id: data.sender_id?.toString(),\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: data.sender_phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'max',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : 'text',\n    raw: data.raw_event\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "6bc1bb73-9d88-4aca-9dbe-cacd6b608299",
+      "name": "Normalize without Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \\\"success\\\": true } }}",
+        "options": {}
+      },
+      "id": "0c702fcd-a63d-4c7a-87a5-fede497d0151",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "04d0baab-134b-4edf-a901-c4331befe2c9"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8c844924-b2ed-48b0-935c-c66a8fd0c778",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2dc12452-baa1-455f-a34e-22699f16c112",
+      "name": "Switch1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -368,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=hwYfaLAKCwaWpoQk",
+        "options": {}
+      },
+      "id": "bdaf2714-04be-4c5f-a169-a40740a85d6a",
+      "name": "Execute Universal Batcher",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        864,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "rRO6sxLqiCdgvLZz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
+          "cachedResultName": "BAT_Tenant_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        144
+      ],
+      "id": "081992c1-53db-4820-82f4-c253356b0728",
+      "name": "Execute Tenant Resolver"
+    }
+  ],
+  "connections": {
+    "MAX Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract MAX Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract MAX Data": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Voice": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Voice": {
+      "main": [
+        [
+          {
+            "node": "Normalize with Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize with Voice": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize without Voice": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Download Voice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize without Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Universal Batcher": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Execute Universal Batcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:03:40.721Z",
+      "createdAt": "2025-11-23T04:03:40.721Z",
+      "id": "nLdF41tEx70V7m3A",
+      "name": "In"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:05:27.000Z",
+  "createdAt": "2025-10-14T07:11:07.860Z"
+}

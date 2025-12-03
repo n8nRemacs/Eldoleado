@@ -1,11 +1,7 @@
 {
-  "updatedAt": "2025-12-02T07:53:42.000Z",
-  "createdAt": "2025-11-29T12:29:01.389Z",
   "id": "eGiWLthVzJRc9uFH",
   "name": "API_Android_Device_Update",
-  "description": null,
   "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -268,57 +264,6 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": null,
-  "pinData": {},
-  "versionId": "d2c79b3e-dc97-4277-8827-334bfa18f793",
-  "versionCounter": 7,
-  "triggerCount": 1,
-  "shared": [
-    {
-      "updatedAt": "2025-11-29T12:29:01.397Z",
-      "createdAt": "2025-11-29T12:29:01.397Z",
-      "role": "workflow:owner",
-      "workflowId": "eGiWLthVzJRc9uFH",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-02T07:52:39.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-01",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": [
     {
       "updatedAt": "2025-11-23T03:58:34.844Z",
@@ -332,5 +277,7 @@
       "id": "8zD9sDD78ytgu5T2",
       "name": "BattCRM"
     }
-  ]
+  ],
+  "updatedAt": "2025-12-02T07:53:42.000Z",
+  "createdAt": "2025-11-29T12:29:01.389Z"
 }

@@ -1,34 +1,30 @@
 {
-  "updatedAt": "2025-11-26T12:32:01.558Z",
-  "createdAt": "2025-11-18T10:04:23.203Z",
   "id": "Ldeg4SOqteYuYZbx",
   "name": "BAT_FCM_Sender",
-  "description": null,
   "active": false,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {},
-      "id": "6ebd53ca-7364-455b-bfce-70694dc9ebb5",
+      "id": "1a377af7-e39e-4a5d-9a86-a75c1f8a1aaa",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -592,
-        -48
+        -960,
+        -96
       ]
     },
     {
       "parameters": {
         "jsCode": "const input = $input.first().json;\n\nconst tenant_id = input.tenant_id;\nconst notification_type = input.notification_type || 'new_appeal';\nconst appeal_id = input.appeal_id || null;\nconst title = input.title || '🔔 Уведомление';\nconst body = input.body || '';\nconst data = input.data || {};\n\n// extracted_data из AI обработки\nconst extracted_data = input.extracted_data || {};\n\n// Новое\nconst notification_id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\nconst sent_at = new Date().toISOString();\nconst priority = notification_type === 'new_appeal' ? 'high' : 'default';\n\nconsole.log('╔═══ FCM SENDER INPUT ═══');\nconsole.log('Type:', notification_type);\nconsole.log('Priority:', priority);\nconsole.log('Extracted data:', JSON.stringify(extracted_data));\n\nif (!tenant_id) {\n  throw new Error('tenant_id is required');\n}\n\nreturn {\n  tenant_id,\n  notification_type,\n  appeal_id,\n  title,\n  body,\n  data: {\n    type: notification_type,\n    appeal_id: appeal_id || '',\n    title: title,\n    body: body,\n    notification_id: notification_id,\n    sent_at: sent_at,\n    priority: priority,\n    // Добавляем extracted_data\n    client_name: data.client_name || '',\n    channel: data.channel || '',\n    // AI extracted fields\n    appeal_type: extracted_data.type || '',\n    device_model: extracted_data.model || '',\n    device_brand: extracted_data.brand || '',\n    repair_type: extracted_data.repair_type || '',\n    parts_owner: extracted_data.parts_owner || '',\n    estimated_cost: extracted_data.estimated_cost || '',\n    ai_response: data.ai_response || input.response_text || ''\n  },\n  extracted_data: extracted_data\n};"
       },
-      "id": "33fef145-b826-41ff-9f3b-a51a99f2ab8f",
+      "id": "5a3dfcb7-9345-4390-b286-89a3fc05f24f",
       "name": "Parse Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -384,
-        -48
+        -752,
+        -96
       ]
     },
     {
@@ -37,13 +33,13 @@
         "query": "SELECT \n  id,\n  fcm_token,\n  name\nFROM operators\nWHERE is_active = true\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND fcm_token IS NOT NULL;",
         "options": {}
       },
-      "id": "139f6cd8-ede8-4e26-992e-f8e0b5c5350f",
+      "id": "5080d712-c528-4f11-aeaa-47eb19703e94",
       "name": "Get Operators with FCM",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -192,
-        -48
+        -560,
+        -96
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -57,26 +53,26 @@
       "parameters": {
         "jsCode": "const input = $('Parse Input').first().json;\nconst operators = $input.all();\n\nconsole.log('╔═══ MERGE WITH OPERATORS ═══');\nconsole.log('Operators count:', operators.length);\n\nif (operators.length === 0) {\n  console.log('⚠️ No operators with FCM tokens found');\n  return [{\n    json: {\n      ...input,\n      operators_count: 0,\n      skip_reason: 'no_operators_with_fcm'\n    }\n  }];\n}\n\nconst result = operators.map(op => {\n  const operatorData = op.json;\n  \n  return {\n    ...input,\n    operator_id: operatorData.id,\n    operator_name: operatorData.name,\n    fcm_token: operatorData.fcm_token\n  };\n});\n\nconsole.log('✅ Merged with', result.length, 'operators');\n\nreturn result;"
       },
-      "id": "86a71067-0e86-4cc8-a8fc-a47ed5e3f8f6",
+      "id": "8fc44953-7130-461f-af81-90e7a802d6de",
       "name": "Merge with Operators",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        16,
-        -48
+        -352,
+        -96
       ]
     },
     {
       "parameters": {
         "jsCode": "const items = $input.all();\n\nconst total = items.length;\nconst sent = items.filter(i => i.json.fcm_sent === true).length;\nconst failed = items.filter(i => i.json.fcm_sent === false && !i.json.skipped).length;\nconst skipped = items.filter(i => i.json.skipped || i.json.fcm_skip_reason).length;\n\nconsole.log('╔═══ FCM SENDER SUMMARY ═══');\nconsole.log('Total operators:', total);\nconsole.log('✅ Sent:', sent);\nconsole.log('❌ Failed:', failed);\nconsole.log('⚠️ Skipped:', skipped);\n\nreturn {\n  success: true,\n  notification_type: items[0]?.json?.notification_type || 'unknown',\n  total_operators: total,\n  sent_count: sent,\n  failed_count: failed,\n  skipped_count: skipped,\n  timestamp: new Date().toISOString()\n};"
       },
-      "id": "97bac666-12cc-4a79-acb2-616f178198cc",
+      "id": "9c7bef2d-cabc-444c-8428-e8d51f0a146d",
       "name": "Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1088,
-        -48
+        720,
+        -96
       ]
     },
     {
@@ -100,23 +96,23 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        896,
-        -48
+        528,
+        -96
       ],
-      "id": "ca2639a8-58f7-444f-8705-e5952554faad",
+      "id": "c2676226-fa59-4f8b-af8f-d2ff8731ba46",
       "name": "Send FCM"
     },
     {
       "parameters": {
-        "jsCode": "const jwt = require('jsonwebtoken');\n\n// ВАЖНО: Замени PRIVATE_KEY на ключ из eldoleado-firebase-adminsdk-fbsvc-99972a8120.json\nconst privateKey = `ВСТАВЬ_PRIVATE_KEY_ИЗ_FIREBASE_JSON`;\n\nconst now = Math.floor(Date.now() / 1000);\n\nconst payload = {\n  iss: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  sub: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  aud: 'https://oauth2.googleapis.com/token',\n  iat: now,\n  exp: now + 3600,\n  scope: 'https://www.googleapis.com/auth/firebase.messaging'\n};\n\nconst token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });\n\nreturn {\n  ...$input.first().json,\n  jwt_token: token\n};"
+        "jsCode": "const jwt = require('jsonwebtoken');\n\n// ВАЖНО: Замени PRIVATE_KEY на ключ из eldoleado-firebase-adminsdk-fbsvc-99972a8120.json\nconst privateKey = `-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqqdF2fmvove1U\\nOtj43KRLukYSHFuqqWMjM5tWf87Bc4nostojiRT6aV0uFsAXQgzbNdBOo2EilHPA\\nexYbVQjbJr8AGFXsIUljve4cgl00ymgolI/ZXi+OFnGEqIgDM8Bxae9ggald+z8s\\ncpCDiIccvU/UHGEdGKi7D54Pi1xRjT20G7Oooe9/Srm6E+rtERrbyslKDYhkTfzg\\np7f74ti2R0G67FGLy7G3XiTaYPWcSJKff3aNMAPPPHozwvHf1TDCEsTZff4ga+DS\\n8UWYbiQ9NEDUvg57iN9YlFk/d4hpxDs8APoMBeP2e+AStmeIfxv6MXOWo9AdfNjU\\nIXLEKKErAgMBAAECggEAPvHGRzFmhF90hqHzv4nFcQbBbFGYP5Ac9/FDRDp8W95M\\nyY4ZpYycN6Wfz+1lKM7cJgepji91FodxT9c19pu82fNm89aF7kLyqf51sX8leGCE\\n3R66FX5HBN1jPf3YuHGgc1QSjWIVQQv3J2ITyeeTibaLGFzlNpGPPfsLHYmVYaAf\\nGGF6ovhdN54s8xtZMUkUD1mh/H+WEb8GlRpzFLsqGIN1idd6wQHiOTsigMwh2NgH\\nN2BChLi8P989qng42xuvwzwAUI/roV4d4RojkClNdRE9ditMPolMtvmHj4mqZlFR\\n/RVWVhXvUeUeFKXUxtbOOPlDKG8E9lwdy0aQST2vzQKBgQDjn2Rwxy+wNLGit/RL\\nAZjqPHm05W2YVPN5ylElbD5oa5u4GJPGXsG/1ZWarWNq6/YfXUegPv44i9e6FyJq\\nB6rG7A2JvA0eKVALTvJdNcVClBlWWE/Fc199DMYyK2uzZ0YsL6ZWj5Fn2D3q4nKa\\nGoJ63hbLPuKWj1SO6Yr8A/oAZwKBgQC/8JAQV0wmQ9z/oYkv6dXqnzmC2wwOGmNr\\nv6fqJC8AmOZZTIxREZHV2K6Rc9UCLoqdFAPjtAeJSRuEx2W1zOxC98rTj5v3sPpX\\nvXOeYLDx/OoxG5LQg3Yg/pbQevufi+9B3WU9tSVMCsrW3R2vsZKEgYCcPZJt/he5\\nCcIuzDFOnQKBgQCAiTGevdwgFKF60YYSFQTUwPG5RRVuQAp9a9IG3+kd7iYw/y/z\\nhO7D9UhV4DOT3UtOys33n5rPM6jOXOICHfJCAmpirN57ebjJqfsSx5pszlTAfX4O\\ncegqJVyGWB6pYFgv+3hiyQ/DJElSqi0s+GtWFrOocgpiGu4VBayGQ3iZYQKBgBuw\\n6ifhYFQY8FZVCMTH2Jvb0uFFFu0l83gFE4WdKMbOSFVTzN6ZSU/vzeegLXf+HPNi\\ngtkkDP5KdNToK41Z/i//Ldzt2BOZDdUAuSB9VKnk0ii5kKnSfYVvFXUIeSrgdmkr\\nNsL7UmExIWh0SCcj2D6TrGleHLUPtn50oPY9cVOlAoGBAJYYT2QZL10B1sAN42+y\\nqohKG2xq+BFUIkIitO0bguvKtBKAELeG9kN5CYpTWwpxB+8ozFmwxPMmBuEJ8T07\\nw/i/H+DU5YxOAh0iJTE3/Uiyr16W+roVxKQuILzB2STiGGCcKu/cFGDK3IPzKF++\\nUzmlZo+NCs4SHBpifw3s1797\\n-----END PRIVATE KEY-----\\n`;\n\nconst now = Math.floor(Date.now() / 1000);\n\nconst payload = {\n  iss: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  sub: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  aud: 'https://oauth2.googleapis.com/token',\n  iat: now,\n  exp: now + 3600,\n  scope: 'https://www.googleapis.com/auth/firebase.messaging'\n};\n\nconst token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });\n\nreturn {\n  ...$input.first().json,\n  jwt_token: token\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        -48
+        -128,
+        -96
       ],
-      "id": "8fb212bd-2015-4a0f-b23b-930a95ce7e57",
+      "id": "26953f87-b312-4013-b0c7-94a307b12ced",
       "name": "Generate JWT Token"
     },
     {
@@ -142,10 +138,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        448,
-        -48
+        80,
+        -96
       ],
-      "id": "d3d52667-52e8-4223-b071-7dd914472e95",
+      "id": "0d142810-12b3-4646-bea1-f444800f9aa4",
       "name": "Get Access Token"
     },
     {
@@ -155,10 +151,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        656,
-        -48
+        288,
+        -96
       ],
-      "id": "143bcf59-97b1-42c0-9096-c4b5d6b24bbf",
+      "id": "99909195-b747-4b89-98f1-3b4ded8bac34",
       "name": "Merge Token with Data"
     }
   ],
@@ -257,73 +253,6 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "staticData": null,
-  "meta": null,
-  "pinData": {
-    "Execute Workflow Trigger": [
-      {
-        "json": {
-          "tenant_id": "a0000000-0000-0000-0000-000000000001",
-          "notification_type": "new_appeal",
-          "appeal_id": "07af5e27-4532-4d6b-bdff-6f8c089a76d5",
-          "title": "🔔 Новое обращение",
-          "body": "РемАкс MD - telegram",
-          "data": {
-            "client_name": "РемАкс MD",
-            "channel": "telegram"
-          }
-        }
-      }
-    ]
-  },
-  "versionId": "b0b1f334-f870-4b03-9843-88e4af4163a3",
-  "versionCounter": 15,
-  "triggerCount": 0,
-  "shared": [
-    {
-      "updatedAt": "2025-11-18T10:04:23.210Z",
-      "createdAt": "2025-11-18T10:04:23.210Z",
-      "role": "workflow:owner",
-      "workflowId": "Ldeg4SOqteYuYZbx",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-02T07:52:39.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-01",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": [
     {
       "updatedAt": "2025-11-23T03:59:12.594Z",
@@ -337,5 +266,7 @@
       "id": "eiI07cPEeFxzR69p",
       "name": "Core"
     }
-  ]
+  ],
+  "updatedAt": "2025-12-03T10:36:05.000Z",
+  "createdAt": "2025-11-18T10:04:23.203Z"
 }

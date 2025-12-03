@@ -1,0 +1,576 @@
+{
+  "id": "gtm1CfLF557Ta40P",
+  "name": "BAT Neo4j CRUD",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/crud",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        -464
+      ],
+      "webhookId": "neo4j-crud",
+      "id": "e4e41d5b-3379-49cf-b955-37b455851665"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Whitelist допустимых типов узлов и рёбер (защита от Cypher-инъекции)\nconst ALLOWED_NODE_TYPES = [\n  'Client', 'Device', 'Problem', 'ProblemType',\n  'Touchpoint', 'Channel', 'Vertical', 'Fingerprint'\n];\n\nconst ALLOWED_EDGE_TYPES = [\n  'OWNS', 'HAS_PROBLEM', 'OF_TYPE', 'SOCIAL', 'REFERRED',\n  'HAS_CHANNEL', 'IDENTIFIED_BY', 'CUSTOMER_OF', 'FROM', 'TO',\n  'ABOUT_DEVICE', 'ABOUT_PROBLEM', 'REFERS_TO', 'VIA_CHANNEL', 'IN_VERTICAL'\n];\n\nconst ALLOWED_OPERATIONS = [\n  'create', 'read', 'update', 'delete', 'create_edge', 'delete_edge'\n];\n\nconst body = $json.body || {};\nconst operation = body.operation || 'read';\nconst nodeType = body.nodeType || 'Client';\nconst nodeId = body.nodeId || null;\nconst properties = body.properties || {};\nconst edgeType = body.edgeType || null;\nconst fromId = body.fromId || null;\nconst toId = body.toId || null;\nconst edgeProperties = body.edgeProperties || {};\n\n// Валидация операции\nif (!ALLOWED_OPERATIONS.includes(operation)) {\n  throw new Error(`Invalid operation: ${operation}. Allowed: ${ALLOWED_OPERATIONS.join(', ')}`);\n}\n\n// Валидация nodeType для операций с узлами\nif (['create', 'read', 'update', 'delete'].includes(operation)) {\n  if (!ALLOWED_NODE_TYPES.includes(nodeType)) {\n    throw new Error(`Invalid nodeType: ${nodeType}. Allowed: ${ALLOWED_NODE_TYPES.join(', ')}`);\n  }\n}\n\n// Валидация edgeType для операций с рёбрами\nif (['create_edge', 'delete_edge'].includes(operation)) {\n  if (!edgeType || !ALLOWED_EDGE_TYPES.includes(edgeType)) {\n    throw new Error(`Invalid edgeType: ${edgeType}. Allowed: ${ALLOWED_EDGE_TYPES.join(', ')}`);\n  }\n  if (!fromId || !toId) {\n    throw new Error('fromId and toId are required for edge operations');\n  }\n}\n\n// Валидация nodeId для операций update/delete\nif (['update', 'delete'].includes(operation) && !nodeId) {\n  throw new Error('nodeId is required for update/delete operations');\n}\n\n// Санитизация ключей properties (только буквы, цифры, подчёркивания)\nconst sanitizedProperties = {};\nfor (const [key, value] of Object.entries(properties)) {\n  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {\n    throw new Error(`Invalid property key: ${key}. Only alphanumeric and underscore allowed.`);\n  }\n  sanitizedProperties[key] = value;\n}\n\nconst sanitizedEdgeProperties = {};\nfor (const [key, value] of Object.entries(edgeProperties)) {\n  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {\n    throw new Error(`Invalid edge property key: ${key}. Only alphanumeric and underscore allowed.`);\n  }\n  sanitizedEdgeProperties[key] = value;\n}\n\nreturn {\n  operation,\n  nodeType,\n  nodeId,\n  properties: sanitizedProperties,\n  edgeType,\n  fromId,\n  toId,\n  edgeProperties: sanitizedEdgeProperties,\n  _validation: 'passed'\n};"
+      },
+      "name": "Parse & Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        -464
+      ],
+      "id": "bd3c930e-c1bf-4f31-821a-c13a3f918f79"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "create"
+            }
+          ]
+        }
+      },
+      "name": "Is Create?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -464
+      ],
+      "id": "235147f2-5eb6-4a73-8339-ce2d0804bd38"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "read"
+            }
+          ]
+        }
+      },
+      "name": "Is Read?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -256
+      ],
+      "id": "2b84126b-111f-41f3-b8f1-d229e87349e3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "update"
+            }
+          ]
+        }
+      },
+      "name": "Is Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -64
+      ],
+      "id": "59dfe4d2-37f1-4f79-aa6f-03106bffb963"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "delete"
+            }
+          ]
+        }
+      },
+      "name": "Is Delete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        144
+      ],
+      "id": "494979b2-5d6f-42fe-81ad-8d5842cf0692"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "create_edge"
+            }
+          ]
+        }
+      },
+      "name": "Is Create Edge?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        336
+      ],
+      "id": "f255681a-870d-4e41-9faf-4c01638573eb"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "delete_edge"
+            }
+          ]
+        }
+      },
+      "name": "Is Delete Edge?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        528
+      ],
+      "id": "22e84b66-8d89-4637-ab61-321110d47113"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const props = $json.properties;\n  const propsStr = Object.entries(props).map(([k,v]) => `${k}: $${k}`).join(', ');\n  \n  JSON.stringify({\n    statements: [{\n      statement: `CREATE (n:${nodeType} {id: $id${propsStr ? ', ' + propsStr : ''}}) RETURN n`,\n      parameters: { id: $json.nodeId || crypto.randomUUID(), ...props }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Create Node",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        -464
+      ],
+      "id": "91372668-2f6c-4791-a1e8-358d56b9c68f",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const nodeId = $json.nodeId;\n  \n  JSON.stringify({\n    statements: [{\n      statement: nodeId \n        ? `MATCH (n:${nodeType} {id: $id}) RETURN n`\n        : `MATCH (n:${nodeType}) RETURN n LIMIT 100`,\n      parameters: nodeId ? { id: nodeId } : {}\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Read Node",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        -256
+      ],
+      "id": "7dff3625-95f7-412a-b285-ac1b7b928dce",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const nodeId = $json.nodeId;\n  const props = $json.properties;\n  const setStr = Object.entries(props).map(([k,v]) => `n.${k} = $${k}`).join(', ');\n  \n  JSON.stringify({\n    statements: [{\n      statement: `MATCH (n:${nodeType} {id: $id}) SET ${setStr} RETURN n`,\n      parameters: { id: nodeId, ...props }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Update Node",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        -64
+      ],
+      "id": "b332c7d5-4d63-43d6-a35d-888f76bea243",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const nodeId = $json.nodeId;\n  \n  JSON.stringify({\n    statements: [{\n      statement: `MATCH (n:${nodeType} {id: $id}) DETACH DELETE n RETURN count(n) as deleted`,\n      parameters: { id: nodeId }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Delete Node",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        144
+      ],
+      "id": "23b04d61-187a-4da9-942e-76e362ad3ec8",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const edgeType = $json.edgeType;\n  const fromId = $json.fromId;\n  const toId = $json.toId;\n  const props = $json.edgeProperties;\n  const propsStr = Object.keys(props).length > 0 \n    ? '{' + Object.entries(props).map(([k,v]) => `${k}: $${k}`).join(', ') + '}'\n    : '';\n  \n  JSON.stringify({\n    statements: [{\n      statement: `MATCH (a {id: $fromId}), (b {id: $toId}) CREATE (a)-[r:${edgeType} ${propsStr}]->(b) RETURN r`,\n      parameters: { fromId, toId, ...props }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Create Edge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        336
+      ],
+      "id": "f5801bbb-ff9c-4149-ae0d-9628c5dcf4db",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const edgeType = $json.edgeType;\n  const fromId = $json.fromId;\n  const toId = $json.toId;\n  \n  JSON.stringify({\n    statements: [{\n      statement: `MATCH (a {id: $fromId})-[r:${edgeType}]->(b {id: $toId}) DELETE r RETURN count(r) as deleted`,\n      parameters: { fromId, toId }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Delete Edge",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -224,
+        528
+      ],
+      "id": "36402d81-88e2-4a9f-b76d-37eea1fb51f7",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\n\n// Проверка на ошибки Neo4j\nif (result.errors && result.errors.length > 0) {\n  const errorMessages = result.errors.map(e => e.message).join('; ');\n  return {\n    success: false,\n    error: errorMessages,\n    data: []\n  };\n}\n\nconst data = result.results?.[0]?.data || [];\nconst nodes = data.map(d => d.row?.[0] || d);\n\nreturn {\n  success: true,\n  count: nodes.length,\n  data: nodes\n};"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -64
+      ],
+      "id": "36da42c4-ae29-4919-a8fb-cd813014e31c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -64
+      ],
+      "id": "5e701a2d-c8ab-4d06-87d3-38dec437babc"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Is Create?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Read?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Update?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Delete?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Create Edge?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Delete Edge?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Create?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Read?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Read Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Update?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Update Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Delete?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Delete Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Create Edge?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create Edge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Delete Edge?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Delete Edge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Create Node": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Read Node": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Update Node": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Delete Node": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Create Edge": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Delete Edge": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-03T10:31:05.000Z",
+  "createdAt": "2025-12-02T11:26:35.948Z"
+}

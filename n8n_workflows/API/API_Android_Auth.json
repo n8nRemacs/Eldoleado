@@ -1,11 +1,7 @@
 {
-  "updatedAt": "2025-11-23T04:00:03.000Z",
-  "createdAt": "2025-11-14T04:46:18.560Z",
   "id": "U7Zak2jQ0rVG0fmp",
   "name": "API_Android_Auth",
-  "description": null,
   "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -443,91 +439,6 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {
-    "Webhook - Auth Login": [
-      {
-        "json": {
-          "headers": {
-            "host": "n8n.n8nsrv.ru",
-            "user-agent": "okhttp/4.12.0",
-            "content-length": "183",
-            "accept-encoding": "gzip",
-            "content-type": "application/json; charset=UTF-8",
-            "via": "2.0 Caddy",
-            "x-forwarded-for": "195.54.40.108",
-            "x-forwarded-host": "n8n.n8nsrv.ru",
-            "x-forwarded-proto": "https"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "device_info": {
-              "app_version": "1.0",
-              "device_id": "85194be5a493d381",
-              "device_model": "Google sdk_gphone64_x86_64",
-              "os_version": "Android 16"
-            },
-            "login": "test_operator",
-            "password": "test123"
-          },
-          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/android/auth/login",
-          "executionMode": "production"
-        }
-      }
-    ]
-  },
-  "versionId": "1e7481d2-b73f-45e4-ab06-9b51c04f762f",
-  "versionCounter": 25,
-  "triggerCount": 1,
-  "shared": [
-    {
-      "updatedAt": "2025-11-14T04:46:18.571Z",
-      "createdAt": "2025-11-14T04:46:18.571Z",
-      "role": "workflow:owner",
-      "workflowId": "U7Zak2jQ0rVG0fmp",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-02T07:52:39.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-01",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": [
     {
       "updatedAt": "2025-11-23T03:58:34.844Z",
@@ -541,5 +452,7 @@
       "id": "8zD9sDD78ytgu5T2",
       "name": "BattCRM"
     }
-  ]
+  ],
+  "updatedAt": "2025-11-23T04:00:03.000Z",
+  "createdAt": "2025-11-14T04:46:18.560Z"
 }

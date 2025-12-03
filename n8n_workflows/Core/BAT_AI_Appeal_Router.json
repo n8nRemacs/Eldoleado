@@ -1,0 +1,864 @@
+{
+  "id": "Flhmu33l0ZhZhr90",
+  "name": "BAT AI Appeal Router",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a0d67898-5410-4cc0-9793-9c4d145f5224",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.*,\n  b.name as brand_name,\n  m.name as model_name,\n  c.phone as client_phone,\n  c.name as client_name,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'timestamp', mh.created_at,\n      'is_client', CASE WHEN mh.message_type = 'client' THEN true ELSE false END,\n      'text', mh.message_text\n    ) ORDER BY mh.created_at ASC)\n    FROM messages_history mh \n    WHERE mh.appeal_id = a.id),\n    '[]'::json\n  ) as messages,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'id', ad.id,\n      'device_index', ad.device_index,\n      'brand_id', ad.brand_id,\n      'brand_name', db.name,\n      'model_id', ad.model_id,\n      'model_name', dm.name,\n      'repairs', (SELECT json_agg(json_build_object(\n        'id', ar.id,\n        'category_id', ar.repair_category_id,\n        'category_name', rc.name\n      )) FROM appeal_repairs ar LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id WHERE ar.appeal_device_id = ad.id)\n    ) ORDER BY ad.device_index)\n    FROM appeal_devices ad\n    LEFT JOIN brands db ON db.id = ad.brand_id\n    LEFT JOIN models dm ON dm.id = ad.model_id\n    WHERE ad.appeal_id = a.id),\n    '[]'::json\n  ) as devices\nFROM appeals a\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nWHERE a.id = '{{ $json.appeal.id }}'::uuid\n  AND a.tenant_id = '{{ $json.tenant_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "50019610-d965-49a5-a2f9-4d6354a98a2f",
+      "name": "Load Appeal & Devices",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -2128,
+        -304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  field_name,\n  is_required,\n  collection_order,\n  tool_name as extraction_prompt\nFROM context_fields_config\nWHERE tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND (deal_type_id IS NULL)\n  AND is_active = true\nORDER BY collection_order ASC;",
+        "options": {}
+      },
+      "id": "2e961b81-e79d-47b0-8340-c08ca681384b",
+      "name": "Load Fields Config",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -1904,
+        -304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "  const triggerData = $('Execute Workflow Trigger').first().json;\n  const appealData = $('Load Appeal & Devices').first().json;\n  const fieldsConfig = $('Load Fields Config').all().map(i => i.json);\n\n  // История диалога\n  let conversationHistory = '';\n  const messages = appealData.messages || [];\n\n  if (messages.length > 0) {\n    conversationHistory = messages.map(msg => {\n      const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});\n      const sender = msg.is_client ? 'Клиент' : 'Бот';\n      return `[${time}] ${sender}: ${msg.text}`;\n    }).join('\\n');\n  } else {\n    conversationHistory = 'Первое сообщение в диалоге';\n  }\n  conversationHistory += `\\n\\n[НОВОЕ] Клиент: ${triggerData.text}`;\n\n  // Данные об устройствах\n  const devices = appealData.devices || [];\n  const hasDevices = devices.length > 0;\n  const activeDevice = hasDevices ? devices[devices.length - 1] : null;\n\n  // Проверяем первый контакт по количеству сообщений от клиента\n  const clientMessages = messages.filter(msg => msg.is_client === true);\n  const isFirstContact = clientMessages.length === 0;\n\n  const appealStage = appealData.stage || 'Первичный контакт';\n  const operationMode = appealData.operation_mode || 'assist';\n\n  // Определяем что заполнено и что не хватает\n  const currentState = {\n    brand: activeDevice?.brand_name || appealData.brand_name || null,\n    brand_id: activeDevice?.brand_id || appealData.brand_id || null,\n    model: activeDevice?.model_name || appealData.model_name || null,\n    model_id: activeDevice?.model_id || appealData.model_id || null,\n    repairs: activeDevice?.repairs || [],\n    stage: appealStage\n  };\n\n  // Проверка заполненности по конфигу\n  const requiredFields = fieldsConfig.filter(f => f.is_required);\n  const missing = [];\n\n  for (const field of requiredFields) {\n    switch (field.field_name) {\n      case 'brand':\n        if (!currentState.brand_id) missing.push('бренд');\n        break;\n      case 'model':\n        if (!currentState.model_id) missing.push('модель');\n        break;\n      case 'repair_category':\n        if (!currentState.repairs?.length) missing.push('тип ремонта');\n        break;\n    }\n  }\n\n  if (fieldsConfig.length === 0) {\n    if (!currentState.brand_id) missing.push('бренд');\n    if (!currentState.model_id) missing.push('модель');\n    if (!currentState.repairs?.length) missing.push('тип ремонта');\n  }\n\n  const completionPercentage = requiredFields.length > 0\n    ? Math.round((requiredFields.length - missing.length) / requiredFields.length * 100)\n    : (3 - missing.length) / 3 * 100;\n\n  return {\n    ...triggerData,\n    appeal_id: appealData.id,\n    appeal: appealData,\n    tenant_id: triggerData.tenant_id,\n    message: triggerData.text,\n    message_history: messages,\n    conversation_history: conversationHistory,\n    devices: devices,\n    device_count: devices.length,\n    active_device: activeDevice,\n    current_state: currentState,\n    fields_config: fieldsConfig,\n    missing_fields: missing,\n    missing_fields_str: missing.join(', ') || 'всё заполнено',\n    completion_percentage: completionPercentage,\n    is_complete: missing.length === 0,\n    appeal_stage: appealStage,\n    is_first_contact: isFirstContact,\n    operation_mode: operationMode,\n    channel: triggerData.channel || 'telegram',\n    client_name: appealData.client_name || triggerData.client?.name || 'Клиент',\n    external_chat_id: triggerData.external_chat_id\n  };\n"
+      },
+      "id": "13192c78-f94e-42e1-9e2a-1797b2c9e58d",
+      "name": "Prepare Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "needs-extraction",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.is_complete }}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "1db104ed-a232-40ae-99fb-53379871d05d",
+      "name": "Needs Extraction?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1456,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "aEzuOXgpLBTNZ4ie",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/aEzuOXgpLBTNZ4ie",
+          "cachedResultName": "BAT AI Task Dispatcher"
+        },
+        "options": {}
+      },
+      "id": "b585369b-aea1-4210-9542-8ed6c99b2a81",
+      "name": "Call Task Dispatcher",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -1248,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Skip extraction - all data already collected\nconst context = $input.item.json;\n\nreturn {\n  action: 'skip_extraction',\n  appeal_id: context.appeal_id,\n  tenant_id: context.tenant_id,\n  extracted_data: {\n    brand: context.current_state.brand,\n    brand_id: context.current_state.brand_id,\n    model: context.current_state.model,\n    model_id: context.current_state.model_id,\n    repair_category: context.current_state.repairs?.[0]?.category_name,\n    repair_category_id: context.current_state.repairs?.[0]?.category_id\n  },\n  total_tasks: 0,\n  completed: 0,\n  elapsed_ms: 0\n};"
+      },
+      "id": "819b6c8d-5c1a-453d-84aa-f63101c8131a",
+      "name": "Skip Extraction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $('Prepare Context').first().json;\n  const dispatcherResult = $input.first().json;\n\n  const extracted = dispatcherResult.extracted_data || {};\n\n  // Данные из БД + извлечённые\n  const brand = extracted.brand || context.current_state.brand || null;\n  const brandId = extracted.brand_id || context.current_state.brand_id;\n  const model = extracted.model || context.current_state.model || null;\n  const modelId = extracted.model_id || context.current_state.model_id;\n  const repair = extracted.repair_category || context.current_state.repairs?.[0]?.category_name || null;\n  const repairId = extracted.repair_category_id || context.current_state.repairs?.[0]?.category_id;\n\n  // Формируем что известно\n  let deviceInfo = [];\n  if (brand) deviceInfo.push(`Бренд: ${brand}`);\n  if (model) deviceInfo.push(`Модель: ${model}`);\n  if (repair) deviceInfo.push(`Ремонт: ${repair}`);\n  const knownStr = deviceInfo.length > 0 ? deviceInfo.join(', ') : 'Данных пока нет';\n\n  // Что не хватает\n  const missing = [];\n  if (!brandId && !brand) missing.push('бренд');\n  if (!modelId && !model) missing.push('модель');\n  if (!repairId && !repair) missing.push('тип ремонта');\n  const missingStr = missing.length > 0 ? missing.join(', ') : 'всё собрано';\n\n  // Ограничиваем историю последними 7 сообщениями\n  const messages = context.message_history || [];\n  const recentMessages = messages.slice(-7);\n\n  const clientMessages = messages.filter(msg => msg.is_client === true);\n  const isFirstContact = clientMessages.length === 0;\n\n  // Форматируем историю\n  let conversationHistory = '';\n  if (recentMessages.length > 0) {\n    conversationHistory = recentMessages.map(msg => {\n      const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});\n      const sender = msg.is_client ? 'Клиент' : 'Бот';\n      return `[${time}] ${sender}: ${msg.text}`;\n    }).join('\\n');\n  } else {\n    conversationHistory = '(первое сообщение)';\n  }\n\n  // Добавляем новое сообщение\n  conversationHistory += `\\n\\n[НОВОЕ] Клиент: ${context.text}`;\n\n  // Приветствие только если реально первый контакт\n  let greeting = '';\n  if (isFirstContact) {\n    greeting = 'ВАЖНО: Это первый контакт с клиентом. Начни с приветствия!\\n\\n';\n  }\n\n  const chatInput = `${greeting}СОБРАНО ПО ЗАЯВКЕ:\n  ${knownStr}\n\n  НЕ ХВАТАЕТ:\n  ${missingStr}\n\n  ПОСЛЕДНИЕ СООБЩЕНИЯ:\n  ${conversationHistory}\n\n  ${missing.length > 0 ? 'ЗАДАЧА: Вежливо уточни недостающее: ' + missingStr : 'ЗАДАЧА: Подтверди данные и предложи рассчитать стоимость.'}\n\n  Ответь коротко (1-2 предложения).`;\n\n  const completionPercentage = Math.round((3 - missing.length) / 3 * 100);\n\n  return {\n    ...context,\n    dispatcher_result: dispatcherResult,\n    extracted_data: {\n      brand: brand,\n      brand_id: brandId,\n      model: model,\n      model_id: modelId,\n      repair_category: repair,\n      repair_category_id: repairId\n    },\n    missing_fields: missing,\n    missing_fields_str: missingStr,\n    completion_percentage: completionPercentage,\n    is_complete: missing.length === 0,\n    is_first_contact: isFirstContact,\n    chatInput: chatInput,\n    sessionId: context.appeal_id\n  };"
+      },
+      "id": "66416666-711d-4d6d-93a1-b0ae34a6b3bf",
+      "name": "Build AI Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Ты — дружелюбный ассистент сервисного центра по ремонту телефонов.\n\nПРАВИЛА:\n1. Будь кратким и по делу (2-3 предложения максимум)\n2. НЕ используй markdown\n3. Говори естественным разговорным языком\n4. Если что-то не хватает - вежливо попроси уточнить\n5. Если всё заполнено - предложи рассчитать стоимость\n6. НЕ повторяй всю информацию - только подтверди ключевое\n\nПРИМЕРЫ ОТВЕТОВ:\n- \"Понял, ремонт iPhone 12 Pro. Что именно нужно починить?\"\n- \"Замена дисплея на iPhone 14, запчасть наша. Сейчас рассчитаю стоимость.\"\n- \"Здравствуйте! Чем могу помочь?\"\n- \"Это второй телефон к заявке или замена первого?\""
+        }
+      },
+      "id": "64f1d086-e385-49d6-9ffc-312062f17dd7",
+      "name": "AI Response Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -368,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.7
+        }
+      },
+      "id": "00218086-7cf7-4a2b-8f20-d9f54e906762",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ПРАВКА для узла \"Prepare Response\" в BAT AI Appeal Router (Flhmu33l0ZhZhr90)\r\n// Добавлено: operation_mode для ветвления автомат/полуавтомат\r\n\r\nconst context = $('Build AI Context').first().json;\r\nconst aiResponse = $input.first().json;\r\n\r\nconst responseText = aiResponse.output || aiResponse.text || 'Здравствуйте! Чем могу помочь?';\r\n\r\n// Определяем следующее действие\r\nlet nextAction = 'continue';\r\nif (context.is_complete) {\r\n  nextAction = 'calculate_cost';\r\n} else if (context.missing_fields.length > 0) {\r\n  nextAction = 'wait_clarification';\r\n}\r\n\r\n// Определяем маршрут для обновления БД\r\nlet route = 'minimal';\r\nif (context.extracted_data.brand_id && context.extracted_data.model_id && context.extracted_data.repair_category_id) {\r\n  route = 'full';\r\n} else if (context.extracted_data.brand_id || context.extracted_data.model_id) {\r\n  route = 'partial';\r\n}\r\n\r\n// ДОБАВЛЕНО: Режим работы AI (auto = сразу клиенту, assist = на одобрение оператору)\r\nconst operationMode = context.operation_mode || 'assist';\r\n\r\nreturn {\r\n  appeal_id: context.appeal_id,\r\n  tenant_id: context.tenant_id,\r\n  channel: context.channel,\r\n  external_chat_id: context.external_chat_id,\r\n  client_name: context.client_name,\r\n  response_text: responseText,\r\n  next_action: nextAction,\r\n  route: route,\r\n  extracted_data: context.extracted_data,\r\n  completion_percentage: context.completion_percentage,\r\n  dispatcher_result: context.dispatcher_result,\r\n  devices: context.devices,\r\n  device_count: context.device_count,\r\n\r\n  // ДОБАВЛЕНО: Режим работы\r\n  operation_mode: operationMode,\r\n\r\n  // Для Operator Notifier\r\n  approval_data: {\r\n    channel: context.channel,\r\n    external_chat_id: context.external_chat_id,\r\n    appeal_id: context.appeal_id,\r\n    client_name: context.client_name,\r\n    response_text: responseText,\r\n    next_action: nextAction,\r\n    appeal: context.appeal,\r\n    client: context.client || {},\r\n    extracted_data: context.extracted_data,\r\n    operation_mode: operationMode,\r\n    completeness: {\r\n      percentage: context.completion_percentage,\r\n      missing: context.missing_fields\r\n    }\r\n  }\r\n};\r\n"
+      },
+      "id": "73af9dba-6019-4664-a190-65f3a6c9fcf2",
+      "name": "Prepare Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "full",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "full"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "partial",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "partial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "minimal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "minimal"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f4b6bae2-38c7-4c61-831e-6163614b37ea",
+      "name": "Route by Completeness",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        384,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Full update: appeal_devices + appeal_repairs\nWITH device_upsert AS (\n  INSERT INTO appeal_devices (appeal_id, device_index, brand_id, model_id)\n  VALUES (\n    '{{ $json.appeal_id }}'::uuid,\n    COALESCE((SELECT MAX(device_index) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 0),\n    {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n    {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}\n  )\n  ON CONFLICT (appeal_id, device_index) \n  DO UPDATE SET \n    brand_id = COALESCE(EXCLUDED.brand_id, appeal_devices.brand_id),\n    model_id = COALESCE(EXCLUDED.model_id, appeal_devices.model_id),\n    updated_at = NOW()\n  RETURNING id\n)\nINSERT INTO appeal_repairs (appeal_device_id, repair_category_id)\nSELECT \n  (SELECT id FROM device_upsert),\n  {{ $json.extracted_data.repair_category_id ? \"'\" + $json.extracted_data.repair_category_id + \"'::uuid\" : 'NULL' }}\nWHERE {{ $json.extracted_data.repair_category_id ? 'true' : 'false' }};\n\nUPDATE appeals \nSET \n  updated_at = NOW(),\n  stage = 'Расчёт стоимости',\n  context_completion_percentage = {{ $json.completion_percentage }}\nWHERE id = '{{ $json.appeal_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "e24f2775-ed8b-4afb-81ed-fd0f6f968d97",
+      "name": "Update Full Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        608,
+        -480
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "  WITH device_upsert AS (\n    INSERT INTO appeal_devices (appeal_id, tenant_id, device_index, brand_id, model_id)\n    VALUES (\n      '{{ $json.appeal_id }}'::uuid,\n      '{{ $json.tenant_id }}'::uuid,\n      COALESCE((SELECT MAX(device_index) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 0),\n      {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n      {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}\n    )\n    ON CONFLICT (appeal_id, device_index)\n    DO UPDATE SET\n      brand_id = COALESCE(EXCLUDED.brand_id, appeal_devices.brand_id),\n      model_id = COALESCE(EXCLUDED.model_id, appeal_devices.model_id),\n      updated_at = NOW()\n    RETURNING id\n  )\n  SELECT id FROM device_upsert;\n\n  UPDATE appeals\n  SET\n    updated_at = NOW(),\n    context_completion_percentage = {{ $json.completion_percentage }}\n  WHERE id = '{{ $json.appeal_id }}'::uuid;\n",
+        "options": {}
+      },
+      "id": "a0628b7d-95e2-4658-83a4-6cb1ea854bbb",
+      "name": "Update Partial Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        608,
+        -304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Minimal update: just timestamp and stage\nUPDATE appeals \nSET \n  updated_at = NOW(),\n  stage = COALESCE(stage, 'Сбор информации'),\n  context_completion_percentage = {{ $json.completion_percentage }}\nWHERE id = '{{ $json.appeal_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "5e96e5a9-1785-406e-9535-558447b44905",
+      "name": "Update Minimal",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        608,
+        -128
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (tenant_id, appeal_id, message_type, message_text, channel)\n  VALUES (\n    '{{ $('Prepare Context').item.json.tenant_id }}'::uuid,\n    '{{ $('Prepare Response').item.json.appeal_id }}'::uuid,\n    'agent',\n    '{{ $('Prepare Response').item.json.response_text.replace(/'/g, \"''\") }}',\n    '{{ $('Prepare Response').item.json.channel }}'\n  );",
+        "options": {}
+      },
+      "id": "e8549dae-9dab-454e-8b7a-6185979facc2",
+      "name": "Save Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1504,
+        -304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "GUeLgLcNnawYfpf9",
+        "options": {}
+      },
+      "id": "7f51871d-380d-4e71-bc29-f28cf4637575",
+      "name": "Call Operator Notifier",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"appeal_id\": $('Prepare Response').item.json.appeal_id,\n  \"response_text\": $('Prepare Response').item.json.response_text,\n  \"next_action\": $('Prepare Response').item.json.next_action,\n  \"completion_percentage\": $('Prepare Response').item.json.completion_percentage,\n  \"tasks_completed\": $('Prepare Response').item.json.dispatcher_result?.completed || 0\n} }}",
+        "options": {}
+      },
+      "id": "f94a4294-cd5d-43de-92f5-abb293eb5272",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2624,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Замена Merge node на Code node\n// Просто пропускает данные из любого входа без ожидания\n\nconst items = $input.all();\n\nconsole.log('=== CODE MERGE ===');\nconsole.log('Received items:', items.length);\n\nif (items.length === 0) {\n  console.log('No items received');\n  return [];\n}\n\n// Берём первый item с данными\nconst result = items[0].json;\n\nconsole.log('Passing through:', Object.keys(result));\nconsole.log('Appeal ID:', result.appeal?.id);\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -304
+      ],
+      "id": "51000434-2676-4ab2-88f0-494e228c738d",
+      "name": "Merge Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge After Update - берём данные из Prepare Response\n  // UPDATE ноды возвращают пустой результат, поэтому берём данные напрямую\n\n  let data = null;\n\n  // Пробуем получить данные из Prepare Response\n  try {\n    data = $('Prepare Response').first().json;\n    console.log('Got data from Prepare Response');\n  } catch (e) {\n    console.log('Could not access Prepare Response:', e.message);\n  }\n\n  if (!data || !data.appeal_id) {\n    console.error('No data from Prepare Response!');\n    // Fallback на input\n    const items = $input.all();\n    if (items.length > 0) {\n      data = items[0].json;\n    }\n  }\n\n  console.log('=== MERGE AFTER UPDATE ===');\n  console.log('Appeal ID:', data?.appeal_id);\n  console.log('Tenant ID:', data?.tenant_id);\n  console.log('Response text:', data?.response_text?.substring(0, 50));\n\n  return data || {};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -304
+      ],
+      "id": "7c414cb1-21f3-4c3c-a233-55897771d195",
+      "name": "Merge After Update"
+    },
+    {
+      "parameters": {
+        "jsCode": "let resp = null;\n  let ctx = null;\n\n  try {\n    resp = $('Prepare Response').first().json;\n  } catch (e) {}\n\n  try {\n    ctx = $('Prepare Context').first().json;\n  } catch (e) {}\n\n  const data = { ...ctx, ...resp };\n\n  console.log('=== PREPARE NOTIFIER DATA ===');\n  console.log('Keys:', Object.keys(data));\n\n  return {\n    // IDs\n    tenant_id: data.tenant_id,\n    appeal_id: data.appeal_id,\n    client_id: data.client?.id || data.client_id,\n\n    // Client info\n    client_name: data.client_name || data.client?.name || '',\n    client_phone: data.client?.phone || data.client_phone || '',\n\n    // Message info\n    channel: data.channel,\n    text: data.message || data.text || '',\n    response_text: data.response_text || '',\n\n    // Media\n    media_type: data.media_type || 'text',\n    media_data: data.media_data || null,\n\n    // Appeal data\n    appeal: data.appeal,\n    current_state: data.current_state,\n    missing_fields: data.missing_fields,\n\n    // External IDs\n    external_chat_id: data.external_chat_id,\n    external_user_id: data.external_user_id\n  };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        -288
+      ],
+      "id": "6ea3aea5-219d-43cc-9186-7311aad17b6c",
+      "name": "Prepare Notifier Data"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.operation_mode }}",
+                    "rightValue": "auto",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "auto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.operation_mode }}",
+                    "rightValue": "assist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "assist"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "23b0b7ee-e5ee-4311-9246-743069f21bb7",
+      "name": "Route By Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1728,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Код для нового узла \"Prepare Auto Send\" в BAT AI Appeal Router\r\n// Подготовка данных для вызова Client Response Sender в автоматическом режиме\r\n\r\nconst data = $input.first().json;\r\nconst context = $('Prepare Context').first().json;\r\nconst appeal = context.appeal || {};\r\n\r\nconsole.log('=== PREPARE AUTO SEND ===');\r\nconsole.log('Appeal ID:', data.appeal_id);\r\nconsole.log('Response text:', data.response_text);\r\nconsole.log('Channel:', data.channel);\r\n\r\n// Получаем client_id из загруженных данных\r\nconst clientId = appeal.client_id || context.client?.id;\r\n\r\nif (!clientId) {\r\n  console.error('❌ No client_id found!');\r\n  console.error('Context:', JSON.stringify(context, null, 2));\r\n  throw new Error('client_id not found in appeal data');\r\n}\r\n\r\n// Формируем данные для Client Response Sender\r\nreturn {\r\n  // Обязательные поля\r\n  appeal_id: data.appeal_id,\r\n  client_id: clientId,\r\n  response_to_send: data.response_text,\r\n  channel: data.channel || 'telegram',\r\n\r\n  // Опциональные\r\n  response_type: 'text',\r\n  operator_action: 'auto_response',\r\n  operator_name: 'ИИ-агент',\r\n\r\n  // Для Telegram\r\n  client_telegram_id: data.external_chat_id || context.external_chat_id,\r\n\r\n  // Метаданные\r\n  source_workflow: 'BAT AI Appeal Router (auto)',\r\n\r\n  // Пробрасываем для следующих нод\r\n  extracted_data: data.extracted_data,\r\n  completion_percentage: data.completion_percentage,\r\n  approval_data: data.approval_data,\r\n  operation_mode: data.operation_mode,\r\n  client_name: data.client_name\r\n};\r\n"
+      },
+      "id": "e8a30b2c-2c28-4015-8bdd-dd96c7d5aafd",
+      "name": "Prepare Auto Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "Gxd1gIKgk8HxuOya",
+        "options": {}
+      },
+      "id": "46d9eba6-5a0d-481d-9674-e2fdbeedf0b3",
+      "name": "Call Client Response Sender",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Код для нового узла \"Prepare Auto Notify\" в BAT AI Appeal Router\r\n// Подготовка уведомления для оператора (автоматический режим)\r\n// Ответ уже отправлен клиенту, оператор получает информацию\r\n\r\nconst data = $input.first().json;\r\n\r\nconst clientName = data.client_name || data.approval_data?.client_name || 'Неизвестно';\r\nconst channel = data.channel || data.approval_data?.channel || 'telegram';\r\nconst responseText = data.response_text || data.approval_data?.response_text || '';\r\nconst appealId = data.appeal_id || data.approval_data?.appeal_id || '';\r\nconst extractedData = data.extracted_data || data.approval_data?.extracted_data || {};\r\nconst completeness = data.approval_data?.completeness || { percentage: 0, missing: [] };\r\n\r\n// Формируем текст уведомления\r\nconst lines = [];\r\nlines.push('✅ <b>Автоответ отправлен</b>\\n');\r\n\r\nlines.push(`<b>👤 Клиент:</b> ${clientName}`);\r\nlines.push(`<b>💬 Канал:</b> ${channel}`);\r\n\r\nif (extractedData.brand) lines.push(`<b>📱 Бренд:</b> ${extractedData.brand}`);\r\nif (extractedData.model) lines.push(`<b>📱 Модель:</b> ${extractedData.model}`);\r\nif (extractedData.repair_category) lines.push(`<b>🔧 Ремонт:</b> ${extractedData.repair_category}`);\r\n\r\nlines.push('');\r\nlines.push(`<b>📊 Заполнено:</b> ${completeness.percentage}%`);\r\nif (completeness.missing && completeness.missing.length > 0) {\r\n  lines.push(`<b>❓ Не хватает:</b> ${completeness.missing.join(', ')}`);\r\n}\r\n\r\nlines.push('');\r\nlines.push('<b>🤖 Отправленный ответ:</b>');\r\nlines.push(`\"${responseText}\"`);\r\n\r\nlines.push('');\r\nlines.push(`<code>${appealId}</code>`);\r\n\r\nreturn {\r\n  ...data,\r\n  auto_sent: true,\r\n  operator_notification: {\r\n    text: lines.join('\\n'),\r\n    short_text: `✅ Автоответ: ${clientName}`,\r\n    appeal_id: appealId,\r\n    client_name: clientName,\r\n    channel: channel,\r\n    external_chat_id: data.external_chat_id,\r\n    parse_mode: 'HTML',\r\n    disable_web_page_preview: true,\r\n    original_response_text: responseText\r\n  }\r\n};\r\n"
+      },
+      "id": "6e242c03-f91c-49f2-9728-e72a2286ac70",
+      "name": "Prepare Auto Notify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        -544
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Appeal & Devices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Appeal & Devices": {
+      "main": [
+        [
+          {
+            "node": "Load Fields Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Fields Config": {
+      "main": [
+        [
+          {
+            "node": "Prepare Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Context": {
+      "main": [
+        [
+          {
+            "node": "Needs Extraction?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Extraction?": {
+      "main": [
+        [
+          {
+            "node": "Call Task Dispatcher",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Task Dispatcher": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Extraction": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Context": {
+      "main": [
+        [
+          {
+            "node": "AI Response Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Response Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Response Generator": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Route by Completeness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Completeness": {
+      "main": [
+        [
+          {
+            "node": "Update Full Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Partial Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Minimal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Full Data": {
+      "main": [
+        [
+          {
+            "node": "Merge After Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Partial Data": {
+      "main": [
+        [
+          {
+            "node": "Merge After Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Minimal": {
+      "main": [
+        [
+          {
+            "node": "Merge After Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Response": {
+      "main": [
+        [
+          {
+            "node": "Route By Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Operator Notifier": {
+      "main": [
+        [
+          {
+            "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Build AI Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge After Update": {
+      "main": [
+        [
+          {
+            "node": "Save Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notifier Data": {
+      "main": [
+        [
+          {
+            "node": "Call Operator Notifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route By Mode": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auto Send",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Notifier Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Notifier Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auto Send": {
+      "main": [
+        [
+          {
+            "node": "Call Client Response Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Client Response Sender": {
+      "main": [
+        [
+          {
+            "node": "Prepare Auto Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Auto Notify": {
+      "main": [
+        [
+          {
+            "node": "Call Operator Notifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-01T13:52:13.000Z",
+  "createdAt": "2025-11-25T14:24:10.715Z"
+}

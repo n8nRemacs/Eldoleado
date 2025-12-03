@@ -1,0 +1,188 @@
+{
+  "id": "eQ5u4iA3oDh3L8Ej",
+  "name": "API Android Update Settings",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android-update-settings",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "fc0440f2-1dea-46c7-bd59-d93519daaef6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -32
+      ],
+      "webhookId": "android-update-settings"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-params",
+              "leftValue": "={{ $json.body.operator_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "check-tenant",
+              "leftValue": "={{ $json.body.tenant_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "check-mode",
+              "leftValue": "={{ $json.body.operation_mode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fa0ba709-b6af-413c-8bf6-0d027a9ca740",
+      "name": "Validate Params",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE tenants\n  SET operation_mode = '{{ $json.body.operation_mode }}'\n  WHERE id = '{{ $json.body.tenant_id }}'\n  RETURNING id, operation_mode",
+        "options": {}
+      },
+      "id": "ea6ca67d-4452-4c31-aa48-ffb5326b23e6",
+      "name": "Update Tenant Settings",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -48,
+        -144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: \"Settings updated\", operation_mode: $('Webhook').item.json.body.operation_mode }) }}",
+        "options": {}
+      },
+      "id": "9ef9ce26-6575-4ae4-b584-49637163b9b0",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, error: \"Missing required parameters: operator_id, tenant_id, operation_mode\" }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "61f9e324-b58d-4e93-a1b2-f2599194ad70",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        64
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Params": {
+      "main": [
+        [
+          {
+            "node": "Update Tenant Settings",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tenant Settings": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-12-02T07:53:09.000Z",
+  "createdAt": "2025-11-29T08:16:15.540Z"
+}

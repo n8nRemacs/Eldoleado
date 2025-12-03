@@ -1,11 +1,7 @@
 {
-  "updatedAt": "2025-12-01T08:48:33.000Z",
-  "createdAt": "2025-11-05T11:29:30.334Z",
   "id": "0t7CnDCcHA4MnmTp",
   "name": "API_Android_Appeals_List",
-  "description": null,
   "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -422,82 +418,6 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {
-    "Webhook": [
-      {
-        "json": {
-          "headers": {
-            "host": "n8n.n8nsrv.ru",
-            "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; ru-RU) WindowsPowerShell/5.1.19041.3570",
-            "authorization": "Bearer invalid",
-            "via": "1.1 Caddy",
-            "x-forwarded-for": "195.54.40.108",
-            "x-forwarded-host": "n8n.n8nsrv.ru",
-            "x-forwarded-proto": "https",
-            "x-session-token": "invalid",
-            "accept-encoding": "gzip"
-          },
-          "params": {},
-          "query": {},
-          "body": {},
-          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/api/operator/appeals/list",
-          "executionMode": "production"
-        }
-      }
-    ]
-  },
-  "versionId": "2668a357-bb70-495a-bc52-98cd50616aa0",
-  "versionCounter": 45,
-  "triggerCount": 1,
-  "shared": [
-    {
-      "updatedAt": "2025-11-05T11:29:30.353Z",
-      "createdAt": "2025-11-05T11:29:30.353Z",
-      "role": "workflow:owner",
-      "workflowId": "0t7CnDCcHA4MnmTp",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-02T07:52:39.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-01",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": [
     {
       "updatedAt": "2025-11-23T03:58:34.844Z",
@@ -511,5 +431,7 @@
       "id": "8zD9sDD78ytgu5T2",
       "name": "BattCRM"
     }
-  ]
+  ],
+  "updatedAt": "2025-12-01T08:48:33.000Z",
+  "createdAt": "2025-11-05T11:29:30.334Z"
 }

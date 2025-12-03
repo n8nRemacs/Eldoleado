@@ -1,0 +1,351 @@
+{
+  "id": "Jqu7d7yWOjyxm80x",
+  "name": "BAT Neo4j Sync",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/sync",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -96
+      ],
+      "webhookId": "neo4j-sync",
+      "id": "7b3a6c55-23c3-483a-a4ff-2f866392d897"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Валидация входных данных для синхронизации PostgreSQL → Neo4j\nconst ALLOWED_ENTITY_TYPES = ['client', 'device', 'problem', 'channel'];\nconst ALLOWED_OPERATIONS = ['create', 'update', 'delete'];\n\nconst body = $json.body || {};\nconst entity_type = body.entity_type;\nconst operation = body.operation;\nconst data = body.data || {};\nconst parent_id = body.parent_id || null; // для device → client_id, для problem → device_id\n\n// Валидация\nif (!ALLOWED_ENTITY_TYPES.includes(entity_type)) {\n  throw new Error(`Invalid entity_type: ${entity_type}. Allowed: ${ALLOWED_ENTITY_TYPES.join(', ')}`);\n}\n\nif (!ALLOWED_OPERATIONS.includes(operation)) {\n  throw new Error(`Invalid operation: ${operation}. Allowed: ${ALLOWED_OPERATIONS.join(', ')}`);\n}\n\nif (!data.id && operation !== 'delete') {\n  throw new Error('data.id is required for create/update operations');\n}\n\n// Маппинг entity_type → nodeType\nconst NODE_TYPE_MAP = {\n  'client': 'Client',\n  'device': 'Device',\n  'problem': 'Problem',\n  'channel': 'Channel'\n};\n\n// Маппинг для рёбер при создании\nconst EDGE_MAP = {\n  'device': { edgeType: 'OWNS', parentType: 'Client' },\n  'problem': { edgeType: 'HAS_PROBLEM', parentType: 'Device' },\n  'channel': { edgeType: 'HAS_CHANNEL', parentType: 'Client' }\n};\n\nconst nodeType = NODE_TYPE_MAP[entity_type];\nconst edgeInfo = EDGE_MAP[entity_type] || null;\n\n// Санитизация ключей data\nconst sanitizedData = {};\nfor (const [key, value] of Object.entries(data)) {\n  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {\n    throw new Error(`Invalid data key: ${key}`);\n  }\n  sanitizedData[key] = value;\n}\n\nreturn {\n  entity_type,\n  operation,\n  nodeType,\n  data: sanitizedData,\n  parent_id,\n  edgeInfo,\n  _validation: 'passed'\n};"
+      },
+      "name": "Parse & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -96
+      ],
+      "id": "e64e6ece-370d-4359-add5-352311714a58"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "create"
+            }
+          ]
+        }
+      },
+      "name": "Is Create?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -224
+      ],
+      "id": "cccd6d6d-b38d-4de7-b0ac-a69124a0f046"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "update"
+            }
+          ]
+        }
+      },
+      "name": "Is Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -16
+      ],
+      "id": "d19c3c8f-2efb-4df0-8158-f74175791cfa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.operation }}",
+              "value2": "delete"
+            }
+          ]
+        }
+      },
+      "name": "Is Delete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        176
+      ],
+      "id": "5e40a1e0-006f-42bb-866b-5a5f3b98359b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const data = $json.data;\n  const parent_id = $json.parent_id;\n  const edgeInfo = $json.edgeInfo;\n  \n  // Формируем свойства для CREATE\n  const propsStr = Object.entries(data).map(([k,v]) => `${k}: $${k}`).join(', ');\n  \n  const statements = [];\n  \n  // 1. Создаём узел\n  statements.push({\n    statement: `CREATE (n:${nodeType} {${propsStr}}) RETURN n`,\n    parameters: data\n  });\n  \n  // 2. Если есть parent_id, создаём связь\n  if (parent_id && edgeInfo) {\n    statements.push({\n      statement: `MATCH (parent:${edgeInfo.parentType} {id: $parentId}), (child:${nodeType} {id: $childId}) CREATE (parent)-[:${edgeInfo.edgeType}]->(child) RETURN parent, child`,\n      parameters: { parentId: parent_id, childId: data.id }\n    });\n  }\n  \n  JSON.stringify({ statements })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Create",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        64,
+        -224
+      ],
+      "id": "9a0087c8-20ad-4882-838d-639a10a7472b",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const data = $json.data;\n  const nodeId = data.id;\n  \n  // Формируем SET для UPDATE (исключаем id)\n  const updateProps = Object.entries(data)\n    .filter(([k]) => k !== 'id')\n    .map(([k,v]) => `n.${k} = $${k}`);\n  \n  const setStr = updateProps.join(', ');\n  \n  JSON.stringify({\n    statements: [{\n      statement: setStr \n        ? `MATCH (n:${nodeType} {id: $id}) SET ${setStr} RETURN n`\n        : `MATCH (n:${nodeType} {id: $id}) RETURN n`,\n      parameters: data\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        64,
+        -16
+      ],
+      "id": "0096fae2-f617-4f1a-8bfd-3bbed304ed4a",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  const nodeType = $json.nodeType;\n  const nodeId = $json.data.id;\n  \n  JSON.stringify({\n    statements: [{\n      statement: `MATCH (n:${nodeType} {id: $id}) DETACH DELETE n RETURN count(n) as deleted`,\n      parameters: { id: nodeId }\n    }]\n  })\n}}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Delete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        64,
+        176
+      ],
+      "id": "23744793-6865-4698-85f2-620a9fac1a66",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\n\n// Проверка на ошибки Neo4j\nif (result.errors && result.errors.length > 0) {\n  const errorMessages = result.errors.map(e => e.message).join('; ');\n  return {\n    success: false,\n    error: errorMessages\n  };\n}\n\nconst data = result.results?.[0]?.data || [];\n\nreturn {\n  success: true,\n  synced: data.length > 0,\n  results: data.map(d => d.row?.[0] || d)\n};"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "fda14af7-4d87-481a-9f11-18fbd85df22d"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -16
+      ],
+      "id": "39c6b6eb-a8c5-4406-aa7c-354235174dba"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate": {
+      "main": [
+        [
+          {
+            "node": "Is Create?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Update?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Delete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Create?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Update?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Delete?": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Create": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Update": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Delete": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-03T10:32:06.000Z",
+  "createdAt": "2025-12-03T10:31:30.219Z"
+}

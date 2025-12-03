@@ -1,0 +1,387 @@
+{
+  "id": "GUeLgLcNnawYfpf9",
+  "name": "BAT Operator Notifier",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "42bff8b2-97cb-4f65-ac96-79069adf5c2a",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\n\n// Экранирование HTML\nconst esc = s => (s ?? '').toString()\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;');\n\n// Данные\nconst prop = d.propertyName || {};\nconst meta = prop.meta || {};\nconst raw = meta.raw || {};\nconst appeal = d.appeal || {};\nconst client = d.client || {};\nconst extractedData = d.extracted_data || {};\n\nconsole.log('╔═══ PREPARE NOTIFICATION ═══');\nconsole.log('Input data:', JSON.stringify(d, null, 2));\n\n// Извлекаем все нужные поля\nconst channel = d.channel ?? prop.channel ?? meta.ad_channel ?? '';\nconst clientName = client.name ?? prop.client_name ?? d.client_name ?? '';\nconst clientPhone = client.phone ?? prop.client_phone ?? '';\nconst appealId = appeal.id ?? d.appeal_id ?? '';\n\n// Данные обращения - приоритет extractedData\nconst appealType = extractedData.type ?? appeal.type ?? '';\nconst phoneModel = extractedData.model ?? appeal.phone_model ?? '';\nconst repairType = extractedData.repair_type ?? appeal.malfunction_category ?? '';\nconst partsOwner = extractedData.parts_owner ?? appeal.parts_owner ?? '';\n\n// Стоимость\nconst estimatedCost = appeal.estimated_cost ? `${appeal.estimated_cost}₽` : '';\nconst partsCost = appeal.parts_cost ? `${appeal.parts_cost}₽` : '';\n\n// Текст клиента\nconst lastText = (d.text && d.text.trim()) ? d.text : (prop.text || raw.text || '');\n\n// Берем реальный ответ AI\nconst aiResponseClean = d.response_text || d.ai_response || meta.ai_response || '';\n\nconsole.log('Extracted values:');\nconsole.log('- clientName:', clientName);\nconsole.log('- phoneModel:', phoneModel);\nconsole.log('- repairType:', repairType);\nconsole.log('- appealType:', appealType);\nconsole.log('- partsOwner:', partsOwner);\nconsole.log('- aiResponse:', aiResponseClean);\nconsole.log('- tenant_id:', d.tenant_id);\nconsole.log('- media_type:', d.media_type);\n\n// Формируем строки для полного текста\nconst fullLines = [];\nfullLines.push('<b>🔔 Новое обращение</b>\\n');\n\nif (clientName) fullLines.push(`<b>👤 Клиент:</b> ${esc(clientName)}`);\nif (clientPhone) fullLines.push(`<b>📱 Телефон:</b> ${esc(clientPhone)}`);\nif (channel) fullLines.push(`<b>💬 Канал:</b> ${esc(channel)}`);\n\nif (clientName || clientPhone || channel) fullLines.push('');\n\nconst modelIcon = phoneModel && phoneModel !== 'не определена' ? '✅' : '❌';\nconst repairIcon = repairType && repairType !== 'не определена' ? '✅' : '❌';\nconst typeIcon = appealType && appealType !== 'не определен' ? '✅' : '❌';\n\nif (phoneModel) fullLines.push(`<b>${modelIcon} Устройство:</b> ${esc(phoneModel)}`);\nif (repairType) fullLines.push(`<b>${repairIcon} Проблема:</b> ${esc(repairType)}`);\nif (partsOwner) fullLines.push(`<b>📦 Запчасть:</b> ${esc(partsOwner)}`);\nif (appealType) fullLines.push(`<b>${typeIcon} Тип:</b> ${esc(appealType)}`);\n\nif (estimatedCost) fullLines.push(`<b>💰 Стоимость ремонта:</b> ${estimatedCost}`);\nif (partsCost) fullLines.push(`<b>🔩 Стоимость запчасти:</b> ${partsCost}`);\n\nif (fullLines.length > 2) fullLines.push('');\n\nif (lastText) {\n  fullLines.push('<b>💬 Сообщение клиента:</b>');\n  fullLines.push(`\"${esc(lastText)}\"`);\n  fullLines.push('');\n}\n\nif (aiResponseClean) {\n  fullLines.push('<b>🤖 Предложенный ответ:</b>');\n  fullLines.push(`\"${esc(aiResponseClean)}\"`);\n  fullLines.push('');\n}\n\n// Формируем строки для короткого текста (без сообщений)\nconst shortLines = [];\nshortLines.push('<b>🔔 Новое обращение</b>\\n');\n\nif (clientName) shortLines.push(`<b>👤 Клиент:</b> ${esc(clientName)}`);\nif (clientPhone) shortLines.push(`<b>📱 Телефон:</b> ${esc(clientPhone)}`);\nif (channel) shortLines.push(`<b>💬 Канал:</b> ${esc(channel)}`);\n\nif (clientName || clientPhone || channel) shortLines.push('');\n\nif (phoneModel) shortLines.push(`<b>${modelIcon} Устройство:</b> ${esc(phoneModel)}`);\nif (repairType) shortLines.push(`<b>${repairIcon} Проблема:</b> ${esc(repairType)}`);\nif (partsOwner) shortLines.push(`<b>📦 Запчасть:</b> ${esc(partsOwner)}`);\nif (appealType) shortLines.push(`<b>${typeIcon} Тип:</b> ${esc(appealType)}`);\n\nif (estimatedCost) shortLines.push(`<b>💰 Стоимость ремонта:</b> ${estimatedCost}`);\nif (partsCost) shortLines.push(`<b>🔩 Стоимость запчасти:</b> ${partsCost}`);\n\nconst shortText = shortLines.join('\\n');\nconst fullText = fullLines.join('\\n') + (appealId ? `\\n<code>${appealId}</code>` : '');\n\nconsole.log('✅ Notification prepared');\n\nreturn {\n  ...d,\n  operator_notification: {\n    text: fullText,\n    short_text: shortText,\n    appeal_id: appealId || null,\n    client_id: client.id || null,\n    client_name: clientName,\n    client_phone: clientPhone,\n    channel: channel,\n    external_chat_id: d.external_chat_id,\n    media_type: d.media_type || 'text',\n    media_data: d.media_data || null,\n    parse_mode: 'HTML',\n    disable_web_page_preview: true,\n    original_response_text: aiResponseClean\n  }\n};"
+      },
+      "id": "ae0c7f15-64e3-4f05-8d69-66c98926d01f",
+      "name": "Prepare Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id,\n  telegram_id,\n  fcm_token,\n  name\nFROM operators\nWHERE is_active = true\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND (telegram_id IS NOT NULL OR fcm_token IS NOT NULL);",
+        "options": {}
+      },
+      "id": "828af8c1-b64b-4496-b0d8-717599c40a62",
+      "name": "Get Active Operators",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        256,
+        -752
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем ПОЛНЫЕ данные из Prepare Notification\nconst prepareData = $('Prepare Notification').first().json;\n\n// Получаем операторов\nconst operators = $input.all();\n\nconsole.log('=== MERGE NOTIFICATION WITH OPERATORS ===');\nconsole.log('Operators count:', operators.length);\nconsole.log('PrepareData keys:', Object.keys(prepareData));\nconsole.log('tenant_id from prepareData:', prepareData.tenant_id);\n\n// Извлекаем нужные данные для удобства\nconst notificationText = prepareData.message || prepareData.text || prepareData.telegram_message;\nconst appealId = prepareData.appeal?.id || prepareData.appeal_id;\n\n// Для каждого оператора создаём ПОЛНЫЙ пакет данных\nconst result = operators.map(operator => {\n  const operatorData = operator.json;\n  \n  return {\n    // КРИТИЧЕСКИ ВАЖНО: Сначала копируем ВСЕ данные из Prepare Notification\n    ...prepareData,\n    \n    // Затем добавляем специфичные для оператора поля\n    id: operatorData.id,\n    telegram_id: operatorData.telegram_id,\n    fcm_token: operatorData.fcm_token,\n    name: operatorData.name,\n    \n    // Убеждаемся что эти поля точно есть для Send to Operators\n    notification_text: notificationText,\n    appeal_id: appealId\n  };\n});\n\nconsole.log('✅ Merged! First item keys:', Object.keys(result[0]));\nconsole.log('tenant_id in result[0]:', result[0].tenant_id);\nconsole.log('Has operator_notification:', !!result[0].operator_notification);\nconsole.log('Has client:', !!result[0].client);\nconsole.log('Has appeal:', !!result[0].appeal);\nconsole.log('Has fcm_token:', !!result[0].fcm_token);\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -752
+      ],
+      "id": "a983f8c5-0ac0-4efb-a20e-aecaff44689d",
+      "name": "Merge Notification with Operators"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.telegram_id }}",
+        "text": "={{ $json.operator_notification.short_text }}",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "0d900ee6-297f-4d77-b1a7-477c2ff23459",
+      "name": "Send to Operators",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -976
+      ],
+      "webhookId": "db5dc1f9-a11e-439a-8c9c-cf08ee285839",
+      "credentials": {
+        "telegramApi": {
+          "id": "QIs2m5gKKih3bnhF",
+          "name": "Operator TG"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH vals AS (\n  SELECT\n    '{{ $json.tenant_id || \"\" }}' AS tenant_id_text,\n    '{{ $json.appeal?.id || \"\" }}' AS appeal_id_text\n),\nvalidated AS (\n  SELECT\n    CASE\n      WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN tenant_id_text::uuid\n      ELSE NULL\n    END AS tenant_id,\n    CASE\n      WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN appeal_id_text::uuid\n      ELSE NULL\n    END AS appeal_id\n  FROM vals\n)\nUPDATE appeals a\nSET\n  stage = 'Требуется уточнение',\n  operation_mode = 'manual',\n  updated_at = NOW()\nFROM validated v\nWHERE v.appeal_id IS NOT NULL\n  AND v.tenant_id IS NOT NULL\n  AND a.id = v.appeal_id\n  AND a.tenant_id = v.tenant_id\nRETURNING a.*;",
+        "options": {}
+      },
+      "id": "ae98c039-11ac-4d26-bc47-617cd1b88b1d",
+      "name": "Update Appeal Stage",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        2480,
+        -752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        -528
+      ],
+      "id": "8766b741-e4b4-4824-8eda-11a45d44b954",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json || {});\nconst one =\n  items.find(i => i.__base) ||\n  items.find(i => i.appeal) ||\n  items[0] || {};\nreturn one;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        -528
+      ],
+      "id": "e55a607c-64d5-4335-a36e-cb9fcd72f898",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nreturn {\n  message_id: data.result?.message_id || data.message_id,\n  appeal_id: $(\"Prepare Notification\").item.json.appeal_id || $(\"Prepare Notification\").item.json.appeal?.id,\n  operator_telegram_id: data.result?.chat?.id || data.chat?.id,\n  tenant_id: $(\"Prepare Notification\").item.json.tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        -752
+      ],
+      "id": "0d7a6d69-c24f-4ec7-9673-1a759938d1af",
+      "name": "Extract Message ID"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_actions (\n    tenant_id,\n    operator_id,\n    operator_telegram_id,\n    action_type,\n    details,\n    context_appeal_id,\n    action_source\n  )\n  SELECT\n    '{{ $json.tenant_id }}'::uuid,\n    CASE\n      WHEN '{{ $('Merge Notification with Operators').item.json.id || \"\" }}' ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n      THEN '{{ $('Merge Notification with Operators').item.json.id || \"\" }}'::uuid\n      ELSE NULL\n    END,\n    NULLIF('{{ $('Merge Notification with Operators').item.json.telegram_id || \"\" }}', ''),\n    'notify_appeal_ready',\n    jsonb_build_object(\n      'appeal_id', '{{ $json.appeal_id }}',\n      'ai_response', '{{ ($('Merge Notification with Operators').item.json.operator_notification.original_response_text || \"\").replace(/'/g, \"''\") }}',\n      'notification_sent', true,\n      'notification_type', 'fcm'\n    ),\n    '{{ $json.appeal_id }}'::uuid,\n    'android_app'\n  WHERE '{{ $json.tenant_id }}' ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n    AND '{{ $json.appeal_id }}' ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n  RETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1936,
+        -752
+      ],
+      "id": "b1a3ec6a-d105-47df-b2ba-762840d7cdde",
+      "name": "Log Operator Action",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"operators_notified\": $('Get Active Operators').all().length } }}",
+        "options": {}
+      },
+      "id": "952b9c53-0b04-4fcc-821d-d267f1b27b8f",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2848,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Ldeg4SOqteYuYZbx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Ldeg4SOqteYuYZbx",
+          "cachedResultName": "BAT_FCM_Sender"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1152,
+        -752
+      ],
+      "id": "ee616448-8ee2-47c9-9f9a-2da4df6d9211",
+      "name": "Call 'BAT_FCM_Sender'"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  tenant_id: $json.tenant_id,\n  notification_type: 'new_appeal',\n  appeal_id: $json.appeal_id || $json.appeal?.id,\n  title: '🔔 Новое обращение',\n  body: `${$json.client?.name || 'Клиент'} - ${$json.operator_notification?.channel || 'канал'}`,\n  data: {\n    client_name: $json.client?.name || '',\n    channel: $json.operator_notification?.channel || '',\n    ai_response: $json.operator_notification?.original_response_text || $json.response_text || ''\n  },\n  // Pass extracted_data for FCM\n  extracted_data: $json.extracted_data || {},\n  response_text: $json.response_text || $json.operator_notification?.original_response_text || ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -752
+      ],
+      "id": "01b1f5bf-c648-40ac-86df-ff38fdad1413",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification": {
+      "main": [
+        [
+          {
+            "node": "Get Active Operators",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Active Operators": {
+      "main": [
+        [
+          {
+            "node": "Merge Notification with Operators",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Notification with Operators": {
+      "main": [
+        [
+          {
+            "node": "Send to Operators",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Operators": {
+      "main": [
+        []
+      ]
+    },
+    "Update Appeal Stage": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message ID": {
+      "main": [
+        [
+          {
+            "node": "Log Operator Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Operator Action": {
+      "main": [
+        [
+          {
+            "node": "Update Appeal Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'BAT_FCM_Sender'": {
+      "main": [
+        [
+          {
+            "node": "Extract Message ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Call 'BAT_FCM_Sender'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-11-27T18:37:29.000Z",
+  "createdAt": "2025-10-14T07:07:53.082Z"
+}

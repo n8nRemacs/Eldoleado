@@ -1,0 +1,384 @@
+{
+  "name": "BAT Out Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 3 Seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:outgoing",
+        "tail": false,
+        "options": {}
+      },
+      "id": "pop-message",
+      "name": "Pop Outgoing Message",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "has-message",
+      "name": "Has Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msgStr = $json.value;\nlet msg;\n\ntry {\n  msg = JSON.parse(msgStr);\n} catch (e) {\n  return { error: 'Failed to parse message', raw: msgStr };\n}\n\n// Ожидаемая структура:\n// {\n//   channel: 'avito' | 'whatsapp' | 'vk' | 'max' | 'telegram',\n//   external_chat_id: '...',\n//   message_text: '...',\n//   appeal_id: '...',\n//   tenant_id: '...',\n//   ... другие поля\n// }\n\nreturn {\n  channel: msg.channel,\n  out_message: msg\n};"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "equals",
+              "value2": "avito"
+            }
+          ]
+        }
+      },
+      "id": "is-avito",
+      "name": "Avito?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "equals",
+              "value2": "whatsapp"
+            }
+          ]
+        }
+      },
+      "id": "is-whatsapp",
+      "name": "WhatsApp?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "equals",
+              "value2": "vk"
+            }
+          ]
+        }
+      },
+      "id": "is-vk",
+      "name": "VK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1320, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "equals",
+              "value2": "max"
+            }
+          ]
+        }
+      },
+      "id": "is-max",
+      "name": "MAX?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1540, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "equals",
+              "value2": "telegram"
+            }
+          ]
+        }
+      },
+      "id": "is-telegram",
+      "name": "Telegram?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "ktU66Uf8f654kHvk",
+        "options": {}
+      },
+      "id": "call-out-avito",
+      "name": "Call OUT Avito",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1100, -200]
+    },
+    {
+      "parameters": {
+        "workflowId": "YOs2tLdOlJAqY17o",
+        "options": {}
+      },
+      "id": "call-out-whatsapp",
+      "name": "Call OUT WhatsApp",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1320, -100]
+    },
+    {
+      "parameters": {
+        "workflowId": "3qluqpU6q269XuVK",
+        "options": {}
+      },
+      "id": "call-out-vk",
+      "name": "Call OUT VK",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1540, 0]
+    },
+    {
+      "parameters": {
+        "workflowId": "RBGRJXr4o68VBJ6X",
+        "options": {}
+      },
+      "id": "call-out-max",
+      "name": "Call OUT MAX",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1760, 100]
+    },
+    {
+      "parameters": {
+        "workflowId": "OUT_TELEGRAM_WORKFLOW_ID",
+        "options": {}
+      },
+      "id": "call-out-telegram",
+      "name": "Call OUT Telegram",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1980, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Неизвестный канал - логируем ошибку\nconst data = $json;\nconsole.error('Unknown channel:', data.channel);\n\nreturn {\n  error: 'Unknown channel',\n  channel: data.channel,\n  message: data.out_message\n};"
+      },
+      "id": "unknown-channel",
+      "name": "Unknown Channel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 400]
+    }
+  ],
+  "connections": {
+    "Every 3 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Pop Outgoing Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Outgoing Message": {
+      "main": [
+        [
+          {
+            "node": "Has Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Message?": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Avito?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avito?": {
+      "main": [
+        [
+          {
+            "node": "Call OUT Avito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WhatsApp?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp?": {
+      "main": [
+        [
+          {
+            "node": "Call OUT WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "VK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VK?": {
+      "main": [
+        [
+          {
+            "node": "Call OUT VK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MAX?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAX?": {
+      "main": [
+        [
+          {
+            "node": "Call OUT MAX",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram?": {
+      "main": [
+        [
+          {
+            "node": "Call OUT Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Core"
+    }
+  ]
+}

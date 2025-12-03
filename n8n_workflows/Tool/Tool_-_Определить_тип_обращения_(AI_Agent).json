@@ -1,0 +1,146 @@
+{
+  "id": "80Sw4fhqxEeb6pU4",
+  "name": "Tool - Определить тип обращения (AI Agent)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "786f633d-2f91-446b-bdc5-886d8e3b33d7",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\n// Извлекаем данные\nconst text = input.text || '';\nconst conversationHistory = input.conversation_history || 'Первое сообщение';\n\nconsole.log('=== Tool: Определить тип обращения ===');\nconsole.log('Text:', text);\nconsole.log('History:', conversationHistory);\n\nreturn {\n  text: text,\n  conversation_history: conversationHistory,\n  chatInput: `Текст клиента: ${text}\\n\\nИстория диалога:\\n${conversationHistory}\\n\\nОпредели тип обращения.`\n};"
+      },
+      "id": "f9f65d14-0cf1-45df-8793-13db26779a8e",
+      "name": "Подготовить контекст",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ты - классификатор обращений сервисного центра по ремонту iPhone.\n\nЗАДАЧА: Определи тип обращения клиента.\n\nТИПЫ ОБРАЩЕНИЙ:\n- \"ремонт\" - клиент хочет починить устройство, заменить деталь, решить проблему\n- \"покупка\" - клиент хочет купить устройство или запчасть\n- \"продажа\" - клиент хочет продать свое устройство\n- \"консультация\" - клиент просто спрашивает информацию, уточняет детали\n\nПРИМЕРЫ:\n\"Хочу отремонтировать iPhone\" → ремонт\n\"Сколько стоит замена батареи?\" → ремонт\n\"У меня быстро разряжается\" → ремонт\n\"Есть ли у вас iPhone 14 в наличии?\" → покупка\n\"Примете мой iPhone на trade-in?\" → продажа\n\"Здравствуйте\" → консультация (приветствие)\n\"Сколько времени займет ремонт?\" → консультация\n\nВАЖНО:\n- Если клиент описывает проблему с устройством → это \"ремонт\"\n- Если клиент спрашивает про цену ремонта → это \"ремонт\"\n- Если просто приветствие без конкретики → \"консультация\"\n\nОТВЕТ СТРОГО В JSON (без markdown, без ```):\ntype: ремонт или покупка или продажа или консультация\nconfidence: число от 0 до 1\nreasoning: текст объяснения",
+        "options": {}
+      },
+      "id": "3c2fc65f-75f3-4b87-ac1a-4c62bc7a55e6",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -320,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.1
+        }
+      },
+      "id": "92a05862-4890-4d8e-9d2e-a7fd6016b8ab",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        1808
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResponse = $input.first().json;\n\nconsole.log('=== AI Response (Type Detection) ===');\nconsole.log('Raw:', JSON.stringify(aiResponse, null, 2));\n\n// Извлекаем текст ответа\nlet output = aiResponse.output || aiResponse.text || JSON.stringify(aiResponse);\n\nconsole.log('Output text:', output);\n\n// Парсим JSON\nlet parsed;\ntry {\n  // Убираем markdown\n  let cleaned = output\n    .replace(/```json\\s*/gi, '')\n    .replace(/```\\s*/g, '')\n    .trim();\n  \n  // Ищем JSON объект\n  const jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    cleaned = jsonMatch[0];\n  }\n  \n  parsed = JSON.parse(cleaned);\n  console.log('✅ Parsed:', parsed);\n  \n} catch (e) {\n  console.error('❌ Parse error:', e.message);\n  parsed = {\n    type: null,\n    confidence: 0,\n    reasoning: \"Не удалось определить тип обращения\"\n  };\n}\n\n// Валидация типа\nconst validTypes = ['ремонт', 'покупка', 'продажа', 'консультация'];\nif (!validTypes.includes(parsed.type)) {\n  console.warn('⚠️ Invalid type:', parsed.type);\n  parsed.type = 'консультация'; // fallback\n}\n\nconsole.log('✅ Final result:', parsed);\n\n// ✅ КРИТИЧНО: Возвращаем МАССИВ ОБЪЕКТОВ с полем json!\nreturn [{\n  json: {\n    type: parsed.type,\n    confidence: parsed.confidence || 0.8,\n    reasoning: parsed.reasoning || 'Определено автоматически'\n  }\n}];"
+      },
+      "id": "dbaf4de4-c96c-48a8-a41d-2383659587ff",
+      "name": "Обработать ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        1600
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Подготовить контекст",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовить контекст": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Обработать ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:02:03.765Z",
+      "createdAt": "2025-11-23T04:02:03.765Z",
+      "id": "JkzPlhYcdcsJtFGG",
+      "name": "Tool"
+    }
+  ],
+  "updatedAt": "2025-11-25T14:26:27.000Z",
+  "createdAt": "2025-10-18T12:58:52.447Z"
+}

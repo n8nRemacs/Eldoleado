@@ -1,0 +1,105 @@
+{
+  "id": "RBGRJXr4o68VBJ6X",
+  "name": "BAT OUT MAX",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAX_API_URL }}/messages/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $json.out_message.external_chat_id }}\",\n  \"text\": \"{{ $json.out_message.message_text }}\"\n}",
+        "options": {}
+      },
+      "id": "5669ef3b-a305-42a8-861d-ffd98f959b7b",
+      "name": "Send MAX Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nif (response.error) {\n  console.error('MAX API Error:', response.error);\n}\n\nconst inMessage = $('Execute Workflow Trigger').first().json;\n\nreturn {\n  ...inMessage,\n  max_response: response,\n  message_id: response.message_id || response.id || Date.now().toString(),\n  sent_at: new Date().toISOString()\n};"
+      },
+      "id": "791db9ed-4d9c-496f-9725-b577522fe925",
+      "name": "Process MAX Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'max',\n  (SELECT id FROM channels WHERE code = 'max' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "id": "ad630384-4905-4d9c-afb3-d1e3fb5fc666",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [660, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "ca913bd8-a360-4b23-ac39-72edc8d8f9e0",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send MAX Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send MAX Message": {
+      "main": [
+        [
+          {
+            "node": "Process MAX Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process MAX Response": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Out"
+    }
+  ]
+}

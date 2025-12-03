@@ -1,0 +1,177 @@
+{
+  "id": "jGfgDC9xsUUlTme9",
+  "name": "BAT Completeness Checker",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "60d53f81-40c2-4f42-85ed-3f678d36f72e",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const useExec = $items('Execute Workflow Trigger').length > 0;\nconst data = useExec ? $('Execute Workflow Trigger').first().json : $input.first().json;\nconst hasModel = !!data.model_id && !!data.extracted?.model;\nconst hasPartsOwner = !!data.extracted?.parts_owner;\nconst isComplete = hasModel && hasPartsOwner;\nreturn { ...data, completeness: { is_complete: isComplete, has_model: hasModel, has_parts_owner: hasPartsOwner, missing: [ !hasModel ? 'model' : null, !hasPartsOwner ? 'parts_owner' : null ].filter(Boolean) } };"
+      },
+      "id": "8f15a4d2-b5e2-403a-bbea-edbda3c414f6",
+      "name": "Check Completeness1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.completeness.is_complete }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "83c94d6c-cbb4-413f-a959-c516a0fad1bb",
+      "name": "Is Complete?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=LYpw6hZ8CObT0Aem",
+        "options": {}
+      },
+      "id": "fc967e3d-22fd-4183-bd69-8d1694e1a0ac",
+      "name": "Execute Pricing Calculator1",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "=GUeLgLcNnawYfpf9",
+        "options": {}
+      },
+      "id": "89f90750-72b2-4dc9-81bb-164915fee1c2",
+      "name": "Execute Operator Notifier1",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "9d264074-d67b-4d43-a17c-10476abb5be2",
+      "name": "Respond Success1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        176,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Completeness1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Completeness1": {
+      "main": [
+        [
+          {
+            "node": "Is Complete?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Complete?1": {
+      "main": [
+        [
+          {
+            "node": "Execute Pricing Calculator1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute Operator Notifier1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Pricing Calculator1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Operator Notifier1": {
+      "main": [
+        [
+          {
+            "node": "Respond Success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:09:43.000Z",
+  "createdAt": "2025-10-14T06:58:42.287Z"
+}

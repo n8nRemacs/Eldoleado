@@ -1,0 +1,309 @@
+{
+  "id": "B3eR9Zvud33uhFdg",
+  "name": "BAT AI Universal Worker 7",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "5d189930-fc52-4c62-96b0-2ec72ce1f539",
+      "name": "Every 5 Seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -816,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "ai_extraction_queue",
+        "options": {}
+      },
+      "id": "2ff116f3-9593-448c-9f17-d18f6d23ab86",
+      "name": "Pop Task",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        112
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-task",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.propertyName }}",
+              "rightValue": "null"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "7b7bc467-daae-464a-a4ee-2f9e446f80c6",
+      "name": "Has Task?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse task from Redis\nconst raw = $input.item.json.propertyName;\n\nlet task;\nif (typeof raw === 'string') {\n  try {\n    const parsed = JSON.parse(raw);\n    task = Array.isArray(parsed) ? parsed[0] : parsed;\n  } catch (e) {\n    throw new Error('Failed to parse task: ' + e.message);\n  }\n} else if (Array.isArray(raw)) {\n  task = raw[0];\n} else {\n  task = raw;\n}\n\nif (!task || !task.entity_type) {\n  throw new Error('Invalid task: missing entity_type');\n}\n\n// Build prompt\nconst userPrompt = (task.prompt || '')\n  .replace('{message}', task.input_message || '')\n  .replace('{text}', task.input_message || '');\n\nreturn {\n  task,\n  system_prompt: task.system_prompt || 'Извлеки запрошенную информацию из текста.',\n  user_prompt: userPrompt,\n  chatInput: `${userPrompt}`\n};"
+      },
+      "id": "bbd70cc9-fb1e-4e18-aeda-2df4bd4afc1b",
+      "name": "Parse Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.system_prompt }}\n\nТЕКСТ КЛИЕНТА:\n{{ $json.task.input_message }}\n\n{{ $json.user_prompt }}",
+        "options": {}
+      },
+      "id": "023a1971-01b6-4049-8fd6-1893a020dfbb",
+      "name": "AI Extractor",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        64,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.2
+        }
+      },
+      "id": "98bcf140-3564-4533-890f-f1db8ad11728",
+      "name": "OpenAI Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        64,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const task = $('Parse Task').item.json.task;\nconst aiResponse = $input.item.json;\n\nlet result;\nlet rawOutput = '';\ntry {\n  rawOutput = aiResponse.output || aiResponse.text || JSON.stringify(aiResponse);\n  \n  // Убираем markdown code blocks\n  rawOutput = rawOutput.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  \n  // Пробуем распарсить как JSON (объект или массив)\n  const jsonMatch = rawOutput.match(/(\\{[\\s\\S]*\\}|\\[[\\s\\S]*\\])/);\n  if (jsonMatch) {\n    const parsed = JSON.parse(jsonMatch[0]);\n    \n    // Если массив — конвертируем в объект\n    if (Array.isArray(parsed)) {\n      result = { \n        [task.entity_type]: parsed,\n        items: parsed \n      };\n    } else {\n      result = parsed;\n    }\n  } else {\n    // Try key:value format\n    const lines = rawOutput.split('\\n');\n    result = {};\n    for (const line of lines) {\n      const match = line.match(/^([\\w_]+):\\s*(.+)$/i);\n      if (match) {\n        result[match[1].toLowerCase()] = match[2].trim();\n      }\n    }\n  }\n} catch (e) {\n  result = { raw: rawOutput, parse_error: e.message };\n}\n\nreturn {\n  task,\n  result,\n  raw_output: rawOutput,\n  success: !result.parse_error\n};"
+      },
+      "id": "1cc6ca2c-b8d6-42f1-acc8-9acc1fd643c8",
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO ai_extraction_tasks (tenant_id, appeal_id, entity_config_id, entity_type, device_index, input_message, status, raw_response, parsed_result, completed_at) VALUES ('{{ $json.task.tenant_id }}'::uuid, '{{ $json.task.appeal_id }}'::uuid, {{ $json.task.entity_config_id ? \"'\" + $json.task.entity_config_id + \"'::uuid\" : 'NULL' }}, '{{ $json.task.entity_type }}', {{ $json.task.device_index || 0 }}, '{{ $json.task.input_message.replace(/'/g, \"''\") }}', 'completed', '{{ $json.raw_output.replace(/'/g, \"''\") }}', '{{ JSON.stringify($json.result).replace(/'/g, \"''\") }}'::jsonb, now()) RETURNING id",
+        "options": {}
+      },
+      "id": "25ad19d9-f7b0-4611-bf5c-8b24a21ea8f6",
+      "name": "Save Result",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        16
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $('Parse Result').item.json;\nconst savedId = $input.item.json.id;\n\nreturn {\n  success: true,\n  task_id: savedId,\n  entity_type: result.task.entity_type,\n  appeal_id: result.task.appeal_id,\n  result: result.result\n};"
+      },
+      "id": "30a9e201-5ae3-4228-849e-490183259f15",
+      "name": "Done",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { message: 'No tasks', timestamp: new Date().toISOString() };"
+      },
+      "id": "03e416d2-749d-4444-9b4b-9f2e86e769fa",
+      "name": "No Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        224
+      ]
+    }
+  ],
+  "connections": {
+    "Every 5 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Pop Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Task": {
+      "main": [
+        [
+          {
+            "node": "Has Task?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Task?": {
+      "main": [
+        [
+          {
+            "node": "Parse Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Task": {
+      "main": [
+        [
+          {
+            "node": "AI Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Extractor": {
+      "main": [
+        [
+          {
+            "node": "Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Result": {
+      "main": [
+        [
+          {
+            "node": "Save Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Result": {
+      "main": [
+        [
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-25T13:52:16.776Z",
+      "createdAt": "2025-11-25T13:52:16.776Z",
+      "id": "KZWHB14qNi4HvGro",
+      "name": "TaskWork"
+    }
+  ],
+  "updatedAt": "2025-11-26T12:16:50.000Z",
+  "createdAt": "2025-11-26T11:06:50.794Z"
+}

@@ -1,0 +1,181 @@
+{
+  "id": "cxImPy5fh4cL5NU7",
+  "name": "BAT Avito Token Refresher",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 3
+            }
+          ]
+        }
+      },
+      "id": "e8a76335-b5f0-4a51-bab7-53f60256a2e7",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avito.ru/token",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10cccded-f2d3-439e-a9a1-0c1e1c73fbe9",
+      "name": "Request New Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "MEWcju2TVKNQ3u4p",
+          "name": "Avito API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nif (!response.access_token) {\n  throw new Error('No access token in response');\n}\n\nreturn {\n  access_token: response.access_token,\n  expires_in: response.expires_in || 86400,\n  token_type: response.token_type || 'Bearer',\n  refreshed_at: new Date().toISOString()\n};"
+      },
+      "id": "d6ad906e-7c77-4d44-b22b-bf1272f727df",
+      "name": "Parse Token Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "avito_access_token",
+        "value": "={{ $json.access_token }}",
+        "expire": true,
+        "ttl": "={{ $json.expires_in }}"
+      },
+      "id": "253258ca-73f8-4166-974e-fb552cc661e1",
+      "name": "Save Token to Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_actions (\n  operator_telegram_id,\n  action_type,\n  details\n)\nVALUES (\n  NULL,\n  'system',\n  jsonb_build_object(\n    'action', 'avito_token_refreshed',\n    'expires_in', {{ $json.expires_in }},\n    'refreshed_at', '{{ $json.refreshed_at }}',\n    'success', true\n  )\n)\nRETURNING *;",
+        "options": {}
+      },
+      "id": "f76fa120-b4c0-4fc2-abc1-34dc677f0b59",
+      "name": "Log Token Refresh",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        880,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Request New Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request New Token": {
+      "main": [
+        [
+          {
+            "node": "Parse Token Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Token Response": {
+      "main": [
+        [
+          {
+            "node": "Save Token to Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Token to Redis": {
+      "main": [
+        [
+          {
+            "node": "Log Token Refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:09:24.000Z",
+  "createdAt": "2025-10-13T18:32:39.220Z"
+}
