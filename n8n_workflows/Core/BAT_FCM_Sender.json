@@ -82,7 +82,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://fcm.googleapis.com/v1/projects/batterycrm/messages:send",
+        "url": "https://fcm.googleapis.com/v1/projects/eldoleado/messages:send",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -108,7 +108,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const jwt = require('jsonwebtoken');\n\n// Приватный ключ напрямую (временно для теста)\nconst privateKey = `-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDF7rvXRF+6cVrM\nn5usQNs+w6cBdM+BypyFPIosHRoBZYXjz6aeZ7I5dvyDEqdHSZaAYeHK8TIp1aVu\nC/bYgmAj/7O0Xp9gRa3AuEUGbbwZPXXmo2uwO9PedSoK/xPjfJNiT5OjG8BkZYTU\nbR0cLdaL61yycXU2DbZqnI5BYKC0eZthS5Oo3F8etp7aNMhlZOpvmMNgtBbwss20\nFxtpTGnMkxl5EVLeEHDbMobb78BhH3yCm2w5YZ3/rpCZldbOp3K+76SAZNdxaXUc\noSduw2drWfFmRUZmupqiQ7vj+a1a1n5mmEHkvEf97U7ZVBtbVd8YyPxKrIY5yRgA\nMMGqy8a/AgMBAAECggEADlv/96GHulxv5Glt30TDQx3pl0L0rOtYiJf4RDQGR3So\njnrpkRNfzCh0MEQhq5vMldrECTePVpafzkiC63kl5WavEFZPBKp5bQJRS6KZY1Fg\npM9VSC9G8xwX5T1VIYtPm/G++bXRMtdkmA6kbn9q0bLNAksV4EqFYd2iul56uiz5\niusHGOctYXGtbLwHxN/A6/IK+5XS4ihJdD/5NbBz0YepCb9N9QiGdqz0tivDrfOJ\nhoB+6MeFJufjDVal9I8g4FgOzcB45qi6yaQ1MypaEZOTLec5gTnwfvtsUzC8vqFn\nalKjrQZLkYEsgPFL1HzbxCVL2DwV6lQ8Q7K/l6XbyQKBgQD2r3NqEhGJLIhdFu10\nOc4exEBXq/LTh4oHChWI23k8WgxIx/iaURIbKoLAflP4d6PNmhM2zjn/AQulOOhm\nacE03O5KXwSvXV786lJr6H4UsoGe52x2txt7EnPzI0gYpw4SY+zxHAiMfATLBQ5k\nH5tjMfKoWJoM8yNOmCOJjQof+QKBgQDNaAVWJgB5yTPWNvbb8T+GoYVUi978m3eS\nAMCV1GfCRbrTF8ITSUJQBpk/UZpIBYYoN1TK7YOkyW/MDi2ZJIZSllTbEcXi1AN/\n5zIfhOUeY8qGRHVkzxG+ns+9oLvsH+uGiw1rPUZ6gH7K18GKqY872rgReU3voQsI\n6y/1rby6dwKBgQCEhm1yppJVJ1964z5eGk/pp3UJpI6npUE51ukKxR20lovS7dtY\nzAT2IzhrQXLLITsW0ZdQ8immHWGsOY5gtp/dTnOV8MYLkBXfueLdpeFWLTAFtj5G\n6MgSri8sh9/LnrOonZZFUdIl5tqMVwMMNw67k7HRTwgzvMtTBdjRpLuzwQKBgCYN\naDeucJYfNRAxPIhAaCFb2ORxyQyJDJyqsQLQx6wQ2Ox0UUrbXoKOxmMZjfhbtZ/L\nqFSzrZigjKqD0eS2BIBWQ0AWSc+csU1HmlyGdR+tIv6+vfS/+6yRpTCfD1FOFIbn\nScQdJOpa1aJkWAGFKfjPqxvpmguTjQTI9SiRWA4/AoGAdEheUo8b6g2cvMzm8yij\ndM7ZNWnOKBAxiVBpsCp8kPD5a+lyxtYeAw8iwzFE2wRHA0OdTqhU9wvUNfdXQ0/B\nBNC0ZsPPDtwvi7PU5n/BuvQuU6xpde+UTQYKgu6NKDbIom+pM2zS5vigHdnCDZFh\nOYXjQWqDFg+Sk/tX2n0nQsM=\n-----END PRIVATE KEY-----`;\n\nconst now = Math.floor(Date.now() / 1000);\n\nconst payload = {\n  iss: 'firebase-adminsdk-fbsvc@batterycrm.iam.gserviceaccount.com',\n  sub: 'firebase-adminsdk-fbsvc@batterycrm.iam.gserviceaccount.com',\n  aud: 'https://oauth2.googleapis.com/token',\n  iat: now,\n  exp: now + 3600,\n  scope: 'https://www.googleapis.com/auth/firebase.messaging'\n};\n\nconst token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });\n\nreturn {\n  ...$input.first().json,\n  jwt_token: token\n};"
+        "jsCode": "const jwt = require('jsonwebtoken');\n\n// ВАЖНО: Замени PRIVATE_KEY на ключ из eldoleado-firebase-adminsdk-fbsvc-99972a8120.json\nconst privateKey = `ВСТАВЬ_PRIVATE_KEY_ИЗ_FIREBASE_JSON`;\n\nconst now = Math.floor(Date.now() / 1000);\n\nconst payload = {\n  iss: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  sub: 'firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com',\n  aud: 'https://oauth2.googleapis.com/token',\n  iat: now,\n  exp: now + 3600,\n  scope: 'https://www.googleapis.com/auth/firebase.messaging'\n};\n\nconst token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });\n\nreturn {\n  ...$input.first().json,\n  jwt_token: token\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,

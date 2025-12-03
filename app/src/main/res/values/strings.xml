@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BatteryCRM</string>
+    <string name="app_name">Eldoleado</string>
     <string name="appeals_title">Обращения</string>
     <string name="search_hint">Поиск</string>
     <string name="send_to_client">Отправить клиенту</string>

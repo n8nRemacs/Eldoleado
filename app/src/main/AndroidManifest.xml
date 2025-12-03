@@ -19,13 +19,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:name=".BatteryCRMApplication"
+        android:name=".EldoleadoApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BatteryCRM"
+        android:theme="@style/Theme.Eldoleado"
         android:usesCleartextTraffic="true">
 
         <activity
@@ -51,7 +51,7 @@
             android:parentActivityName=".MainActivity" />
 
         <service
-            android:name=".fcm.BatteryCRMMessagingService"
+            android:name=".fcm.EldoleadoMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

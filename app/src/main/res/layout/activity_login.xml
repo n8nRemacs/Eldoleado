@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="BatteryCRM"
+        android:text="Eldoleado"
         android:textSize="32sp"
         android:textStyle="bold"
         android:layout_marginBottom="48dp"/>

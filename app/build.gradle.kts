@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.batterycrm.app"
+    namespace = "com.eldoleado.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.batterycrm.app"
+        applicationId = "com.eldoleado.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

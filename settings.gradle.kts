@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BatteryCRM"
+rootProject.name = "Eldoleado"
 include(":app")
 include(":app")
