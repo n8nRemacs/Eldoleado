@@ -1,122 +1,97 @@
 # START - Контекст для продолжения работы
 
 ## Дата и время последнего обновления
-**3 декабря 2025, 21:30 (UTC+4)**
+**4 декабря 2025, 17:25 (UTC+4)**
 
 ---
 
 ## Текущее состояние проекта
 
-### Всё работает:
+### Что готово:
 
-1. **Android приложение (Eldoleado)**
+1. **Knowledge Base система (НОВОЕ)**
+   - 294 компонента в project_components
+   - 206 relations в component_relations
+   - 1080 workflow nodes в 92 workflows
+   - 22 flow docs в docs/flows/
+   - CLAUDE.md с инструкциями для AI
+   - Команды: `python scripts/full_sync.py`
+
+2. **Android приложение (Eldoleado)**
    - Package: `com.eldoleado.app`
+   - API возвращает devices[] с repairs[]
    - Собирается без ошибок
-   - Запускается на эмуляторе Pixel_7
-   - UI работает (заявки, сообщения, кнопки)
 
-2. **GitHub синхронизация**
+3. **API для devices/repairs**
+   - API_Android_Device_Create/Update/Delete
+   - API_Android_Repair_Create/Update/Delete
+   - API_Android_Appeal_Detail возвращает devices[]
+
+4. **Disambiguation workflow**
+   - BAT_AI_Appeal_Router_v2_disambiguation.json
+   - Различает устройства по модели и ремонту (не по владельцам)
+
+5. **GitHub синхронизация**
    - Репозиторий: https://github.com/n8nRemacs/Eldoleado
-   - Проект переименован из BatteryCRM → Eldoleado
+   - Коммит: c4eaebe (58 files, +12966 lines)
 
-3. **Neo4j граф (ПОЛНОСТЬЮ РАБОТАЕТ)**
+6. **Neo4j граф**
    - Neo4j на `45.144.177.128:7474`
-   - Credentials: `neo4j / Mi31415926pS`
-   - Индексы и constraints созданы
-   - CRUD workflow активен и протестирован
+   - CRUD workflow активен
 
-4. **n8n workflows (синхронизированы)**
-   - 50+ workflows в папке `n8n_workflows/`
+7. **n8n workflows (95 штук)**
+   - Синхронизированы в KB
    - Теги: BattCRM + раздел (API, Core, In, Out, Tool, TaskWork)
-   - Neo4j CRUD работает через webhook
 
-5. **Система Touchpoints (НОВОЕ)**
-   - 4 типа касаний: `inbound`, `outbound`, `promo`, `mutual`
-   - Автоматическое определение `mutual` по парам
-   - `promo` → `mutual` только если создаются сущности (appeal, device, etc.)
+---
+
+## Knowledge Base Quick Commands
+
+\`\`\`bash
+# Полная синхронизация (n8n + KB + docs)
+python scripts/full_sync.py
+
+# Быстрая синхронизация
+python scripts/full_sync.py --quick
+
+# Обновить документацию потоков
+python scripts/update_flow_docs.py --all
+
+# Трассировка потока
+python scripts/trace_flow.py "keyword"
+\`\`\`
 
 ---
 
 ## Структура проекта
 
-```
+\`\`\`
 Eldoleado/
-├── app/                    # Android приложение (основное)
-│   └── src/main/java/com/eldoleado/app/
+├── app/                    # Android приложение
 ├── n8n_workflows/          # Все n8n workflows (синхронизированы)
-│   ├── API/                # API endpoints
-│   ├── Core/               # Основные workflows (включая Neo4j)
-│   ├── In/                 # Входящие каналы
-│   ├── Out/                # Исходящие каналы
-│   ├── Tool/               # Инструменты
-│   └── TaskWork/           # AI workers
 ├── workflows_to_import/    # Новые workflows для ручного импорта
+│   └── modified/           # Модифицированные workflows
 ├── database/
-│   ├── migrations/         # SQL миграции PostgreSQL
-│   └── neo4j/              # Cypher скрипты Neo4j
-├── Plans/                  # Планы и документация
-│   └── Eldoleado_Спецификация_Графа.md
-└── scripts/                # Скрипты автоматизации
-    └── sync_n8n_workflows.py
-```
+│   ├── migrations/         # SQL миграции (017 последняя)
+│   └── neo4j/              # Cypher скрипты
+├── docs/flows/             # Автогенерируемая документация (22 docs)
+├── scripts/                # KB и автоматизация
+├── CLAUDE.md               # Инструкции для AI
+├── KNOWLEDGE_BASE.md       # Автогенерируемая карта проекта
+└── Start.md                # Этот файл
+\`\`\`
 
 ---
 
-## Система Touchpoints (касаний)
+## Статус данных
 
-### Типы касаний:
-
-| Тип | Направление | Ожидаем ответ? | Участвует в mutual |
-|-----|-------------|----------------|-------------------|
-| `inbound` | Клиент → Нам | Да (отвечаем) | Да |
-| `outbound` | Мы → Клиент | Да | Да |
-| `promo` | Мы → Клиент | Нет | Только с creates_entity |
-| `mutual` | Двусторонний | - | Результат |
-
-### Логика:
-- `inbound` + есть `outbound` за период → `mutual`
-- `inbound` + `promo` + `creates_entity=true` → `mutual`
-- `inbound` + только `promo` без сущностей → остаётся `inbound`
-- `promo` → всегда `promo` (mutual вычисляется при inbound)
-
-### Workflows в `workflows_to_import/`:
-- `BAT_Neo4j_Touchpoint_Register.json` — регистрация touchpoints
-- `BAT_Appeal_Manager_v2.json` — с интеграцией touchpoints (inbound)
-- `BAT_OUT_Telegram_v2.json` — с touchpoints (outbound/promo)
-- `BAT_OUT_WhatsApp_v2.json` — с touchpoints (outbound/promo)
-- `BAT_OUT_VK_v2.json` — с touchpoints (outbound/promo)
-- `BAT_OUT_Avito_v2.json` — с touchpoints (outbound/promo)
-- `BAT_OUT_MAX_v2.json` — с touchpoints (outbound/promo)
-
----
-
-## Команды для работы
-
-### Сборка Android:
-```bash
-cd "C:/Users/User/Documents/Eldoleado"
-JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" ./gradlew.bat assembleDebug
-```
-
-### Запуск на эмуляторе:
-```bash
-"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" install -r app/build/outputs/apk/debug/app-debug.apk
-"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" shell monkey -p com.eldoleado.app -c android.intent.category.LAUNCHER 1
-```
-
-### Синхронизация workflows с n8n:
-```bash
-curl -s -X GET "https://n8n.n8nsrv.ru/api/v1/workflows" -H "X-N8N-API-KEY: <YOUR_KEY>" > temp_workflows.json
-python scripts/sync_n8n_workflows.py
-```
-
-### Тест Neo4j напрямую:
-```bash
-curl -s -X POST "http://45.144.177.128:7474/db/neo4j/tx/commit" \
-  -H "Content-Type: application/json" \
-  -u "neo4j:Mi31415926pS" \
-  -d '{"statements": [{"statement": "RETURN 1 as test"}]}'
-```
+| Таблица | Количество |
+|---------|-----------|
+| project_components | 294 |
+| component_relations | 206 |
+| workflow_nodes | 1080 |
+| appeals | 1 (тест) |
+| appeal_devices | 7 (тест) |
 
 ---
 
@@ -124,70 +99,26 @@ curl -s -X POST "http://45.144.177.128:7474/db/neo4j/tx/commit" \
 
 | Сервер | IP/URL | Назначение |
 |--------|--------|------------|
-| n8n | 185.221.214.83 / n8n.n8nsrv.ru | Workflow automation |
+| n8n | n8n.n8nsrv.ru | Workflow automation |
 | Neo4j | 45.144.177.128:7474 | Graph database |
 | PostgreSQL | 185.221.214.83:6544 | Main database |
-| API | 45.144.177.128 | Backend API |
 
 ---
 
-## Neo4j Credentials
+## Database Connection
 
-```
-Host: 45.144.177.128
-Port: 7474 (HTTP), 7687 (Bolt)
-User: neo4j
-Password: Mi31415926pS
-```
-
----
-
-## Neo4j CRUD API (РАБОТАЕТ)
-
-**Endpoint:** `POST https://n8n.n8nsrv.ru/webhook/neo4j/crud`
-
-```bash
-# CREATE
-curl -X POST "https://n8n.n8nsrv.ru/webhook/neo4j/crud" \
-  -H "Content-Type: application/json" \
-  -d '{"operation": "create", "nodeType": "Client", "nodeId": "id-123", "properties": {"name": "Test"}}'
-
-# READ (один узел)
-curl -X POST ... -d '{"operation": "read", "nodeType": "Client", "nodeId": "id-123"}'
-
-# READ (все узлы типа)
-curl -X POST ... -d '{"operation": "read", "nodeType": "Client"}'
-
-# UPDATE
-curl -X POST ... -d '{"operation": "update", "nodeType": "Client", "nodeId": "id-123", "properties": {"name": "New"}}'
-
-# DELETE
-curl -X POST ... -d '{"operation": "delete", "nodeType": "Client", "nodeId": "id-123"}'
-```
-
----
-
-## Документация
-
-- `Plans/Eldoleado_Спецификация_Графа.md` — полная спецификация графа
-- `workflows_to_import/README.md` — API reference для Neo4j workflows
-- `database/neo4j/001_create_indexes.cypher` — индексы и constraints
+\`\`\`
+PostgreSQL: postgresql://supabase_admin:Mi31415926pS@185.221.214.83:6544/postgres
+Neo4j: bolt://neo4j:Mi31415926pS@45.144.177.128:7687
+\`\`\`
 
 ---
 
 ## Следующие шаги
 
-1. **Импортировать touchpoint workflows в n8n:**
-   - Все файлы из `workflows_to_import/`
-   - Заменить старые OUT workflows на v2 версии
-
-2. **Продумать механику объединения клиентов:**
-   - Когда два клиента оказываются одним человеком
-   - Как мержить данные в Neo4j и PostgreSQL
-
-3. **Продумать соц.инжиниринг для enrichment:**
-   - Как получать дополнительные контакты клиента
-   - Телефон → WhatsApp, Telegram → телефон, etc.
+1. **Android CRUD UI** - интерфейс для devices/repairs
+2. **Context switching** - AI переключается между устройствами
+3. **Тестирование disambiguation** - в реальных диалогах
 
 ---
 
