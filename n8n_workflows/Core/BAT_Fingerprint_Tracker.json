@@ -1,0 +1,429 @@
+{
+  "id": "a7uS8Oxif0VU66KQ",
+  "name": "BAT Fingerprint Tracker",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fingerprint/track",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook Track",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        160
+      ],
+      "webhookId": "fingerprint-track",
+      "id": "68377693-f258-48ab-aa86-36eb77554089"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nreturn [{\n  json: {\n    fingerprint_hash: body.fingerprint_hash,\n    components: body.components || {},\n    short_link_code: body.short_link_code || null,\n    url: body.url,\n    referrer: body.referrer || null,\n    tenant_id: body.tenant_id,\n    timestamp: body.timestamp || new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Parse Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        160
+      ],
+      "id": "77773a47-3306-4d97-92f7-38b468fdedc7"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO fingerprints (hash, components, tenant_id, first_seen, last_seen, visit_count)\nVALUES (\n  '{{ $json.fingerprint_hash }}',\n  '{{ JSON.stringify($json.components).replace(/'/g, \"''\") }}'::jsonb,\n  '{{ $json.tenant_id }}',\n  NOW(),\n  NOW(),\n  1\n)\nON CONFLICT (hash, tenant_id) DO UPDATE SET\n  last_seen = NOW(),\n  visit_count = fingerprints.visit_count + 1\nRETURNING id, hash, visit_count;",
+        "options": {}
+      },
+      "name": "Upsert Fingerprint",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1024,
+        160
+      ],
+      "id": "de599514-a30d-4594-843b-81bb4f3e2a98",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Parse Input').item.json.short_link_code }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-short-code"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Has Short Link?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        160
+      ],
+      "id": "44ce50ab-2b79-4715-8076-e4eb55e8b373"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT sl.id as short_link_id, sl.client_id, sl.target_url\nFROM short_links sl\nWHERE sl.code = '{{ $('Parse Input').item.json.short_link_code }}'\n  AND sl.tenant_id = '{{ $('Parse Input').item.json.tenant_id }}'\n  AND sl.is_active = TRUE\nLIMIT 1;",
+        "options": {}
+      },
+      "name": "Get Short Link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -592,
+        64
+      ],
+      "id": "f5d9d263-6b31-4c4e-a88b-44e14955362f",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.client_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              },
+              "id": "has-client"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Has Client?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        64
+      ],
+      "id": "7c500349-e5ed-4ff2-8dc1-6fcee32b7050"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO client_fingerprints (client_id, fingerprint_id, confidence, linked_via, tenant_id)\nVALUES (\n  '{{ $json.client_id }}',\n  '{{ $('Upsert Fingerprint').item.json.id }}',\n  1.0,\n  'short_link',\n  '{{ $('Parse Input').item.json.tenant_id }}'\n)\nON CONFLICT (client_id, fingerprint_id) DO NOTHING\nRETURNING id;",
+        "options": {}
+      },
+      "name": "Link Client to Fingerprint",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -144,
+        -160
+      ],
+      "id": "3ce5fefc-0a16-416e-b906-458aa6773f5b",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO fingerprint_visits (fingerprint_id, url, referrer, short_link_id, tenant_id, visited_at)\nVALUES (\n  '{{ $('Upsert Fingerprint').item.json.id }}',\n  '{{ $('Parse Input').item.json.url }}',\n  {{ $('Parse Input').item.json.referrer ? \"'\" + $('Parse Input').item.json.referrer + \"'\" : 'NULL' }},\n  {{ $('Get Short Link').item.json.short_link_id ? \"'\" + $('Get Short Link').item.json.short_link_id + \"'\" : 'NULL' }},\n  '{{ $('Parse Input').item.json.tenant_id }}',\n  NOW()\n);",
+        "options": {}
+      },
+      "name": "Log Visit With Link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "fa5caaa6-58ff-42b2-ab50-9ecf9aefb595",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO fingerprint_visits (fingerprint_id, url, referrer, tenant_id, visited_at)\nVALUES (\n  '{{ $('Upsert Fingerprint').item.json.id }}',\n  '{{ $('Parse Input').item.json.url }}',\n  {{ $('Parse Input').item.json.referrer ? \"'\" + $('Parse Input').item.json.referrer + \"'\" : 'NULL' }},\n  '{{ $('Parse Input').item.json.tenant_id }}',\n  NOW()\n);",
+        "options": {}
+      },
+      "name": "Log Visit No Link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -592,
+        256
+      ],
+      "id": "5f853751-75f9-4372-8413-d70e93aeafe9",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Check if this fingerprint is already linked to a client\n-- If so, we found a returning visitor!\nSELECT cf.client_id, c.name as client_name, cf.confidence\nFROM client_fingerprints cf\nJOIN clients c ON c.id = cf.client_id\nWHERE cf.fingerprint_id = '{{ $('Upsert Fingerprint').item.json.id }}'\n  AND cf.tenant_id = '{{ $('Parse Input').item.json.tenant_id }}'\nORDER BY cf.confidence DESC\nLIMIT 1;",
+        "options": {}
+      },
+      "name": "Check Existing Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -368,
+        256
+      ],
+      "id": "65bb5516-a695-416a-91a9-057edf2a4536",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fingerprint = $('Upsert Fingerprint').item.json;\nconst input = $('Parse Input').item.json;\n\n// Check if we identified a client\nlet identified_client = null;\n\n// From short link\nconst shortLinkData = $('Get Short Link')?.item?.json;\nif (shortLinkData?.client_id) {\n  identified_client = {\n    client_id: shortLinkData.client_id,\n    source: 'short_link'\n  };\n}\n\n// From existing fingerprint link\nconst existingClient = $('Check Existing Client')?.item?.json;\nif (!identified_client && existingClient?.client_id) {\n  identified_client = {\n    client_id: existingClient.client_id,\n    client_name: existingClient.client_name,\n    confidence: existingClient.confidence,\n    source: 'fingerprint_match'\n  };\n}\n\nreturn [{\n  json: {\n    success: true,\n    fingerprint_id: fingerprint.id,\n    fingerprint_hash: fingerprint.hash,\n    visit_count: fingerprint.visit_count,\n    identified_client: identified_client,\n    is_returning: fingerprint.visit_count > 1\n  }\n}];"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        160
+      ],
+      "id": "fa7e1129-b35a-44aa-b9e7-8da5fa21e48a"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        304,
+        160
+      ],
+      "id": "83b1c7b9-1d66-4656-909d-d8cee0eac37f"
+    }
+  ],
+  "connections": {
+    "Webhook Track": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Upsert Fingerprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Fingerprint": {
+      "main": [
+        [
+          {
+            "node": "Has Short Link?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Short Link?": {
+      "main": [
+        [
+          {
+            "node": "Get Short Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Visit No Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Short Link": {
+      "main": [
+        [
+          {
+            "node": "Has Client?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Client?": {
+      "main": [
+        [
+          {
+            "node": "Link Client to Fingerprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Visit With Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Visit With Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Client to Fingerprint": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Visit With Link": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Visit No Link": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Client": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-04T13:57:57.000Z",
+  "createdAt": "2025-12-04T09:16:56.890Z"
+}

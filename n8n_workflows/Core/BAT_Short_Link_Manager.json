@@ -1,0 +1,392 @@
+{
+  "id": "EQ0Bo6d8EO9SwC4b",
+  "name": "BAT Short Link Manager",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "short-link/create",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Create",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -80
+      ],
+      "webhookId": "short-link-create",
+      "id": "0272a0c9-37f1-4084-988b-505269f2de40"
+    },
+    {
+      "parameters": {
+        "path": "s/:code",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Redirect",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        320
+      ],
+      "webhookId": "short-link-redirect",
+      "id": "a4a5a710-812c-4556-85fe-04b83355d400"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate short code\nconst chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';\nlet code = '';\nfor (let i = 0; i < 6; i++) {\n  code += chars.charAt(Math.floor(Math.random() * chars.length));\n}\n\nconst body = $input.first().json.body;\n\nreturn [{\n  json: {\n    code,\n    target_url: body.target_url,\n    client_id: body.client_id || null,\n    appeal_id: body.appeal_id || null,\n    channel: body.channel || null,\n    campaign: body.campaign || null,\n    tenant_id: body.tenant_id,\n    expires_days: body.expires_days || 30\n  }\n}];"
+      },
+      "name": "Generate Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "f17b77bb-1b00-4671-8f8a-20535a289975"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO short_links (code, target_url, client_id, appeal_id, channel, campaign, tenant_id, expires_at)\nVALUES (\n  '{{ $json.code }}',\n  '{{ $json.target_url }}',\n  {{ $json.client_id ? \"'\" + $json.client_id + \"'\" : 'NULL' }},\n  {{ $json.appeal_id ? \"'\" + $json.appeal_id + \"'\" : 'NULL' }},\n  {{ $json.channel ? \"'\" + $json.channel + \"'\" : 'NULL' }},\n  {{ $json.campaign ? \"'\" + $json.campaign + \"'\" : 'NULL' }},\n  '{{ $json.tenant_id }}',\n  NOW() + INTERVAL '{{ $json.expires_days }} days'\n)\nRETURNING id, code, target_url, created_at, expires_at;",
+        "options": {}
+      },
+      "name": "Insert Short Link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "29a004b5-9f5c-4e4a-9357-365faedec03d",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst baseUrl = 'https://n8n.n8nsrv.ru/webhook';\n\nreturn [{\n  json: {\n    success: true,\n    short_url: `${baseUrl}/s/${data.code}`,\n    code: data.code,\n    target_url: data.target_url,\n    created_at: data.created_at,\n    expires_at: data.expires_at\n  }\n}];"
+      },
+      "name": "Format Create Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -80
+      ],
+      "id": "67feb04a-bdb0-4321-9576-98dff64b08e4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "name": "Respond Create",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        -80
+      ],
+      "id": "0130263f-0a3e-45c8-a19f-10fefd4f78cc"
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $input.first().json.params;\nreturn [{ json: { code: params.code } }];"
+      },
+      "name": "Extract Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        320
+      ],
+      "id": "963fd9a9-a501-489f-9c21-9ce1327d7b04"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, code, target_url, client_id, tenant_id, is_active, expires_at\nFROM short_links\nWHERE code = '{{ $json.code }}'\n  AND is_active = TRUE\n  AND (expires_at IS NULL OR expires_at > NOW())\nLIMIT 1;",
+        "options": {}
+      },
+      "name": "Get Short Link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        112,
+        320
+      ],
+      "id": "b054ef54-7913-4028-b2c2-5504887afcca",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "id": "check-found"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Link Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        336,
+        320
+      ],
+      "id": "c821ea53-954f-406d-90ad-ea2112ee4428"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE short_links\nSET click_count = click_count + 1,\n    first_click_at = COALESCE(first_click_at, NOW()),\n    last_click_at = NOW()\nWHERE id = '{{ $json.id }}';",
+        "options": {}
+      },
+      "name": "Update Click Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        544,
+        224
+      ],
+      "id": "6d855d58-cc69-4020-aa56-1875d74fbeca",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "={{ $('Get Short Link').item.json.target_url }}",
+        "options": {}
+      },
+      "name": "Redirect to Target",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        768,
+        224
+      ],
+      "id": "9af698c5-e3b1-4e41-ae29-12fe3a0ab927"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "https://eldoleado.ru/404",
+        "options": {
+          "responseCode": 302
+        }
+      },
+      "name": "Redirect 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        432
+      ],
+      "id": "7e2540a2-082c-4b6a-b4dc-c48d2513b297"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/fingerprint/track",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "short_link_id",
+              "value": "={{ $('Get Short Link').item.json.id }}"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $('Get Short Link').item.json.client_id }}"
+            },
+            {
+              "name": "tenant_id",
+              "value": "={{ $('Get Short Link').item.json.tenant_id }}"
+            },
+            {
+              "name": "target_url",
+              "value": "={{ $('Get Short Link').item.json.target_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Call Fingerprint Tracker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        768,
+        352
+      ],
+      "id": "84c4ce85-bf7e-426f-b924-fd236720c9db",
+      "executeOnce": true,
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Create": {
+      "main": [
+        [
+          {
+            "node": "Generate Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Code": {
+      "main": [
+        [
+          {
+            "node": "Insert Short Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Short Link": {
+      "main": [
+        [
+          {
+            "node": "Format Create Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Create Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Redirect": {
+      "main": [
+        [
+          {
+            "node": "Extract Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Code": {
+      "main": [
+        [
+          {
+            "node": "Get Short Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Short Link": {
+      "main": [
+        [
+          {
+            "node": "Link Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Found?": {
+      "main": [
+        [
+          {
+            "node": "Update Click Stats",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redirect 404",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Click Stats": {
+      "main": [
+        [
+          {
+            "node": "Redirect to Target",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call Fingerprint Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-04T13:58:12.000Z",
+  "createdAt": "2025-12-04T09:16:26.070Z"
+}
