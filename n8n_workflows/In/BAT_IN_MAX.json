@@ -1,7 +1,7 @@
 {
   "id": "di4L7QpDGtqq0iVB",
   "name": "BAT IN MAX",
-  "active": false,
+  "active": true,
   "nodes": [
     {
       "parameters": {
@@ -335,6 +335,6 @@
       "name": "In"
     }
   ],
-  "updatedAt": "2025-12-03T13:25:21.000Z",
+  "updatedAt": "2025-12-05T09:45:45.000Z",
   "createdAt": "2025-10-14T07:11:07.860Z"
 }

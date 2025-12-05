@@ -5,86 +5,85 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "2141ad67-f48d-490d-966b-cfb33474ab45",
+      "id": "ee5e013b-fb89-4c28-92d7-c40eeae23278",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -752,
-        -48
+        -848,
+        -32
       ]
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "  SELECT\n    a.ad_channel as channel,\n    a.client_id,\n    c.telegram_id,\n    c.vk_id,\n    c.whatsapp_id,\n    c.avito_id,\n    c.phone\n  FROM appeals a\n  JOIN clients c ON c.id = a.client_id\n  WHERE a.id = '{{ $json.appeal_id }}'::uuid\n",
-        "options": {}
+        "jsCode": "// Подготовка данных для отправки через MCP Telegram\nconst input = $input.first().json;\nconst outMessage = input.out_message || input;\n\n// external_chat_id в формате tg_XXXXXXXXXX\nlet chatId = outMessage.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);  // Убираем префикс tg_\n}\n\nreturn {\n  chat_id: chatId,\n  text: outMessage.message_text || outMessage.text,\n  bot_token: outMessage.bot_token,\n  parse_mode: 'Markdown',\n  tenant_id: outMessage.tenant_id,\n  appeal_id: outMessage.appeal_id,\n  client_id: outMessage.client_id,\n  action_source: outMessage.action_source || 'response'\n};"
       },
-      "id": "d0099f41-0132-4718-98bb-fc51918346f4",
-      "name": "Fetch Chat Data",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "id": "9df10f9a-c413-4388-aa1a-69558c815ea3",
+      "name": "Prepare Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -512,
-        -48
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "n2SyhP9QhMnp1ryk",
-          "name": "Postgres account"
-        }
-      }
+        -624,
+        -32
+      ]
     },
     {
       "parameters": {
-        "jsCode": "  const trigger = $('Execute Workflow Trigger').first().json;\n  const chat = $('Fetch Chat Data').first().json;\n\n  const chatId = chat.telegram_id || chat.whatsapp_id || chat.vk_id || chat.avito_id;\n\n  return {\n    appeal_id: trigger.appeal_id,\n    tenant_id: trigger.tenant_id,\n    operator_id: trigger.operator_id,\n    response_text: trigger.response_text,\n    media_type: trigger.media_type,\n    media_data: trigger.media_data,\n    action_source: trigger.action_source,\n    channel: trigger.channel || chat.channel || (chat.telegram_id ? 'telegram' : chat.whatsapp_id ? 'whatsapp' : chat.vk_id ? 'vk' : 'avito'),\n    chat_id: chatId,\n    external_chat_id: chatId,\n    telegram_id: chat.telegram_id,\n    phone: chat.phone,\n    client_id: chat.client_id,\n    // Определяем тип touchpoint\n    // Если action_source === 'promo' или 'greeting' → promo\n    // Иначе → outbound\n    touchpoint_direction: (trigger.action_source === 'promo' || trigger.action_source === 'greeting' || trigger.action_source === 'broadcast') ? 'promo' : 'outbound'\n  };"
+        "method": "POST",
+        "url": "=https://tg.eldoleado.ru/api/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "mcp-telegram-secret-2024"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"token\": \"{{ $json.bot_token }}\",\n  \"chat_id\": \"{{ $json.chat_id }}\",\n  \"text\": {{ JSON.stringify($json.text) }},\n  \"parse_mode\": \"{{ $json.parse_mode }}\"\n}",
+        "options": {}
       },
-      "id": "7e9de6b0-3212-4671-b083-e52e0409bcec",
-      "name": "Prepare Telegram Payload",
+      "id": "1df747e1-9d43-4bb2-b39d-d1f32f4bcd36",
+      "name": "Send via MCP Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -400,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst preparedData = $('Prepare Message').first().json;\n\nif (!response.success) {\n  console.error('Telegram send failed:', response);\n}\n\n// Определяем тип touchpoint\nconst actionSource = preparedData.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...preparedData,\n  telegram_response: response,\n  message_id: response.message_id?.toString() || Date.now().toString(),\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection\n};"
+      },
+      "id": "239922c0-3f2f-450e-8206-2e7cec9599a5",
+      "name": "Process Telegram Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -176,
-        -48
+        -32
       ]
     },
     {
       "parameters": {
-        "chatId": "={{ $json.external_chat_id }}",
-        "text": "={{ $json.response_text }}",
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
-      },
-      "id": "8c446ba3-7a61-4ec9-b6c9-4a773c73a676",
-      "name": "Send Telegram Message",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [
-        80,
-        -48
-      ],
-      "webhookId": "61c272e7-905c-460c-8ebc-b9ea78cc2ba1",
-      "credentials": {
-        "telegramApi": {
-          "id": "pp6VRePNlKLBuoCQ",
-          "name": "Client TG"
-        }
-      }
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel,\n  channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  NULLIF('{{ $('Prepare Telegram Payload').item.json.tenant_id }}','')::uuid,\n  '{{ $('Prepare Telegram Payload').item.json.appeal_id }}'::uuid,\n  'operator',\n  '{{ $json.result.text }}',\n  '{{ $('Prepare Telegram Payload').item.json.channel }}',\n  (SELECT id FROM channels WHERE code = '{{ $('Prepare Telegram Payload').item.json.channel }}' LIMIT 1),\n  '{{ $json.result.message_id }}',\n  NULLIF('{{ $('Prepare Telegram Payload').item.json.chat_id }}','')\nRETURNING *;",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.tenant_id }}'::uuid,\n  '{{ $json.appeal_id }}'::uuid,\n  'agent',\n  {{ $json.text ? \"'\" + $json.text.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  'telegram',\n  (SELECT id FROM channels WHERE code = 'telegram' LIMIT 1),\n  '{{ $json.message_id }}',\n  'tg_{{ $json.chat_id }}'\nRETURNING *;",
         "options": {}
       },
-      "id": "a78c3bee-4d0b-4d6d-8227-7d14aae4c663",
+      "id": "a6f71c41-1787-4402-954d-075c4b25ed0d",
       "name": "Save Message History",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
+      "typeVersion": 2.4,
       "position": [
-        352,
-        -48
+        48,
+        -32
       ],
       "credentials": {
         "postgres": {
@@ -99,33 +98,18 @@
         "url": "https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  client_id: $('Prepare Telegram Payload').item.json.client_id,\n  appeal_id: $('Prepare Telegram Payload').item.json.appeal_id,\n  channel: $('Prepare Telegram Payload').item.json.channel,\n  direction: $('Prepare Telegram Payload').item.json.touchpoint_direction,\n  type: 'message',\n  tenant_id: $('Prepare Telegram Payload').item.json.tenant_id,\n  // outbound/promo НЕ создаёт сущности сам по себе\n  creates_entity: false\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  client_id: $('Process Telegram Response').item.json.client_id,\n  appeal_id: $('Process Telegram Response').item.json.appeal_id,\n  channel: 'telegram',\n  direction: $('Process Telegram Response').item.json.touchpoint_direction,\n  type: 'message',\n  tenant_id: $('Process Telegram Response').item.json.tenant_id,\n  creates_entity: false\n}) }}",
         "options": {
           "timeout": 5000
         }
       },
-      "id": "1bca8047-a083-4542-ac6d-64baf158bee4",
+      "id": "394969eb-9719-4bab-8b32-4ef7bcffa1cc",
       "name": "Register Touchpoint",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        576,
-        -48
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { \"success\": true, \"message_id\": $('Send Telegram Message').item.json.result.message_id } }}",
-        "options": {}
-      },
-      "id": "57ec8141-488a-4aef-87aa-8a466ec32b45",
-      "name": "Respond Success",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        800,
-        -48
+        272,
+        -32
       ]
     }
   ],
@@ -134,36 +118,36 @@
       "main": [
         [
           {
-            "node": "Fetch Chat Data",
+            "node": "Prepare Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch Chat Data": {
+    "Prepare Message": {
       "main": [
         [
           {
-            "node": "Prepare Telegram Payload",
+            "node": "Send via MCP Telegram",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Telegram Payload": {
+    "Send via MCP Telegram": {
       "main": [
         [
           {
-            "node": "Send Telegram Message",
+            "node": "Process Telegram Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Telegram Message": {
+    "Process Telegram Response": {
       "main": [
         [
           {
@@ -179,17 +163,6 @@
         [
           {
             "node": "Register Touchpoint",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Register Touchpoint": {
-      "main": [
-        [
-          {
-            "node": "Respond Success",
             "type": "main",
             "index": 0
           }
@@ -214,6 +187,6 @@
       "name": "Out"
     }
   ],
-  "updatedAt": "2025-12-03T18:01:19.000Z",
+  "updatedAt": "2025-12-05T10:42:52.000Z",
   "createdAt": "2025-10-14T07:03:45.869Z"
 }

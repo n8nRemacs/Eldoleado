@@ -10,24 +10,58 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -1232,
-        -96
+        -816,
+        176
       ],
-      "id": "2fa44237-42de-4ae8-8aa9-6b4bceb1dbdf",
+      "id": "13b5f187-9f26-4bdb-9ad7-09424b7dca1e",
       "name": "When Executed by Another Workflow"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\n// Определяем параметры для поиска tenant\nconst channel = data.channel;\nlet lookupKey = '';\nlet lookupValue = '';\n\nif (channel === 'telegram' && data.bot_token) {\n  lookupKey = 'telegram_bot_token';\n  lookupValue = data.bot_token;\n} else if (channel === 'vk' && data.app_id) {\n  lookupKey = 'vk_app_id';\n  lookupValue = data.app_id;\n} else if (channel === 'whatsapp' && data.phone_id) {\n  lookupKey = 'whatsapp_phone_id';\n  lookupValue = data.phone_id;\n} else if (channel === 'avito' && data.client_id) {\n  lookupKey = 'avito_client_id';\n  lookupValue = data.client_id;\n}\n\nreturn {\n  ...data,\n  lookup_key: lookupKey,\n  lookup_value: lookupValue\n};"
+        "jsCode": "const data = $input.first().json;\n\n// Определяем параметры для поиска tenant\nconst channel = data.channel;\nlet lookupKey = '';\nlet lookupValue = '';\n\nif (channel === 'telegram' && data.bot_token) {\n  lookupKey = 'telegram_bot_token';\n  lookupValue = data.bot_token;\n} else if (channel === 'vk' && data.app_id) {\n  lookupKey = 'vk_app_id';\n  lookupValue = data.app_id;\n} else if (channel === 'whatsapp' && data.phone_id) {\n  lookupKey = 'whatsapp_phone_id';\n  lookupValue = data.phone_id;\n} else if (channel === 'avito' && data.client_id) {\n  lookupKey = 'avito_client_id';\n  lookupValue = data.client_id;\n}\n\n// Если lookup параметры пустые, сразу возвращаем флаг для использования default tenant\nconst needsDefaultTenant = !lookupKey || !lookupValue;\n\nreturn {\n  ...data,\n  lookup_key: lookupKey,\n  lookup_value: lookupValue,\n  needs_default_tenant: needsDefaultTenant\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1024,
-        -96
+        -608,
+        176
       ],
-      "id": "562d9faf-4cce-4e01-b3f2-c369a93d6e83",
+      "id": "6755978f-3f9a-46b3-a5f6-158d82cbf74e",
       "name": "Prepare Lookup"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "skip-lookup-check",
+              "leftValue": "={{ $json.needs_default_tenant }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        176
+      ],
+      "id": "796b3841-439d-42c0-a0d9-fd34732004a9",
+      "name": "Skip DB Lookup?"
     },
     {
       "parameters": {
@@ -38,11 +72,12 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -816,
-        -96
+        -176,
+        240
       ],
-      "id": "459a02e1-319e-4895-9e78-069b7d6f1f38",
+      "id": "138033dd-7be2-4660-a6fa-668d6ef111f8",
       "name": "Find Tenant",
+      "alwaysOutputData": true,
       "credentials": {
         "postgres": {
           "id": "n2SyhP9QhMnp1ryk",
@@ -78,35 +113,24 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -608,
-        -96
+        32,
+        240
       ],
-      "id": "9afb5f96-b2f3-4e05-842b-db11917d6aa3",
+      "id": "3b6f8c98-14b3-4425-953d-dbf8f77f11b4",
       "name": "Tenant Found?"
     },
     {
       "parameters": {
-        "jsCode": "return {\n  ...$('Prepare Lookup').first().json,\n  tenant_id: 'a0000000-0000-0000-0000-000000000001',\n  tenant_name: 'Default Tenant',\n  tenant_config: {}\n};"
+        "jsCode": "const originalData = $('When Executed by Another Workflow').first().json;\n\nreturn {\n  ...originalData,\n  tenant_id: 'a0000000-0000-0000-0000-000000000001',\n  tenant_name: 'Default Tenant',\n  tenant_config: {}\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -400,
-        0
+        320,
+        80
       ],
-      "id": "b827f353-708b-4d57-a1bf-1f4aacf66fd4",
+      "id": "259d75fd-ee0b-43e1-8541-859233d4715c",
       "name": "Use Default Tenant"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -208,
-        -96
-      ],
-      "id": "b8a634ad-0cc8-43ca-b491-caa0be9c1144",
-      "name": "Merge Results"
     },
     {
       "parameters": {
@@ -115,11 +139,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
-        -96
+        240,
+        240
       ],
-      "id": "eaf8d7dc-ed17-4712-b9be-2d6e393b7fd2",
-      "name": "Attach Tenant"
+      "id": "4edd4e36-9fb8-4454-a6d9-7138fcb8630c",
+      "name": "Attach Tenant From DB"
     }
   ],
   "connections": {
@@ -136,6 +160,24 @@
     },
     "Prepare Lookup": {
       "main": [
+        [
+          {
+            "node": "Skip DB Lookup?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip DB Lookup?": {
+      "main": [
+        [
+          {
+            "node": "Use Default Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Find Tenant",
@@ -160,7 +202,7 @@
       "main": [
         [
           {
-            "node": "Merge Results",
+            "node": "Attach Tenant From DB",
             "type": "main",
             "index": 0
           }
@@ -168,28 +210,6 @@
         [
           {
             "node": "Use Default Tenant",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Use Default Tenant": {
-      "main": [
-        [
-          {
-            "node": "Merge Results",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Results": {
-      "main": [
-        [
-          {
-            "node": "Attach Tenant",
             "type": "main",
             "index": 0
           }
@@ -214,6 +234,6 @@
       "name": "Core"
     }
   ],
-  "updatedAt": "2025-11-23T04:06:30.000Z",
+  "updatedAt": "2025-12-05T10:43:36.000Z",
   "createdAt": "2025-10-26T11:38:12.745Z"
 }

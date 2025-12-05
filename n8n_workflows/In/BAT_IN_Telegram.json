@@ -5,39 +5,32 @@
   "nodes": [
     {
       "parameters": {
-        "updates": [
-          "message",
-          "edited_message"
-        ],
-        "additionalFields": {}
+        "httpMethod": "POST",
+        "path": "telegram-in",
+        "responseMode": "responseNode",
+        "options": {}
       },
-      "id": "724624fa-69f2-49db-8c7c-b4ceabe74457",
-      "name": "Telegram Trigger",
-      "type": "n8n-nodes-base.telegramTrigger",
+      "id": "8915c2af-b9a5-4d55-8d16-71ea317766a0",
+      "name": "Telegram Webhook",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
       "position": [
-        -224,
-        0
+        -864,
+        176
       ],
-      "webhookId": "b3903431-5e16-4f5f-82f2-cb8ffd87bec8",
-      "credentials": {
-        "telegramApi": {
-          "id": "pp6VRePNlKLBuoCQ",
-          "name": "Client TG"
-        }
-      }
+      "webhookId": "telegram-in-webhook"
     },
     {
       "parameters": {
-        "jsCode": "const update = $input.first().json;\n\n// Извлекаем сообщение\nconst msg = update.message || update.edited_message;\nif (!msg) {\n  return { skip: true, reason: 'no_message' };\n}\n\n// Проверяем что это не бот\nif (msg.from?.is_bot) {\n  return { skip: true, reason: 'bot_message' };\n}\n\nconst chatId = msg.chat?.id?.toString();\nconst userId = msg.from?.id?.toString();\nconst messageId = msg.message_id?.toString();\n\n// Текст сообщения\nlet messageText = msg.text || msg.caption || '';\n\n// Проверяем медиа\nconst hasPhoto = !!msg.photo;\nconst hasVoice = !!msg.voice;\nconst hasAudio = !!msg.audio;\nconst hasVideo = !!msg.video;\nconst hasVideoNote = !!msg.video_note;\nconst hasDocument = !!msg.document;\nconst hasSticker = !!msg.sticker;\n\n// Для голосовых нужна транскрибация\nconst needsTranscription = hasVoice || hasAudio || hasVideoNote;\n\n// Данные отправителя\nconst senderName = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(' ') || msg.from?.username || null;\nconst senderUsername = msg.from?.username || null;\n\n// File ID для скачивания медиа\nlet fileId = null;\nif (hasVoice) fileId = msg.voice.file_id;\nelse if (hasAudio) fileId = msg.audio.file_id;\nelse if (hasVideoNote) fileId = msg.video_note.file_id;\nelse if (hasPhoto) fileId = msg.photo[msg.photo.length - 1].file_id;\nelse if (hasVideo) fileId = msg.video.file_id;\nelse if (hasDocument) fileId = msg.document.file_id;\n\nreturn {\n  skip: false,\n  needs_transcription: needsTranscription,\n  file_id: fileId,\n  raw_update: update,\n  raw_message: msg,\n  chat_id: chatId,\n  user_id: userId,\n  message_id: messageId,\n  message_text: messageText,\n  timestamp: msg.date ? new Date(msg.date * 1000).toISOString() : new Date().toISOString(),\n  sender_name: senderName,\n  sender_username: senderUsername,\n  chat_type: msg.chat?.type,\n  has_photo: hasPhoto,\n  has_voice: hasVoice || hasAudio,\n  has_video: hasVideo || hasVideoNote,\n  has_document: hasDocument,\n  has_sticker: hasSticker\n};"
+        "jsCode": "// MCP Telegram присылает нормализованные данные\nconst event = $input.first().json;\n\n// Извлекаем данные из MCP формата\nconst chatId = event.chat_id?.toString() || '';\nconst userId = event.user_id?.toString() || '';\nconst messageText = event.text || '';\nconst messageId = event.message_id?.toString() || Date.now().toString();\nconst timestamp = event.timestamp || new Date().toISOString();\nconst botToken = event.bot_token || '';\n\n// Имя пользователя\nlet clientName = event.first_name || '';\nif (event.last_name) {\n  clientName += (clientName ? ' ' : '') + event.last_name;\n}\nif (!clientName && event.username) {\n  clientName = '@' + event.username;\n}\n\n// Проверяем медиа из attachments\nconst attachments = event.attachments || [];\nconst hasVoice = attachments.some(a => a.type === 'voice');\nconst hasPhoto = attachments.some(a => a.type === 'photo');\nconst hasVideo = attachments.some(a => a.type === 'video' || a.type === 'video_note');\nconst hasDocument = attachments.some(a => a.type === 'document');\n\n// Получаем file_id для голосового\nconst voiceAttachment = attachments.find(a => a.type === 'voice');\nconst voiceFileId = voiceAttachment?.file_id || null;\n\n// Получаем фото\nconst photoAttachments = attachments.filter(a => a.type === 'photo');\nconst videoAttachments = attachments.filter(a => a.type === 'video' || a.type === 'video_note');\n\nreturn {\n  has_voice: hasVoice,\n  voice_file_id: voiceFileId,\n  bot_token: botToken,\n  raw_event: event.raw_data || event,\n  chat_id: chatId,\n  user_id: userId,\n  phone: null,\n  message_text: messageText,\n  message_id: messageId,\n  timestamp: timestamp,\n  sender_name: clientName,\n  username: event.username,\n  has_photo: hasPhoto,\n  photo_attachments: photoAttachments,\n  has_video: hasVideo,\n  video_attachments: videoAttachments,\n  has_document: hasDocument,\n  is_callback: event.is_callback || false,\n  callback_data: event.callback_data || null\n};"
       },
-      "id": "7e25cfd9-cee5-40d7-a87e-b31bab7d29f6",
+      "id": "d5bedbd4-8fd7-4267-bfaf-2b0416f5cf62",
       "name": "Extract Telegram Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
-        0
+        -656,
+        176
       ]
     },
     {
@@ -45,66 +38,38 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.skip }}",
+              "value1": "={{ $json.has_voice }}",
               "value2": true
             }
           ]
         }
       },
-      "id": "278aeba5-d795-4f3c-aa1a-687088c9d324",
-      "name": "Should Skip?",
+      "id": "bd4eb3fb-2539-4b2f-85f6-668caac0dc4f",
+      "name": "Has Voice?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        224,
-        0
+        -432,
+        176
       ]
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.needs_transcription }}",
-              "value2": true
-            }
-          ]
-        }
+        "url": "=https://api.telegram.org/bot{{ $json.bot_token }}/getFile?file_id={{ $json.voice_file_id }}",
+        "options": {}
       },
-      "id": "9c6bad62-79d5-4419-811d-ef39c5ed19bf",
-      "name": "Needs Transcription?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "id": "fcc16922-65f0-4611-a455-065ef84ba0a8",
+      "name": "Get Voice File Path",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        448,
-        112
+        -208,
+        64
       ]
     },
     {
       "parameters": {
-        "resource": "file",
-        "fileId": "={{ $json.file_id }}",
-        "additionalFields": {}
-      },
-      "id": "6fd88f81-1965-411d-ad3e-47842b189b8b",
-      "name": "Get Telegram File",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        656,
-        0
-      ],
-      "webhookId": "a300dc6e-b9c7-436c-ae21-322487ab117e",
-      "credentials": {
-        "telegramApi": {
-          "id": "pp6VRePNlKLBuoCQ",
-          "name": "Client TG"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "=https://api.telegram.org/file/bot{{ $credentials.telegramApi.accessToken }}/{{ $json.file_path }}",
+        "url": "=https://api.telegram.org/file/bot{{ $('Extract Telegram Data').item.json.bot_token }}/{{ $json.result.file_path }}",
         "options": {
           "response": {
             "response": {
@@ -113,13 +78,13 @@
           }
         }
       },
-      "id": "7dd97f0c-cbf6-4131-87dc-6d7888c4ac25",
-      "name": "Download File",
+      "id": "a20ef264-df54-4b01-b18b-dfa1ec339ec6",
+      "name": "Download Voice",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        880,
-        0
+        16,
+        64
       ]
     },
     {
@@ -128,14 +93,14 @@
         "operation": "transcribe",
         "options": {}
       },
-      "id": "d07bf246-7b7f-443b-843c-f824029fc80c",
-      "name": "Transcribe Audio",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        1104,
-        0
+        240,
+        64
       ],
+      "id": "65a9b6e2-6258-4b48-abf1-79ac28311149",
+      "name": "Transcribe Voice",
       "credentials": {
         "openAiApi": {
           "id": "ptoy1RvCOn39G0Af",
@@ -145,28 +110,28 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $('Extract Telegram Data').first().json;\nconst transcription = $input.first().json.text || '';\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'telegram',\n  external_user_id: data.user_id,\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: [],\n    has_video: data.has_video,\n    videos: [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_message,\n    chat_type: data.chat_type,\n    sender_username: data.sender_username\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+        "jsCode": "const data = $('Extract Telegram Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'telegram',\n  bot_token: data.bot_token,\n  external_user_id: 'tg_' + data.user_id,\n  external_chat_id: 'tg_' + data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  client_username: data.username,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.photo_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_photo' })),\n    has_video: data.has_video,\n    videos: data.video_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_video' })),\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: 'voice',\n    telegram_user_id: data.user_id,\n    telegram_chat_id: data.chat_id,\n    is_callback: data.is_callback,\n    callback_data: data.callback_data,\n    raw: data.raw_event,\n    provider: 'mcp-telegram'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
       },
-      "id": "34bf4e14-801d-4a0e-8fd1-deba647f3fc8",
+      "id": "8bbe38c2-ea26-49c2-bcd5-59a67f997b3c",
       "name": "Normalize with Voice",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1328,
-        0
+        464,
+        64
       ]
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'telegram',\n  external_user_id: data.user_id,\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text || '[Сообщение без текста]',\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: [],\n    has_video: data.has_video,\n    videos: [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : data.has_sticker ? 'sticker' : 'text',\n    raw: data.raw_message,\n    chat_type: data.chat_type,\n    sender_username: data.sender_username\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'telegram',\n  bot_token: data.bot_token,\n  external_user_id: 'tg_' + data.user_id,\n  external_chat_id: 'tg_' + data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  client_username: data.username,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.photo_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_photo' })),\n    has_video: data.has_video,\n    videos: data.video_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_video' })),\n    has_document: data.has_document,\n    has_callback: data.is_callback\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : data.is_callback ? 'callback' : 'text',\n    telegram_user_id: data.user_id,\n    telegram_chat_id: data.chat_id,\n    is_callback: data.is_callback,\n    callback_data: data.callback_data,\n    raw: data.raw_event,\n    provider: 'mcp-telegram'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
       },
-      "id": "65cb7a0b-0b39-4e6d-99de-5d9927f3e606",
+      "id": "02fa5c60-969d-432b-8fe4-793be2f156a7",
       "name": "Normalize without Voice",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        656,
-        208
+        -208,
+        272
       ]
     },
     {
@@ -191,23 +156,23 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1536,
-        112
+        688,
+        176
       ],
-      "id": "d62ee5d3-7bf0-450b-9d8e-d3ec545d0d61",
+      "id": "169e4c2e-d29d-4cf3-9841-382cfc3ceec7",
       "name": "Execute Tenant Resolver"
     },
     {
       "parameters": {
         "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
       },
-      "id": "90b7516d-ead4-47db-ac99-9679ca68f97c",
+      "id": "be2e87b0-ce4c-4667-8f5f-43f543e1cf3b",
       "name": "Prepare for Queue",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1760,
-        112
+        912,
+        176
       ]
     },
     {
@@ -217,13 +182,13 @@
         "messageData": "={{ $json.message_json }}",
         "tail": true
       },
-      "id": "873f77d1-82b1-444c-acb2-94f30bb2c8a0",
+      "id": "0afa500e-1032-44f3-8289-14cbf825247e",
       "name": "Push to Queue",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1984,
-        112
+        1136,
+        176
       ],
       "credentials": {
         "redis": {
@@ -231,10 +196,25 @@
           "name": "Redis account"
         }
       }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"queued\": true, \"batch_key\": $('Prepare for Queue').item.json.batch_key } }}",
+        "options": {}
+      },
+      "id": "533dd045-b34f-4178-b133-059723be4564",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        176
+      ]
     }
   ],
   "connections": {
-    "Telegram Trigger": {
+    "Telegram Webhook": {
       "main": [
         [
           {
@@ -249,30 +229,18 @@
       "main": [
         [
           {
-            "node": "Should Skip?",
+            "node": "Has Voice?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Should Skip?": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Needs Transcription?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Needs Transcription?": {
+    "Has Voice?": {
       "main": [
         [
           {
-            "node": "Get Telegram File",
+            "node": "Get Voice File Path",
             "type": "main",
             "index": 0
           }
@@ -286,29 +254,29 @@
         ]
       ]
     },
-    "Get Telegram File": {
+    "Get Voice File Path": {
       "main": [
         [
           {
-            "node": "Download File",
+            "node": "Download Voice",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Download File": {
+    "Download Voice": {
       "main": [
         [
           {
-            "node": "Transcribe Audio",
+            "node": "Transcribe Voice",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Transcribe Audio": {
+    "Transcribe Voice": {
       "main": [
         [
           {
@@ -362,6 +330,17 @@
           }
         ]
       ]
+    },
+    "Push to Queue": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -381,6 +360,6 @@
       "name": "In"
     }
   ],
-  "updatedAt": "2025-12-03T13:26:14.000Z",
+  "updatedAt": "2025-12-05T10:42:30.000Z",
   "createdAt": "2025-10-14T06:44:54.979Z"
 }
