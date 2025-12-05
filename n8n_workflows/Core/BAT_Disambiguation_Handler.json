@@ -1,0 +1,185 @@
+{
+  "id": "oPkX06nyPTZlQLts",
+  "name": "BAT Disambiguation Handler",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "72567e64-34b6-4a30-9a7f-867063a89301",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Анализ входящего сообщения на disambiguation\nconst data = $input.first().json;\nconst message = data.message_text || data.text || '';\nconst devices = data.devices || [];\nconst ambiguousDevices = data.ambiguous_devices || [];\n\n// Паттерны для распознавания устройства\nconst patterns = {\n  // Порядковые номера\n  first: /перв(ый|ое|ая|ого)|первый телефон|1-?(й|ый|ое)|номер 1|#1/i,\n  second: /втор(ой|ое|ая|ого)|второй телефон|2-?(й|ой|ое)|номер 2|#2/i,\n  third: /трет(ий|ье|ья|ьего)|третий телефон|3-?(й|ий|ье)|номер 3|#3/i,\n  \n  // Владелец\n  my: /мо(й|ё|я|его|им)|свой|личн(ый|ое|ая)/i,\n  son: /сын(а|у|ом)?|ребёнк(а|у|ом)?|сыночк/i,\n  wife: /жен(ы|е|ой|у)?|супруг(и|е|ой)?/i,\n  husband: /муж(а|у|ем)?|супруг(а|у|ом)?/i,\n  mother: /мам(ы|е|ой|у)?|матер(и|ью)?/i,\n  father: /пап(ы|е|ой|у)?|отц(а|у|ом)?/i,\n  \n  // По проблеме\n  broken_screen: /экран|дисплей|стекл(о|а)|разбит|треснул/i,\n  battery: /батаре(я|и|ю|ей)|аккумулятор|заряд|разряж/i,\n  not_charging: /не заряжа|зарядк(а|у|и)/i\n};\n\nlet resolvedDeviceId = null;\nlet resolvedBy = null;\nlet confidence = 0;\n\n// Попытка распознать по порядковому номеру\nif (patterns.first.test(message) && devices.length >= 1) {\n  resolvedDeviceId = devices[0].id;\n  resolvedBy = 'order_number';\n  confidence = 0.9;\n} else if (patterns.second.test(message) && devices.length >= 2) {\n  resolvedDeviceId = devices[1].id;\n  resolvedBy = 'order_number';\n  confidence = 0.9;\n} else if (patterns.third.test(message) && devices.length >= 3) {\n  resolvedDeviceId = devices[2].id;\n  resolvedBy = 'order_number';\n  confidence = 0.9;\n}\n\n// Попытка по владельцу (если есть owner_label)\nif (!resolvedDeviceId) {\n  for (const device of devices) {\n    const ownerLabel = (device.owner_label || '').toLowerCase();\n    \n    if (patterns.my.test(message) && (ownerLabel.includes('свой') || ownerLabel.includes('мой') || ownerLabel === '')) {\n      resolvedDeviceId = device.id;\n      resolvedBy = 'owner_label';\n      confidence = 0.7;\n      break;\n    }\n    if (patterns.son.test(message) && ownerLabel.includes('сын')) {\n      resolvedDeviceId = device.id;\n      resolvedBy = 'owner_label';\n      confidence = 0.85;\n      break;\n    }\n    if (patterns.wife.test(message) && (ownerLabel.includes('жен') || ownerLabel.includes('супруг'))) {\n      resolvedDeviceId = device.id;\n      resolvedBy = 'owner_label';\n      confidence = 0.85;\n      break;\n    }\n  }\n}\n\n// Попытка по проблеме (если есть repairs)\nif (!resolvedDeviceId) {\n  for (const device of devices) {\n    const repairs = device.repairs || [];\n    const repairText = repairs.map(r => r.category_name || r.repair_type_name || '').join(' ').toLowerCase();\n    \n    if (patterns.broken_screen.test(message) && (repairText.includes('экран') || repairText.includes('дисплей'))) {\n      resolvedDeviceId = device.id;\n      resolvedBy = 'repair_match';\n      confidence = 0.75;\n      break;\n    }\n    if (patterns.battery.test(message) && repairText.includes('батаре')) {\n      resolvedDeviceId = device.id;\n      resolvedBy = 'repair_match';\n      confidence = 0.75;\n      break;\n    }\n  }\n}\n\nreturn {\n  ...data,\n  disambiguation: {\n    resolved: !!resolvedDeviceId,\n    device_id: resolvedDeviceId,\n    resolved_by: resolvedBy,\n    confidence: confidence,\n    original_message: message\n  }\n};"
+      },
+      "id": "a9dbf92b-682e-4e53-aeae-b204a1f24c0c",
+      "name": "Analyze Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "resolved",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.disambiguation.resolved }}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a3a5658a-7ad7-48e5-acbb-62e113a20ecf",
+      "name": "Device Resolved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Обновляем фокус на разрешённое устройство\nUPDATE appeals\nSET\n  last_mentioned_device_id = '{{ $json.disambiguation.device_id }}'::uuid,\n  conversation_focus = jsonb_set(\n    COALESCE(conversation_focus, '{}'::jsonb),\n    '{device_id}',\n    '\"{{ $json.disambiguation.device_id }}\"'\n  ),\n  updated_at = NOW()\nWHERE id = '{{ $json.appeal_id }}'::uuid;\n\nSELECT ad.*, b.name as brand_name, m.name as model_name\nFROM appeal_devices ad\nLEFT JOIN brands b ON b.id = ad.brand_id\nLEFT JOIN models m ON m.id = ad.model_id\nWHERE ad.id = '{{ $json.disambiguation.device_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "929b792c-58ab-4836-91f2-2f17f6ad738d",
+      "name": "Update Focus",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        32,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Формируем ответ после успешного разрешения\nconst data = $input.first().json;\nconst device = Array.isArray(data) ? data[0] : data;\nconst prev = $('Analyze Message').first().json;\n\nconst deviceName = `${device.brand_name || ''} ${device.model_name || ''}`.trim() || 'устройство';\nconst ownerLabel = device.owner_label ? ` (${device.owner_label})` : '';\n\nreturn {\n  success: true,\n  resolved: true,\n  device_id: prev.disambiguation.device_id,\n  device_name: deviceName,\n  owner_label: device.owner_label,\n  resolved_by: prev.disambiguation.resolved_by,\n  confidence: prev.disambiguation.confidence,\n  response_text: `Понял, говорим про ${deviceName}${ownerLabel}. Продолжаем!`,\n  // Для дальнейшей обработки\n  appeal_id: prev.appeal_id,\n  tenant_id: prev.tenant_id,\n  channel: prev.channel\n};"
+      },
+      "id": "d766b95c-fcdc-4afa-b18c-cd33473a2cc9",
+      "name": "Format Resolved Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Формируем уточняющий вопрос\nconst data = $input.first().json;\nconst devices = data.devices || [];\n\n// Строим список устройств для уточнения\nconst lines = ['Уточните, какое устройство имеете в виду:'];\n\ndevices.forEach((d, i) => {\n  const brand = d.brand_name || '?';\n  const model = d.model_name || '?';\n  const owner = d.owner_label ? ` (${d.owner_label})` : '';\n  const repairs = (d.repairs || []).map(r => r.category_name || r.repair_type_name).filter(Boolean).join(', ');\n  const repairInfo = repairs ? ` — ${repairs}` : '';\n  \n  lines.push(`${i + 1}. ${brand} ${model}${owner}${repairInfo}`);\n});\n\nlines.push('');\nlines.push('Напишите номер или опишите устройство.');\n\nreturn {\n  success: true,\n  resolved: false,\n  needs_clarification: true,\n  response_text: lines.join('\\n'),\n  devices_count: devices.length,\n  // Для дальнейшей обработки\n  appeal_id: data.appeal_id,\n  tenant_id: data.tenant_id,\n  channel: data.channel\n};"
+      },
+      "id": "7a8c0942-5226-4df1-a356-3629eab8537a",
+      "name": "Format Clarification Question",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        208
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analyze Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Message": {
+      "main": [
+        [
+          {
+            "node": "Device Resolved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Device Resolved?": {
+      "main": [
+        [
+          {
+            "node": "Update Focus",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Clarification Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Focus": {
+      "main": [
+        [
+          {
+            "node": "Format Resolved Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:04:01.292Z",
+      "createdAt": "2025-11-23T04:04:01.292Z",
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    }
+  ],
+  "updatedAt": "2025-12-04T19:11:18.000Z",
+  "createdAt": "2025-12-04T19:10:50.283Z"
+}
