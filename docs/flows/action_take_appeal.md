@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Take_Appeal
 participating_workflows:
   - API_Android_Take_Appeal
-generated: 2025-12-04 17:23:08
+generated: 2025-12-05 15:01:44
 ---
 
 # Действие: Взять обращение в работу
 
 **Взять обращение в работу**
 
-*Сгенерировано: 2025-12-04 17:23:08*
+*Сгенерировано: 2025-12-05 15:01:44*
 
 ---
 
@@ -46,7 +46,7 @@ API_Android_Take_Appeal (/api/android/appeals/:id/take)
 
 **Workflow:** API_Android_Take_Appeal
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT od.tenant_id, od.operator_id 
@@ -62,7 +62,7 @@ LIMIT 1;
 
 **Workflow:** API_Android_Take_Appeal
 
-**Операция:** Создание из `operator_appeal_status`, `set`
+**Операция:** Создание из `set`, `operator_appeal_status`
 
 ```sql
 INSERT INTO operator_appeal_status (tenant_id, appeal_id, operator_id, status, taken_at)

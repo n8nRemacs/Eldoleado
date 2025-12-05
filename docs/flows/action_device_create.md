@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Device_Create
 participating_workflows:
   - API_Android_Device_Create
-generated: 2025-12-04 17:23:11
+generated: 2025-12-05 15:01:46
 ---
 
 # Действие: Добавить устройство
 
 **Добавить устройство**
 
-*Сгенерировано: 2025-12-04 17:23:11*
+*Сгенерировано: 2025-12-05 15:01:46*
 
 ---
 
@@ -45,7 +45,7 @@ API_Android_Device_Create (/android/appeal-devices)
 
 **Workflow:** API_Android_Device_Create
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT od.operator_id, od.tenant_id
@@ -61,7 +61,7 @@ LIMIT 1;
 
 **Workflow:** API_Android_Device_Create
 
-**Операция:** Создание из `appeal_devices`, `appeals`
+**Операция:** Создание из `appeals`, `appeal_devices`
 
 ```sql
 INSERT INTO appeal_devices (appeal_id, tenant_id, brand_id, brand_name, model_id, model_name, phone_model, device_order)

@@ -27,8 +27,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.eldoleado.app.adapters.DeviceItem
+import com.eldoleado.app.adapters.DevicesAdapter
 import com.eldoleado.app.adapters.MessagesAdapter
 import com.eldoleado.app.api.*
+import com.eldoleado.app.data.repository.getDevices
 import com.eldoleado.app.data.database.entities.AppealEntity
 import com.eldoleado.app.data.database.entities.MessageEntity
 import com.eldoleado.app.databinding.ActivityAppealDetailBinding
@@ -44,10 +47,12 @@ import java.io.File
 class AppealDetailActivity : AppCompatActivity() {
     private lateinit var sessionManager: SessionManager
     private lateinit var messagesAdapter: MessagesAdapter
+    private lateinit var devicesAdapter: DevicesAdapter
     private lateinit var binding: ActivityAppealDetailBinding
 
     private var appealId: String = ""
     private var currentAppeal: AppealEntity? = null
+    private var focusedDeviceId: String? = null
 
     // Voice recording
     private var speechRecognizer: SpeechRecognizer? = null
@@ -71,7 +76,7 @@ class AppealDetailActivity : AppCompatActivity() {
     companion object {
         private const val LONG_PRESS_THRESHOLD = 3000L // 3 seconds for hold mode
         private const val REQUEST_RECORD_AUDIO = 1001
-        private const val AUTO_REFRESH_INTERVAL = 10_000L // 10 seconds
+        private const val AUTO_REFRESH_INTERVAL = 60_000L // 60 seconds (backup polling, FCM handles realtime)
     }
 
     // Auto-refresh для обновления сообщений
@@ -101,6 +106,13 @@ class AppealDetailActivity : AppCompatActivity() {
         messagesAdapter = MessagesAdapter()
         binding.messagesRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.messagesRecyclerView.adapter = messagesAdapter
+
+        // Setup devices adapter
+        devicesAdapter = DevicesAdapter { device ->
+            onDeviceClicked(device)
+        }
+        binding.devicesRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.devicesRecyclerView.adapter = devicesAdapter
 
         setupButtons()
         setupObservers()
@@ -360,6 +372,9 @@ class AppealDetailActivity : AppCompatActivity() {
         // Устанавливаем режим из данных appeal
         setModeFromAppeal(appeal.operationMode)
 
+        // Update devices list
+        updateDevicesList(appeal)
+
         // Filter out agent messages, sort by createdAt
         val filteredMessages = messages
             .filter { it.senderType.lowercase() != "agent" }
@@ -423,6 +438,50 @@ class AppealDetailActivity : AppCompatActivity() {
         bindMetaRow(binding.detailPartsOwnerRow, binding.detailPartsOwnerValue, partsOwnerValue)
         bindMetaRow(binding.detailCreatedRow, binding.detailCreatedValue, null)
         bindMetaRow(binding.detailClientRow, binding.detailClientValue, null)
+    }
+
+    private fun updateDevicesList(appeal: AppealEntity) {
+        val devices = appeal.getDevices()
+
+        if (devices.isEmpty()) {
+            binding.devicesSection.visibility = View.GONE
+            return
+        }
+
+        binding.devicesSection.visibility = View.VISIBLE
+
+        // Determine focused device - first one by default if not set
+        if (focusedDeviceId == null && devices.isNotEmpty()) {
+            focusedDeviceId = devices.firstOrNull()?.id
+        }
+
+        val deviceItems = devices.mapIndexed { index, device ->
+            DeviceItem(
+                device = device,
+                index = index,
+                isFocused = device.id == focusedDeviceId
+            )
+        }
+
+        devicesAdapter.submitList(deviceItems)
+    }
+
+    private fun onDeviceClicked(device: AppealDeviceDto) {
+        if (focusedDeviceId == device.id) {
+            // Already focused - show device details in bottom sheet
+            showAppealInfoBottomSheet()
+            return
+        }
+
+        // Set new focus
+        focusedDeviceId = device.id
+        Toast.makeText(this, "Фокус: ${device.brand_name ?: ""} ${device.model_name ?: ""}".trim(), Toast.LENGTH_SHORT).show()
+
+        // Update UI
+        currentAppeal?.let { updateDevicesList(it) }
+
+        // TODO: Call API to update conversation_focus on server
+        // updateConversationFocus(device.id)
     }
 
     private fun clearInputText() {

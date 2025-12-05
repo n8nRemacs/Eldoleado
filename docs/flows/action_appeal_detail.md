@@ -5,14 +5,14 @@ entry_workflow: API_Android_Appeal_Detail
 participating_workflows:
   - API_Android_Appeal_Detail
   - Tool - Build Appeal Meta
-generated: 2025-12-04 17:23:11
+generated: 2025-12-05 15:01:46
 ---
 
 # Действие: Детали обращения
 
 **Детали обращения**
 
-*Сгенерировано: 2025-12-04 17:23:11*
+*Сгенерировано: 2025-12-05 15:01:46*
 
 ---
 
@@ -23,12 +23,12 @@ generated: 2025-12-04 17:23:11
 - **Операций с БД:** 4
 - **Операций Redis:** 0
 - **Вызовов AI:** 0
-- **Затронуто таблиц:** 14
+- **Затронуто таблиц:** 18
 
 ## Цепочка Workflows
 
 ```
-API_Android_Appeal_Detail (/api/operator/appeals/:id)
+API_Android_Appeal_Detail (/api/android/appeals/:id)
   -> Tool - Build Appeal Meta
 ```
 
@@ -37,18 +37,22 @@ API_Android_Appeal_Detail (/api/operator/appeals/:id)
 | Таблица | Операции |
 |---------|----------|
 | `appeal_data` | чтение |
+| `appeal_devices` | **изменение** |
 | `appeal_info` | чтение |
 | `appeal_meta_config` | чтение |
 | `appeal_meta_visibility` | чтение |
+| `appeal_repairs` | **изменение** |
 | `appeals` | чтение, **изменение** |
 | `brands` | чтение, **изменение** |
 | `clients` | чтение, **изменение** |
 | `deal_types` | чтение, **изменение** |
+| `issue_types` | **изменение** |
 | `messages_history` | **изменение** |
 | `models` | чтение, **изменение** |
 | `operator_actions` | **изменение** |
 | `operator_devices` | чтение |
 | `operators` | чтение |
+| `repair_categories` | **изменение** |
 | `repair_types` | чтение, **изменение** |
 
 ## Операции с базой данных
@@ -57,7 +61,7 @@ API_Android_Appeal_Detail (/api/operator/appeals/:id)
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT od.operator_id, od.tenant_id 
@@ -76,7 +80,7 @@ LIMIT 1;
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Изменение из `repair_types`, `deal_types`, `messages_history`
+**Операция:** Изменение из `operator_actions`, `repair_types`, `clients`
 
 ```sql
 WITH vals AS (
@@ -96,7 +100,7 @@ CASE WHEN limit_text
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `repair_types`, `appeal_data`, `deal_types`
+**Операция:** Чтение из `repair_types`, `clients`, `appeals`
 
 ```sql
 WITH appeal_data AS (
@@ -129,7 +133,7 @@ WITH appeal_data AS (
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `appeal_meta_config`, `appeal_meta_visibility`, `appeal_info`
+**Операция:** Чтение из `appeal_meta_visibility`, `appeals`, `appeal_info`
 
 ```sql
 WITH appeal_info AS (

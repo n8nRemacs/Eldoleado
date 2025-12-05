@@ -5,14 +5,14 @@ entry_workflow: BAT IN Avito
 participating_workflows:
   - BAT IN Avito
   - BAT_Tenant_Resolver
-generated: 2025-12-04 17:23:04
+generated: 2025-12-05 15:01:39
 ---
 
 # Поток: Входящее сообщение из Avito
 
 **Входящее сообщение из Avito**
 
-*Сгенерировано: 2025-12-04 17:23:04*
+*Сгенерировано: 2025-12-05 15:01:39*
 
 ---
 

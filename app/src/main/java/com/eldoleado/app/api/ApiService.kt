@@ -2,12 +2,17 @@ package com.eldoleado.app.api
 
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
+
+    // Webhook paths synced with n8n workflows (2025-12-05)
+    // n8n production URLs use path only (without webhookId prefix)
 
     @POST("android/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
@@ -25,25 +30,25 @@ interface ApiService {
         @Query("limit") limit: Int = 50
     ): Call<AppealDetailResponse>
 
-    @POST("android-send-response/android/appeals/{id}/send")
+    @POST("api/android/appeals/{id}/send")
     fun sendResponse(
         @Path("id") appealId: String,
         @Body request: SendMessageRequest
     ): Call<ApiResponse>
 
-    @POST("unique-normalize/api/android/appeals/{id}/normalize")
+    @POST("api/android/appeals/{id}/normalize")
     fun normalizeText(
         @Path("id") appealId: String,
         @Body request: NormalizeRequest
     ): Call<NormalizeResponse>
 
-    @POST("unique-take-appeal/api/android/appeals/{id}/take")
+    @POST("api/android/appeals/{id}/take")
     fun takeAppeal(
         @Path("id") appealId: String,
         @Body request: TakeAppealRequest
     ): Call<ApiResponse>
 
-    @POST("api-operator-reject/api/android/appeals/{id}/reject")
+    @POST("api/android/appeals/{id}/reject")
     fun rejectAiResponse(
         @Path("id") appealId: String,
         @Body request: RejectRequest
@@ -71,6 +76,42 @@ interface ApiService {
     @POST("android-update-appeal-mode")
     fun updateAppealMode(
         @Body request: UpdateAppealModeRequest
+    ): Call<ApiResponse>
+
+    // ========== DEVICE CRUD ==========
+
+    @POST("android/appeal-devices")
+    fun createDevice(
+        @Body request: CreateDeviceRequest
+    ): Call<DeviceResponse>
+
+    @PATCH("android/appeal-devices/{id}")
+    fun updateDevice(
+        @Path("id") deviceId: String,
+        @Body request: UpdateDeviceRequest
+    ): Call<DeviceResponse>
+
+    @DELETE("android/appeal-devices/{id}")
+    fun deleteDevice(
+        @Path("id") deviceId: String
+    ): Call<ApiResponse>
+
+    // ========== REPAIR CRUD ==========
+
+    @POST("android/appeal-repairs")
+    fun createRepair(
+        @Body request: CreateRepairRequest
+    ): Call<RepairResponse>
+
+    @PATCH("android/appeal-repairs/{id}")
+    fun updateRepair(
+        @Path("id") repairId: String,
+        @Body request: UpdateRepairRequest
+    ): Call<RepairResponse>
+
+    @DELETE("android/appeal-repairs/{id}")
+    fun deleteRepair(
+        @Path("id") repairId: String
     ): Call<ApiResponse>
 }
 
@@ -291,4 +332,57 @@ data class MetaField(
     val label: String,
     val value: String?,
     val order: Double? = null
+)
+
+// ========== DEVICE CRUD DTOs ==========
+
+data class CreateDeviceRequest(
+    val appeal_id: String,
+    val brand_id: String? = null,
+    val brand_name: String? = null,
+    val model_id: String? = null,
+    val model_name: String? = null,
+    val phone_model: String? = null
+)
+
+data class UpdateDeviceRequest(
+    val brand_id: String? = null,
+    val brand_name: String? = null,
+    val model_id: String? = null,
+    val model_name: String? = null,
+    val phone_model: String? = null
+)
+
+data class DeviceResponse(
+    val success: Boolean,
+    val device: AppealDeviceDto? = null,
+    val error: String? = null
+)
+
+// ========== REPAIR CRUD DTOs ==========
+
+data class CreateRepairRequest(
+    val appeal_device_id: String,
+    val repair_category_id: String? = null,
+    val repair_category_name: String? = null,
+    val issue_type_id: String? = null,
+    val issue_type_name: String? = null,
+    val parts_owner: String? = null,
+    val priority: Int? = null
+)
+
+data class UpdateRepairRequest(
+    val repair_category_id: String? = null,
+    val repair_category_name: String? = null,
+    val issue_type_id: String? = null,
+    val issue_type_name: String? = null,
+    val parts_owner: String? = null,
+    val status: String? = null,
+    val priority: Int? = null
+)
+
+data class RepairResponse(
+    val success: Boolean,
+    val repair: AppealRepairDto? = null,
+    val error: String? = null
 )

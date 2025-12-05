@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Appeals_List
 participating_workflows:
   - API_Android_Appeals_List
-generated: 2025-12-04 17:23:10
+generated: 2025-12-05 15:01:45
 ---
 
 # Действие: Список обращений
 
 **Список обращений**
 
-*Сгенерировано: 2025-12-04 17:23:10*
+*Сгенерировано: 2025-12-05 15:01:45*
 
 ---
 
@@ -48,7 +48,7 @@ API_Android_Appeals_List (/api/operator/appeals/list)
 
 **Workflow:** API_Android_Appeals_List
 
-**Операция:** Изменение из `messages_history`, `appeals`, `models`
+**Операция:** Изменение из `appeals`, `brands`, `models`
 
 ```sql
 WITH vals AS (
@@ -97,7 +97,7 @@ SELECT
 
 **Workflow:** API_Android_Appeals_List
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT 

@@ -74,7 +74,35 @@
             <LinearLayout android:id="@+id/detailClientRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:orientation="horizontal"><TextView android:id="@+id/detailClientValue" android:layout_width="wrap_content" android:layout_height="wrap_content" /></LinearLayout>
         </LinearLayout>
 
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2196F3" />
+        <!-- Devices horizontal list -->
+        <LinearLayout
+            android:id="@+id/devicesSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/devicesSectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Устройства"
+                android:textSize="11sp"
+                android:textColor="#666666"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/devicesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingEnd="8dp" />
+
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2196F3" android:layout_marginTop="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/messagesRecyclerView"

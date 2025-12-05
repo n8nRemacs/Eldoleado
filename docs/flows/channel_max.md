@@ -5,14 +5,14 @@ entry_workflow: BAT IN MAX
 participating_workflows:
   - BAT IN MAX
   - BAT_Tenant_Resolver
-generated: 2025-12-04 17:23:05
+generated: 2025-12-05 15:01:40
 ---
 
 # Поток: Входящее сообщение из MAX.ru
 
 **Входящее сообщение из MAX.ru**
 
-*Сгенерировано: 2025-12-04 17:23:05*
+*Сгенерировано: 2025-12-05 15:01:40*
 
 ---
 

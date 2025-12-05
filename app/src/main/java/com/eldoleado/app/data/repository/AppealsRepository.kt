@@ -91,7 +91,8 @@ class AppealsRepository(
                 val body = response.body()!!
                 val appealEntity = body.toAppealEntity()
                 val clientName = appealEntity.clientName
-                val messageEntities = body.messages?.map { it.toEntity(appealId, clientName) } ?: emptyList()
+                // API возвращает history, не messages
+                val messageEntities = body.history?.map { it.toEntity(appealId, clientName) } ?: emptyList()
 
                 // Сохраняем в БД
                 appealDao.insertAppeal(appealEntity)
@@ -253,6 +254,26 @@ class AppealsRepository(
             senderName = resolvedSenderName,
             mediaType = this.media_type,
             mediaUrl = this.media_url,
+            createdAt = this.created_at ?: "",
+            lastAccessed = System.currentTimeMillis()
+        )
+    }
+
+    private fun HistoryMessage.toEntity(appealId: String, clientName: String? = null): MessageEntity {
+        val id = "${appealId}_${this.created_at}_${this.text.hashCode()}"
+        val senderType = this.type ?: "unknown"
+        val resolvedSenderName = when (senderType.lowercase()) {
+            "client" -> clientName
+            else -> null
+        }
+        return MessageEntity(
+            id = id,
+            appealId = appealId,
+            text = this.text ?: "",
+            senderType = senderType,
+            senderName = resolvedSenderName,
+            mediaType = null,
+            mediaUrl = null,
             createdAt = this.created_at ?: "",
             lastAccessed = System.currentTimeMillis()
         )

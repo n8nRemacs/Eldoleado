@@ -34,86 +34,126 @@ git add -A && git commit -m "Voice session: краткое описание" && 
 
 ---
 
-## Последняя сессия: 2 декабря 2025, 23:45 (UTC+4)
+## Последняя сессия: 5 декабря 2025, 15:30 (UTC+4)
 
 ## Что сделано в этой сессии:
 
-### Android приложение:
+### ROOT модуль записи звонков (NEW):
 
-1. **Создана система записи звонков**
-   - `CallRecordingService.kt` - foreground service для записи через MediaRecorder
-   - `CallReceiver.kt` - BroadcastReceiver для перехвата звонков
-   - `BootReceiver.kt` - автозапуск сервиса при загрузке устройства
-   - `CallRecordingPreferences.kt` - хранение настроек
-   - `CallUploadWorker.kt` - фоновая загрузка через WorkManager
+1. **RootChecker.kt** — проверка root доступа
+   - Поддержка Magisk, SuperSU, generic su
+   - Кэширование результата
+   - Выполнение команд с root
 
-2. **UI интеграция**
-   - Добавлен переключатель записи в настройках MainActivity
-   - Статус записи отображается текстом
-   - Автоматический запрос разрешений при включении
+2. **StereoCallRecorder.kt** — стерео запись
+   - Left канал = VOICE_UPLINK (твой голос)
+   - Right канал = VOICE_DOWNLINK (голос собеседника)
+   - Формат: WAV 44100Hz 16bit stereo
+   - Fallback на MIC + REMOTE_SUBMIX
 
-3. **Конфигурация**
-   - Обновлён AndroidManifest.xml с разрешениями
-   - Добавлен цвет green_status в colors.xml
+3. **RootRecordingPreferences.kt** — настройки модуля
+   - Режимы записи (stereo split, stereo mixed, mono)
+   - Качество (sample rate, bit depth, format)
+   - Поведение (вибрация, уведомления)
+   - Хранение (лимит, автоудаление, автозагрузка)
 
-4. **Тестирование**
-   - Приложение собрано и установлено
-   - UI работает, переключатель функционирует
+4. **RecordingTileService.kt** — Quick Settings плитка
+   - Кнопка в шторке уведомлений
+   - Ручной старт/стоп VoIP записи
+   - Вибрация при начале/конце
+
+5. **README.md** — инструкция по интеграции
+   - Изменения в AndroidManifest
+   - Примеры кода интеграции
+   - Документация API
+
+### Файлы созданы:
+```
+app/src/main/java/com/eldoleado/app/callrecording/root/
+├── RootChecker.kt
+├── StereoCallRecorder.kt
+├── RootRecordingPreferences.kt
+├── RecordingTileService.kt
+└── README.md
+```
 
 ---
 
 ## Что НЕ сделано:
 
+### Android:
+
+1. [ ] Интеграция ROOT модуля в основное приложение
+2. [ ] Добавление RecordingTileService в AndroidManifest.xml
+3. [ ] UI настроек ROOT записи
+4. [ ] Тестирование на устройстве с root
+
 ### n8n backend:
 
-1. [ ] Webhook `/webhook/voice-upload` - не создан
+1. [ ] Webhook `/webhook/voice-upload` — не создан
 2. [ ] Сохранение аудио файлов на сервере
 3. [ ] Интеграция с OpenAI Whisper для транскрибации
-4. [ ] Промпт для извлечения сущностей (бренд, модель, проблема)
-5. [ ] Связь с системой обращений (appeals)
+4. [ ] Разделение стерео каналов для Speaker 1/2
+5. [ ] Промпт для извлечения сущностей
+6. [ ] Связь с системой обращений (appeals)
 
 ---
 
-## Следующая сессия - план:
+## Следующая сессия — план:
 
-### 1. Создать n8n workflow "Voice Upload Handler"
+### Вариант A: Интеграция ROOT модуля
+
+1. Добавить в AndroidManifest.xml:
+```xml
+<service
+    android:name=".callrecording.root.RecordingTileService"
+    android:icon="@drawable/ic_mic"
+    android:label="Запись звонка"
+    android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+    </intent-filter>
+</service>
 ```
-Webhook (voice-upload)
-    |
-    v
-Сохранить файл на диск/S3
-    |
-    v
-OpenAI Whisper API -> текст
-    |
-    v
-GPT-4/Claude -> извлечь сущности
-    |
-    v
-Записать в БД / создать обращение
+
+2. Интегрировать StereoCallRecorder в CallRecordingService
+
+3. Добавить UI настроек:
+   - Переключатель "Улучшенная запись (Root)"
+   - Выбор режима стерео
+   - Показывать только если есть root
+
+4. Собрать и протестировать на устройстве с root
+
+### Вариант B: n8n backend
+
+1. Создать workflow voice-upload:
+```
+Webhook --> Save File --> Whisper API --> Extract Entities --> Save to DB
 ```
 
-### 2. Настроить промпты для извлечения:
-- Номер телефона клиента
-- Тип обращения (ремонт, консультация, покупка)
-- Бренд устройства
-- Модель устройства
-- Описание проблемы
-- Срочность
+2. Для стерео файлов — разделить каналы:
+```python
+audio.split_to_mono()[0]  # Speaker 1
+audio.split_to_mono()[1]  # Speaker 2
+```
 
-### 3. Тестирование полного цикла:
-- Записать тестовый звонок
-- Проверить загрузку на сервер
-- Проверить транскрибацию
-- Проверить извлечение сущностей
+3. Промпт для извлечения:
+```
+Оператор: {speaker_1_text}
+Клиент: {speaker_2_text}
+
+Извлеки: тип обращения, бренд, модель, проблема, срочность
+```
 
 ---
 
 ## Важные файлы:
 
-### Android (готово):
+### Android — Базовый модуль:
 ```
-app/src/main/java/com/batterycrm/app/callrecording/
+app/src/main/java/com/eldoleado/app/callrecording/
 ├── CallRecordingPreferences.kt
 ├── CallRecordingService.kt
 ├── CallReceiver.kt
@@ -121,48 +161,34 @@ app/src/main/java/com/batterycrm/app/callrecording/
 └── CallUploadWorker.kt
 ```
 
+### Android — ROOT модуль (NEW):
+```
+app/src/main/java/com/eldoleado/app/callrecording/root/
+├── RootChecker.kt
+├── StereoCallRecorder.kt
+├── RootRecordingPreferences.kt
+├── RecordingTileService.kt
+└── README.md
+```
+
 ### n8n (создать):
 ```
-n8n_workflows/
-└── Voice/
-    └── BAT_Voice_Upload_Handler.json
+workflows_to_import/new/
+└── BAT_Voice_Upload_Handler.json
 ```
 
 ---
 
-## Конфигурация для n8n workflow:
+## Сравнение качества записи
 
-### Webhook параметры:
-- **URL**: `/webhook/voice-upload`
-- **Method**: POST
-- **Binary Property**: audio_file
-- **Response**: JSON
-
-### OpenAI Whisper:
-- **Model**: whisper-1
-- **Response format**: json
-- **Language**: ru (Russian)
-
-### Промпт для извлечения сущностей:
-```
-Проанализируй транскрипцию телефонного разговора и извлеки:
-1. Имя клиента (если упоминается)
-2. Тип обращения: ремонт / консультация / покупка / другое
-3. Бренд устройства (iPhone, Samsung, Xiaomi и т.д.)
-4. Модель устройства
-5. Описание проблемы
-6. Срочность: высокая / средняя / низкая
-
-Верни JSON:
-{
-  "client_name": "",
-  "appeal_type": "",
-  "device_brand": "",
-  "device_model": "",
-  "problem_description": "",
-  "urgency": ""
-}
-```
+| Параметр | Без Root | С Root |
+|----------|----------|--------|
+| GSM качество | Только микрофон | Стерео L/R |
+| VoIP запись | ❌ | ✅ (ручная) |
+| Формат | M4A моно | WAV стерео |
+| Разделение голосов | ❌ | ✅ |
+| Транскрибация | Средняя | Отличная |
+| Speaker diarization | Невозможна | Автоматическая |
 
 ---
 
@@ -170,7 +196,7 @@ n8n_workflows/
 
 **Перед завершением:**
 ```bash
-scripts\git-sync.bat
+git add -A && git commit -m "Voice: ROOT stereo recording module" && git push
 ```
 
 ---
@@ -180,4 +206,4 @@ scripts\git-sync.bat
 - **Webhook URL**: https://n8n.n8nsrv.ru/webhook/voice-upload
 - **n8n Dashboard**: https://n8n.n8nsrv.ru
 - **OpenAI API**: https://platform.openai.com
-- **GitHub**: https://github.com/n8nRemacs/batterycrm
+- **ROOT модуль**: app/src/main/java/com/eldoleado/app/callrecording/root/README.md
