@@ -241,13 +241,16 @@ class AvitoClient:
             logger.warning(f"Redis connection failed: {e}, using local fallback")
             self._redis_client = None
 
-        # Rate limiter
+        # Rate limiter - PER-TENANT to avoid global bottleneck
+        # Each tenant gets their own rate limit bucket
+        rate_limit_key = f"avito_rate_limit:{self.user_id}"
         self._rate_limiter = RateLimiter(
             self._redis_client,
-            key="avito_api_rate_limit",
+            key=rate_limit_key,
             max_requests=self.rate_limit_requests,
             window_seconds=self.rate_limit_window
         )
+        logger.info(f"Rate limiter initialized: {rate_limit_key} ({self.rate_limit_requests} req/{self.rate_limit_window}s)")
 
     async def close(self):
         """Close all connections."""

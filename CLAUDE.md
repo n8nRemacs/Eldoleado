@@ -73,7 +73,36 @@ AND from_component_id IN (SELECT id FROM project_components WHERE name = 'Workfl
 ## Database
 
 - **PostgreSQL**: `185.221.214.83:6544/postgres`
-- **Tables**: project_components, component_relations, workflow_nodes, node_connections
+- **Tables**: project_components, component_relations, workflow_nodes, node_connections, channel_accounts
+
+## Servers
+
+### RU Server (45.144.177.128)
+| Service | Port | Description |
+|---------|------|-------------|
+| mcp-avito | 8765 | Avito Messenger API v2.0.0 multi-tenant |
+| mcp-vk | 8767 | VK Community API v2.0.0 multi-tenant |
+| mcp-max | 8768 | MAX (VK Teams) API v2.0.0 multi-tenant |
+| mcp-form | 8770 | Web forms API |
+| api-android | 8780 | Android API Gateway |
+| Redis (avito-redis) | - | Docker network: avito-api_default |
+
+### Finnish Server (217.145.79.27)
+| Service | Port | Description |
+|---------|------|-------------|
+| mcp-telegram | 8767 | Telegram Bot API v2.0.0 multi-tenant |
+| mcp-whatsapp | 8766 | WhatsApp (Wappi.pro) API v2.0.0 multi-tenant |
+| Redis (mcp-redis) | 6379 | Docker network: mcp-network |
+
+### Multi-tenant Webhook URLs
+```
+/webhook/telegram/{bot_hash}
+/webhook/avito/{user_hash}
+/webhook/vk/{group_hash}
+/webhook/max/{token_hash}
+/webhook/whatsapp/{profile_hash}
+```
+Hash = SHA256(primary_credential)[:16]
 
 ## n8n Server
 

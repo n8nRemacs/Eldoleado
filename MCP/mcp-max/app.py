@@ -1,23 +1,29 @@
-"""MAX.ru MCP Server - Direct Bot API.
+"""MAX.ru MCP Server - Multi-tenant Direct Bot API.
 
 FastAPI server for MAX.ru Bot API integration.
-Provides REST endpoints and webhook handler for incoming messages.
+Supports multiple bot accounts with dynamic registration.
 """
 
+import sys
+import os
 import logging
 import hashlib
 import hmac
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Header, Request, Query, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Header, Request, Query, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import httpx
 
 from config import settings
 from max_client import MaxClient, MaxAPIError
+
+# Add shared module to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from shared import storage
 
 # Configure logging
 logging.basicConfig(
@@ -26,58 +32,122 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Global client instance
-max_client: Optional[MaxClient] = None
+# Channel name for storage
+CHANNEL_NAME = "max"
+
+# In-memory client cache: token_hash -> MaxClient
+client_cache: Dict[str, MaxClient] = {}
+# Account data cache: token_hash -> {credentials, metadata}
+account_cache: Dict[str, dict] = {}
+
+
+def get_token_hash(access_token: str) -> str:
+    """Generate 16-char hash from access token for webhook URL."""
+    return hashlib.sha256(access_token.encode()).hexdigest()[:16]
+
+
+async def get_or_create_client(access_token: str) -> tuple[MaxClient, str]:
+    """Get existing client or create and register new one."""
+    token_hash = get_token_hash(access_token)
+
+    if token_hash in client_cache:
+        return client_cache[token_hash], token_hash
+
+    # Auto-register new account
+    client = MaxClient(access_token)
+    await client.connect()
+
+    # Get bot info
+    try:
+        bot_info = await client.get_me()
+    except Exception as e:
+        await client.close()
+        raise HTTPException(status_code=401, detail=f"Invalid access token: {e}")
+
+    # Save to storage
+    credentials = {"access_token": access_token}
+    metadata = {"bot_info": bot_info}
+    await storage.save_account(CHANNEL_NAME, token_hash, credentials, metadata)
+
+    # Cache
+    client_cache[token_hash] = client
+    account_cache[token_hash] = {"credentials": credentials, "metadata": metadata}
+
+    logger.info(f"Auto-registered MAX account: {token_hash} ({bot_info.get('name', 'Unknown')})")
+    return client, token_hash
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    global max_client
+    logger.info("Starting MAX MCP Server (Multi-tenant)...")
 
-    # Startup
-    logger.info("Starting MAX MCP Server...")
-    max_client = MaxClient(settings.MAX_ACCESS_TOKEN)
-    await max_client.connect()
+    # Initialize storage
+    await storage.init_storage()
 
-    # Test connection
-    try:
-        bot_info = await max_client.get_me()
-        logger.info(f"Connected as bot: {bot_info.get('name', 'Unknown')}")
-    except Exception as e:
-        logger.warning(f"Could not get bot info: {e}")
+    # Load existing accounts from Redis
+    accounts = await storage.load_accounts(CHANNEL_NAME)
+    for acc in accounts:
+        try:
+            token_hash = acc["hash"]
+            access_token = acc["credentials"]["access_token"]
+
+            client = MaxClient(access_token)
+            await client.connect()
+
+            client_cache[token_hash] = client
+            account_cache[token_hash] = acc
+
+            bot_name = acc.get("metadata", {}).get("bot_info", {}).get("name", "Unknown")
+            logger.info(f"Loaded MAX account: {token_hash} ({bot_name})")
+        except Exception as e:
+            logger.error(f"Failed to load account {acc.get('hash', '?')}: {e}")
+
+    logger.info(f"Loaded {len(client_cache)} MAX accounts")
 
     yield
 
-    # Shutdown
-    if max_client:
-        await max_client.close()
+    # Cleanup: close all clients
+    for token_hash, client in client_cache.items():
+        try:
+            await client.close()
+        except Exception as e:
+            logger.error(f"Error closing client {token_hash}: {e}")
+
+    await storage.close_storage()
     logger.info("MAX MCP Server stopped")
 
 
 app = FastAPI(
     title="MAX.ru MCP Server",
-    description="Direct Bot API integration for MAX.ru messenger",
-    version="1.0.0",
+    description="Multi-tenant Direct Bot API integration for MAX.ru messenger",
+    version="2.0.0",
     lifespan=lifespan
 )
 
 
 # ==================== Models ====================
 
+class RegisterAccountRequest(BaseModel):
+    """Request to register a new account."""
+    access_token: str = Field(..., description="MAX Bot access token")
+
+
 class SendMessageRequest(BaseModel):
     """Request to send a message."""
+    access_token: Optional[str] = None  # For auto-register
     chat_id: Optional[int] = None
     user_id: Optional[int] = None
     text: Optional[str] = None
     attachments: Optional[List[dict]] = None
-    format: Optional[str] = None  # 'markdown' or 'html'
+    format: Optional[str] = None
     notify: bool = True
     disable_link_preview: bool = False
 
 
 class EditMessageRequest(BaseModel):
     """Request to edit a message."""
+    access_token: Optional[str] = None
     message_id: str
     text: Optional[str] = None
     attachments: Optional[List[dict]] = None
@@ -86,6 +156,7 @@ class EditMessageRequest(BaseModel):
 
 class SubscribeRequest(BaseModel):
     """Request to subscribe to webhook."""
+    access_token: Optional[str] = None
     url: str
     update_types: Optional[List[str]] = None
     version: Optional[str] = None
@@ -94,6 +165,7 @@ class SubscribeRequest(BaseModel):
 
 class AnswerCallbackRequest(BaseModel):
     """Request to answer callback."""
+    access_token: Optional[str] = None
     callback_id: str
     notification: Optional[str] = None
     message: Optional[dict] = None
@@ -102,6 +174,8 @@ class AnswerCallbackRequest(BaseModel):
 class NormalizedMessage(BaseModel):
     """Normalized message format for n8n."""
     channel: str = "max"
+    access_token: str  # For tenant resolution
+    token_hash: str
     message_id: str
     chat_id: int
     user_id: int
@@ -117,19 +191,13 @@ class NormalizedMessage(BaseModel):
 def verify_signature(body: bytes, signature: str, secret: str) -> bool:
     """Verify MAX webhook signature."""
     if not secret or not signature:
-        return True  # No secret configured
-
-    expected = hmac.new(
-        secret.encode(),
-        body,
-        hashlib.sha256
-    ).hexdigest()
-
+        return True
+    expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 
 
-def normalize_update(update: dict) -> Optional[NormalizedMessage]:
-    """Convert MAX update to normalized format."""
+def normalize_update(update: dict, access_token: str, token_hash: str) -> Optional[NormalizedMessage]:
+    """Convert MAX update to normalized format with tenant info."""
     update_type = update.get("update_type")
 
     if update_type == "message_created":
@@ -137,39 +205,24 @@ def normalize_update(update: dict) -> Optional[NormalizedMessage]:
         sender = message.get("sender", {})
         body = message.get("body", {})
         recipient = message.get("recipient", {})
-
-        # Determine chat_id
         chat_id = recipient.get("chat_id") or sender.get("user_id")
 
-        # Extract attachments
         attachments = []
         if body.get("attachments"):
             for att in body["attachments"]:
                 att_type = att.get("type")
-                if att_type == "image":
+                payload = att.get("payload", {})
+                if att_type in ["image", "video", "audio", "file"]:
                     attachments.append({
-                        "type": "photo",
-                        "url": att.get("payload", {}).get("url")
-                    })
-                elif att_type == "video":
-                    attachments.append({
-                        "type": "video",
-                        "url": att.get("payload", {}).get("url")
-                    })
-                elif att_type == "audio":
-                    attachments.append({
-                        "type": "audio",
-                        "url": att.get("payload", {}).get("url")
-                    })
-                elif att_type == "file":
-                    attachments.append({
-                        "type": "file",
-                        "url": att.get("payload", {}).get("url"),
-                        "filename": att.get("payload", {}).get("filename")
+                        "type": "photo" if att_type == "image" else att_type,
+                        "url": payload.get("url"),
+                        "filename": payload.get("filename")
                     })
 
         return NormalizedMessage(
             channel="max",
+            access_token=access_token,
+            token_hash=token_hash,
             message_id=message.get("mid", ""),
             chat_id=chat_id,
             user_id=sender.get("user_id", 0),
@@ -187,11 +240,13 @@ def normalize_update(update: dict) -> Optional[NormalizedMessage]:
 
         return NormalizedMessage(
             channel="max",
+            access_token=access_token,
+            token_hash=token_hash,
             message_id=callback.get("callback_id", ""),
             chat_id=message.get("recipient", {}).get("chat_id", 0),
             user_id=sender.get("user_id", 0),
             user_name=sender.get("name"),
-            text=callback.get("payload"),  # Button payload
+            text=callback.get("payload"),
             attachments=[{"type": "callback", "callback_id": callback.get("callback_id")}],
             timestamp=datetime.fromtimestamp(callback.get("timestamp", 0) / 1000),
             raw_data=update
@@ -226,25 +281,152 @@ def check_api_key(api_key: str = Header(None, alias="X-API-Key")):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 
+# ==================== Account Management ====================
+
+@app.post("/accounts/register")
+async def register_account(
+    request: RegisterAccountRequest,
+    api_key: str = Header(None, alias="X-API-Key")
+):
+    """Register a new MAX bot account."""
+    check_api_key(api_key)
+
+    token_hash = get_token_hash(request.access_token)
+
+    # Check if already registered
+    if token_hash in client_cache:
+        account = account_cache.get(token_hash, {})
+        bot_info = account.get("metadata", {}).get("bot_info", {})
+        return {
+            "status": "already_registered",
+            "token_hash": token_hash,
+            "bot_info": bot_info,
+            "webhook_path": f"/webhook/max/{token_hash}"
+        }
+
+    # Create and validate client
+    client = MaxClient(request.access_token)
+    await client.connect()
+
+    try:
+        bot_info = await client.get_me()
+    except Exception as e:
+        await client.close()
+        raise HTTPException(status_code=401, detail=f"Invalid access token: {e}")
+
+    # Save to storage
+    credentials = {"access_token": request.access_token}
+    metadata = {"bot_info": bot_info}
+    await storage.save_account(CHANNEL_NAME, token_hash, credentials, metadata)
+
+    # Cache
+    client_cache[token_hash] = client
+    account_cache[token_hash] = {"credentials": credentials, "metadata": metadata}
+
+    logger.info(f"Registered MAX account: {token_hash} ({bot_info.get('name', 'Unknown')})")
+
+    return {
+        "status": "registered",
+        "token_hash": token_hash,
+        "bot_info": bot_info,
+        "webhook_path": f"/webhook/max/{token_hash}"
+    }
+
+
+@app.get("/accounts")
+async def list_accounts(api_key: str = Header(None, alias="X-API-Key")):
+    """List all registered accounts."""
+    check_api_key(api_key)
+
+    accounts = []
+    for token_hash, data in account_cache.items():
+        bot_info = data.get("metadata", {}).get("bot_info", {})
+        accounts.append({
+            "token_hash": token_hash,
+            "bot_name": bot_info.get("name"),
+            "bot_id": bot_info.get("user_id"),
+            "webhook_path": f"/webhook/max/{token_hash}"
+        })
+
+    return {"accounts": accounts, "count": len(accounts)}
+
+
+@app.get("/accounts/{token_hash}")
+async def get_account(
+    token_hash: str,
+    api_key: str = Header(None, alias="X-API-Key")
+):
+    """Get account details."""
+    check_api_key(api_key)
+
+    if token_hash not in account_cache:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    data = account_cache[token_hash]
+    bot_info = data.get("metadata", {}).get("bot_info", {})
+
+    return {
+        "token_hash": token_hash,
+        "bot_info": bot_info,
+        "webhook_path": f"/webhook/max/{token_hash}"
+    }
+
+
+@app.delete("/accounts/{token_hash}")
+async def unregister_account(
+    token_hash: str,
+    api_key: str = Header(None, alias="X-API-Key")
+):
+    """Unregister an account."""
+    check_api_key(api_key)
+
+    if token_hash not in client_cache:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    # Close client
+    client = client_cache.pop(token_hash)
+    await client.close()
+
+    # Remove from cache
+    account_cache.pop(token_hash, None)
+
+    # Remove from storage
+    await storage.delete_account(CHANNEL_NAME, token_hash)
+
+    logger.info(f"Unregistered MAX account: {token_hash}")
+
+    return {"status": "unregistered", "token_hash": token_hash}
+
+
 # ==================== Health & Info ====================
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "ok", "service": "max-mcp-server"}
+    return {
+        "status": "ok",
+        "service": "max-mcp-server",
+        "version": "2.0.0",
+        "accounts": len(client_cache)
+    }
 
 
 @app.get("/info")
-async def get_info(api_key: str = Header(None, alias="X-API-Key")):
+async def get_info(
+    access_token: Optional[str] = Query(None),
+    api_key: str = Header(None, alias="X-API-Key")
+):
     """Get bot information."""
     check_api_key(api_key)
 
+    if not access_token:
+        raise HTTPException(status_code=400, detail="access_token required")
+
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        bot_info = await max_client.get_me()
-        return {
-            "status": "ok",
-            "bot": bot_info
-        }
+        bot_info = await client.get_me()
+        return {"status": "ok", "bot": bot_info}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
@@ -259,14 +441,19 @@ async def send_message(
     """Send message to chat or user."""
     check_api_key(api_key)
 
+    if not request.access_token:
+        raise HTTPException(status_code=400, detail="access_token required")
+
     if not request.chat_id and not request.user_id:
         raise HTTPException(status_code=400, detail="chat_id or user_id required")
 
     if not request.text and not request.attachments:
         raise HTTPException(status_code=400, detail="text or attachments required")
 
+    client, _ = await get_or_create_client(request.access_token)
+
     try:
-        result = await max_client.send_message(
+        result = await client.send_message(
             chat_id=request.chat_id,
             user_id=request.user_id,
             text=request.text,
@@ -289,8 +476,13 @@ async def edit_message(
     """Edit existing message."""
     check_api_key(api_key)
 
+    if not request.access_token:
+        raise HTTPException(status_code=400, detail="access_token required")
+
+    client, _ = await get_or_create_client(request.access_token)
+
     try:
-        result = await max_client.edit_message(
+        result = await client.edit_message(
             message_id=message_id,
             text=request.text,
             attachments=request.attachments,
@@ -304,13 +496,16 @@ async def edit_message(
 @app.delete("/api/message/{message_id}")
 async def delete_message(
     message_id: str,
+    access_token: str = Query(...),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Delete message."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.delete_message(message_id)
+        result = await client.delete_message(message_id)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -319,13 +514,16 @@ async def delete_message(
 @app.get("/api/message/{message_id}")
 async def get_message(
     message_id: str,
+    access_token: str = Query(...),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Get message by ID."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_message(message_id)
+        result = await client.get_message(message_id)
         return {"status": "ok", "message": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -335,6 +533,7 @@ async def get_message(
 
 @app.get("/api/chats")
 async def get_chats(
+    access_token: str = Query(...),
     count: int = Query(50, ge=1, le=100),
     marker: Optional[int] = None,
     api_key: str = Header(None, alias="X-API-Key")
@@ -342,8 +541,10 @@ async def get_chats(
     """Get list of chats."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_chats(count=count, marker=marker)
+        result = await client.get_chats(count=count, marker=marker)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -352,13 +553,16 @@ async def get_chats(
 @app.get("/api/chat/{chat_id}")
 async def get_chat(
     chat_id: int,
+    access_token: str = Query(...),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Get chat by ID."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_chat(chat_id)
+        result = await client.get_chat(chat_id)
         return {"status": "ok", "chat": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -367,14 +571,17 @@ async def get_chat(
 @app.post("/api/chat/{chat_id}/action")
 async def send_action(
     chat_id: int,
+    access_token: str = Query(...),
     action: str = Query("typing_on"),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Send typing action to chat."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.send_action(chat_id, action)
+        result = await client.send_action(chat_id, action)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -383,6 +590,7 @@ async def send_action(
 @app.get("/api/chat/{chat_id}/members")
 async def get_chat_members(
     chat_id: int,
+    access_token: str = Query(...),
     count: int = Query(20, ge=1, le=100),
     marker: Optional[int] = None,
     api_key: str = Header(None, alias="X-API-Key")
@@ -390,8 +598,10 @@ async def get_chat_members(
     """Get chat members."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_chat_members(chat_id, count=count, marker=marker)
+        result = await client.get_chat_members(chat_id, count=count, marker=marker)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -407,8 +617,13 @@ async def subscribe(
     """Subscribe to webhook updates."""
     check_api_key(api_key)
 
+    if not request.access_token:
+        raise HTTPException(status_code=400, detail="access_token required")
+
+    client, _ = await get_or_create_client(request.access_token)
+
     try:
-        result = await max_client.subscribe(
+        result = await client.subscribe(
             url=request.url,
             update_types=request.update_types,
             version=request.version,
@@ -421,14 +636,17 @@ async def subscribe(
 
 @app.delete("/api/subscribe")
 async def unsubscribe(
+    access_token: str = Query(...),
     url: str = Query(...),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Unsubscribe from webhook."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.unsubscribe(url)
+        result = await client.unsubscribe(url)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -436,13 +654,16 @@ async def unsubscribe(
 
 @app.get("/api/subscriptions")
 async def get_subscriptions(
+    access_token: str = Query(...),
     api_key: str = Header(None, alias="X-API-Key")
 ):
     """Get current subscriptions."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_subscriptions()
+        result = await client.get_subscriptions()
         return {"status": "ok", "subscriptions": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -458,8 +679,13 @@ async def answer_callback(
     """Answer to callback button click."""
     check_api_key(api_key)
 
+    if not request.access_token:
+        raise HTTPException(status_code=400, detail="access_token required")
+
+    client, _ = await get_or_create_client(request.access_token)
+
     try:
-        result = await max_client.answer_callback(
+        result = await client.answer_callback(
             callback_id=request.callback_id,
             notification=request.notification,
             message=request.message
@@ -469,24 +695,32 @@ async def answer_callback(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
-# ==================== Webhook Handler ====================
+# ==================== Webhook Handler (Multi-tenant) ====================
 
-@app.post("/webhook/max")
+@app.post("/webhook/max/{token_hash}")
 async def webhook_handler(
+    token_hash: str,
     request: Request,
     background_tasks: BackgroundTasks,
     x_max_signature: Optional[str] = Header(None, alias="X-Max-Signature")
 ):
-    """Handle incoming MAX webhook updates.
+    """Handle incoming MAX webhook updates for specific account."""
 
-    MAX sends updates here when events occur (new messages, callbacks, etc.)
-    """
+    # Check if account exists
+    if token_hash not in client_cache:
+        logger.warning(f"Webhook for unknown account: {token_hash}")
+        raise HTTPException(status_code=404, detail="Account not registered")
+
+    account = account_cache.get(token_hash, {})
+    access_token = account.get("credentials", {}).get("access_token", "")
+    webhook_secret = account.get("metadata", {}).get("webhook_secret")
+
     body = await request.body()
 
     # Verify signature if secret is configured
-    if settings.MAX_WEBHOOK_SECRET:
-        if not verify_signature(body, x_max_signature or "", settings.MAX_WEBHOOK_SECRET):
-            logger.warning("Invalid webhook signature")
+    if webhook_secret:
+        if not verify_signature(body, x_max_signature or "", webhook_secret):
+            logger.warning(f"Invalid webhook signature for {token_hash}")
             raise HTTPException(status_code=403, detail="Invalid signature")
 
     try:
@@ -495,34 +729,58 @@ async def webhook_handler(
         logger.error(f"Invalid JSON in webhook: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    logger.info(f"Received webhook: {data.get('update_type', 'unknown')}")
+    logger.info(f"Received webhook for {token_hash}: {data.get('update_type', 'unknown')}")
 
-    # Normalize and forward to n8n
-    normalized = normalize_update(data)
+    # Normalize with tenant info and forward to n8n
+    normalized = normalize_update(data, access_token, token_hash)
     if normalized:
         background_tasks.add_task(forward_to_n8n, normalized)
 
-    # Always return success to MAX
     return {"success": True}
+
+
+# Legacy webhook (for backward compatibility)
+@app.post("/webhook/max")
+async def webhook_handler_legacy(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_max_signature: Optional[str] = Header(None, alias="X-Max-Signature")
+):
+    """Legacy webhook handler - requires default account."""
+    # Find first registered account as default
+    if not client_cache:
+        raise HTTPException(status_code=404, detail="No accounts registered")
+
+    token_hash = next(iter(client_cache.keys()))
+
+    # Forward to multi-tenant handler
+    return await webhook_handler(
+        token_hash=token_hash,
+        request=request,
+        background_tasks=background_tasks,
+        x_max_signature=x_max_signature
+    )
 
 
 # ==================== Polling Mode ====================
 
 @app.get("/api/updates")
 async def get_updates(
+    access_token: str = Query(...),
     limit: int = Query(100, ge=1, le=1000),
     timeout: int = Query(30, ge=0, le=90),
     marker: Optional[int] = None,
     types: Optional[str] = None,
     api_key: str = Header(None, alias="X-API-Key")
 ):
-    """Get updates via long polling (alternative to webhooks)."""
+    """Get updates via long polling."""
     check_api_key(api_key)
 
+    client, _ = await get_or_create_client(access_token)
     types_list = types.split(",") if types else None
 
     try:
-        result = await max_client.get_updates(
+        result = await client.get_updates(
             limit=limit,
             timeout=timeout,
             marker=marker,
@@ -537,6 +795,7 @@ async def get_updates(
 
 @app.post("/api/upload-url")
 async def get_upload_url(
+    access_token: str = Query(...),
     type: str = Query("photo"),
     api_key: str = Header(None, alias="X-API-Key")
 ):
@@ -546,8 +805,10 @@ async def get_upload_url(
     if type not in ["photo", "video", "audio", "file"]:
         raise HTTPException(status_code=400, detail="Invalid upload type")
 
+    client, _ = await get_or_create_client(access_token)
+
     try:
-        result = await max_client.get_upload_url(type)
+        result = await client.get_upload_url(type)
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

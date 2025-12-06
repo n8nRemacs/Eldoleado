@@ -1,11 +1,14 @@
-"""Avito Messenger REST API Server.
+"""Avito Messenger REST API Server (Multi-tenant).
 
 FastAPI server providing HTTP endpoints for Avito Messenger API integration.
-Includes webhook handler for incoming messages and REST API for operations.
+Supports multiple Avito accounts with dynamic registration.
+Version 2.0.0 - Multi-tenant architecture with Redis + PostgreSQL storage.
 """
 
+import sys
+import hashlib
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from contextlib import asynccontextmanager
 
@@ -18,6 +21,13 @@ from pydantic import BaseModel, Field
 from config import settings
 from avito_client import AvitoClient, AvitoAPIError, RateLimitExceeded
 
+# Add shared module to path
+sys.path.insert(0, str(__file__).replace("\\", "/").rsplit("/", 2)[0])
+from shared.storage import (
+    init_storage, close_storage, get_credentials_hash,
+    save_account, load_accounts, get_account, delete_account
+)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -25,26 +35,138 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Global client instance
-avito_client: Optional[AvitoClient] = None
+# Channel name for storage
+CHANNEL_NAME = "avito"
+
+# Multi-tenant registries
+client_cache: Dict[str, AvitoClient] = {}  # user_hash -> AvitoClient
+account_cache: Dict[str, dict] = {}         # user_hash -> account data
+
+
+def get_user_hash(user_id: str) -> str:
+    """Generate 16-char hash from user_id for webhook URL."""
+    return hashlib.sha256(user_id.encode()).hexdigest()[:16]
+
+
+async def get_or_create_client(
+    client_id: str,
+    client_secret: str,
+    user_id: str
+) -> tuple[AvitoClient, str]:
+    """Get existing client or create new one with auto-registration."""
+    user_hash = get_user_hash(user_id)
+
+    if user_hash in client_cache:
+        return client_cache[user_hash], user_hash
+
+    # Create new client with per-account Redis token key
+    redis_token_key = f"avito_token:{user_id}"
+
+    client = AvitoClient(
+        client_id=client_id,
+        client_secret=client_secret,
+        user_id=user_id,
+        redis_token_key=redis_token_key
+    )
+    await client.connect()
+
+    # Save to storage
+    credentials = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "user_id": user_id
+    }
+
+    metadata = {
+        "redis_token_key": redis_token_key,
+        "registered_at": datetime.utcnow().isoformat()
+    }
+
+    await save_account(CHANNEL_NAME, user_hash, credentials, metadata)
+
+    # Cache
+    client_cache[user_hash] = client
+    account_cache[user_hash] = {
+        "credentials": credentials,
+        "metadata": metadata,
+        "user_id": user_id
+    }
+
+    logger.info(f"Registered Avito user {user_id[:8]}... with hash {user_hash}")
+    return client, user_hash
+
+
+def get_client_by_hash(user_hash: str) -> Optional[AvitoClient]:
+    """Get client by user hash."""
+    return client_cache.get(user_hash)
+
+
+def get_account_by_hash(user_hash: str) -> Optional[dict]:
+    """Get account data by hash."""
+    return account_cache.get(user_hash)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan - init and cleanup."""
-    global avito_client
-    avito_client = AvitoClient()
-    await avito_client.connect()
-    logger.info("Avito client initialized")
+    # Initialize storage
+    await init_storage()
+    logger.info("Storage initialized")
+
+    # Load existing accounts
+    try:
+        accounts = await load_accounts(CHANNEL_NAME)
+        for acc in accounts:
+            try:
+                creds = acc.get("credentials", {})
+                client_id = creds.get("client_id")
+                client_secret = creds.get("client_secret")
+                user_id = creds.get("user_id")
+
+                if client_id and client_secret and user_id:
+                    user_hash = acc.get("hash") or get_user_hash(user_id)
+                    redis_token_key = acc.get("metadata", {}).get("redis_token_key", f"avito_token:{user_id}")
+
+                    client = AvitoClient(
+                        client_id=client_id,
+                        client_secret=client_secret,
+                        user_id=user_id,
+                        redis_token_key=redis_token_key
+                    )
+                    await client.connect()
+
+                    client_cache[user_hash] = client
+                    account_cache[user_hash] = {
+                        "credentials": creds,
+                        "metadata": acc.get("metadata", {}),
+                        "user_id": user_id
+                    }
+
+                    logger.info(f"Loaded Avito user {user_id[:8]}... ({user_hash})")
+            except Exception as e:
+                logger.error(f"Failed to load account: {e}")
+
+        logger.info(f"Loaded {len(client_cache)} Avito accounts from storage")
+    except Exception as e:
+        logger.error(f"Failed to load accounts: {e}")
+
     yield
-    await avito_client.close()
-    logger.info("Avito client closed")
+
+    # Cleanup
+    for client in client_cache.values():
+        try:
+            await client.close()
+        except Exception as e:
+            logger.error(f"Error closing client: {e}")
+
+    await close_storage()
+    logger.info("Avito multi-tenant server stopped")
 
 
 app = FastAPI(
-    title="Avito Messenger API",
-    description="REST API for Avito Messenger integration with n8n",
-    version="1.0.0",
+    title="Avito Messenger API (Multi-tenant)",
+    description="REST API for multiple Avito accounts with dynamic registration",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -60,33 +182,57 @@ app.add_middleware(
 
 # ========== Pydantic Models ==========
 
+class RegisterAccountRequest(BaseModel):
+    client_id: str = Field(..., description="Avito API Client ID")
+    client_secret: str = Field(..., description="Avito API Client Secret")
+    user_id: str = Field(..., description="Avito User ID")
+
+
 class SendMessageRequest(BaseModel):
+    client_id: Optional[str] = Field(None, description="Avito Client ID (for auto-registration)")
+    client_secret: Optional[str] = Field(None, description="Avito Client Secret (for auto-registration)")
+    user_id: Optional[str] = Field(None, description="Avito User ID (for auto-registration)")
     chat_id: str = Field(..., description="Chat ID")
     text: str = Field(..., description="Message text")
 
 
 class SendImageRequest(BaseModel):
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    user_id: Optional[str] = None
     chat_id: str = Field(..., description="Chat ID")
     image_url: str = Field(..., description="Image URL")
 
 
 class SendLinkRequest(BaseModel):
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    user_id: Optional[str] = None
     chat_id: str = Field(..., description="Chat ID")
     url: str = Field(..., description="Link URL")
     text: Optional[str] = Field(None, description="Optional text")
 
 
 class BulkMessageRequest(BaseModel):
-    messages: List[SendMessageRequest] = Field(..., description="List of messages to send")
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    user_id: Optional[str] = None
+    messages: List[dict] = Field(..., description="List of messages with chat_id and text")
 
 
 class WebhookSubscribeRequest(BaseModel):
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    user_id: Optional[str] = None
     url: str = Field(..., description="Webhook URL")
     version: int = Field(2, description="API version (1 or 2)")
 
 
 class BlacklistRequest(BaseModel):
-    user_id: int = Field(..., description="User ID to block")
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    user_id: Optional[str] = None
+    blocked_user_id: int = Field(..., description="User ID to block")
 
 
 class ApiResponse(BaseModel):
@@ -137,6 +283,9 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "avito-messenger-api",
+        "version": "2.0.0",
+        "mode": "multi-tenant",
+        "accounts_loaded": len(client_cache),
         "timestamp": datetime.now().isoformat()
     }
 
@@ -145,19 +294,128 @@ async def health_check():
 async def server_info():
     """Server configuration info."""
     return {
+        "service": "avito-messenger-api",
+        "version": "2.0.0",
+        "mode": "multi-tenant",
+        "accounts_count": len(client_cache),
         "rate_limit_requests": settings.rate_limit_requests,
         "rate_limit_window": settings.rate_limit_window,
-        "max_connections": settings.max_connections,
-        "avito_user_id": settings.avito_user_id[:8] + "..." if settings.avito_user_id else None
+        "max_connections": settings.max_connections
+    }
+
+
+# ========== Account Management ==========
+
+@app.post("/accounts/register", dependencies=[Depends(verify_api_key)])
+async def register_account(request: RegisterAccountRequest):
+    """Register a new Avito account."""
+    client, user_hash = await get_or_create_client(
+        client_id=request.client_id,
+        client_secret=request.client_secret,
+        user_id=request.user_id
+    )
+
+    # Verify credentials by getting token
+    try:
+        await client.get_access_token()
+    except Exception as e:
+        # Remove failed registration
+        if user_hash in client_cache:
+            await client_cache.pop(user_hash).close()
+            account_cache.pop(user_hash, None)
+            await delete_account(CHANNEL_NAME, user_hash)
+        raise HTTPException(status_code=400, detail=f"Failed to authenticate: {e}")
+
+    return {
+        "success": True,
+        "status": "registered",
+        "user_hash": user_hash,
+        "user_id": request.user_id[:8] + "...",
+        "webhook_url": f"/webhook/avito/{user_hash}"
+    }
+
+
+@app.get("/accounts", dependencies=[Depends(verify_api_key)])
+async def list_accounts():
+    """List all registered Avito accounts."""
+    accounts = []
+    for user_hash, account in account_cache.items():
+        user_id = account.get("user_id", "")
+        accounts.append({
+            "user_hash": user_hash,
+            "user_id": user_id[:8] + "..." if user_id else "",
+            "webhook_url": f"/webhook/avito/{user_hash}",
+            "registered_at": account.get("metadata", {}).get("registered_at")
+        })
+
+    return {
+        "success": True,
+        "count": len(accounts),
+        "accounts": accounts
+    }
+
+
+@app.get("/accounts/{user_hash}", dependencies=[Depends(verify_api_key)])
+async def get_account_info(user_hash: str):
+    """Get account info by hash."""
+    account = get_account_by_hash(user_hash)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    user_id = account.get("user_id", "")
+    return {
+        "success": True,
+        "user_hash": user_hash,
+        "user_id": user_id[:8] + "..." if user_id else "",
+        "webhook_url": f"/webhook/avito/{user_hash}",
+        "registered_at": account.get("metadata", {}).get("registered_at")
+    }
+
+
+@app.delete("/accounts/{user_hash}", dependencies=[Depends(verify_api_key)])
+async def unregister_account(user_hash: str):
+    """Unregister an Avito account."""
+    if user_hash not in client_cache:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    # Close client
+    client = client_cache.pop(user_hash)
+    account = account_cache.pop(user_hash, {})
+    await client.close()
+
+    # Remove from storage
+    await delete_account(CHANNEL_NAME, user_hash)
+
+    user_id = account.get("user_id", "")
+    return {
+        "success": True,
+        "status": "unregistered",
+        "user_hash": user_hash,
+        "user_id": user_id[:8] + "..." if user_id else ""
     }
 
 
 # ========== Auth Endpoints ==========
 
 @app.get("/api/token", dependencies=[Depends(verify_api_key)])
-async def get_token(force_refresh: bool = False):
+async def get_token(
+    force_refresh: bool = False,
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Get or refresh access token."""
-    token = await avito_client.get_access_token(force_refresh=force_refresh)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    token = await client.get_access_token(force_refresh=force_refresh)
     return {
         "success": True,
         "token": token[:20] + "..." if len(token) > 20 else token,
@@ -166,9 +424,23 @@ async def get_token(force_refresh: bool = False):
 
 
 @app.post("/api/token/refresh", dependencies=[Depends(verify_api_key)])
-async def refresh_token():
+async def refresh_token(
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Force refresh access token."""
-    token = await avito_client.refresh_token()
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    token = await client.refresh_token()
     return {
         "success": True,
         "token": token[:20] + "..." if len(token) > 20 else token,
@@ -183,11 +455,24 @@ async def get_chats(
     item_ids: Optional[str] = Query(None, description="Comma-separated item IDs"),
     unread_only: bool = Query(False, description="Return only unread chats"),
     limit: int = Query(100, ge=1, le=100),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
 ):
     """Get list of chats."""
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
     item_ids_list = [int(x) for x in item_ids.split(",")] if item_ids else None
-    chats = await avito_client.get_chats(
+    chats = await client.get_chats(
         item_ids=item_ids_list,
         unread_only=unread_only,
         limit=limit,
@@ -201,9 +486,24 @@ async def get_chats(
 
 
 @app.get("/api/chats/{chat_id}", dependencies=[Depends(verify_api_key)])
-async def get_chat(chat_id: str):
+async def get_chat(
+    chat_id: str,
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Get chat by ID."""
-    chat = await avito_client.get_chat(chat_id)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    chat = await client.get_chat(chat_id)
     return {
         "success": True,
         "chat": chat.to_dict()
@@ -211,9 +511,24 @@ async def get_chat(chat_id: str):
 
 
 @app.post("/api/chats/{chat_id}/read", dependencies=[Depends(verify_api_key)])
-async def mark_chat_read(chat_id: str):
+async def mark_chat_read(
+    chat_id: str,
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Mark chat as read."""
-    await avito_client.mark_chat_read(chat_id)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    await client.mark_chat_read(chat_id)
     return {
         "success": True,
         "chat_id": chat_id,
@@ -222,26 +537,28 @@ async def mark_chat_read(chat_id: str):
 
 
 @app.get("/api/chats/unread/count", dependencies=[Depends(verify_api_key)])
-async def get_unread_count():
+async def get_unread_count(
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Get total unread message count."""
-    chats = await avito_client.get_chats(unread_only=True)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    chats = await client.get_chats(unread_only=True)
     total_unread = sum(c.unread_count for c in chats)
     return {
         "success": True,
         "total_unread": total_unread,
         "unread_chats": len(chats)
-    }
-
-
-@app.get("/api/chats/search", dependencies=[Depends(verify_api_key)])
-async def search_chats(item_id: int = Query(..., description="Item ID to search")):
-    """Search chats by item ID."""
-    chats = await avito_client.get_chats(item_ids=[item_id])
-    return {
-        "success": True,
-        "item_id": item_id,
-        "count": len(chats),
-        "chats": [c.to_dict() for c in chats]
     }
 
 
@@ -252,13 +569,26 @@ async def get_messages(
     chat_id: str,
     limit: int = Query(100, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    version: int = Query(1, ge=1, le=2)
+    version: int = Query(1, ge=1, le=2),
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
 ):
     """Get messages from chat."""
-    if version == 2:
-        messages = await avito_client.get_messages_v2(chat_id, limit, offset)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
     else:
-        messages = await avito_client.get_messages(chat_id, limit, offset)
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    if version == 2:
+        messages = await client.get_messages_v2(chat_id, limit, offset)
+    else:
+        messages = await client.get_messages(chat_id, limit, offset)
 
     return {
         "success": True,
@@ -269,9 +599,18 @@ async def get_messages(
 
 
 @app.post("/api/messages/send", dependencies=[Depends(verify_api_key)])
-async def send_message(request: SendMessageRequest):
+async def send_message(request: SendMessageRequest, user_hash: Optional[str] = Query(None)):
     """Send text message."""
-    result = await avito_client.send_message(
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    result = await client.send_message(
         chat_id=request.chat_id,
         text=request.text
     )
@@ -284,9 +623,18 @@ async def send_message(request: SendMessageRequest):
 
 
 @app.post("/api/messages/send/image", dependencies=[Depends(verify_api_key)])
-async def send_image(request: SendImageRequest):
+async def send_image(request: SendImageRequest, user_hash: Optional[str] = Query(None)):
     """Send image message."""
-    result = await avito_client.send_image(
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    result = await client.send_image(
         chat_id=request.chat_id,
         image_url=request.image_url
     )
@@ -299,9 +647,18 @@ async def send_image(request: SendImageRequest):
 
 
 @app.post("/api/messages/send/link", dependencies=[Depends(verify_api_key)])
-async def send_link(request: SendLinkRequest):
+async def send_link(request: SendLinkRequest, user_hash: Optional[str] = Query(None)):
     """Send link message."""
-    result = await avito_client.send_link(
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    result = await client.send_link(
         chat_id=request.chat_id,
         url=request.url,
         text=request.text
@@ -315,10 +672,18 @@ async def send_link(request: SendLinkRequest):
 
 
 @app.post("/api/messages/send/bulk", dependencies=[Depends(verify_api_key)])
-async def send_bulk_messages(request: BulkMessageRequest):
+async def send_bulk_messages(request: BulkMessageRequest, user_hash: Optional[str] = Query(None)):
     """Send multiple messages in parallel."""
-    messages = [{"chat_id": m.chat_id, "text": m.text} for m in request.messages]
-    results = await avito_client.send_bulk_messages(messages)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    results = await client.send_bulk_messages(request.messages)
 
     success_count = sum(1 for r in results if r.get("success"))
     return {
@@ -331,9 +696,25 @@ async def send_bulk_messages(request: BulkMessageRequest):
 
 
 @app.delete("/api/chats/{chat_id}/messages/{message_id}", dependencies=[Depends(verify_api_key)])
-async def delete_message(chat_id: str, message_id: str):
+async def delete_message(
+    chat_id: str,
+    message_id: str,
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Delete message."""
-    await avito_client.delete_message(chat_id, message_id)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    await client.delete_message(chat_id, message_id)
     return {
         "success": True,
         "chat_id": chat_id,
@@ -345,9 +726,23 @@ async def delete_message(chat_id: str, message_id: str):
 # ========== Batch Endpoints ==========
 
 @app.get("/api/messages/unread/all", dependencies=[Depends(verify_api_key)])
-async def get_all_unread():
+async def get_all_unread(
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Get all unread messages from all chats."""
-    results = await avito_client.get_all_unread_messages()
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    results = await client.get_all_unread_messages()
     return {
         "success": True,
         "chats_with_unread": len(results),
@@ -358,9 +753,18 @@ async def get_all_unread():
 # ========== Webhook Endpoints ==========
 
 @app.post("/api/webhook/subscribe", dependencies=[Depends(verify_api_key)])
-async def subscribe_webhook(request: WebhookSubscribeRequest):
+async def subscribe_webhook(request: WebhookSubscribeRequest, user_hash: Optional[str] = Query(None)):
     """Subscribe to webhook notifications."""
-    result = await avito_client.subscribe_webhook(
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    result = await client.subscribe_webhook(
         url=request.url,
         version=request.version
     )
@@ -374,9 +778,23 @@ async def subscribe_webhook(request: WebhookSubscribeRequest):
 
 
 @app.post("/api/webhook/unsubscribe", dependencies=[Depends(verify_api_key)])
-async def unsubscribe_webhook():
+async def unsubscribe_webhook(
+    user_hash: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
+    client_secret: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None)
+):
     """Unsubscribe from webhook notifications."""
-    await avito_client.unsubscribe_webhook()
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif client_id and client_secret and user_id:
+        client, _ = await get_or_create_client(client_id, client_secret, user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    await client.unsubscribe_webhook()
     return {
         "success": True,
         "message": "Webhook unsubscribed"
@@ -386,34 +804,45 @@ async def unsubscribe_webhook():
 # ========== Blacklist Endpoints ==========
 
 @app.post("/api/blacklist", dependencies=[Depends(verify_api_key)])
-async def add_to_blacklist(request: BlacklistRequest):
+async def add_to_blacklist(request: BlacklistRequest, user_hash: Optional[str] = Query(None)):
     """Add user to blacklist."""
-    await avito_client.add_to_blacklist(request.user_id)
+    if user_hash:
+        client = get_client_by_hash(user_hash)
+        if not client:
+            raise HTTPException(status_code=404, detail="Account not found")
+    elif request.client_id and request.client_secret and request.user_id:
+        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+    else:
+        raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
+
+    await client.add_to_blacklist(request.blocked_user_id)
     return {
         "success": True,
-        "user_id": request.user_id,
+        "user_id": request.blocked_user_id,
         "message": "User added to blacklist"
     }
 
 
-# ========== Incoming Webhook from Avito ==========
+# ========== Incoming Webhook from Avito (Multi-tenant) ==========
 
-@app.post("/webhook/avito")
-async def avito_webhook(request: Request):
-    """Handle incoming Avito webhook notifications.
+@app.post("/webhook/avito/{user_hash}")
+async def avito_webhook_multitenant(user_hash: str, request: Request):
+    """Handle incoming Avito webhook notifications for specific account."""
+    account = get_account_by_hash(user_hash)
+    if not account:
+        logger.warning(f"Webhook for unknown user_hash: {user_hash}")
+        raise HTTPException(status_code=404, detail="Account not found")
 
-    This endpoint receives messages from Avito and forwards them to n8n.
-    """
     try:
         body = await request.json()
-        logger.info(f"Received Avito webhook: {str(body)[:500]}")
+        logger.info(f"Received Avito webhook [{user_hash}]: {str(body)[:500]}")
 
         # Validate basic structure
         if not body.get("id") or not body.get("timestamp"):
             raise HTTPException(status_code=400, detail="Invalid webhook format")
 
-        # Normalize message
-        normalized = _normalize_webhook_message(body)
+        # Normalize message with tenant info
+        normalized = _normalize_webhook_message(body, account)
 
         # Skip system messages
         if normalized.get("skip"):
@@ -432,15 +861,60 @@ async def avito_webhook(request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Webhook error: {e}")
+        logger.error(f"Webhook error [{user_hash}]: {e}")
         return JSONResponse(
             status_code=500,
             content={"ok": False, "error": str(e)}
         )
 
 
-def _normalize_webhook_message(webhook_data: dict) -> dict:
-    """Normalize Avito webhook payload to standard format."""
+@app.post("/webhook/avito")
+async def avito_webhook_legacy(request: Request):
+    """Legacy webhook handler - tries to match by user_id in payload."""
+    try:
+        body = await request.json()
+        logger.info(f"Received legacy Avito webhook: {str(body)[:500]}")
+
+        # Validate basic structure
+        if not body.get("id") or not body.get("timestamp"):
+            raise HTTPException(status_code=400, detail="Invalid webhook format")
+
+        # Try to find matching account by user_id in payload
+        payload = body.get("payload", {})
+        msg = payload.get("value", {})
+        avito_user_id = str(msg.get("user_id", ""))
+
+        matched_account = None
+        for acc in account_cache.values():
+            if acc.get("user_id") == avito_user_id:
+                matched_account = acc
+                break
+
+        if not matched_account:
+            logger.warning(f"Legacy webhook: no account for user_id {avito_user_id}")
+            # Still process with empty account
+            matched_account = {"user_id": avito_user_id}
+
+        normalized = _normalize_webhook_message(body, matched_account)
+
+        if normalized.get("skip"):
+            return {"ok": True, "skipped": True, "reason": normalized.get("reason")}
+
+        forwarded = await _forward_to_n8n(normalized)
+        return {"ok": True, "forwarded": forwarded}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Legacy webhook error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "error": str(e)}
+        )
+
+
+def _normalize_webhook_message(webhook_data: dict, account: dict) -> dict:
+    """Normalize Avito webhook payload to standard format with tenant info."""
     payload = webhook_data.get("payload", {})
     msg = payload.get("value", {})
 
@@ -456,11 +930,11 @@ def _normalize_webhook_message(webhook_data: dict) -> dict:
 
     msg_type = msg.get("type", "text")
     author_id = msg.get("author_id", 0)
-    user_id = msg.get("user_id", 0)
+    webhook_user_id = msg.get("user_id", 0)
 
     # Check if system message
     is_system = (
-        author_id == user_id or
+        author_id == webhook_user_id or
         author_id == 0 or
         not author_id
     )
@@ -477,12 +951,18 @@ def _normalize_webhook_message(webhook_data: dict) -> dict:
     has_video = msg_type == "video"
     has_document = msg_type == "file"
 
-    # Build normalized format matching n8n workflow
+    # Get tenant user_id from account
+    tenant_user_id = account.get("user_id", "")
+
+    # Build normalized format with tenant info
     normalized = {
         "skip": False,
         "channel": "avito",
         "external_user_id": str(author_id),
         "external_chat_id": msg.get("chat_id"),
+
+        # Tenant identifier for n8n resolution
+        "user_id": tenant_user_id,
 
         "text": message_text,
         "timestamp": datetime.fromtimestamp(msg.get("created", 0)).isoformat() if msg.get("created") else datetime.now().isoformat(),
@@ -509,7 +989,7 @@ def _normalize_webhook_message(webhook_data: dict) -> dict:
             "original_media_type": msg_type,
             "raw": msg,
             "chat_type": msg.get("chat_type"),
-            "user_id": user_id,
+            "user_id": tenant_user_id,
             "webhook_id": webhook_data.get("id"),
             "webhook_timestamp": webhook_data.get("timestamp")
         },

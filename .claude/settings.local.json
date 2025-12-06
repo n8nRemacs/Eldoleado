@@ -58,7 +58,8 @@
       "Bash(GIT_EDITOR=true git rebase:*)",
       "Bash(find:*)",
       "Bash(mkdir:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

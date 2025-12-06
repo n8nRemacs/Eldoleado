@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # Server settings
     SERVER_HOST: str = "0.0.0.0"
-    SERVER_PORT: int = 8767
+    SERVER_PORT: int = 8761
 
     # OpenAI for voice transcription
     OPENAI_API_KEY: str = ""
