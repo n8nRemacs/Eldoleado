@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Repair_Delete
 participating_workflows:
   - API_Android_Repair_Delete
-generated: 2025-12-05 15:01:48
+generated: 2025-12-07 16:20:01
 ---
 
 # Действие: Удалить ремонт
 
 **Удалить ремонт**
 
-*Сгенерировано: 2025-12-05 15:01:48*
+*Сгенерировано: 2025-12-07 16:20:01*
 
 ---
 
@@ -44,7 +44,7 @@ API_Android_Repair_Delete (/android/appeal-repairs/:id)
 
 **Workflow:** API_Android_Repair_Delete
 
-**Операция:** Чтение из `operator_devices`, `operators`
+**Операция:** Чтение из `operators`, `operator_devices`
 
 ```sql
 SELECT od.operator_id, od.tenant_id

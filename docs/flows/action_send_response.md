@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Send_Response
 participating_workflows:
   - API_Android_Send_Response
-generated: 2025-12-05 15:01:43
+generated: 2025-12-07 16:19:59
 ---
 
 # Действие: Отправка ответа клиенту
 
 **Отправка ответа клиенту**
 
-*Сгенерировано: 2025-12-05 15:01:43*
+*Сгенерировано: 2025-12-07 16:19:59*
 
 ---
 
@@ -46,7 +46,7 @@ API_Android_Send_Response (//api/android/appeals/{id}/send)
 
 **Workflow:** API_Android_Send_Response
 
-**Операция:** Чтение из `operator_devices`, `clients`, `appeals`
+**Операция:** Чтение из `operators`, `operator_devices`, `clients`
 
 ```sql
 SELECT 

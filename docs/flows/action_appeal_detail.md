@@ -5,14 +5,14 @@ entry_workflow: API_Android_Appeal_Detail
 participating_workflows:
   - API_Android_Appeal_Detail
   - Tool - Build Appeal Meta
-generated: 2025-12-05 15:01:46
+generated: 2025-12-07 16:20:00
 ---
 
 # Действие: Детали обращения
 
 **Детали обращения**
 
-*Сгенерировано: 2025-12-05 15:01:46*
+*Сгенерировано: 2025-12-07 16:20:00*
 
 ---
 
@@ -61,7 +61,7 @@ API_Android_Appeal_Detail (/api/android/appeals/:id)
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Чтение из `operator_devices`, `operators`
+**Операция:** Чтение из `operators`, `operator_devices`
 
 ```sql
 SELECT od.operator_id, od.tenant_id 
@@ -80,7 +80,7 @@ LIMIT 1;
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Изменение из `operator_actions`, `repair_types`, `clients`
+**Операция:** Изменение из `models`, `operator_actions`, `repair_categories`
 
 ```sql
 WITH vals AS (
@@ -100,7 +100,7 @@ CASE WHEN limit_text
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `repair_types`, `clients`, `appeals`
+**Операция:** Чтение из `models`, `deal_types`, `brands`
 
 ```sql
 WITH appeal_data AS (
@@ -133,7 +133,7 @@ WITH appeal_data AS (
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `appeal_meta_visibility`, `appeals`, `appeal_info`
+**Операция:** Чтение из `appeal_info`, `appeal_meta_config`, `appeals`
 
 ```sql
 WITH appeal_info AS (

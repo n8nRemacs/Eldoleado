@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Send_Promo
 participating_workflows:
   - API_Android_Send_Promo
-generated: 2025-12-05 15:01:44
+generated: 2025-12-07 16:20:00
 ---
 
 # Действие: Отправить промо-материал
 
 **Отправить промо-материал**
 
-*Сгенерировано: 2025-12-05 15:01:44*
+*Сгенерировано: 2025-12-07 16:20:00*
 
 ---
 

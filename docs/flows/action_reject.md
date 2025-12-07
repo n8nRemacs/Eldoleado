@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Reject
 participating_workflows:
   - API_Android_Reject
-generated: 2025-12-05 15:01:44
+generated: 2025-12-07 16:20:00
 ---
 
 # Действие: Отклонить обращение
 
 **Отклонить обращение**
 
-*Сгенерировано: 2025-12-05 15:01:44*
+*Сгенерировано: 2025-12-07 16:20:00*
 
 ---
 
@@ -46,7 +46,7 @@ API_Android_Reject (/api/android/appeals/:id/reject)
 
 **Workflow:** API_Android_Reject
 
-**Операция:** Чтение из `operator_devices`, `operators`
+**Операция:** Чтение из `operators`, `operator_devices`
 
 ```sql
 SELECT 

@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Repair_Update
 participating_workflows:
   - API_Android_Repair_Update
-generated: 2025-12-05 15:01:47
+generated: 2025-12-07 16:20:01
 ---
 
 # Действие: Обновить ремонт
 
 **Обновить ремонт**
 
-*Сгенерировано: 2025-12-05 15:01:47*
+*Сгенерировано: 2025-12-07 16:20:01*
 
 ---
 
@@ -44,7 +44,7 @@ API_Android_Repair_Update (/android/appeal-repairs/:id)
 
 **Workflow:** API_Android_Repair_Update
 
-**Операция:** Чтение из `operator_devices`, `operators`
+**Операция:** Чтение из `operators`, `operator_devices`
 
 ```sql
 SELECT od.operator_id, od.tenant_id

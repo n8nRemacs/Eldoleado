@@ -5,14 +5,14 @@ entry_workflow: API_Android_Normalize
 participating_workflows:
   - API_Android_Normalize
   - BAT Operator Response Handler 3 - Text Voice Normalize
-generated: 2025-12-05 15:01:43
+generated: 2025-12-07 16:19:59
 ---
 
 # Действие: Нормализация текста ответа
 
 **Нормализация текста ответа**
 
-*Сгенерировано: 2025-12-05 15:01:43*
+*Сгенерировано: 2025-12-07 16:19:59*
 
 ---
 
@@ -51,7 +51,7 @@ API_Android_Normalize (/api/android/appeals/:id/normalize)
 
 **Workflow:** API_Android_Normalize
 
-**Операция:** Чтение из `operator_devices`, `operators`
+**Операция:** Чтение из `operators`, `operator_devices`
 
 ```sql
 SELECT 
@@ -70,7 +70,7 @@ LIMIT 1;
 
 **Workflow:** BAT Operator Response Handler 3 - Text Voice Normalize
 
-**Операция:** Чтение из `appeals`, `clients`
+**Операция:** Чтение из `clients`, `appeals`
 
 ```sql
 SELECT 
@@ -89,7 +89,7 @@ LIMIT 1;
 
 **Workflow:** BAT Operator Response Handler 3 - Text Voice Normalize
 
-**Операция:** Чтение из `repair_types`, `appeals`, `brands`
+**Операция:** Чтение из `models`, `brands`, `appeals`
 
 ```sql
 SELECT 

@@ -5,14 +5,14 @@ entry_workflow: BAT IN WhatsApp
 participating_workflows:
   - BAT IN WhatsApp
   - BAT_Tenant_Resolver
-generated: 2025-12-05 15:01:41
+generated: 2025-12-07 16:19:58
 ---
 
 # Поток: Входящее сообщение из WhatsApp
 
 **Входящее сообщение из WhatsApp**
 
-*Сгенерировано: 2025-12-05 15:01:41*
+*Сгенерировано: 2025-12-07 16:19:58*
 
 ---
 

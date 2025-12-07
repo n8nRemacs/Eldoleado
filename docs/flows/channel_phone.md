@@ -5,14 +5,14 @@ entry_workflow: BAT IN Phone
 participating_workflows:
   - BAT IN Phone
   - BAT_Tenant_Resolver
-generated: 2025-12-05 15:01:42
+generated: 2025-12-07 16:19:59
 ---
 
 # Поток: Входящий звонок
 
 **Входящий звонок**
 
-*Сгенерировано: 2025-12-05 15:01:42*
+*Сгенерировано: 2025-12-07 16:19:59*
 
 ---
 

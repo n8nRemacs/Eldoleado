@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Logout
 participating_workflows:
   - API_Android_Logout
-generated: 2025-12-05 15:01:45
+generated: 2025-12-07 16:20:00
 ---
 
 # Действие: Выход из системы
 
 **Выход из системы**
 
-*Сгенерировано: 2025-12-05 15:01:45*
+*Сгенерировано: 2025-12-07 16:20:00*
 
 ---
 
