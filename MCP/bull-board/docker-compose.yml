@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  bull-board:
+    build: .
+    container_name: bull-board
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - REDIS_HOST=avito-redis
+      - REDIS_PORT=6379
+    networks:
+      - avito-api_default
+
+networks:
+  avito-api_default:
+    external: true

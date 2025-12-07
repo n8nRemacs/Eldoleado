@@ -1,0 +1,17 @@
+{
+  "name": "bull-board-monitor",
+  "version": "1.0.0",
+  "description": "Bull Board dashboard for Redis queue monitoring",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@bull-board/api": "^6.9.0",
+    "@bull-board/express": "^6.9.0",
+    "bullmq": "^5.34.0",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2"
+  }
+}
