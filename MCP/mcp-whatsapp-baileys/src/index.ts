@@ -7,7 +7,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import * as path from 'path';
-import pino from 'pino';
 
 import { SessionManager } from './session';
 import {
@@ -20,8 +19,12 @@ import {
   ReactionMessageRequest,
 } from './types';
 
-// Logger
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+// Simple logger wrapper
+const logger = {
+  info: (msg: string, ...args: any[]) => console.log(`[INFO] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[ERROR] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => console.warn(`[WARN] ${msg}`, ...args),
+};
 
 // Configuration
 const config = {

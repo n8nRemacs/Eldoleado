@@ -7,8 +7,6 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
-import pino from 'pino';
-
 import { BaileysClient, BaileysClientOptions } from './baileys';
 import {
   SessionInfo,
@@ -18,7 +16,12 @@ import {
   IncomingCall,
 } from './types';
 
-const logger = pino({ level: 'info' });
+// Simple logger wrapper
+const logger = {
+  info: (msg: string, ...args: any[]) => console.log(`[INFO] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[ERROR] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => console.warn(`[WARN] ${msg}`, ...args),
+};
 
 export interface SessionManagerOptions {
   sessionsDir: string;

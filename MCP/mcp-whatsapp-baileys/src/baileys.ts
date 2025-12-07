@@ -19,7 +19,7 @@ import { Boom } from '@hapi/boom';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
-import pino from 'pino';
+import P from 'pino';
 import * as QRCode from 'qrcode';
 import * as mime from 'mime-types';
 
@@ -39,7 +39,16 @@ import {
   GroupInfo,
 } from './types';
 
-const logger = pino({ level: 'info' });
+// Simple logger wrapper
+const logger = {
+  info: (msg: string, ...args: any[]) => console.log(`[INFO] ${msg}`, ...args),
+  error: (msg: string, ...args: any[]) => console.error(`[ERROR] ${msg}`, ...args),
+  warn: (msg: string, ...args: any[]) => console.warn(`[WARN] ${msg}`, ...args),
+  debug: (msg: string, ...args: any[]) => console.log(`[DEBUG] ${msg}`, ...args),
+};
+
+// Silent pino for Baileys internal use
+const silentLogger = P({ level: 'silent' });
 
 // Format phone to WhatsApp JID
 export function formatJid(phone: string): string {
@@ -151,7 +160,7 @@ export class BaileysClient {
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      logger: pino({ level: 'silent' }),
+      logger: silentLogger,
       browser: ['Eldoleado', 'Chrome', '120.0.0'],
       connectTimeoutMs: 60000,
       qrTimeout: 60000,
@@ -674,8 +683,9 @@ END:VCARD`;
       throw new Error('Not connected');
     }
 
-    const [result] = await this.socket.onWhatsApp(phone);
-    return result?.exists || false;
+    const results = await this.socket.onWhatsApp(phone);
+    const result = results?.[0];
+    return Boolean(result?.exists);
   }
 
   // Get profile picture
