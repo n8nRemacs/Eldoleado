@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mcp-whatsapp-baileys:
+    build: .
+    container_name: mcp-whatsapp-baileys
+    restart: unless-stopped
+    ports:
+      - "8766:8766"
+    environment:
+      - PORT=8766
+      - HOST=0.0.0.0
+      - REDIS_URL=redis://mcp-redis:6379
+      - DEFAULT_WEBHOOK_URL=${DEFAULT_WEBHOOK_URL:-}
+      - API_KEY=${API_KEY:-}
+      - LOG_LEVEL=info
+    volumes:
+      - ./sessions:/app/sessions
+    networks:
+      - mcp-network
+    depends_on:
+      - mcp-redis
+
+  mcp-redis:
+    image: redis:7-alpine
+    container_name: mcp-whatsapp-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  redis-data:
