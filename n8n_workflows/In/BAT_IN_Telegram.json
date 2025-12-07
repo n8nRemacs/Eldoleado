@@ -1,6 +1,6 @@
 {
   "id": "pmDPBdREgE5wf1Cn",
-  "name": "BAT IN Telegram",
+  "name": "BAT_IN_Telegram",
   "active": true,
   "nodes": [
     {
@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// MCP Telegram присылает нормализованные данные\nconst event = $input.first().json;\n\n// Извлекаем данные из MCP формата\nconst chatId = event.chat_id?.toString() || '';\nconst userId = event.user_id?.toString() || '';\nconst messageText = event.text || '';\nconst messageId = event.message_id?.toString() || Date.now().toString();\nconst timestamp = event.timestamp || new Date().toISOString();\nconst botToken = event.bot_token || '';\n\n// Имя пользователя\nlet clientName = event.first_name || '';\nif (event.last_name) {\n  clientName += (clientName ? ' ' : '') + event.last_name;\n}\nif (!clientName && event.username) {\n  clientName = '@' + event.username;\n}\n\n// Проверяем медиа из attachments\nconst attachments = event.attachments || [];\nconst hasVoice = attachments.some(a => a.type === 'voice');\nconst hasPhoto = attachments.some(a => a.type === 'photo');\nconst hasVideo = attachments.some(a => a.type === 'video' || a.type === 'video_note');\nconst hasDocument = attachments.some(a => a.type === 'document');\n\n// Получаем file_id для голосового\nconst voiceAttachment = attachments.find(a => a.type === 'voice');\nconst voiceFileId = voiceAttachment?.file_id || null;\n\n// Получаем фото\nconst photoAttachments = attachments.filter(a => a.type === 'photo');\nconst videoAttachments = attachments.filter(a => a.type === 'video' || a.type === 'video_note');\n\nreturn {\n  has_voice: hasVoice,\n  voice_file_id: voiceFileId,\n  bot_token: botToken,\n  raw_event: event.raw_data || event,\n  chat_id: chatId,\n  user_id: userId,\n  phone: null,\n  message_text: messageText,\n  message_id: messageId,\n  timestamp: timestamp,\n  sender_name: clientName,\n  username: event.username,\n  has_photo: hasPhoto,\n  photo_attachments: photoAttachments,\n  has_video: hasVideo,\n  video_attachments: videoAttachments,\n  has_document: hasDocument,\n  is_callback: event.is_callback || false,\n  callback_data: event.callback_data || null\n};"
+        "jsCode": "// MCP Telegram присылает нормализованные данные\n  // Webhook передает данные в body\n  const rawInput = $input.first().json;\n  const event = rawInput.body || rawInput;\n\n  // Извлекаем данные из MCP формата\n  const chatId = event.chat_id?.toString() || '';\n  const userId = event.user_id?.toString() || '';\n  const messageText = event.text || '';\n  const messageId = event.message_id?.toString() || Date.now().toString();\n  const timestamp = event.timestamp || new Date().toISOString();\n  const botToken = event.bot_token || '';\n\n  // Имя пользователя\n  let clientName = event.first_name || '';\n  if (event.last_name) {\n    clientName += (clientName ? ' ' : '') + event.last_name;\n  }\n  if (!clientName && event.username) {\n    clientName = '@' + event.username;\n  }\n\n  // Проверяем медиа из attachments\n  const attachments = event.attachments || [];\n  const hasVoice = attachments.some(a => a.type === 'voice');\n  const hasPhoto = attachments.some(a => a.type === 'photo');\n  const hasVideo = attachments.some(a => a.type === 'video' || a.type === 'video_note');\n  const hasDocument = attachments.some(a => a.type === 'document');\n\n  // Получаем file_id для голосового\n  const voiceAttachment = attachments.find(a => a.type === 'voice');\n  const voiceFileId = voiceAttachment?.file_id || null;\n\n  // Получаем фото\n  const photoAttachments = attachments.filter(a => a.type === 'photo');\n  const videoAttachments = attachments.filter(a => a.type === 'video' || a.type === 'video_note');\n\n  return {\n    has_voice: hasVoice,\n    voice_file_id: voiceFileId,\n    bot_token: botToken,\n    raw_event: event.raw_data || event,\n    chat_id: chatId,\n    user_id: userId,\n    phone: null,\n    message_text: messageText,\n    message_id: messageId,\n    timestamp: timestamp,\n    sender_name: clientName,\n    username: event.username,\n    has_photo: hasPhoto,\n    photo_attachments: photoAttachments,\n    has_video: hasVideo,\n    video_attachments: videoAttachments,\n    has_document: hasDocument,\n    is_callback: event.is_callback || false,\n    callback_data: event.callback_data || null\n  };"
       },
       "id": "d5bedbd4-8fd7-4267-bfaf-2b0416f5cf62",
       "name": "Extract Telegram Data",
@@ -360,6 +360,6 @@
       "name": "In"
     }
   ],
-  "updatedAt": "2025-12-05T10:42:30.000Z",
+  "updatedAt": "2025-12-07T11:40:46.000Z",
   "createdAt": "2025-10-14T06:44:54.979Z"
 }

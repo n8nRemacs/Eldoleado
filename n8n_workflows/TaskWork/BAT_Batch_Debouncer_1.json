@@ -1,108 +1,34 @@
 {
   "id": "JlCa9RquhbDicbPG",
   "name": "BAT Batch Debouncer 1",
-  "active": true,
+  "active": false,
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "seconds",
-              "secondsInterval": 10
-            }
-          ]
-        }
+        "jsCode": "// Получаем данные о батче из входа\n  const raw = $input.first().json;\n  const input = raw.value || raw;\n\n  return {\n    batch_key: input.batch_key,\n    channel: input.channel,\n    external_chat_id: input.external_chat_id,\n    queue_key: input.queue_key || `queue:batch:${input.batch_key}`,\n    lock_key: input.lock_key || `lock:batch:${input.batch_key}`,\n    last_seen_key: input.last_seen_key || `last_seen:${input.batch_key}`,\n    debounce_seconds: 20,\n    max_wait_seconds: 300,\n    start_time: new Date().toISOString()\n  };\n"
       },
-      "id": "38e3c4b9-e6c0-46ee-8c60-510e66de791e",
-      "name": "Every 10 Seconds",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -1648,
-        64
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "pop",
-        "list": "queue:debounce:pending",
-        "options": {}
-      },
-      "id": "76ea2fb2-f455-4284-b2af-fbd93f14f49a",
-      "name": "Pop Batch Job",
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        -1424,
-        64
-      ],
-      "credentials": {
-        "redis": {
-          "id": "7FQcEivUY94atW24",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "has-job",
-              "leftValue": "={{ $json.value }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "114600ce-fd34-460e-ba91-8f6b77944964",
-      "name": "Has Job?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1200,
-        64
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Парсим задание из очереди\nconst jobStr = $json.value;\nlet job;\n\ntry {\n  job = JSON.parse(jobStr);\n} catch (e) {\n  return { error: 'Failed to parse job', raw: jobStr };\n}\n\nreturn {\n  batch_key: job.batch_key,\n  channel: job.channel,\n  external_chat_id: job.external_chat_id,\n  queue_key: job.queue_key || `queue:batch:${job.batch_key}`,\n  lock_key: job.lock_key || `lock:batch:${job.batch_key}`,\n  last_seen_key: job.last_seen_key || `last_seen:${job.batch_key}`,\n  debounce_seconds: job.debounce_seconds || 20,\n  max_wait_seconds: job.max_wait_seconds || 300,\n  start_time: job.start_time || new Date().toISOString(),\n  worker_id: 1\n};"
-      },
-      "id": "02ff47da-2a8c-4fbe-8633-8b7bfc1a40b1",
-      "name": "Parse Job",
+      "id": "bc2e7bc7-6ca6-4ef6-9486-08ebac4dd8a7",
+      "name": "Init Debouncer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -976,
-        -48
+        -1152,
+        -256
       ]
     },
     {
       "parameters": {
         "operation": "get",
-        "key": "={{ $json.last_seen_key }}",
+        "key": "={{ $('Init Debouncer').item.json.last_seen_key }}",
         "options": {}
       },
-      "id": "12976b18-ab9e-4fae-bcf8-02d211440932",
+      "id": "d154ec98-38c4-4255-ae3b-c1b510618887",
       "name": "Get Last Seen",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -768,
-        -48
+        -720,
+        -256
       ],
       "credentials": {
         "redis": {
@@ -113,15 +39,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const lastSeenStr = $json.value;\nconst job = $('Parse Job').first().json;\nconst debounceMs = job.debounce_seconds * 1000;\nconst maxWaitMs = job.max_wait_seconds * 1000;\nconst startTime = new Date(job.start_time).getTime();\nconst now = Date.now();\n\nlet lastSeenTime = 0;\nif (lastSeenStr) {\n  lastSeenTime = new Date(lastSeenStr).getTime();\n}\n\nconst silenceDuration = now - lastSeenTime;\nconst totalWaitDuration = now - startTime;\n\n// Условия для сбора батча:\n// 1. Тишина >= debounce_seconds\n// 2. ИЛИ общее время ожидания >= max_wait_seconds\nconst silenceReached = silenceDuration >= debounceMs;\nconst maxWaitReached = totalWaitDuration >= maxWaitMs;\nconst readyToProcess = silenceReached || maxWaitReached;\n\nreturn {\n  ...job,\n  last_seen: lastSeenStr,\n  last_seen_time: lastSeenTime,\n  silence_duration_ms: silenceDuration,\n  total_wait_duration_ms: totalWaitDuration,\n  silence_reached: silenceReached,\n  max_wait_reached: maxWaitReached,\n  ready_to_process: readyToProcess,\n  reason: maxWaitReached ? 'max_wait_timeout' : (silenceReached ? 'silence_reached' : 'still_active')\n};"
+        "jsCode": "const lastSeenStr = $json.value;\nconst initData = $('Init Debouncer').first().json;\nconst debounceMs = initData.debounce_seconds * 1000;\nconst maxWaitMs = initData.max_wait_seconds * 1000;\nconst startTime = new Date(initData.start_time).getTime();\nconst now = Date.now();\n\n// Проверяем прошло ли достаточно времени с последнего сообщения\nlet lastSeenTime = 0;\nif (lastSeenStr) {\n  lastSeenTime = new Date(lastSeenStr).getTime();\n}\n\nconst silenceDuration = now - lastSeenTime;\nconst totalWaitDuration = now - startTime;\n\n// Условия для сбора батча:\n// 1. Тишина >= debounce_seconds\n// 2. ИЛИ общее время ожидания >= max_wait_seconds (защита от бесконечного ожидания)\nconst silenceReached = silenceDuration >= debounceMs;\nconst maxWaitReached = totalWaitDuration >= maxWaitMs;\nconst readyToProcess = silenceReached || maxWaitReached;\n\nreturn {\n  ...initData,\n  last_seen: lastSeenStr,\n  last_seen_time: lastSeenTime,\n  silence_duration_ms: silenceDuration,\n  total_wait_duration_ms: totalWaitDuration,\n  silence_reached: silenceReached,\n  max_wait_reached: maxWaitReached,\n  ready_to_process: readyToProcess,\n  reason: maxWaitReached ? 'max_wait_timeout' : (silenceReached ? 'silence_reached' : 'still_active')\n};"
       },
-      "id": "588d3ff4-fce2-4ea1-8500-ba6a1d84391c",
+      "id": "eabfa0fe-d682-4476-9eeb-1dd09f0ef356",
       "name": "Check Silence Duration",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -544,
-        -48
+        -496,
+        -256
       ]
     },
     {
@@ -130,7 +56,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
@@ -148,42 +74,42 @@
         },
         "options": {}
       },
-      "id": "5d2f017a-a82b-4229-9fc7-01be3fb141c5",
+      "id": "14cfa0f0-f3ee-449b-829c-6900f00bfd0f",
       "name": "Ready to Process?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -320,
-        -48
+        -272,
+        -256
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Не готов - возвращаем в очередь для повторной обработки\nconst job = $json;\n\nreturn {\n  job_json: JSON.stringify({\n    batch_key: job.batch_key,\n    channel: job.channel,\n    external_chat_id: job.external_chat_id,\n    queue_key: job.queue_key,\n    lock_key: job.lock_key,\n    last_seen_key: job.last_seen_key,\n    debounce_seconds: job.debounce_seconds,\n    max_wait_seconds: job.max_wait_seconds,\n    start_time: job.start_time\n  })\n};"
+        "jsCode": "// Передаём queue_key для POP операций\nconst data = $('Check Silence Duration').first().json;\nreturn { queue_key: data.queue_key };"
       },
-      "id": "d3565cda-3ea3-4bf5-8d2a-bad634416cbf",
-      "name": "Prepare Requeue",
+      "id": "8e184789-60a7-4f18-9473-ea76b54efea9",
+      "name": "Prepare Pop",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -96,
-        64
+        -48,
+        -256
       ]
     },
     {
       "parameters": {
-        "operation": "push",
-        "list": "queue:debounce:pending",
-        "messageData": "={{ $json.job_json }}",
-        "tail": true
+        "operation": "pop",
+        "list": "={{ $json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
       },
-      "id": "358a108b-15c5-4d9b-ad41-022d43ba02d6",
-      "name": "Requeue Job",
+      "id": "f99e1ac6-dac8-4eff-a502-70003bc42ea0",
+      "name": "Pop Message 1",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        128,
-        64
+        176,
+        -736
       ],
       "credentials": {
         "redis": {
@@ -194,15 +120,18 @@
     },
     {
       "parameters": {
-        "operation": "lRange"
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
       },
-      "id": "4deaec87-1d80-48df-b977-99ece4c744f1",
-      "name": "Get Batch Queue",
+      "id": "b44cb293-f3b0-45b6-b5f9-e7acc46a8c1d",
+      "name": "Pop Message 2",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -96,
-        -144
+        176,
+        -608
       ],
       "credentials": {
         "redis": {
@@ -213,15 +142,191 @@
     },
     {
       "parameters": {
-        "jsCode": "const queueData = $json.value;\nconst job = $('Check Silence Duration').first().json;\n\nlet messages = [];\n\nif (queueData) {\n  if (Array.isArray(queueData)) {\n    for (const item of queueData) {\n      try {\n        const parsed = typeof item === 'string' ? JSON.parse(item) : item;\n        messages.push(parsed);\n      } catch (e) {\n        console.error('Failed to parse:', item);\n      }\n    }\n  } else if (typeof queueData === 'string') {\n    const parts = queueData.includes('|||SEPARATOR|||') \n      ? queueData.split('|||SEPARATOR|||')\n      : [queueData];\n    \n    for (const part of parts) {\n      if (part.trim()) {\n        try {\n          messages.push(JSON.parse(part));\n        } catch (e) {\n          console.error('Failed to parse part:', part);\n        }\n      }\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return {\n    empty: true,\n    batch_key: job.batch_key,\n    queue_key: job.queue_key,\n    lock_key: job.lock_key\n  };\n}\n\n// Сортируем по timestamp\nconst toTs = (m) => {\n  const t = m.timestamp ? Date.parse(m.timestamp) : NaN;\n  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;\n};\nmessages.sort((a, b) => toTs(a) - toTs(b));\n\n// Собираем тексты\nconst texts = messages\n  .map(m => m.media?.voice_transcribed_text\n    ? `[Голосовое]: ${m.media.voice_transcribed_text}`\n    : (m.text || ''))\n  .filter(t => t.trim());\n\nconst combinedText = texts.join('\\n\\n');\nconst base = messages[0];\nconst lastWithRaw = [...messages].reverse().find(m => m?.meta?.raw);\n\nreturn {\n  empty: false,\n  batch_key: job.batch_key,\n  queue_key: job.queue_key,\n  lock_key: job.lock_key,\n  channel: base.channel,\n  external_user_id: base.external_user_id,\n  external_chat_id: base.external_chat_id,\n  text: combinedText,\n  timestamp: base.timestamp,\n  client_phone: base.client_phone,\n  client_name: base.client_name,\n  client_email: base.client_email,\n  tenant_id: base.tenant_id,\n  media: base.media,\n  meta: {\n    ...base.meta,\n    ...(lastWithRaw?.meta?.raw ? { raw: lastWithRaw.meta.raw } : {}),\n    batched: true,\n    batch_size: messages.length,\n    batch_wait_time: job.debounce_seconds,\n    batch_reason: job.reason,\n    worker_id: job.worker_id,\n    original_messages: messages.map(m => ({\n      timestamp: m.timestamp,\n      type: m.meta?.original_media_type || 'text',\n      text_length: (m.text || '').length\n    })),\n    combined_at: new Date().toISOString()\n  },\n  prefilled_data: base.prefilled_data\n};"
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
       },
-      "id": "bc20e3cb-3e84-4bc9-ba1e-781c8f30b8a2",
+      "id": "ef49995c-2c91-43a1-b4f0-68be972ac5e8",
+      "name": "Pop Message 3",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -480
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "3d12bf4b-be74-4c63-9511-a3d48d751755",
+      "name": "Pop Message 4",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -352
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "b1b14fd4-5494-446c-8a36-7b671e73d077",
+      "name": "Pop Message 5",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "8dce02f2-5a89-435f-9d24-c63ea02fa9aa",
+      "name": "Pop Message 6",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -96
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "d47fe7bc-b5b0-49b8-ab01-7c3d85ada64b",
+      "name": "Pop Message 7",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "2867d49f-853c-4330-bc49-7aff47dca721",
+      "name": "Pop Message 8",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        160
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "d9cdf418-7037-4588-bc0c-8e3a8c96ef5d",
+      "name": "Pop Message 9",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        288
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "={{ $('Prepare Pop').item.json.queue_key }}",
+        "propertyName": "value",
+        "options": {}
+      },
+      "id": "135da577-5e48-4d02-a163-db3ca2174580",
+      "name": "Pop Message 10",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        416
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Собираем все сообщения из POP операций\nconst allItems = $input.all();\nconst initData = $('Check Silence Duration').first().json;\nconst messages = [];\n\nfor (const item of allItems) {\n  const val = item.json?.value;\n  if (val && val !== null && val !== 'null' && val !== '') {\n    try {\n      // Проверяем, содержит ли строка сепаратор\n      if (typeof val === 'string' && val.includes('|||SEPARATOR|||')) {\n        const parts = val.split('|||SEPARATOR|||');\n        for (const part of parts) {\n          if (part.trim()) {\n            messages.push(JSON.parse(part));\n          }\n        }\n      } else {\n        const parsed = typeof val === 'string' ? JSON.parse(val) : val;\n        messages.push(parsed);\n      }\n    } catch (e) {\n      console.error('Failed to parse message:', val, e);\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return {\n    empty: true,\n    batch_key: initData.batch_key\n  };\n}\n\n// Сортируем по timestamp\nconst toTs = (m) => {\n  const t = m.timestamp ? Date.parse(m.timestamp) : NaN;\n  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;\n};\nmessages.sort((a, b) => toTs(a) - toTs(b));\n\n// Собираем тексты\nconst texts = messages\n  .map(m => m.media?.voice_transcribed_text\n    ? `[Голосовое]: ${m.media.voice_transcribed_text}`\n    : (m.text || ''))\n  .filter(t => t.trim());\n\nconst combinedText = texts.join('\\n\\n');\n\n// Берём первое сообщение как базу\nconst base = messages[0];\n\n// Находим последнее с raw\nconst lastWithRaw = [...messages].reverse().find(m => m?.meta?.raw);\n\nreturn {\n  empty: false,\n  batch_key: initData.batch_key,\n  channel: base.channel,\n  external_user_id: base.external_user_id,\n  external_chat_id: base.external_chat_id,\n  text: combinedText,\n  timestamp: base.timestamp,\n  client_phone: base.client_phone,\n  client_name: base.client_name,\n  client_email: base.client_email,\n  client_username: base.client_username,\n  tenant_id: base.tenant_id,\n  media: base.media,\n  meta: {\n    ...base.meta,\n    ...(lastWithRaw?.meta?.raw ? { raw: lastWithRaw.meta.raw } : {}),\n    batched: true,\n    batch_size: messages.length,\n    batch_wait_time: initData.debounce_seconds,\n    batch_reason: initData.reason,\n    original_messages: messages.map(m => ({\n      timestamp: m.timestamp,\n      type: m.meta?.original_media_type || 'text',\n      text_length: (m.text || '').length\n    })),\n    combined_at: new Date().toISOString()\n  },\n  prefilled_data: base.prefilled_data\n};"
+      },
+      "id": "3b2db5d9-644f-4dd8-b1be-5f485725fab8",
       "name": "Combine Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        128,
-        -144
+        448,
+        -256
       ]
     },
     {
@@ -248,27 +353,27 @@
         },
         "options": {}
       },
-      "id": "c060dc13-b5a3-408e-bece-9e4c7e01653d",
+      "id": "de69ca37-5ce4-4b75-b27f-36ace68c6526",
       "name": "Is Batch Empty?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        352,
-        -144
+        672,
+        -256
       ]
     },
     {
       "parameters": {
         "operation": "delete",
-        "key": "={{ $json.queue_key }}"
+        "key": "={{ $('Check Silence Duration').item.json.queue_key }}"
       },
-      "id": "b822f97f-35dd-4b9d-9876-3654bf20fdf5",
+      "id": "efcd7386-4cf5-47f1-9fd6-69c3a4955cb7",
       "name": "Delete Queue (Empty)",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        560,
-        -240
+        896,
+        -368
       ],
       "credentials": {
         "redis": {
@@ -280,15 +385,15 @@
     {
       "parameters": {
         "operation": "delete",
-        "key": "={{ $json.lock_key }}"
+        "key": "={{ $('Check Silence Duration').item.json.lock_key }}"
       },
-      "id": "4c49d832-1b79-407b-a5df-3f2afdc2196a",
+      "id": "0bcecd8c-1752-482e-8bdf-73f8f95b23c1",
       "name": "Release Lock (Empty)",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        784,
-        -240
+        1120,
+        -368
       ],
       "credentials": {
         "redis": {
@@ -300,35 +405,15 @@
     {
       "parameters": {
         "operation": "delete",
-        "key": "={{ $json.queue_key }}"
+        "key": "={{ $('Check Silence Duration').item.json.lock_key }}"
       },
-      "id": "6d42c3ce-bd9d-4b00-98a1-948c48bb2b8c",
-      "name": "Delete Queue",
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        560,
-        -48
-      ],
-      "credentials": {
-        "redis": {
-          "id": "7FQcEivUY94atW24",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "delete",
-        "key": "={{ $json.lock_key }}"
-      },
-      "id": "19999bd7-28f1-4b3b-9d1c-79074703461f",
+      "id": "b1dffba4-3196-4ee6-a450-f0563389dca4",
       "name": "Release Lock",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        784,
-        -48
+        896,
+        -144
       ],
       "credentials": {
         "redis": {
@@ -342,55 +427,78 @@
         "workflowId": "OUjTFzd7k4tdoAjh",
         "options": {}
       },
-      "id": "5dfca615-57d2-4afa-8e9d-236d115d747e",
-      "name": "Client Resolver",
+      "id": "c2eac45e-ee53-4458-af02-0ccbb67b912c",
+      "name": "→ Client Resolver",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        1008,
-        -48
+        1120,
+        -144
       ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1600,
+        -256
+      ],
+      "id": "acd1dd2c-d238-4b52-a986-f961c42b384d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:debounce:pending",
+        "propertyName": "value",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        -256
+      ],
+      "id": "9e6d7333-496d-44e5-9a21-676dd7bd43e6",
+      "name": "Pop Batch Job",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "da8b3643-1e72-45cf-b710-4c8218a52755",
+      "name": "Wait 10s (Debounce)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -928,
+        -256
+      ],
+      "webhookId": "batch-debouncer-wait"
     }
   ],
   "connections": {
-    "Every 10 Seconds": {
+    "Init Debouncer": {
       "main": [
         [
           {
-            "node": "Pop Batch Job",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pop Batch Job": {
-      "main": [
-        [
-          {
-            "node": "Has Job?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Has Job?": {
-      "main": [
-        [
-          {
-            "node": "Parse Job",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Job": {
-      "main": [
-        [
-          {
-            "node": "Get Last Seen",
+            "node": "Wait 10s (Debounce)",
             "type": "main",
             "index": 0
           }
@@ -423,32 +531,176 @@
       "main": [
         [
           {
-            "node": "Get Batch Queue",
+            "node": "Prepare Pop",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Prepare Requeue",
+            "node": "Wait 10s (Debounce)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Requeue": {
+    "Prepare Pop": {
       "main": [
         [
           {
-            "node": "Requeue Job",
+            "node": "Pop Message 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 9",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pop Message 10",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Batch Queue": {
+    "Pop Message 1": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 2": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 3": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 4": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 5": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 6": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 7": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 8": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 9": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Message 10": {
       "main": [
         [
           {
@@ -481,7 +733,7 @@
         ],
         [
           {
-            "node": "Delete Queue",
+            "node": "Release Lock",
             "type": "main",
             "index": 0
           }
@@ -499,22 +751,44 @@
         ]
       ]
     },
-    "Delete Queue": {
+    "Release Lock": {
       "main": [
         [
           {
-            "node": "Release Lock",
+            "node": "→ Client Resolver",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Release Lock": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "Client Resolver",
+            "node": "Pop Batch Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pop Batch Job": {
+      "main": [
+        [
+          {
+            "node": "Init Debouncer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s (Debounce)": {
+      "main": [
+        [
+          {
+            "node": "Get Last Seen",
             "type": "main",
             "index": 0
           }
@@ -539,6 +813,6 @@
       "name": "TaskWork"
     }
   ],
-  "updatedAt": "2025-12-03T13:11:00.000Z",
+  "updatedAt": "2025-12-07T12:09:09.000Z",
   "createdAt": "2025-12-03T12:11:19.541Z"
 }

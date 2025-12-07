@@ -1,7 +1,7 @@
 {
   "id": "vDT1adgGuzD9gnwJ",
   "name": "BAT AI Universal Worker 5",
-  "active": true,
+  "active": false,
   "nodes": [
     {
       "parameters": {
@@ -304,6 +304,6 @@
       "name": "TaskWork"
     }
   ],
-  "updatedAt": "2025-11-26T11:07:58.000Z",
+  "updatedAt": "2025-12-05T11:15:34.000Z",
   "createdAt": "2025-11-25T14:28:20.971Z"
 }

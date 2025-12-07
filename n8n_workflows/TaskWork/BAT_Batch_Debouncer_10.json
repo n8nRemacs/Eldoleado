@@ -1,7 +1,7 @@
 {
   "id": "X2MEqAcPG2r5720A",
   "name": "BAT Batch Debouncer 10",
-  "active": true,
+  "active": false,
   "nodes": [
     {
       "parameters": {
@@ -14,12 +14,12 @@
           ]
         }
       },
-      "id": "598ae06e-54bf-4c8c-8365-d4428dbfee14",
+      "id": "ba74b00b-e0bb-470d-a6c9-2462928676d5",
       "name": "Every 10 Seconds",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -2352,
+        -2528,
         304
       ]
     },
@@ -30,12 +30,12 @@
         "propertyName": "value",
         "options": {}
       },
-      "id": "368577c4-77ec-4aa9-bffe-e65f6347c410",
+      "id": "ebe1dbd7-8300-4ecf-926d-ee445c32fb94",
       "name": "Pop Batch Job",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -2128,
+        -2304,
         304
       ],
       "credentials": {
@@ -69,12 +69,12 @@
         },
         "options": {}
       },
-      "id": "0a9d49ed-73cb-463f-8e75-2841e2dc4c78",
+      "id": "eb1cb69f-e234-4074-afa5-8bbe4df52044",
       "name": "Has Job?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1904,
+        -2080,
         304
       ]
     },
@@ -82,12 +82,12 @@
       "parameters": {
         "jsCode": "// Парсим задание из очереди (может прийти как объект или строка)\nconst rawValue = $json.value;\nlet job;\n\nif (typeof rawValue === 'object' && rawValue !== null) {\n  job = rawValue;\n} else if (typeof rawValue === 'string') {\n  try {\n    job = JSON.parse(rawValue);\n  } catch (e) {\n    return { error: 'Failed to parse job', raw: rawValue };\n  }\n} else {\n  return { error: 'Invalid job format', raw: rawValue };\n}\n\nreturn {\n  batch_key: job.batch_key,\n  channel: job.channel,\n  external_chat_id: job.external_chat_id,\n  queue_key: job.queue_key || `queue:batch:${job.batch_key}`,\n  lock_key: job.lock_key || `lock:batch:${job.batch_key}`,\n  last_seen_key: job.last_seen_key || `last_seen:${job.batch_key}`,\n  debounce_seconds: job.debounce_seconds || 20,\n  max_wait_seconds: job.max_wait_seconds || 300,\n  start_time: job.start_time || new Date().toISOString(),\n  worker_id: 10\n};"
       },
-      "id": "1d244f05-873c-4b14-8551-3c01bfe653ae",
+      "id": "563d1620-7b84-4004-b4bf-4ea3104350bb",
       "name": "Parse Job",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1680,
+        -1856,
         208
       ]
     },
@@ -97,12 +97,12 @@
         "key": "={{ $json.last_seen_key }}",
         "options": {}
       },
-      "id": "42b4d879-7c68-4659-8597-0e03a37f4d7b",
+      "id": "e3980bc8-316e-4d42-a8f1-6605484c5c89",
       "name": "Get Last Seen",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -1472,
+        -1648,
         208
       ],
       "credentials": {
@@ -116,12 +116,12 @@
       "parameters": {
         "jsCode": "const lastSeenStr = $json.value;\nconst job = $('Parse Job').first().json;\nconst debounceMs = job.debounce_seconds * 1000;\nconst maxWaitMs = job.max_wait_seconds * 1000;\nconst startTime = new Date(job.start_time).getTime();\nconst now = Date.now();\n\nlet lastSeenTime = 0;\nif (lastSeenStr) {\n  lastSeenTime = new Date(lastSeenStr).getTime();\n}\n\nconst silenceDuration = now - lastSeenTime;\nconst totalWaitDuration = now - startTime;\n\n// Условия для сбора батча:\n// 1. Тишина >= debounce_seconds\n// 2. ИЛИ общее время ожидания >= max_wait_seconds\nconst silenceReached = silenceDuration >= debounceMs;\nconst maxWaitReached = totalWaitDuration >= maxWaitMs;\nconst readyToProcess = silenceReached || maxWaitReached;\n\nreturn {\n  ...job,\n  last_seen: lastSeenStr,\n  last_seen_time: lastSeenTime,\n  silence_duration_ms: silenceDuration,\n  total_wait_duration_ms: totalWaitDuration,\n  silence_reached: silenceReached,\n  max_wait_reached: maxWaitReached,\n  ready_to_process: readyToProcess,\n  reason: maxWaitReached ? 'max_wait_timeout' : (silenceReached ? 'silence_reached' : 'still_active')\n};"
       },
-      "id": "2b374ff2-43ec-494f-b8ba-9ac7f9a7a248",
+      "id": "9a4081bf-32d7-4151-9d74-3574979e215d",
       "name": "Check Silence Duration",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1248,
+        -1424,
         208
       ]
     },
@@ -131,7 +131,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
@@ -149,12 +149,12 @@
         },
         "options": {}
       },
-      "id": "debc1880-713e-4ab8-ade0-bf8b1a01dfee",
+      "id": "5d1ed029-0542-48a8-bfbf-647498fc32d3",
       "name": "Ready to Process?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1024,
+        -1200,
         208
       ]
     },
@@ -162,12 +162,12 @@
       "parameters": {
         "jsCode": "// Не готов - возвращаем в очередь для повторной обработки\nconst job = $json;\n\nreturn {\n  job_json: JSON.stringify({\n    batch_key: job.batch_key,\n    channel: job.channel,\n    external_chat_id: job.external_chat_id,\n    queue_key: job.queue_key,\n    lock_key: job.lock_key,\n    last_seen_key: job.last_seen_key,\n    debounce_seconds: job.debounce_seconds,\n    max_wait_seconds: job.max_wait_seconds,\n    start_time: job.start_time\n  })\n};"
       },
-      "id": "6435367f-3db1-4ad1-92a1-faa922b417ec",
+      "id": "6ef071e7-a053-4afd-845e-003411af792a",
       "name": "Prepare Requeue",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -800,
+        -976,
         304
       ]
     },
@@ -178,12 +178,12 @@
         "messageData": "={{ $json.job_json }}",
         "tail": true
       },
-      "id": "ec4aa9da-54c2-48a5-ae6f-269803ec84fb",
+      "id": "7d3293b2-eee2-44d2-82a0-a554be99753e",
       "name": "Requeue Job",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -592,
+        -768,
         304
       ],
       "credentials": {
@@ -195,17 +195,17 @@
     },
     {
       "parameters": {
-        "operation": "lRange",
-        "key": "={{ $('Parse Job').item.json.queue_key }}",
+        "operation": "get",
         "propertyName": "value",
+        "key": "=={{ $('Parse Job').item.json.queue_key }}",
         "options": {}
       },
-      "id": "d30b1399-2a43-41ab-baf5-df89cd69b300",
+      "id": "023b4fb4-4735-4033-9b7c-c62e9470ad2f",
       "name": "Get Batch Queue",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -800,
+        -976,
         112
       ],
       "credentials": {
@@ -219,12 +219,12 @@
       "parameters": {
         "jsCode": "const queueData = $json.value;\nconst job = $('Check Silence Duration').first().json;\n\nlet messages = [];\n\nif (queueData) {\n  if (Array.isArray(queueData)) {\n    for (const item of queueData) {\n      try {\n        const parsed = typeof item === 'string' ? JSON.parse(item) : item;\n        messages.push(parsed);\n      } catch (e) {\n        console.error('Failed to parse:', item);\n      }\n    }\n  } else if (typeof queueData === 'string') {\n    const parts = queueData.includes('|||SEPARATOR|||') \n      ? queueData.split('|||SEPARATOR|||')\n      : [queueData];\n    \n    for (const part of parts) {\n      if (part.trim()) {\n        try {\n          messages.push(JSON.parse(part));\n        } catch (e) {\n          console.error('Failed to parse part:', part);\n        }\n      }\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return {\n    empty: true,\n    batch_key: job.batch_key,\n    queue_key: job.queue_key,\n    lock_key: job.lock_key\n  };\n}\n\n// Сортируем по timestamp\nconst toTs = (m) => {\n  const t = m.timestamp ? Date.parse(m.timestamp) : NaN;\n  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;\n};\nmessages.sort((a, b) => toTs(a) - toTs(b));\n\n// Собираем тексты\nconst texts = messages\n  .map(m => m.media?.voice_transcribed_text\n    ? `[Голосовое]: ${m.media.voice_transcribed_text}`\n    : (m.text || ''))\n  .filter(t => t.trim());\n\nconst combinedText = texts.join('\\n\\n');\nconst base = messages[0];\nconst lastWithRaw = [...messages].reverse().find(m => m?.meta?.raw);\n\nreturn {\n  empty: false,\n  batch_key: job.batch_key,\n  queue_key: job.queue_key,\n  lock_key: job.lock_key,\n  channel: base.channel,\n  external_user_id: base.external_user_id,\n  external_chat_id: base.external_chat_id,\n  text: combinedText,\n  timestamp: base.timestamp,\n  client_phone: base.client_phone,\n  client_name: base.client_name,\n  client_email: base.client_email,\n  tenant_id: base.tenant_id,\n  media: base.media,\n  meta: {\n    ...base.meta,\n    ...(lastWithRaw?.meta?.raw ? { raw: lastWithRaw.meta.raw } : {}),\n    batched: true,\n    batch_size: messages.length,\n    batch_wait_time: job.debounce_seconds,\n    batch_reason: job.reason,\n    worker_id: job.worker_id,\n    original_messages: messages.map(m => ({\n      timestamp: m.timestamp,\n      type: m.meta?.original_media_type || 'text',\n      text_length: (m.text || '').length\n    })),\n    combined_at: new Date().toISOString()\n  },\n  prefilled_data: base.prefilled_data\n};"
       },
-      "id": "4d74a4e3-798f-4653-8766-beeb61193da0",
+      "id": "c1176792-5ce6-44cf-a0fe-d91983f0ce38",
       "name": "Combine Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -592,
+        -768,
         112
       ]
     },
@@ -234,7 +234,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
@@ -252,12 +252,12 @@
         },
         "options": {}
       },
-      "id": "dd19cd69-06ec-42f4-8a6f-e98f11009d36",
+      "id": "b27c95ae-e3a1-4fd8-a248-7fbcf8831c73",
       "name": "Is Batch Empty?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -368,
+        -544,
         112
       ]
     },
@@ -266,12 +266,12 @@
         "operation": "delete",
         "key": "={{ $json.queue_key }}"
       },
-      "id": "7ad49f91-1448-4e0b-91fa-a19a19bd50ed",
+      "id": "617116a2-18b2-4ed4-913e-36b2cc059584",
       "name": "Delete Queue (Empty)",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -144,
+        -320,
         0
       ],
       "credentials": {
@@ -286,12 +286,12 @@
         "operation": "delete",
         "key": "={{ $json.lock_key }}"
       },
-      "id": "b9c8f5ed-ea4d-4a6b-93d1-6f1ac52ffa00",
+      "id": "265b37ad-a08b-41bf-bc2f-fe79448912e1",
       "name": "Release Lock (Empty)",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        80,
+        -96,
         0
       ],
       "credentials": {
@@ -306,12 +306,12 @@
         "operation": "delete",
         "key": "={{ $json.queue_key }}"
       },
-      "id": "cc668531-d4f0-49b7-9ba0-912be68b0c70",
+      "id": "3f6c949b-5b77-4182-b4b9-b1d977ae772e",
       "name": "Delete Queue",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -144,
+        -320,
         208
       ],
       "credentials": {
@@ -326,12 +326,12 @@
         "operation": "delete",
         "key": "={{ $json.lock_key }}"
       },
-      "id": "9e88323e-9c09-4958-bce0-c845dfd342ab",
+      "id": "89f26df8-1374-4fdd-8764-426e6c864c1d",
       "name": "Release Lock",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        80,
+        -96,
         208
       ],
       "credentials": {
@@ -346,12 +346,12 @@
         "workflowId": "OUjTFzd7k4tdoAjh",
         "options": {}
       },
-      "id": "f70df1ba-b7ed-406b-9233-0eab4062fe90",
+      "id": "171245f5-ee21-4a27-b7ea-4af3cdc227ae",
       "name": "Client Resolver",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        304,
+        128,
         208
       ]
     }
@@ -543,6 +543,6 @@
       "name": "TaskWork"
     }
   ],
-  "updatedAt": "2025-12-03T13:12:01.000Z",
+  "updatedAt": "2025-12-07T11:51:39.000Z",
   "createdAt": "2025-12-03T12:13:34.205Z"
 }

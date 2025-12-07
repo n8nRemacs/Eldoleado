@@ -1,7 +1,7 @@
 {
   "id": "2qugTwomN5sKD0zF",
   "name": "BAT Batch Debouncer 4",
-  "active": true,
+  "active": false,
   "nodes": [
     {
       "parameters": {
@@ -539,6 +539,6 @@
       "name": "TaskWork"
     }
   ],
-  "updatedAt": "2025-12-03T13:12:49.000Z",
+  "updatedAt": "2025-12-05T11:15:28.000Z",
   "createdAt": "2025-12-03T12:12:19.677Z"
 }
