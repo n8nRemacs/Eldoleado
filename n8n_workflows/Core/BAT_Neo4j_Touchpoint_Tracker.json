@@ -38,7 +38,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
@@ -165,6 +165,6 @@
       "name": "Core"
     }
   ],
-  "updatedAt": "2025-12-03T12:00:13.000Z",
+  "updatedAt": "2025-12-08T08:10:08.000Z",
   "createdAt": "2025-12-03T10:31:53.809Z"
 }

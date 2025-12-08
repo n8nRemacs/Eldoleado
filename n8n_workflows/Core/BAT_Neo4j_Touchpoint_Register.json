@@ -24,7 +24,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Валидация входных данных для Touchpoint Register\n// 3 типа касаний: inbound (новый клиент), mutual (диалог), outbound (промо)\n\nconst ALLOWED_CHANNELS = ['whatsapp', 'telegram', 'vk', 'avito', 'max', 'phone', 'email', 'web', 'form', 'in_person'];\nconst ALLOWED_DIRECTIONS = ['inbound', 'outbound', 'mutual'];\nconst ALLOWED_TYPES = ['message', 'call', 'visit', 'promo', 'form'];\n\nconst body = $json.body || {};\n\nconst client_id = body.client_id;\nconst appeal_id = body.appeal_id || null;\nconst channel = body.channel || 'unknown';\nconst direction = body.direction || 'mutual';\nconst type = body.type || 'message';\nconst is_new_client = body.is_new_client || false;\nconst vertical_id = body.vertical_id || null;\nconst tenant_id = body.tenant_id || null;\n\n// Валидация обязательных полей\nif (!client_id) {\n  throw new Error('client_id is required');\n}\n\nif (!ALLOWED_DIRECTIONS.includes(direction)) {\n  throw new Error(`Invalid direction: ${direction}. Allowed: ${ALLOWED_DIRECTIONS.join(', ')}`);\n}\n\n// Логика определения direction:\n// - is_new_client && нет телефона в базе → inbound\n// - is_new_client && есть телефон в базе → mutual  \n// - промо/рассылка → outbound\n// - диалог (есть inbound + был ответ + клиент написал) → mutual\n\nconst touchpoint_id = crypto.randomUUID();\n\nreturn {\n  touchpoint_id,\n  client_id,\n  appeal_id,\n  channel,\n  direction,\n  type,\n  is_new_client,\n  vertical_id,\n  tenant_id,\n  timestamp: new Date().toISOString(),\n  _validation: 'passed'\n};"
+        "jsCode": "// Валидация входных данных для Touchpoint Register\n// 3 типа касаний: inbound (новый клиент), mutual (диалог), outbound (промо)\n\nconst ALLOWED_CHANNELS = ['whatsapp', 'telegram', 'vk', 'avito', 'max', 'phone', 'email', 'web', 'form', 'in_person'];\nconst ALLOWED_DIRECTIONS = ['inbound', 'outbound', 'mutual'];\nconst ALLOWED_TYPES = ['message', 'call', 'visit', 'promo', 'form'];\n\nconst body = $json.body || {};\n\nconst client_id = body.client_id;\nconst appeal_id = body.appeal_id || null;\nconst channel = body.channel || 'unknown';\nconst direction = body.direction || 'mutual';\nconst type = body.type || 'message';\nconst is_new_client = body.is_new_client || false;\nconst vertical_id = body.vertical_id || null;\nconst tenant_id = body.tenant_id || null;\n\n// Валидация обязательных полей\nif (!client_id) {\n  throw new Error('client_id is required');\n}\n\nif (!ALLOWED_DIRECTIONS.includes(direction)) {\n  throw new Error(`Invalid direction: ${direction}. Allowed: ${ALLOWED_DIRECTIONS.join(', ')}`);\n}\n\n// Логика определения direction:\n// - is_new_client && нет телефона в базе → inbound\n// - is_new_client && есть телефон в базе → mutual  \n// - промо/рассылка → outbound\n// - диалог (есть inbound + был ответ + клиент написал) → mutual\n\nconst touchpoint_id = $json.body.touchpoint_id || require('crypto').randomUUID();\n\nreturn {\n  touchpoint_id,\n  client_id,\n  appeal_id,\n  channel,\n  direction,\n  type,\n  is_new_client,\n  vertical_id,\n  tenant_id,\n  timestamp: new Date().toISOString(),\n  _validation: 'passed'\n};"
       },
       "name": "Parse & Validate",
       "type": "n8n-nodes-base.code",
@@ -38,12 +38,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://45.144.177.128:7474/db/neo4j/tx/commit",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ \n  const data = $json;\n  const statements = [];\n  \n  // 1. Создаём Touchpoint узел\n  statements.push({\n    statement: `\n      CREATE (t:Touchpoint {\n        id: $id,\n        timestamp: datetime($timestamp),\n        type: $type,\n        channel: $channel,\n        direction: $direction\n      })\n      RETURN t\n    `,\n    parameters: {\n      id: data.touchpoint_id,\n      timestamp: data.timestamp,\n      type: data.type,\n      channel: data.channel,\n      direction: data.direction\n    }\n  });\n  \n  // 2. Связь с Client (FROM для inbound, TO для outbound, оба для mutual)\n  if (data.direction === 'inbound') {\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:FROM]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  } else if (data.direction === 'outbound') {\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:TO]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  } else if (data.direction === 'mutual') {\n    // Для mutual - связь в обе стороны\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (c:Client {id: $clientId})\n        CREATE (t)-[:FROM]->(c)\n        CREATE (t)-[:TO]->(c)\n        RETURN t, c\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        clientId: data.client_id\n      }\n    });\n  }\n  \n  // 3. Связь с Vertical если указана\n  if (data.vertical_id) {\n    statements.push({\n      statement: `\n        MATCH (t:Touchpoint {id: $touchpointId})\n        MATCH (v:Vertical {id: $verticalId})\n        CREATE (t)-[:IN_VERTICAL]->(v)\n        RETURN t, v\n      `,\n      parameters: {\n        touchpointId: data.touchpoint_id,\n        verticalId: data.vertical_id\n      }\n    });\n  }\n  \n  JSON.stringify({ statements });\n}}",
+        "jsonBody": "={{ JSON.stringify($json.neo4j_body) }}",
         "options": {
           "allowUnauthorizedCerts": true
         }
@@ -52,7 +52,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        96,
+        304,
         32
       ],
       "id": "3303ddeb-6e2c-41ea-ad58-fc6a3e34fa8f",
@@ -73,7 +73,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        368,
+        576,
         32
       ],
       "id": "515c1e0d-5ef4-4e12-be72-ec18a53b7e00",
@@ -92,7 +92,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        592,
+        800,
         32
       ],
       "id": "ff982981-16db-4fff-b8fa-3f0d71cc363c"
@@ -117,10 +117,23 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        816,
+        1024,
         32
       ],
       "id": "2aabfd9b-3f3c-4440-9440-15c5c5646608"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n  const statements = [];\n\n  // 1. Создаём Touchpoint узел\n  statements.push({\n    statement: \"CREATE (t:Touchpoint {id: $id, timestamp: datetime($timestamp), type: $type, channel: $channel, direction: $direction}) RETURN t\",\n    parameters: {\n      id: data.touchpoint_id,\n      timestamp: data.timestamp,\n      type: data.type,\n      channel: data.channel,\n      direction: data.direction\n    }\n  });\n\n  // 2. Связь с Client\n  if (data.direction === 'inbound') {\n    statements.push({\n      statement: \"MATCH (t:Touchpoint {id: $touchpointId}) MATCH (c:Client {id: $clientId}) CREATE (t)-[:FROM]->(c) RETURN t, c\",\n      parameters: { touchpointId: data.touchpoint_id, clientId: data.client_id }\n    });\n  } else if (data.direction === 'outbound') {\n    statements.push({\n      statement: \"MATCH (t:Touchpoint {id: $touchpointId}) MATCH (c:Client {id: $clientId}) CREATE (t)-[:TO]->(c) RETURN t, c\",\n      parameters: { touchpointId: data.touchpoint_id, clientId: data.client_id }\n    });\n  } else if (data.direction === 'mutual') {\n    statements.push({\n      statement: \"MATCH (t:Touchpoint {id: $touchpointId}) MATCH (c:Client {id: $clientId}) CREATE (t)-[:FROM]->(c), (t)-[:TO]->(c) RETURN t, c\",\n      parameters: { touchpointId: data.touchpoint_id, clientId: data.client_id }\n    });\n  }\n\n  // 3. Связь с Vertical если указана\n  if (data.vertical_id) {\n    statements.push({\n      statement: \"MATCH (t:Touchpoint {id: $touchpointId}) MATCH (v:Vertical {id: $verticalId}) CREATE (t)-[:IN_VERTICAL]->(v) RETURN t, v\",\n      parameters: { touchpointId: data.touchpoint_id, verticalId: data.vertical_id }\n    });\n  }\n\n  return {\n    ...data,\n    neo4j_body: { statements }\n  };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        32
+      ],
+      "id": "10c1ce52-2176-4bfd-9a8c-bcd3217fa2d0",
+      "name": "Prepare Neo4j Query"
     }
   ],
   "connections": {
@@ -139,7 +152,7 @@
       "main": [
         [
           {
-            "node": "Neo4j Create Touchpoint",
+            "node": "Prepare Neo4j Query",
             "type": "main",
             "index": 0
           }
@@ -178,6 +191,17 @@
           }
         ]
       ]
+    },
+    "Prepare Neo4j Query": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Create Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -197,6 +221,6 @@
       "name": "Core"
     }
   ],
-  "updatedAt": "2025-12-04T13:58:20.000Z",
+  "updatedAt": "2025-12-08T08:19:56.000Z",
   "createdAt": "2025-12-03T17:35:58.215Z"
 }

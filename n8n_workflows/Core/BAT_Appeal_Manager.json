@@ -5,12 +5,12 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "8e704207-0248-49c8-9ab6-da7a446f33cc",
+      "id": "9f67c82a-6a40-4afd-8386-083e9fb47ded",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -1888,
+        -1648,
         192
       ]
     },
@@ -21,10 +21,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1680,
+        -1440,
         192
       ],
-      "id": "d1219b55-c7ba-4b98-af30-0239a758792a",
+      "id": "bfd11428-8b01-4a61-9a63-79e52c12b9b3",
       "name": "Attach Base"
     },
     {
@@ -32,10 +32,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1216,
+        -976,
         192
       ],
-      "id": "b1d6107d-9457-4b4b-9497-e8f14883f68f",
+      "id": "8a015aaf-0725-4d7e-833b-7997967b521b",
       "name": "Merge"
     },
     {
@@ -45,10 +45,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1008,
+        -768,
         192
       ],
-      "id": "c9e29707-5983-4d7b-a5c5-ec8801757cae",
+      "id": "3f4513f7-e2c4-4d20-ad70-5f94a2876b0c",
       "name": "Merge After Find1"
     },
     {
@@ -57,12 +57,12 @@
         "query": "WITH vals AS (\n  SELECT\n    '{{ $json.client?.id || \"\" }}' AS client_id_text,\n    '{{ $json.tenant_id }}' AS tenant_id_text\n),\nv AS (\n  SELECT \n    CASE\n      WHEN client_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN client_id_text::uuid\n      ELSE NULL\n    END AS client_id,\n    CASE\n      WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN tenant_id_text::uuid\n      ELSE NULL\n    END AS tenant_id\n  FROM vals\n)\nSELECT a.id, a.stage, a.phone_model, a.model_id, a.problem_description, a.created_at, a.operation_mode\nFROM appeals a\nJOIN v ON v.client_id IS NOT NULL\nWHERE a.client_id = v.client_id\n  AND a.tenant_id = v.tenant_id\n  AND a.stage NOT IN ('Завершено', 'Отменено')\n  AND a.created_at > NOW() - INTERVAL '7 days'\nORDER BY a.created_at DESC\nLIMIT 1;",
         "options": {}
       },
-      "id": "5862a1f0-e66b-40d5-b92c-d58442b3b13a",
+      "id": "712ac991-6517-4d34-9504-10bc540cdd94",
       "name": "Find Active Appeal",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        -1424,
+        -1184,
         112
       ],
       "alwaysOutputData": true,
@@ -99,12 +99,12 @@
           "looseTypeValidation": true
         }
       },
-      "id": "618cd54f-706e-4db6-8f4a-94367cd8283b",
+      "id": "4b8676ea-14c3-4a34-bc64-96ac582fda54",
       "name": "Appeal Exists?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -784,
+        -544,
         192
       ]
     },
@@ -114,12 +114,12 @@
         "query": "INSERT INTO appeals (\n    tenant_id,\n    client_id,\n    device_type_id,\n    brand_id,\n    repair_type_id,\n    ad_channel_id,\n    ad_id,\n    stage,\n    operation_mode,\n    created_at\n  )\n  VALUES (\n    '{{ $json.tenant_id }}'::uuid,\n    '{{ $json.client.id }}'::uuid,\n    NULL,\n    NULL,\n    NULL,\n    (SELECT id FROM channels WHERE code = '{{ $json.channel }}' LIMIT 1),\n    NULLIF('{{ $json.meta.ad_id }}', ''),\n    'Первичный контакт',\n    (SELECT COALESCE(operation_mode, 'assist') FROM tenants WHERE id = '{{ $json.tenant_id }}'::uuid),\n    NOW()\n  )\n  RETURNING *;",
         "options": {}
       },
-      "id": "d9766565-0f7c-446a-85f6-f70d52fbdb50",
+      "id": "1f690d47-a218-436b-bf8f-27e910cb139d",
       "name": "Create New Appeal",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        -368,
+        -128,
         288
       ],
       "credentials": {
@@ -133,12 +133,12 @@
       "parameters": {
         "jsCode": "const inputData = $input.first()?.json || {};\n\nconsole.log('═══ MERGE EXISTING APPEAL ═══');\n\nconst existingAppeal = inputData.appeal;\n\nif (!existingAppeal || !existingAppeal.id) {\n  throw new Error('Appeal not found in input');\n}\n\nconsole.log('✅ Using existing appeal:', existingAppeal.id);\n\n// Определяем тип touchpoint:\n// - Если client_found === false (новый клиент) → было inbound, теперь mutual\n// - Если client_found === true (известный клиент) → сразу mutual\nconst touchpoint_direction = 'mutual'; // Для существующего appeal всегда mutual\n\nreturn {\n  ...inputData,\n  appeal: {\n    id: existingAppeal.id,\n    stage: existingAppeal.stage || 'Первичный контакт',\n    phone_model: existingAppeal.phone_model || null,\n    model_id: existingAppeal.model_id || null,\n    brand_id: existingAppeal.brand_id || null,\n    repair_type_id: existingAppeal.repair_type_id || null,\n    problem_description: existingAppeal.problem_description || null,\n    operation_mode: existingAppeal.operation_mode || 'assist',\n    estimated_cost: existingAppeal.estimated_cost || null,\n    estimated_time: existingAppeal.estimated_time || null,\n    parts_owner: existingAppeal.parts_owner || null,\n    is_new: false\n  },\n  touchpoint_direction: touchpoint_direction\n};"
       },
-      "id": "040cea37-dca4-4e26-9b3c-4b1f1959ac87",
+      "id": "d70a46ec-a49f-4355-b85c-f19fd903369d",
       "name": "Merge Existing Appeal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -416,
+        -176,
         80
       ]
     },
@@ -146,12 +146,12 @@
       "parameters": {
         "jsCode": "function fromNode(name) {\n  try {\n    const arr = $items(name);\n    return (arr && arr.length > 0) ? (arr[0].json || null) : null;\n  } catch (e) {\n    return null;\n  }\n}\n\nconst inMessage = fromNode('Execute Workflow Trigger') || $input.first()?.json || {};\nconst sqlResult = $input.first()?.json;\n\nfunction pick(existing, ...cands) {\n  if (existing !== undefined && existing !== null && `${existing}` !== '') return existing;\n  for (const c of cands) {\n    if (c !== undefined && c !== null && `${c}` !== '') return c;\n  }\n  return existing ?? null;\n}\n\nlet appealRow = sqlResult;\nif (Array.isArray(sqlResult)) {\n  appealRow = sqlResult[0];\n}\n\nif (!appealRow || !appealRow.id) {\n  throw new Error('No appeal data returned from SQL');\n}\n\nconst src = inMessage;\nconst prop = src.propertyName || {};\nconst meta = prop.meta || {};\nconst raw = meta.raw || {};\n\nconst channel = pick(src.channel, prop.channel, meta.ad_channel);\nconst external_chat_id = pick(src.external_chat_id, prop.external_chat_id, raw.chat?.id?.toString());\nconst external_user_id = pick(src.external_user_id, prop.external_user_id, raw.from?.id?.toString());\nconst external_message_id = pick(src.external_message_id, prop.external_message_id, meta.external_message_id, raw.message_id?.toString());\nconst timestamp = pick(src.timestamp, prop.timestamp, meta.timestamp, raw.date ? new Date(raw.date * 1000).toISOString() : null);\nconst text = pick(src.text, prop.text, raw.text);\n\nconst client = src.client || {};\n\nconst appeal = {\n  id: appealRow.id,\n  stage: appealRow.stage || 'Первичный контакт',\n  phone_model: appealRow.phone_model || null,\n  model_id: appealRow.model_id || null,\n  brand_id: appealRow.brand_id || null,\n  repair_type_id: appealRow.repair_type_id || null,\n  problem_description: appealRow.problem_description || null,\n  operation_mode: appealRow.operation_mode || 'assist',\n  estimated_cost: appealRow.estimated_cost || null,\n  estimated_time: appealRow.estimated_time || null,\n  parts_owner: appealRow.parts_owner || null,\n  is_new: true\n};\n\n// Определяем тип touchpoint для НОВОГО appeal:\n// - Если client_found === false (новый клиент) → inbound\n// - Если client_found === true (известный клиент) → mutual\nconst client_found = src.client_found || false;\nconst touchpoint_direction = client_found ? 'mutual' : 'inbound';\n\nconsole.log('✅ New Appeal created, touchpoint_direction:', touchpoint_direction);\nconsole.log('client_found:', client_found);\n\nconst out = {\n  ...src,\n  ...(channel != null ? { channel } : {}),\n  ...(external_chat_id != null ? { external_chat_id } : {}),\n  ...(external_user_id != null ? { external_user_id } : {}),\n  ...(external_message_id != null ? { external_message_id } : {}),\n  ...(timestamp != null ? { timestamp } : {}),\n  ...(text ? { text } : {}),\n  client: client,\n  appeal: appeal,\n  touchpoint_direction: touchpoint_direction\n};\n\nif (out.success === undefined) out.success = true;\n\nreturn out;"
       },
-      "id": "ec9953e3-b496-474d-b8dd-aca267b247bd",
+      "id": "8fef2a6b-4888-43e9-8338-ea409da0271c",
       "name": "Merge New Appeal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -176,
+        64,
         288
       ]
     },
@@ -161,12 +161,12 @@
         "query": "WITH vals AS (\n  SELECT\n    '{{ $json.tenant_id || \"\" }}'            AS tenant_id_text,\n    '{{ $json.appeal?.id || \"\" }}'           AS appeal_id_text,\n    '{{ $json.message_type || $json.role || \"client\" }}' AS message_type_text,\n    '{{ $json.text || \"\" }}'                 AS message_text,\n    '{{ $json.channel || \"\" }}'              AS channel_code,\n    '{{ $json.external_message_id || \"\" }}'  AS ext_msg_id,\n    '{{ $json.external_chat_id || \"\" }}'     AS ext_chat_id\n),\nvalidated AS (\n  SELECT\n    CASE\n      WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN tenant_id_text::uuid\n      ELSE NULL\n    END AS tenant_id,\n    CASE\n      WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n        THEN appeal_id_text::uuid\n      ELSE NULL\n    END AS appeal_id,\n    NULLIF(message_type_text,'') AS message_type,\n    NULLIF(message_text,'')      AS message_text,\n    NULLIF(channel_code,'')      AS channel_code,\n    NULLIF(ext_msg_id,'')        AS ext_msg_id,\n    NULLIF(ext_chat_id,'')       AS ext_chat_id\n  FROM vals\n),\nrefs AS (\n  SELECT\n    v.tenant_id,\n    v.appeal_id,\n    v.message_type,\n    v.message_text,\n    (SELECT id FROM channels WHERE code = v.channel_code LIMIT 1) AS channel_id,\n    v.channel_code,\n    v.ext_msg_id,\n    v.ext_chat_id\n  FROM validated v\n)\nINSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel,\n  channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  r.tenant_id,\n  r.appeal_id,\n  COALESCE(r.message_type, 'client'),\n  COALESCE(r.message_text, ''),\n  r.channel_code,\n  r.channel_id,\n  r.ext_msg_id,\n  r.ext_chat_id\nFROM refs r\nWHERE r.appeal_id IS NOT NULL AND r.tenant_id IS NOT NULL\nRETURNING *;",
         "options": {}
       },
-      "id": "aa1aac1b-71d7-4b80-b060-1a577c0dac44",
+      "id": "3702e1c1-38ef-4b4a-b92a-6645227acd95",
       "name": "Save Message History",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        32,
+        272,
         192
       ],
       "credentials": {
@@ -183,16 +183,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        288,
+        528,
         192
       ],
-      "id": "b03ef5d1-7f8c-47d9-9b5e-8331b4d5526c",
+      "id": "c5cb194f-59f5-4cec-9fc4-a0336c815e0c",
       "name": "Prepare Contract1"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
+        "url": "http://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({\n  client_id: $json.client?.id,\n  appeal_id: $json.appeal?.id,\n  channel: $json.channel,\n  direction: $json.touchpoint_direction,\n  type: 'message',\n  is_new_client: !$json.client_found,\n  tenant_id: $json.tenant_id\n}) }}",
@@ -200,26 +200,40 @@
           "timeout": 5000
         }
       },
-      "id": "f3edaa28-7430-4362-a866-1ed1b6758afe",
+      "id": "d453f1af-60f1-4dad-bc89-94bcbb784df0",
       "name": "Register Touchpoint",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        512,
+        752,
         192
-      ]
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// НОВАЯ НОДА: Restore Context for AI Router\n// Проблема: Register Touchpoint возвращает только touchpoint response,\n// а AI Router ожидает appeal.id и tenant_id\n// Решение: Берём данные из Prepare Contract1\n\nconst touchpointResponse = $input.first()?.json || {};\n\n// Получаем оригинальные данные из Prepare Contract1\nlet contractData = null;\ntry {\n  contractData = $('Prepare Contract1').first()?.json;\n} catch (e) {\n  console.error('Could not get data from Prepare Contract1:', e.message);\n}\n\nif (!contractData) {\n  throw new Error('No contract data available for AI Router');\n}\n\nconsole.log('═══ RESTORE CONTEXT FOR AI ═══');\nconsole.log('Appeal ID:', contractData.appeal?.id);\nconsole.log('Tenant ID:', contractData.tenant_id);\nconsole.log('Touchpoint success:', touchpointResponse.success);\n\n// Возвращаем оригинальные данные с добавлением touchpoint info\nreturn {\n  ...contractData,\n  touchpoint_response: touchpointResponse,\n  touchpoint_registered: touchpointResponse.success === true\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        192
+      ],
+      "id": "096616dc-f1a7-445e-b834-33e34a27e1a4",
+      "name": "Restore Context for AI"
     },
     {
       "parameters": {
         "workflowId": "=Flhmu33l0ZhZhr90",
         "options": {}
       },
-      "id": "07b5932e-5022-49c4-b38c-6184ef64a9c4",
+      "id": "062c98b2-c2e1-4e60-97fe-251ff15b8b66",
       "name": "Execute AI Extractor",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        736,
+        1200,
         192
       ]
     },
@@ -229,12 +243,12 @@
         "responseBody": "={{ { \"success\": true, \"appeal_id\": $json.appeal.id } }}",
         "options": {}
       },
-      "id": "8a3085b9-3356-4b6c-a724-8072de0c4025",
+      "id": "7c32e0ad-0c09-4735-89f3-9fc91a1403fd",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        960,
+        1424,
         192
       ]
     },
@@ -245,10 +259,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -576,
+        -336,
         288
       ],
-      "id": "19247af9-9c41-46b5-b439-afee025fee21",
+      "id": "856ca17e-b87d-41da-a133-d52f933b2083",
       "name": "Merge After Find"
     }
   ],
@@ -390,6 +404,17 @@
       "main": [
         [
           {
+            "node": "Restore Context for AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Context for AI": {
+      "main": [
+        [
+          {
             "node": "Execute AI Extractor",
             "type": "main",
             "index": 0
@@ -437,6 +462,6 @@
       "name": "Core"
     }
   ],
-  "updatedAt": "2025-12-03T17:36:43.000Z",
+  "updatedAt": "2025-12-08T08:37:00.000Z",
   "createdAt": "2025-11-27T10:38:45.060Z"
 }
