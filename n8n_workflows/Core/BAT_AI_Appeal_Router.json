@@ -5,28 +5,28 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "bf87cfa6-4af7-4e2c-b462-d246c46dcd21",
+      "id": "f8b1cead-3e51-4751-a529-ee1a63e290d5",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -1104,
-        48
+        -2448,
+        0
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT \n  a.*,\n  b.name as brand_name,\n  m.name as model_name,\n  c.phone as client_phone,\n  c.name as client_name,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'timestamp', mh.created_at,\n      'is_client', CASE WHEN mh.message_type = 'client' THEN true ELSE false END,\n      'text', mh.message_text\n    ) ORDER BY mh.created_at ASC)\n    FROM messages_history mh \n    WHERE mh.appeal_id = a.id),\n    '[]'::json\n  ) as messages,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'id', ad.id,\n      'device_index', ad.device_index,\n      'brand_id', ad.brand_id,\n      'brand_name', db.name,\n      'model_id', ad.model_id,\n      'model_name', dm.name,\n      'repairs', (SELECT json_agg(json_build_object(\n        'id', ar.id,\n        'category_id', ar.repair_category_id,\n        'category_name', rc.name\n      )) FROM appeal_repairs ar LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id WHERE ar.appeal_device_id = ad.id)\n    ) ORDER BY ad.device_index)\n    FROM appeal_devices ad\n    LEFT JOIN brands db ON db.id = ad.brand_id\n    LEFT JOIN models dm ON dm.id = ad.model_id\n    WHERE ad.appeal_id = a.id),\n    '[]'::json\n  ) as devices\nFROM appeals a\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nWHERE a.id = '{{ $json.appeal.id }}'::uuid\n  AND a.tenant_id = '{{ $json.tenant_id }}'::uuid;",
+        "query": "SELECT \n  a.*,\n  b.name as brand_name,\n  m.name as model_name,\n  c.phone as client_phone,\n  c.name as client_name,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'timestamp', mh.created_at,\n      'is_client', CASE WHEN mh.message_type = 'client' THEN true ELSE false END,\n      'text', mh.message_text\n    ) ORDER BY mh.created_at ASC)\n    FROM messages_history mh \n    WHERE mh.appeal_id = a.id),\n    '[]'::json\n  ) as messages,\n  COALESCE(\n    (SELECT json_agg(json_build_object(\n      'id', ad.id,\n      'device_index', ad.device_index,\n      'brand_id', ad.brand_id,\n      'brand_name', db.name,\n      'model_id', ad.model_id,\n      'model_name', dm.name,\n      'owner_label', ad.owner_label,\n      'repairs', (SELECT json_agg(json_build_object(\n        'id', ar.id,\n        'category_id', ar.repair_category_id,\n        'category_name', rc.name\n      )) FROM appeal_repairs ar LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id WHERE ar.appeal_device_id = ad.id)\n    ) ORDER BY ad.device_index)\n    FROM appeal_devices ad\n    LEFT JOIN brands db ON db.id = ad.brand_id\n    LEFT JOIN models dm ON dm.id = ad.model_id\n    WHERE ad.appeal_id = a.id),\n    '[]'::json\n  ) as devices\nFROM appeals a\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nWHERE a.id = '{{ $json.appeal.id }}'::uuid\n  AND a.tenant_id = '{{ $json.tenant_id }}'::uuid;",
         "options": {}
       },
-      "id": "cb424ba2-0400-4a26-896b-77a58cf5541b",
+      "id": "55241a03-4bdf-47ba-b795-10e1425b60f6",
       "name": "Load Appeal & Devices",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        -816,
-        -48
+        -2160,
+        -96
       ],
       "credentials": {
         "postgres": {
@@ -41,13 +41,13 @@
         "query": "SELECT\n  field_name,\n  is_required,\n  collection_order,\n  tool_name as extraction_prompt\nFROM context_fields_config\nWHERE tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND (deal_type_id IS NULL)\n  AND is_active = true\nORDER BY collection_order ASC;",
         "options": {}
       },
-      "id": "105ae3f2-d981-4a9e-8c17-c021cba8d5e6",
+      "id": "cc020142-56b0-4f0c-8735-9947a5e57f28",
       "name": "Load Fields Config",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        -816,
-        144
+        -2160,
+        96
       ],
       "credentials": {
         "postgres": {
@@ -58,28 +58,28 @@
     },
     {
       "parameters": {
-        "jsCode": "// Merge Appeal Data + Fields Config\n// Получаем данные из обоих SQL запросов\n\nlet appealData = null;\nlet fieldsConfig = [];\nlet inputData = null;\n\n// Получаем входные данные (appeal.id, tenant_id, text, channel и т.д.)\ntry {\n  inputData = $('Execute Workflow Trigger').first()?.json || {};\n} catch (e) {\n  inputData = {};\n}\n\n// Получаем данные заявки из Load Appeal & Devices\ntry {\n  appealData = $('Load Appeal & Devices').first()?.json || null;\n} catch (e) {\n  console.error('Could not get appeal data:', e.message);\n}\n\n// Получаем конфиг полей из Load Fields Config\ntry {\n  const fieldsItems = $('Load Fields Config').all();\n  fieldsConfig = fieldsItems.map(item => item.json);\n} catch (e) {\n  console.error('Could not get fields config:', e.message);\n}\n\nconsole.log('=== MERGE DATA ===');\nconsole.log('Appeal ID:', appealData?.id);\nconsole.log('Fields config count:', fieldsConfig.length);\nconsole.log('Input text:', inputData?.text?.substring(0, 50));\n\nif (!appealData || !appealData.id) {\n  throw new Error('Appeal data not loaded!');\n}\n\n// Возвращаем объединённые данные\nreturn {\n  // Данные заявки\n  ...appealData,\n  \n  // Входные данные (text, channel, external_chat_id)\n  text: inputData.text,\n  channel: inputData.channel || appealData.channel,\n  external_chat_id: inputData.external_chat_id,\n  external_user_id: inputData.external_user_id,\n  \n  // Конфиг полей для extraction\n  fields_config: fieldsConfig,\n  \n  // Сохраняем appeal как вложенный объект тоже\n  appeal: {\n    id: appealData.id,\n    tenant_id: appealData.tenant_id,\n    client_id: appealData.client_id,\n    stage: appealData.stage,\n    channel: appealData.channel || inputData.channel,\n    operation_mode: appealData.operation_mode\n  }\n};"
+        "jsCode": "// Merge Appeal Data + Fields Config\nlet appealData = null;\nlet fieldsConfig = [];\nlet inputData = null;\n\ntry {\n  inputData = $('Execute Workflow Trigger').first()?.json || {};\n} catch (e) {\n  inputData = {};\n}\n\ntry {\n  appealData = $('Load Appeal & Devices').first()?.json || null;\n} catch (e) {\n  console.error('Could not get appeal data:', e.message);\n}\n\ntry {\n  const fieldsItems = $('Load Fields Config').all();\n  fieldsConfig = fieldsItems.map(item => item.json);\n} catch (e) {\n  console.error('Could not get fields config:', e.message);\n}\n\nif (!appealData || !appealData.id) {\n  throw new Error('Appeal data not loaded!');\n}\n\nreturn {\n  ...appealData,\n  text: inputData.text,\n  channel: inputData.channel || appealData.channel,\n  external_chat_id: inputData.external_chat_id,\n  external_user_id: inputData.external_user_id,\n  fields_config: fieldsConfig,\n  appeal: {\n    id: appealData.id,\n    tenant_id: appealData.tenant_id,\n    client_id: appealData.client_id,\n    stage: appealData.stage,\n    channel: appealData.channel || inputData.channel,\n    operation_mode: appealData.operation_mode\n  }\n};"
       },
-      "id": "b0225a5f-3c30-43a1-a7ed-a0c751e68318",
+      "id": "10dc9157-0fc3-40f8-9291-ef1dd33d63d7",
       "name": "Merge Appeal & Fields",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -576,
-        48
+        -1920,
+        0
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Prepare context with device disambiguation, conversation focus, and completeness check\nconst data = $input.first().json;\nconst devices = data.devices || [];\nconst appeal = data;\nconst history = data.messages || [];\nconst fieldsConfig = data.fields_config || [];\nconst text = data.text || '';\n\nconsole.log('=== PREPARE CONTEXT ===');\nconsole.log('Appeal ID:', appeal.id);\nconsole.log('Devices count:', devices.length);\nconsole.log('Fields config count:', fieldsConfig.length);\nconsole.log('Message text:', text.substring(0, 50));\n\n// Текущий фокус из appeal\nconst currentFocus = appeal.conversation_focus || {};\nconst lastDeviceId = appeal.last_mentioned_device_id;\nconst lastRepairId = appeal.last_mentioned_repair_id;\n\n// Group devices by brand+model\nconst groups = {};\ndevices.forEach(d => {\n  const key = `${d.brand_name || ''} ${d.model_name || ''}`.trim();\n  if (!groups[key]) groups[key] = [];\n  groups[key].push(d);\n});\n\n// Check if disambiguation needed\nlet needsDisambiguation = false;\nlet disambiguationInfo = '';\nlet ambiguousDevices = [];\n\nfor (const [model, devs] of Object.entries(groups)) {\n  if (devs.length > 1) {\n    const withoutRepairs = devs.filter(d => !d.repairs || d.repairs.length === 0);\n    if (withoutRepairs.length > 1) {\n      needsDisambiguation = true;\n      disambiguationInfo += `Несколько ${model} (${devs.length} шт). `;\n      ambiguousDevices.push(...devs.map(d => d.id));\n    }\n  }\n}\n\n// Определяем текущий фокус\nlet focusDeviceId = lastDeviceId;\nlet focusRepairId = lastRepairId;\nlet focusDeviceOrder = currentFocus.device_order || 1;\n\nif (devices.length === 1) {\n  focusDeviceId = devices[0].id;\n  focusDeviceOrder = devices[0].device_order || 1;\n  if (devices[0].repairs && devices[0].repairs.length === 1) {\n    focusRepairId = devices[0].repairs[0].id;\n  }\n}\n\nif (!focusDeviceId && devices.length > 0) {\n  focusDeviceId = devices[0].id;\n  focusDeviceOrder = devices[0].device_order || 1;\n}\n\n// Build device list for context\nconst deviceList = devices.map((d, i) => {\n  const isFocused = d.id === focusDeviceId ? ' ← В ФОКУСЕ' : '';\n  const repairs = d.repairs?.map(r => r.category_name || r.repair_type).join(', ') || 'нет ремонтов';\n  const ownerLabel = d.owner_label ? ` (${d.owner_label})` : '';\n  return `#${d.device_order || i+1}: ${d.brand_name || '?'} ${d.model_name || '?'}${ownerLabel} - ${repairs}${isFocused}`;\n}).join('\\n');\n\n// ============ COMPLETENESS CHECK ============\n// Проверяем заполненность обязательных полей\nconst firstDevice = devices[0] || {};\nconst firstRepair = firstDevice.repairs?.[0] || {};\n\n// Текущее состояние данных\nconst currentState = {\n  brand: appeal.brand_name || firstDevice.brand_name || null,\n  brand_id: appeal.brand_id || firstDevice.brand_id || null,\n  model: appeal.model_name || firstDevice.model_name || null,\n  model_id: appeal.model_id || firstDevice.model_id || null,\n  repair_category: firstRepair.category_name || null,\n  repair_category_id: firstRepair.category_id || null\n};\n\n// Маппинг field_name -> ключ в currentState\nconst fieldMapping = {\n  'brand': 'brand_id',\n  'model': 'model_id',\n  'repair_type': 'repair_category_id',\n  'repair_category': 'repair_category_id',\n  'type': 'repair_category_id'  // alias\n};\n\n// Проверяем какие обязательные поля заполнены\nconst requiredFields = fieldsConfig.filter(f => f.is_required);\nconst missingFields = [];\nlet filledCount = 0;\n\nfor (const field of requiredFields) {\n  const stateKey = fieldMapping[field.field_name] || field.field_name;\n  if (currentState[stateKey]) {\n    filledCount++;\n  } else {\n    missingFields.push(field.field_name);\n  }\n}\n\nconst totalRequired = requiredFields.length || 1;\nconst completionPercentage = Math.round((filledCount / totalRequired) * 100);\nconst isComplete = missingFields.length === 0 && devices.length > 0 && firstDevice.brand_id && firstRepair.category_id;\n\nconsole.log('Required fields:', requiredFields.map(f => f.field_name));\nconsole.log('Missing fields:', missingFields);\nconsole.log('Completion:', completionPercentage + '%');\nconsole.log('Is complete:', isComplete);\n\n// Новый conversation_focus\nconst newFocus = {\n  device_id: focusDeviceId,\n  repair_id: focusRepairId,\n  device_order: focusDeviceOrder,\n  updated_at: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    // Основные данные\n    ...data,\n    appeal: data.appeal,\n    devices,\n    deviceList,\n    history,\n    text,\n    \n    // Disambiguation\n    needsDisambiguation,\n    disambiguationInfo,\n    ambiguousDevices,\n    deviceCount: devices.length,\n    \n    // Фокус диалога\n    conversation_focus: newFocus,\n    focus_device_id: focusDeviceId,\n    focus_repair_id: focusRepairId,\n    focus_device_order: focusDeviceOrder,\n    \n    // Completeness (для Needs Extraction? и дальше)\n    is_complete: isComplete,\n    completion_percentage: completionPercentage,\n    missing_fields: missingFields,\n    current_state: currentState,\n    extracted_data: currentState,  // alias для совместимости\n    fields_config: fieldsConfig\n  }\n};"
+        "jsCode": "// Prepare context with device disambiguation, conversation focus, and completeness check\nconst data = $input.first().json;\nconst devices = data.devices || [];\nconst appeal = data;\nconst history = data.messages || [];\nconst fieldsConfig = data.fields_config || [];\nconst text = data.text || '';\n\nconst currentFocus = appeal.conversation_focus || {};\nconst lastDeviceId = appeal.last_mentioned_device_id;\nconst lastRepairId = appeal.last_mentioned_repair_id;\n\nconst groups = {};\ndevices.forEach(d => {\n  const key = `${d.brand_name || ''} ${d.model_name || ''}`.trim();\n  if (!groups[key]) groups[key] = [];\n  groups[key].push(d);\n});\n\nlet needsDisambiguation = false;\nlet disambiguationInfo = '';\nlet ambiguousDevices = [];\n\nfor (const [model, devs] of Object.entries(groups)) {\n  if (devs.length > 1) {\n    const withoutRepairs = devs.filter(d => !d.repairs || d.repairs.length === 0);\n    if (withoutRepairs.length > 1) {\n      needsDisambiguation = true;\n      disambiguationInfo += `Несколько ${model} (${devs.length} шт). `;\n      ambiguousDevices.push(...devs.map(d => d.id));\n    }\n  }\n}\n\nlet focusDeviceId = lastDeviceId;\nlet focusRepairId = lastRepairId;\nlet focusDeviceOrder = currentFocus.device_order || 1;\n\nif (devices.length === 1) {\n  focusDeviceId = devices[0].id;\n  focusDeviceOrder = devices[0].device_order || 1;\n  if (devices[0].repairs && devices[0].repairs.length === 1) {\n    focusRepairId = devices[0].repairs[0].id;\n  }\n}\n\nif (!focusDeviceId && devices.length > 0) {\n  focusDeviceId = devices[0].id;\n  focusDeviceOrder = devices[0].device_order || 1;\n}\n\nconst deviceList = devices.map((d, i) => {\n  const isFocused = d.id === focusDeviceId ? ' ← В ФОКУСЕ' : '';\n  const repairs = d.repairs?.map(r => r.category_name || r.repair_type).join(', ') || 'нет ремонтов';\n  const ownerLabel = d.owner_label ? ` (${d.owner_label})` : '';\n  return `#${d.device_order || i+1}: ${d.brand_name || '?'} ${d.model_name || '?'}${ownerLabel} - ${repairs}${isFocused}`;\n}).join('\\n');\n\nconst firstDevice = devices[0] || {};\nconst firstRepair = firstDevice.repairs?.[0] || {};\n\nconst currentState = {\n  brand: appeal.brand_name || firstDevice.brand_name || null,\n  brand_id: appeal.brand_id || firstDevice.brand_id || null,\n  model: appeal.model_name || firstDevice.model_name || null,\n  model_id: appeal.model_id || firstDevice.model_id || null,\n  repair_category: firstRepair.category_name || null,\n  repair_category_id: firstRepair.category_id || null\n};\n\nconst fieldMapping = {\n  'brand': 'brand_id',\n  'model': 'model_id',\n  'repair_type': 'repair_category_id',\n  'repair_category': 'repair_category_id',\n  'type': 'repair_category_id'\n};\n\nconst requiredFields = fieldsConfig.filter(f => f.is_required);\nconst missingFields = [];\nlet filledCount = 0;\n\nfor (const field of requiredFields) {\n  const stateKey = fieldMapping[field.field_name] || field.field_name;\n  if (currentState[stateKey]) {\n    filledCount++;\n  } else {\n    missingFields.push(field.field_name);\n  }\n}\n\nconst totalRequired = requiredFields.length || 1;\nconst completionPercentage = Math.round((filledCount / totalRequired) * 100);\nconst isComplete = missingFields.length === 0 && devices.length > 0 && firstDevice.brand_id && firstRepair.category_id;\n\nconst newFocus = {\n  device_id: focusDeviceId,\n  repair_id: focusRepairId,\n  device_order: focusDeviceOrder,\n  updated_at: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    ...data,\n    appeal: data.appeal,\n    devices,\n    deviceList,\n    history,\n    text,\n    needsDisambiguation,\n    disambiguationInfo,\n    ambiguousDevices,\n    deviceCount: devices.length,\n    conversation_focus: newFocus,\n    focus_device_id: focusDeviceId,\n    focus_repair_id: focusRepairId,\n    focus_device_order: focusDeviceOrder,\n    is_complete: isComplete,\n    completion_percentage: completionPercentage,\n    missing_fields: missingFields,\n    current_state: currentState,\n    extracted_data: currentState,\n    fields_config: fieldsConfig\n  }\n};"
       },
-      "id": "36379506-ad36-4ed0-99f3-23ce5ef4302b",
+      "id": "f196b5ec-686e-4612-9f19-5a6a7970d3c1",
       "name": "Prepare Context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -336,
-        48
+        -1680,
+        0
       ]
     },
     {
@@ -108,13 +108,13 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "b49f8b54-4068-4b1d-99f9-2b09084fd76c",
+      "id": "e60b0e2d-02e0-491d-a282-0a9b88968046",
       "name": "Needs Extraction?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -96,
-        48
+        -1440,
+        0
       ]
     },
     {
@@ -128,52 +128,86 @@
         },
         "options": {}
       },
-      "id": "c39c21c4-bd2c-49d7-b2c7-0be8db111320",
+      "id": "0c38d6d7-0150-41cf-b80d-81d9ae90e546",
       "name": "Call Task Dispatcher",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
       "position": [
-        144,
-        144
+        -1200,
+        96
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Skip extraction - all data already collected\nconst context = $input.first().json;\n\nconsole.log('=== SKIP EXTRACTION ===');\nconsole.log('Appeal ID:', context.appeal?.id);\nconsole.log('Is complete:', context.is_complete);\n\n// Просто пробрасываем данные дальше\nreturn {\n  action: 'skip_extraction',\n  ...context,\n  total_tasks: 0,\n  completed: 0,\n  elapsed_ms: 0\n};"
+        "jsCode": "const context = $input.first().json;\nreturn {\n  action: 'skip_extraction',\n  ...context,\n  total_tasks: 0,\n  completed: 0,\n  elapsed_ms: 0\n};"
       },
-      "id": "3a79c27a-4295-4ed9-afca-15d0e82719b8",
+      "id": "c3b20e9b-3e87-4674-b493-683aa4237a71",
       "name": "Skip Extraction",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        144,
-        -80
+        -1200,
+        -128
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Merge Results - объединяем результаты из Task Dispatcher или Skip Extraction\nconst items = $input.all();\n\nconsole.log('=== MERGE RESULTS ===');\nconsole.log('Received items:', items.length);\n\nif (items.length === 0) {\n  // Fallback на Prepare Context\n  try {\n    const ctx = $('Prepare Context').first()?.json;\n    if (ctx) {\n      console.log('Using fallback from Prepare Context');\n      return ctx;\n    }\n  } catch (e) {}\n  return [];\n}\n\n// Берём первый item\nconst result = items[0].json;\n\n// Если пришло из Task Dispatcher - мержим с контекстом\nlet context = null;\ntry {\n  context = $('Prepare Context').first()?.json;\n} catch (e) {}\n\nif (context && result.action !== 'skip_extraction') {\n  // Мержим результаты extraction с контекстом\n  const merged = {\n    ...context,\n    ...result,\n    dispatcher_result: result\n  };\n  \n  // Обновляем extracted_data если есть новые данные\n  if (result.extracted_data) {\n    merged.extracted_data = {\n      ...context.extracted_data,\n      ...result.extracted_data\n    };\n  }\n  \n  console.log('Merged with dispatcher result');\n  return merged;\n}\n\nconsole.log('Passing through:', Object.keys(result));\nreturn result;"
+        "jsCode": "// Merge Results - объединяем результаты из Task Dispatcher или Skip Extraction\nconst items = $input.all();\n\nif (items.length === 0) {\n  try {\n    const ctx = $('Prepare Context').first()?.json;\n    if (ctx) return ctx;\n  } catch (e) {}\n  return [];\n}\n\nconst result = items[0].json;\n\nlet context = null;\ntry {\n  context = $('Prepare Context').first()?.json;\n} catch (e) {}\n\nif (context && result.action !== 'skip_extraction') {\n  const merged = {\n    ...context,\n    ...result,\n    dispatcher_result: result\n  };\n  \n  if (result.extracted_data) {\n    merged.extracted_data = {\n      ...context.extracted_data,\n      ...result.extracted_data\n    };\n  }\n  \n  return merged;\n}\n\nreturn result;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        48
+        -960,
+        0
       ],
-      "id": "41be8645-4e93-48a9-974a-30c18e1e518b",
+      "id": "51524b7b-6fbe-427c-aabe-b5d2b385298b",
       "name": "Merge Results"
     },
     {
       "parameters": {
-        "jsCode": "// Build AI context string for the LLM\nconst data = $input.first().json;\nconst { appeal, devices, deviceList, history, needsDisambiguation, disambiguationInfo, text, missing_fields } = data;\n\nconsole.log('=== BUILD AI CONTEXT ===');\nconsole.log('Appeal ID:', appeal?.id);\nconsole.log('Text:', text?.substring(0, 50));\n\nlet context = '';\n\n// If need to clarify which device\nif (needsDisambiguation) {\n  context += `⚠️ УТОЧНИ УСТРОЙСТВО: ${disambiguationInfo}Спроси клиента какое именно устройство обсуждаем.\\n\\n`;\n}\n\n// Appeal info\ncontext += `Заявка #${appeal?.id || data.id}\\n`;\ncontext += `Канал: ${data.channel || appeal?.channel}\\n`;\nif (appeal?.conversation_context) context += `Контекст: ${appeal.conversation_context}\\n`;\n\n// Devices\nif (deviceList) {\n  context += `\\nУстройства клиента:\\n${deviceList}\\n`;\n} else {\n  context += `\\nУстройств пока нет\\n`;\n}\n\n// Missing fields\nif (missing_fields && missing_fields.length > 0) {\n  context += `\\nНужно уточнить: ${missing_fields.join(', ')}\\n`;\n}\n\n// Recent history\nif (history && history.length > 0) {\n  const recent = history.slice(-5);\n  context += `\\nИстория (последние ${recent.length}):\\n`;\n  recent.forEach(h => {\n    const sender = h.is_client ? 'Клиент' : 'Мы';\n    context += `[${sender}] ${h.text?.substring(0, 100) || ''}\\n`;\n  });\n}\n\n// Current message\nif (text) {\n  context += `\\nТекущее сообщение клиента: \"${text}\"\\n`;\n}\n\nconsole.log('Context built, length:', context.length);\n\nreturn { \n  json: { \n    ...data,\n    context,\n    chatInput: text || 'Здравствуйте'\n  } \n};"
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/context",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  action: 'match_entities',\n  client_id: $json.appeal?.client_id || $json.client_id,\n  extracted: {\n    brand: $json.extracted_data?.brand || null,\n    model: $json.extracted_data?.model || null,\n    owner_label: $json.extracted_data?.owner_label || null,\n    problem_type: $json.extracted_data?.repair_category || null\n  },\n  current_focus: $json.conversation_focus || {}\n}) }}",
+        "options": {
+          "timeout": 10000
+        }
       },
-      "id": "d6f23402-a81b-4140-ad2c-010d99743c2a",
+      "id": "7b49e17a-65ee-4bcd-a80b-aca5d5b30354",
+      "name": "Call Graph Matcher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        0
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Match Result - обрабатываем результат матчинга с графом\nconst data = $input.first().json;\nlet matchResult = null;\n\n// Пытаемся получить результат матчинга\ntry {\n  const matcherResponse = $('Call Graph Matcher').first()?.json;\n  if (matcherResponse && matcherResponse.device) {\n    matchResult = matcherResponse;\n  }\n} catch (e) {\n  console.log('Could not get matcher response:', e.message);\n}\n\n// Если матчинг не сработал, используем fallback\nif (!matchResult) {\n  matchResult = {\n    device: {\n      action: 'create_new',\n      matched_id: null\n    },\n    problem: {\n      action: 'create_new',\n      matched_id: null\n    },\n    needs_clarification: false,\n    clarification_message: null\n  };\n}\n\n// Получаем контекст из Merge Results\nlet context = null;\ntry {\n  context = $('Merge Results').first()?.json || {};\n} catch (e) {\n  context = data;\n}\n\nconsole.log('=== PROCESS MATCH RESULT ===');\nconsole.log('Device action:', matchResult.device?.action);\nconsole.log('Matched device ID:', matchResult.device?.matched_id);\nconsole.log('Problem action:', matchResult.problem?.action);\nconsole.log('Needs clarification:', matchResult.needs_clarification);\n\nreturn {\n  json: {\n    ...context,\n    match_result: matchResult,\n    device_action: matchResult.device?.action || 'create_new',\n    matched_device_id: matchResult.device?.matched_id || null,\n    problem_action: matchResult.problem?.action || 'create_new',\n    matched_problem_id: matchResult.problem?.matched_id || null,\n    needs_clarification: matchResult.needs_clarification || false,\n    clarification_message: matchResult.clarification_message || null\n  }\n};"
+      },
+      "id": "362be99b-6507-4bce-a831-2893cedcfd84",
+      "name": "Process Match Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build AI context string for the LLM\nconst data = $input.first().json;\nconst { appeal, devices, deviceList, history, needsDisambiguation, disambiguationInfo, text, missing_fields, needs_clarification, clarification_message } = data;\n\nlet context = '';\n\n// If need clarification from graph matcher\nif (needs_clarification && clarification_message) {\n  context += `⚠️ УТОЧНЕНИЕ: ${clarification_message}\\n\\n`;\n}\n\n// If need to clarify which device\nif (needsDisambiguation) {\n  context += `⚠️ УТОЧНИ УСТРОЙСТВО: ${disambiguationInfo}Спроси клиента какое именно устройство обсуждаем.\\n\\n`;\n}\n\ncontext += `Заявка #${appeal?.id || data.id}\\n`;\ncontext += `Канал: ${data.channel || appeal?.channel}\\n`;\nif (appeal?.conversation_context) context += `Контекст: ${appeal.conversation_context}\\n`;\n\nif (deviceList) {\n  context += `\\nУстройства клиента:\\n${deviceList}\\n`;\n} else {\n  context += `\\nУстройств пока нет\\n`;\n}\n\nif (missing_fields && missing_fields.length > 0) {\n  context += `\\nНужно уточнить: ${missing_fields.join(', ')}\\n`;\n}\n\nif (history && history.length > 0) {\n  const recent = history.slice(-5);\n  context += `\\nИстория (последние ${recent.length}):\\n`;\n  recent.forEach(h => {\n    const sender = h.is_client ? 'Клиент' : 'Мы';\n    context += `[${sender}] ${h.text?.substring(0, 100) || ''}\\n`;\n  });\n}\n\nif (text) {\n  context += `\\nТекущее сообщение клиента: \"${text}\"\\n`;\n}\n\nreturn { \n  json: { \n    ...data,\n    context,\n    chatInput: text || 'Здравствуйте'\n  } \n};"
+      },
+      "id": "fa2bc7e0-54f9-4ff8-aa4d-ab29b981d5a8",
       "name": "Build AI Context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        48
+        -240,
+        0
       ]
     },
     {
@@ -184,13 +218,13 @@
           "systemMessage": "Ты — дружелюбный ассистент сервисного центра по ремонту телефонов.\n\nПРАВИЛА:\n1. Будь кратким и по делу (2-3 предложения максимум)\n2. НЕ используй markdown\n3. Говори естественным разговорным языком\n4. Если что-то не хватает - вежливо попроси уточнить\n5. Если всё заполнено - предложи рассчитать стоимость\n6. НЕ повторяй всю информацию - только подтверди ключевое\n\nПРИМЕРЫ ОТВЕТОВ:\n- \"Понял, ремонт iPhone 12 Pro. Что именно нужно починить?\"\n- \"Замена дисплея на iPhone 14, запчасть наша. Сейчас рассчитаю стоимость.\"\n- \"Здравствуйте! Чем могу помочь?\"\n- \"Это второй телефон к заявке или замена первого?\""
         }
       },
-      "id": "58fb1755-e2b0-4d57-8367-6f8a04fd3196",
+      "id": "023730e6-25d6-4ae4-a8eb-1d86c9849d3a",
       "name": "AI Response Generator",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        864,
-        48
+        0,
+        0
       ]
     },
     {
@@ -200,13 +234,13 @@
           "temperature": 0.7
         }
       },
-      "id": "a1a220f5-9272-4188-bb8f-99c2cda41db3",
+      "id": "fba2eba4-68cf-4df7-a4d8-fdc21598d0d9",
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        784,
-        272
+        -80,
+        224
       ],
       "credentials": {
         "openAiApi": {
@@ -217,15 +251,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Prepare Response - финальная подготовка ответа\nconst context = $('Build AI Context').first().json;\nconst aiResponse = $input.first().json;\n\nconst responseText = aiResponse.output || aiResponse.text || 'Здравствуйте! Чем могу помочь?';\n\nconsole.log('=== PREPARE RESPONSE ===');\nconsole.log('AI Response:', responseText.substring(0, 50));\n\n// Безопасное получение данных\nconst extracted_data = context.extracted_data || {};\nconst missing_fields = context.missing_fields || [];\n\n// Определяем следующее действие\nlet nextAction = 'continue';\nif (context.is_complete) {\n  nextAction = 'calculate_cost';\n} else if (missing_fields.length > 0) {\n  nextAction = 'wait_clarification';\n}\n\n// Определяем маршрут для обновления БД\nlet route = 'minimal';\nif (extracted_data.brand_id && extracted_data.model_id && extracted_data.repair_category_id) {\n  route = 'full';\n} else if (extracted_data.brand_id || extracted_data.model_id) {\n  route = 'partial';\n}\n\n// Режим работы AI\nconst operationMode = context.appeal?.operation_mode || context.operation_mode || 'assist';\n\n// IDs\nconst appeal_id = context.appeal?.id || context.id;\nconst tenant_id = context.tenant_id || context.appeal?.tenant_id;\n\nconsole.log('Appeal ID:', appeal_id);\nconsole.log('Route:', route);\nconsole.log('Operation mode:', operationMode);\n\nreturn {\n  appeal_id: appeal_id,\n  tenant_id: tenant_id,\n  channel: context.channel || context.appeal?.channel,\n  external_chat_id: context.external_chat_id,\n  client_name: context.client_name,\n  response_text: responseText,\n  next_action: nextAction,\n  route: route,\n  extracted_data: extracted_data,\n  completion_percentage: context.completion_percentage || 0,\n  dispatcher_result: context.dispatcher_result,\n  devices: context.devices,\n  device_count: context.deviceCount || 0,\n  conversation_focus: context.conversation_focus,\n  focus_device_id: context.focus_device_id,\n  focus_repair_id: context.focus_repair_id,\n  operation_mode: operationMode,\n  \n  // Для Operator Notifier\n  approval_data: {\n    channel: context.channel,\n    external_chat_id: context.external_chat_id,\n    appeal_id: appeal_id,\n    client_name: context.client_name,\n    response_text: responseText,\n    next_action: nextAction,\n    appeal: context.appeal,\n    extracted_data: extracted_data,\n    operation_mode: operationMode,\n    completeness: {\n      percentage: context.completion_percentage || 0,\n      missing: missing_fields\n    }\n  }\n};"
+        "jsCode": "// Prepare Response - финальная подготовка ответа\nconst context = $('Build AI Context').first().json;\nconst aiResponse = $input.first().json;\n\nconst responseText = aiResponse.output || aiResponse.text || 'Здравствуйте! Чем могу помочь?';\n\nconst extracted_data = context.extracted_data || {};\nconst missing_fields = context.missing_fields || [];\n\nlet nextAction = 'continue';\nif (context.is_complete) {\n  nextAction = 'calculate_cost';\n} else if (missing_fields.length > 0) {\n  nextAction = 'wait_clarification';\n}\n\nlet route = 'minimal';\nif (extracted_data.brand_id && extracted_data.model_id && extracted_data.repair_category_id) {\n  route = 'full';\n} else if (extracted_data.brand_id || extracted_data.model_id) {\n  route = 'partial';\n}\n\nconst operationMode = context.appeal?.operation_mode || context.operation_mode || 'assist';\nconst appeal_id = context.appeal?.id || context.id;\nconst tenant_id = context.tenant_id || context.appeal?.tenant_id;\n\nreturn {\n  appeal_id: appeal_id,\n  tenant_id: tenant_id,\n  channel: context.channel || context.appeal?.channel,\n  external_chat_id: context.external_chat_id,\n  client_name: context.client_name,\n  response_text: responseText,\n  next_action: nextAction,\n  route: route,\n  extracted_data: extracted_data,\n  completion_percentage: context.completion_percentage || 0,\n  dispatcher_result: context.dispatcher_result,\n  devices: context.devices,\n  device_count: context.deviceCount || 0,\n  conversation_focus: context.conversation_focus,\n  focus_device_id: context.focus_device_id,\n  focus_repair_id: context.focus_repair_id,\n  operation_mode: operationMode,\n  \n  // Match result data for SQL\n  device_action: context.device_action || 'create_new',\n  matched_device_id: context.matched_device_id || null,\n  problem_action: context.problem_action || 'create_new',\n  matched_problem_id: context.matched_problem_id || null,\n  \n  approval_data: {\n    channel: context.channel,\n    external_chat_id: context.external_chat_id,\n    appeal_id: appeal_id,\n    client_name: context.client_name,\n    response_text: responseText,\n    next_action: nextAction,\n    appeal: context.appeal,\n    extracted_data: extracted_data,\n    operation_mode: operationMode,\n    completeness: {\n      percentage: context.completion_percentage || 0,\n      missing: missing_fields\n    }\n  }\n};"
       },
-      "id": "c64d5c23-f46d-408a-b3f7-28a914ffda01",
+      "id": "4c0bc550-cf89-4efe-8ac3-1cd53bb89eaa",
       "name": "Prepare Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1200,
-        48
+        336,
+        0
       ]
     },
     {
@@ -301,28 +335,28 @@
           "fallbackOutput": "extra"
         }
       },
-      "id": "3baefeda-be54-4a49-bab9-c1369c9e9217",
+      "id": "08b25797-b161-43f7-883f-1e615b29c647",
       "name": "Route by Completeness",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        1440,
-        32
+        576,
+        -16
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "-- Full update: appeal_devices + appeal_repairs + conversation_focus\nWITH device_upsert AS (\n  INSERT INTO appeal_devices (appeal_id, tenant_id, device_order, brand_id, model_id)\n  VALUES (\n    '{{ $json.appeal_id }}'::uuid,\n    '{{ $json.tenant_id }}'::uuid,\n    COALESCE((SELECT MAX(device_order) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 1),\n    {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n    {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}\n  )\n  ON CONFLICT (appeal_id, device_order) \n  DO UPDATE SET \n    brand_id = COALESCE(EXCLUDED.brand_id, appeal_devices.brand_id),\n    model_id = COALESCE(EXCLUDED.model_id, appeal_devices.model_id),\n    updated_at = NOW()\n  RETURNING id\n),\nrepair_upsert AS (\n  INSERT INTO appeal_repairs (appeal_id, appeal_device_id, tenant_id, repair_category_id)\n  SELECT \n    '{{ $json.appeal_id }}'::uuid,\n    (SELECT id FROM device_upsert),\n    '{{ $json.tenant_id }}'::uuid,\n    {{ $json.extracted_data.repair_category_id ? \"'\" + $json.extracted_data.repair_category_id + \"'::uuid\" : 'NULL' }}\n  WHERE {{ $json.extracted_data.repair_category_id ? 'true' : 'false' }}\n  RETURNING id\n)\nUPDATE appeals \nSET \n  updated_at = NOW(),\n  stage = 'Расчёт стоимости',\n  context_completion_percentage = {{ $json.completion_percentage }},\n  conversation_focus = '{{ JSON.stringify($json.conversation_focus || {}).replace(/'/g, \"''\") }}'::jsonb,\n  last_mentioned_device_id = COALESCE((SELECT id FROM device_upsert), last_mentioned_device_id),\n  last_mentioned_repair_id = COALESCE((SELECT id FROM repair_upsert), last_mentioned_repair_id)\nWHERE id = '{{ $json.appeal_id }}'::uuid;",
+        "query": "-- Full update with Graph Matcher: use_existing or create_new\nDO $$\nDECLARE\n  v_device_id uuid;\n  v_repair_id uuid;\nBEGIN\n  -- Device: use existing or create new\n  IF '{{ $json.device_action }}' = 'use_existing' AND '{{ $json.matched_device_id }}' != '' AND '{{ $json.matched_device_id }}' != 'null' THEN\n    -- Use existing device from graph\n    v_device_id := '{{ $json.matched_device_id }}'::uuid;\n    \n    -- Update device if needed (only model/brand if missing)\n    UPDATE appeal_devices \n    SET \n      brand_id = COALESCE(brand_id, {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }}),\n      model_id = COALESCE(model_id, {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}),\n      updated_at = NOW()\n    WHERE id = v_device_id;\n  ELSE\n    -- Create new device\n    INSERT INTO appeal_devices (appeal_id, tenant_id, device_order, brand_id, model_id, owner_label)\n    VALUES (\n      '{{ $json.appeal_id }}'::uuid,\n      '{{ $json.tenant_id }}'::uuid,\n      COALESCE((SELECT MAX(device_order) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 1),\n      {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n      {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }},\n      {{ $json.extracted_data.owner_label ? \"'\" + $json.extracted_data.owner_label + \"'\" : 'NULL' }}\n    )\n    RETURNING id INTO v_device_id;\n  END IF;\n\n  -- Problem/Repair: use existing or create new\n  IF '{{ $json.problem_action }}' = 'use_existing' AND '{{ $json.matched_problem_id }}' != '' AND '{{ $json.matched_problem_id }}' != 'null' THEN\n    v_repair_id := '{{ $json.matched_problem_id }}'::uuid;\n  ELSIF {{ $json.extracted_data.repair_category_id ? 'true' : 'false' }} THEN\n    INSERT INTO appeal_repairs (appeal_id, appeal_device_id, tenant_id, repair_category_id)\n    VALUES (\n      '{{ $json.appeal_id }}'::uuid,\n      v_device_id,\n      '{{ $json.tenant_id }}'::uuid,\n      '{{ $json.extracted_data.repair_category_id }}'::uuid\n    )\n    RETURNING id INTO v_repair_id;\n  END IF;\n\n  -- Update appeal\n  UPDATE appeals \n  SET \n    updated_at = NOW(),\n    stage = 'Расчёт стоимости',\n    context_completion_percentage = {{ $json.completion_percentage }},\n    conversation_focus = '{{ JSON.stringify($json.conversation_focus || {}).replace(/'/g, \"''\") }}'::jsonb,\n    last_mentioned_device_id = v_device_id,\n    last_mentioned_repair_id = v_repair_id\n  WHERE id = '{{ $json.appeal_id }}'::uuid;\nEND $$;",
         "options": {}
       },
-      "id": "b7ffbaec-574d-4997-8fa7-b2f0965558a9",
+      "id": "3eafff72-0394-49b5-a3b5-4aae2afda56a",
       "name": "Update Full Data",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        1664,
-        -128
+        800,
+        -176
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -335,16 +369,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH device_upsert AS (\n  INSERT INTO appeal_devices (appeal_id, tenant_id, device_order, brand_id, model_id)\n  VALUES (\n    '{{ $json.appeal_id }}'::uuid,\n    '{{ $json.tenant_id }}'::uuid,\n    COALESCE((SELECT MAX(device_order) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 1),\n    {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n    {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}\n  )\n  ON CONFLICT (appeal_id, device_order)\n  DO UPDATE SET\n    brand_id = COALESCE(EXCLUDED.brand_id, appeal_devices.brand_id),\n    model_id = COALESCE(EXCLUDED.model_id, appeal_devices.model_id),\n    updated_at = NOW()\n  RETURNING id\n)\nUPDATE appeals\nSET\n  updated_at = NOW(),\n  context_completion_percentage = {{ $json.completion_percentage }},\n  conversation_focus = '{{ JSON.stringify($json.conversation_focus || {}).replace(/'/g, \"''\") }}'::jsonb,\n  last_mentioned_device_id = COALESCE((SELECT id FROM device_upsert), last_mentioned_device_id),\n  last_mentioned_repair_id = {{ $json.focus_repair_id ? \"'\" + $json.focus_repair_id + \"'::uuid\" : 'last_mentioned_repair_id' }}\nWHERE id = '{{ $json.appeal_id }}'::uuid;",
+        "query": "-- Partial update with Graph Matcher\nDO $$\nDECLARE\n  v_device_id uuid;\nBEGIN\n  -- Device: use existing or create new\n  IF '{{ $json.device_action }}' = 'use_existing' AND '{{ $json.matched_device_id }}' != '' AND '{{ $json.matched_device_id }}' != 'null' THEN\n    v_device_id := '{{ $json.matched_device_id }}'::uuid;\n    \n    UPDATE appeal_devices \n    SET \n      brand_id = COALESCE(brand_id, {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }}),\n      model_id = COALESCE(model_id, {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }}),\n      updated_at = NOW()\n    WHERE id = v_device_id;\n  ELSE\n    INSERT INTO appeal_devices (appeal_id, tenant_id, device_order, brand_id, model_id, owner_label)\n    VALUES (\n      '{{ $json.appeal_id }}'::uuid,\n      '{{ $json.tenant_id }}'::uuid,\n      COALESCE((SELECT MAX(device_order) + 1 FROM appeal_devices WHERE appeal_id = '{{ $json.appeal_id }}'::uuid), 1),\n      {{ $json.extracted_data.brand_id ? \"'\" + $json.extracted_data.brand_id + \"'::uuid\" : 'NULL' }},\n      {{ $json.extracted_data.model_id ? \"'\" + $json.extracted_data.model_id + \"'::uuid\" : 'NULL' }},\n      {{ $json.extracted_data.owner_label ? \"'\" + $json.extracted_data.owner_label + \"'\" : 'NULL' }}\n    )\n    RETURNING id INTO v_device_id;\n  END IF;\n\n  UPDATE appeals\n  SET\n    updated_at = NOW(),\n    context_completion_percentage = {{ $json.completion_percentage }},\n    conversation_focus = '{{ JSON.stringify($json.conversation_focus || {}).replace(/'/g, \"''\") }}'::jsonb,\n    last_mentioned_device_id = v_device_id,\n    last_mentioned_repair_id = {{ $json.focus_repair_id ? \"'\" + $json.focus_repair_id + \"'::uuid\" : 'last_mentioned_repair_id' }}\n  WHERE id = '{{ $json.appeal_id }}'::uuid;\nEND $$;",
         "options": {}
       },
-      "id": "f3bb7e78-b047-40a6-bb51-48f45de59f24",
+      "id": "178ce769-ccc3-4066-8791-e22422609fbe",
       "name": "Update Partial Data",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        1664,
-        48
+        800,
+        0
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -360,13 +394,13 @@
         "query": "-- Minimal update: timestamp, stage, conversation focus\nUPDATE appeals \nSET \n  updated_at = NOW(),\n  stage = COALESCE(stage, 'Сбор информации'),\n  context_completion_percentage = {{ $json.completion_percentage }},\n  conversation_focus = '{{ JSON.stringify($json.conversation_focus || {}).replace(/'/g, \"''\") }}'::jsonb,\n  last_mentioned_device_id = {{ $json.focus_device_id ? \"'\" + $json.focus_device_id + \"'::uuid\" : 'last_mentioned_device_id' }},\n  last_mentioned_repair_id = {{ $json.focus_repair_id ? \"'\" + $json.focus_repair_id + \"'::uuid\" : 'last_mentioned_repair_id' }}\nWHERE id = '{{ $json.appeal_id }}'::uuid;",
         "options": {}
       },
-      "id": "152c9f59-9d78-4e30-8c2a-4a5879be3ea5",
+      "id": "61ca9318-9814-42be-bb3e-491a47efb936",
       "name": "Update Minimal",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        1664,
-        224
+        800,
+        176
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -378,15 +412,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Merge After Update - берём данные из Prepare Response\nlet data = null;\n\ntry {\n  data = $('Prepare Response').first().json;\n  console.log('Got data from Prepare Response');\n} catch (e) {\n  console.log('Could not access Prepare Response:', e.message);\n  const items = $input.all();\n  if (items.length > 0) {\n    data = items[0].json;\n  }\n}\n\nconsole.log('=== MERGE AFTER UPDATE ===');\nconsole.log('Appeal ID:', data?.appeal_id);\nconsole.log('Response text:', data?.response_text?.substring(0, 50));\n\nreturn data || {};"
+        "jsCode": "let data = null;\n\ntry {\n  data = $('Prepare Response').first().json;\n} catch (e) {\n  const items = $input.all();\n  if (items.length > 0) {\n    data = items[0].json;\n  }\n}\n\nreturn data || {};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1888,
-        48
+        1024,
+        0
       ],
-      "id": "a959d996-7cce-4725-b31f-1108cbb8f4e6",
+      "id": "d657327c-4da3-43a4-a308-9eca03e6229a",
       "name": "Merge After Update"
     },
     {
@@ -395,13 +429,13 @@
         "query": "INSERT INTO messages_history (tenant_id, appeal_id, message_type, message_text, channel)\n  VALUES (\n    '{{ $json.tenant_id }}'::uuid,\n    '{{ $json.appeal_id }}'::uuid,\n    'agent',\n    '{{ $json.response_text.replace(/'/g, \"''\") }}',\n    '{{ $json.channel }}'\n  );",
         "options": {}
       },
-      "id": "f52a96aa-d047-4a17-9c42-cf8bf4733f12",
+      "id": "7ecc5fc0-627d-4a3d-a077-08a72375fce9",
       "name": "Save Response",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        2112,
-        48
+        1248,
+        0
       ],
       "credentials": {
         "postgres": {
@@ -462,26 +496,26 @@
           "fallbackOutput": "extra"
         }
       },
-      "id": "16d3cef2-e2ab-492e-8c63-04d03430a1ca",
+      "id": "189c3a6c-55b3-4d43-913f-64431bb53897",
       "name": "Route By Mode",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        2336,
-        48
+        1472,
+        0
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Prepare Notifier Data для режима assist\nlet data = null;\n\ntry {\n  data = $('Prepare Response').first().json;\n} catch (e) {\n  data = $input.first()?.json || {};\n}\n\nconsole.log('=== PREPARE NOTIFIER DATA ===');\n\nreturn {\n  tenant_id: data.tenant_id,\n  appeal_id: data.appeal_id,\n  client_name: data.client_name || '',\n  channel: data.channel,\n  text: data.text || '',\n  response_text: data.response_text || '',\n  external_chat_id: data.external_chat_id,\n  appeal: data.appeal,\n  missing_fields: data.missing_fields\n};"
+        "jsCode": "let data = null;\n\ntry {\n  data = $('Prepare Response').first().json;\n} catch (e) {\n  data = $input.first()?.json || {};\n}\n\nreturn {\n  tenant_id: data.tenant_id,\n  appeal_id: data.appeal_id,\n  client_name: data.client_name || '',\n  channel: data.channel,\n  text: data.text || '',\n  response_text: data.response_text || '',\n  external_chat_id: data.external_chat_id,\n  appeal: data.appeal,\n  missing_fields: data.missing_fields\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2560,
-        144
+        1696,
+        96
       ],
-      "id": "53d37612-dc8f-492d-b43b-330ecdaa30dc",
+      "id": "a2f97525-27fa-4d34-b858-6cb5508ed78a",
       "name": "Prepare Notifier Data"
     },
     {
@@ -489,13 +523,13 @@
         "workflowId": "GUeLgLcNnawYfpf9",
         "options": {}
       },
-      "id": "15562c62-d549-40fe-bd0f-d543d952c6e5",
+      "id": "a1e410f0-7c4c-4ef9-8dd9-314bbbe157d1",
       "name": "Call Operator Notifier",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        2784,
-        144
+        1920,
+        96
       ]
     },
     {
@@ -504,26 +538,26 @@
         "responseBody": "={{ {\n  \"success\": true,\n  \"appeal_id\": $('Prepare Response').item.json.appeal_id,\n  \"response_text\": $('Prepare Response').item.json.response_text,\n  \"next_action\": $('Prepare Response').item.json.next_action,\n  \"completion_percentage\": $('Prepare Response').item.json.completion_percentage\n} }}",
         "options": {}
       },
-      "id": "a1b46c50-51ce-4b65-8cfe-0d004d74ac1c",
+      "id": "a0708ac2-84ed-43a7-a52a-c91c91d760c0",
       "name": "Return Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        3008,
-        144
+        2144,
+        96
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Prepare Auto Send для режима auto\nconst data = $input.first().json;\n\nconsole.log('=== PREPARE AUTO SEND ===');\n\nlet clientId = null;\ntry {\n  const ctx = $('Build AI Context').first()?.json;\n  clientId = ctx?.appeal?.client_id || ctx?.client_id;\n} catch (e) {}\n\nif (!clientId) {\n  clientId = data.approval_data?.appeal?.client_id;\n}\n\nif (!clientId) {\n  throw new Error('client_id not found');\n}\n\nreturn {\n  appeal_id: data.appeal_id,\n  client_id: clientId,\n  response_to_send: data.response_text,\n  channel: data.channel || 'telegram',\n  response_type: 'text',\n  operator_action: 'auto_response',\n  operator_name: 'ИИ-агент',\n  client_telegram_id: data.external_chat_id,\n  source_workflow: 'BAT AI Appeal Router (auto)',\n  extracted_data: data.extracted_data,\n  completion_percentage: data.completion_percentage,\n  approval_data: data.approval_data,\n  operation_mode: data.operation_mode,\n  client_name: data.client_name\n};"
+        "jsCode": "const data = $input.first().json;\n\nlet clientId = null;\ntry {\n  const ctx = $('Build AI Context').first()?.json;\n  clientId = ctx?.appeal?.client_id || ctx?.client_id;\n} catch (e) {}\n\nif (!clientId) {\n  clientId = data.approval_data?.appeal?.client_id;\n}\n\nif (!clientId) {\n  throw new Error('client_id not found');\n}\n\nreturn {\n  appeal_id: data.appeal_id,\n  client_id: clientId,\n  response_to_send: data.response_text,\n  channel: data.channel || 'telegram',\n  response_type: 'text',\n  operator_action: 'auto_response',\n  operator_name: 'ИИ-агент',\n  client_telegram_id: data.external_chat_id,\n  source_workflow: 'BAT AI Appeal Router (auto)',\n  extracted_data: data.extracted_data,\n  completion_percentage: data.completion_percentage,\n  approval_data: data.approval_data,\n  operation_mode: data.operation_mode,\n  client_name: data.client_name\n};"
       },
-      "id": "966c4180-1549-4737-8f5b-0110b7b2592f",
+      "id": "2214e7d8-fa37-4d78-907a-5a704cdd606e",
       "name": "Prepare Auto Send",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2560,
-        -48
+        1696,
+        -96
       ]
     },
     {
@@ -531,13 +565,13 @@
         "workflowId": "Gxd1gIKgk8HxuOya",
         "options": {}
       },
-      "id": "18f1b4b3-5a96-4031-b6de-6ecc14bd3e22",
+      "id": "bcf74123-2663-430d-ba8e-f451308e0c91",
       "name": "Call Client Response Sender",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1,
       "position": [
-        2784,
-        -48
+        1920,
+        -96
       ]
     },
     {
@@ -551,13 +585,13 @@
           "timeout": 5000
         }
       },
-      "id": "4edcefbc-0016-4871-b34c-8299cf57df86",
+      "id": "30b9e956-0f6b-4401-9f1c-e1ab64f4f33c",
       "name": "Register Touchpoint (Outbound)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2112,
-        256
+        1248,
+        208
       ],
       "continueOnFail": true
     }
@@ -664,6 +698,28 @@
       ]
     },
     "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Call Graph Matcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Graph Matcher": {
+      "main": [
+        [
+          {
+            "node": "Process Match Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Match Result": {
       "main": [
         [
           {
@@ -888,6 +944,6 @@
       "name": "Core"
     }
   ],
-  "updatedAt": "2025-12-08T08:54:16.000Z",
+  "updatedAt": "2025-12-08T14:37:47.000Z",
   "createdAt": "2025-11-25T14:24:10.715Z"
 }

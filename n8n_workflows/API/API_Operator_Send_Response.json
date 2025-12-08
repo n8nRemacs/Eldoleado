@@ -1,47 +1,50 @@
 {
+  "id": "gRvt4FVGZqXXyfW6",
+  "name": "API_Operator_Send_Response",
+  "active": true,
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nreturn {\n  ...data,\n  channel: data.appeal?.ad_channel || 'telegram'\n};"
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  ...data,\n  channel: data.channel || data.appeal?.ad_channel || 'telegram'\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
-        -96
+        -80,
+        -32
       ],
-      "id": "8371117a-1575-44b5-9797-f5e00354c092",
+      "id": "d83ca3d7-83c1-400d-b4ac-3391d76b20ad",
       "name": "Code in JavaScript"
     },
     {
       "parameters": {
-        "jsCode": "const ctx = $input.first().json;\n\nreturn {\n  channel: ctx.channel,  // <-- ÑÑ‚Ð¾ Ð¿Ð¾Ð»Ðµ\n  external_chat_id: ctx.client_telegram_id,\n  message_text: ctx.response_text,\n  appeal: {\n    id: ctx.appeal_id\n  },\n  client: {\n    id: ctx.client_id\n  },\n  tenant_id: ctx.tenant_id\n};"
+        "jsCode": "const ctx = $input.first().json;\n\nreturn {\n  channel: ctx.channel,\n  external_chat_id: ctx.client_telegram_id,\n  message_text: ctx.response_text,\n  appeal: {\n    id: ctx.appeal_id\n  },\n  client: {\n    id: ctx.client_id\n  },\n  tenant_id: ctx.tenant_id\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        144,
-        -96
+        -352,
+        -32
       ],
-      "id": "ce2b06a6-4d08-4f27-9540-800a6d4ba2e6",
+      "id": "97665667-7bf6-47b4-9328-84023915ecbf",
       "name": "Prepare Message"
     },
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "/api/android/appeals/{id}/send",
+        "path": "api/android/appeals/:id/send",
         "responseMode": "responseNode",
         "options": {
           "allowedOrigins": "*"
         }
       },
-      "id": "aa3cf817-36b9-41aa-a5b1-4475b711ff09",
+      "id": "f6f59218-e534-4418-a2ef-600b5d86d43b",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -1344,
-        0
+        -1840,
+        64
       ],
       "webhookId": "unique-send-response"
     },
@@ -49,13 +52,13 @@
       "parameters": {
         "jsCode": "const body = $json.body || {};\nconst params = $json.params || {};\n\nreturn {\n  appeal_id: params.id || null,\n  message_text: body.message_text || body.response_text || body.text || null,\n  media_type: body.media_type || 'text',\n  media_data: body.media_data || null,\n  session_token: $json.session_token\n};"
       },
-      "id": "294d9d1b-4739-4b35-9e2a-b3c6314da299",
+      "id": "1eff4471-9aa4-442a-945d-ab003645d910",
       "name": "Parse Params",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -720,
-        0
+        -1216,
+        64
       ]
     },
     {
@@ -64,13 +67,13 @@
         "query": "SELECT \n  od.operator_id, \n  od.tenant_id, \n  a.client_id, \n  a.ad_channel as channel, \n  c.telegram_id as client_telegram_id\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nJOIN appeals a ON a.id = '{{ $json.appeal_id }}'::uuid AND a.tenant_id = od.tenant_id\nJOIN clients c ON c.id = a.client_id AND c.tenant_id = od.tenant_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
         "options": {}
       },
-      "id": "0073a431-33f5-4e9f-ba9b-c876c2ffa1a2",
+      "id": "a4f0fc0d-ea01-48bc-9ed9-db380202cdcc",
       "name": "Get Context",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        -496,
-        0
+        -992,
+        64
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -82,15 +85,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst previous = $('Parse Params').first().json;\n\nif (!row) {\n  return { ...previous, error: 'not_found' };\n}\n\nreturn {\n  ...previous,\n  tenant_id: row.tenant_id,\n  operator_id: row.operator_id,\n  client_id: row.client_id,\n  channel: row.channel,\n  client_telegram_id: row.client_telegram_id,\n  response_text: previous.message_text  // Добавить\n};"
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst previous = $('Parse Params').first().json;\n\nif (!row) {\n  return { ...previous, error: 'not_found' };\n}\n\nreturn {\n  ...previous,\n  tenant_id: row.tenant_id,\n  operator_id: row.operator_id,\n  client_id: row.client_id,\n  channel: row.channel,\n  client_telegram_id: row.client_telegram_id,\n  response_text: previous.message_text\n};"
       },
-      "id": "d102b33b-3576-4826-b4b0-2c0460a32681",
+      "id": "b9f98b28-231f-413e-8726-2fba02085beb",
       "name": "Normalize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -288,
-        0
+        -784,
+        64
       ]
     },
     {
@@ -105,13 +108,13 @@
           ]
         }
       },
-      "id": "bcbac50a-8c1c-4a2d-ae24-c587b93cfb46",
+      "id": "8853c6be-91bb-4811-aaa2-c07db28d21dd",
       "name": "Valid?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -64,
-        0
+        -560,
+        64
       ]
     },
     {
@@ -123,29 +126,29 @@
         },
         "options": {}
       },
-      "id": "4c79db75-3a17-4df1-95bf-311186e7a394",
+      "id": "d40e880c-ab62-49f6-a389-222ab8372c03",
       "name": "Call Message Router",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
       "position": [
-        736,
-        -96
+        240,
+        -32
       ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE operator_appeal_status SET status = 'completed', completed_at = NOW() WHERE appeal_id = '{{ $('Normalize').first().json.appeal_id }}'::uuid AND tenant_id = '{{ $json.tenant_id }}'::uuid;",
+        "query": "UPDATE operator_appeal_status\n  SET status = 'completed', completed_at = NOW()\n  WHERE appeal_id = '{{ $('Parse Params').first().json.appeal_id }}'::uuid\n    AND tenant_id = '{{ $('Get Context').first().json.tenant_id }}'::uuid;",
         "options": {}
       },
-      "id": "f2e3cd2b-a870-4c7e-a7b4-e68083bc384a",
+      "id": "712b4d38-468b-4090-bc52-5dce6f891475",
       "name": "Update Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        960,
-        -96
+        464,
+        -32
       ],
       "credentials": {
         "postgres": {
@@ -158,13 +161,13 @@
       "parameters": {
         "jsCode": "return { success: true, message: 'Response sent' };"
       },
-      "id": "7075d877-c4cb-4910-8106-05044669f299",
+      "id": "84ae7107-48fc-404e-b2a8-ef9b6d77d192",
       "name": "Format Success",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1184,
-        -96
+        688,
+        -32
       ]
     },
     {
@@ -183,26 +186,26 @@
           }
         }
       },
-      "id": "b5c85a08-c8f8-4f17-9001-220da2cc1e11",
+      "id": "358b4d90-7c49-455e-a7e7-2515e9b1a4f6",
       "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1344,
-        16
+        848,
+        80
       ]
     },
     {
       "parameters": {
         "jsCode": "return { success: false, error: 'invalid_request' };"
       },
-      "id": "d59f45b5-2c48-4f22-8236-8a1af658e785",
+      "id": "96488d41-2638-4828-9952-009c8d0fad71",
       "name": "Format Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        160,
-        96
+        -336,
+        160
       ]
     },
     {
@@ -212,10 +215,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        0
+        -1632,
+        64
       ],
-      "id": "b429fcc5-e51d-404a-9097-7cecaa5f4624",
+      "id": "609cb664-bf80-4e21-9ed7-919370ca030d",
       "name": "Parse Token"
     },
     {
@@ -227,10 +230,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        368,
-        96
+        -128,
+        160
       ],
-      "id": "d1c5bb75-5770-4705-a0b4-9b3aa69ba217",
+      "id": "58765793-d5c6-497b-9a2d-21d898303bc4",
       "name": "Respond to Webhook"
     }
   ],
@@ -375,35 +378,23 @@
       ]
     }
   },
-  "pinData": {
-    "Webhook": [
-      {
-        "headers": {
-          "host": "n8n.n8nsrv.ru",
-          "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; ru-RU) WindowsPowerShell/5.1.22621.2428",
-          "content-length": "103",
-          "content-type": "application/json; charset=utf-8",
-          "via": "1.1 Caddy",
-          "x-forwarded-for": "176.100.126.245",
-          "x-forwarded-host": "n8n.n8nsrv.ru",
-          "x-forwarded-proto": "https",
-          "x-session-token": "4e9afe35-6901-4655-8226-5976e3dc4dd7",
-          "accept-encoding": "gzip"
-        },
-        "params": {
-          "id": "5dcf855d-1049-4882-924b-ead254f01175"
-        },
-        "query": {},
-        "body": {
-          "message_text": "Тестовое сообщение от оператора через API"
-        },
-        "webhookUrl": "https://n8n.n8nsrv.ru/webhook/unique-send-response/api/operator/appeals/:id/send",
-        "executionMode": "production"
-      }
-    ]
+  "settings": {
+    "executionOrder": "v1"
   },
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
-  }
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-12-08T11:33:32.000Z",
+  "createdAt": "2025-11-06T06:01:04.561Z"
 }

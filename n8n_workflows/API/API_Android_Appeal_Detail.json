@@ -1,19 +1,19 @@
 {
-  "id": "o5BjZMJlBITPXJrc",
+  "id": "BnJhQobHiniAInFO",
   "name": "API_Android_Appeal_Detail",
-  "active": false,
+  "active": true,
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const params = $json.params || {};\nconst appeal_id = (params.id || '').trim();\n\nlet limit = parseInt($json.query?.limit || '50', 10);\nif (!Number.isFinite(limit)) limit = 50;\nlimit = Math.max(1, Math.min(limit, 200));\n\nreturn { \n  appeal_id, \n  limit, \n  session_token: $json.session_token \n};"
+        "jsCode": "const params = $json.params || {};\nconst appeal_id = (params.id || '').trim();\n\nlet limit = parseInt($json.query?.limit || '50', 10);\nif (!Number.isFinite(limit)) limit = 50;\nlimit = Math.max(1, Math.min(limit, 200));\n\n// ÐŸÐµÑ€ÐµÐ´Ð°Ñ‘Ð¼ session_token Ð´Ð°Ð»ÑŒÑˆÐµ\nreturn { \n  appeal_id, \n  limit, \n  session_token: $json.session_token \n};"
       },
-      "id": "ca376ef9-2a3d-4b59-850c-e8910ac274b0",
+      "id": "60e4d57c-193c-450e-a068-a9ecc65987f6",
       "name": "Parse Params",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -784,
-        80
+        -976,
+        192
       ]
     },
     {
@@ -22,13 +22,13 @@
         "query": "SELECT od.operator_id, od.tenant_id \nFROM operator_devices od\nWHERE od.session_token = '{{ $('Webhook').item.json.headers[\"x-session-token\"] }}'\nAND od.device_type = 'mobile'\nAND EXISTS (\n  SELECT 1 FROM operators o \n  WHERE o.id = od.operator_id \n  AND o.is_active = true\n)\nLIMIT 1;",
         "options": {}
       },
-      "id": "75d770e0-f9d0-4b94-a8b4-56a07a26cd0d",
+      "id": "ebea8afc-99da-4865-a6df-f84f45c4b997",
       "name": "Get Tenant",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -480,
-        80
+        -672,
+        192
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -42,13 +42,13 @@
       "parameters": {
         "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row && typeof row === 'object' ? (row.tenant_id || null) : null;\n\nconst previous = $('Parse Params').first().json;\n\nreturn {\n  ...previous,\n  tenant_id\n};"
       },
-      "id": "22c84659-f409-47e1-b1f9-f1ed2877d556",
+      "id": "c7959e30-eada-4728-a2dc-991864f545bd",
       "name": "Normalize Tenant",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -240,
-        80
+        -432,
+        192
       ]
     },
     {
@@ -62,13 +62,13 @@
           ]
         }
       },
-      "id": "e2dac72b-26ad-4558-8776-73fb7bd87abb",
+      "id": "d80b1bc2-582d-455e-af1c-52c99adbbe45",
       "name": "Tenant Found?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        0,
-        80
+        -192,
+        192
       ]
     },
     {
@@ -87,28 +87,28 @@
           }
         }
       },
-      "id": "26bff003-ba32-4af0-ab06-afc07fe34e85",
+      "id": "c8d5e75e-026e-497b-bc43-e5404f896a86",
       "name": "Respond 401",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        416,
-        112
+        224,
+        224
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH vals AS (\nSELECT\n'{{ $json.tenant_id || \"\" }}' AS tenant_id_text,\n'{{ $json.appeal_id || \"\" }}' AS appeal_id_text,\n'{{ $json.limit || 50 }}' AS limit_text\n),\nvalidated AS (\nSELECT\nCASE WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN tenant_id_text::uuid ELSE NULL END AS tenant_id,\nCASE WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN appeal_id_text::uuid ELSE NULL END AS appeal_id,\nCASE WHEN limit_text ~ '^[0-9]+$' THEN LEAST(GREATEST(limit_text::int, 1), 200) ELSE 50 END AS lim\nFROM vals\n)\nSELECT\na.id, a.stage, a.operation_mode, a.updated_at,\na.estimated_cost, a.estimated_time, a.phone_model, a.brand_id, a.model_id, a.repair_type_id, a.deal_type_id, a.parts_owner,\nc.name AS client_name, c.phone AS client_phone,\nb.name AS brand_name, m.name AS model_name, rt.name AS repair_type_name, dt.name AS deal_type_name,\n(\n  SELECT oa.details->>'ai_response'\n  FROM operator_actions oa\n  WHERE oa.context_appeal_id = a.id\n    AND oa.action_type = 'notify_appeal_ready'\n    AND oa.details->>'ai_response' IS NOT NULL\n  ORDER BY oa.created_at DESC\n  LIMIT 1\n) AS ai_response,\n(\nSELECT jsonb_agg(\njsonb_build_object(\n'created_at', mh.created_at,\n'message_type', mh.message_type,\n'message_text', mh.message_text\n)\nORDER BY mh.created_at DESC\n)\nFROM messages_history mh\nWHERE mh.appeal_id = a.id\nLIMIT (SELECT lim FROM validated)\n) AS messages,\n(\nSELECT jsonb_agg(\njsonb_build_object(\n'id', ad.id,\n'device_order', ad.device_index,\n'brand_id', ad.brand_id,\n'brand_name', adb.name,\n'model_id', ad.model_id,\n'model_name', adm.name,\n'phone_model', ad.phone_model,\n'status', ad.status,\n'repairs', (\n  SELECT jsonb_agg(\n    jsonb_build_object(\n      'id', ar.id,\n      'repair_category_id', ar.repair_category_id,\n      'repair_category_name', rc.name,\n      'issue_type_id', ar.issue_type_id,\n      'issue_type_name', it.name,\n      'parts_owner', ar.parts_owner,\n      'status', ar.status,\n      'priority', ar.priority\n    )\n    ORDER BY ar.priority NULLS LAST, ar.created_at\n  )\n  FROM appeal_repairs ar\n  LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id\n  LEFT JOIN issue_types it ON it.id = ar.issue_type_id\n  WHERE ar.appeal_device_id = ad.id\n)\n)\nORDER BY ad.device_index NULLS LAST, ad.created_at\n)\nFROM appeal_devices ad\nLEFT JOIN brands adb ON adb.id = ad.brand_id\nLEFT JOIN models adm ON adm.id = ad.model_id\nWHERE ad.appeal_id = a.id\n) AS devices\nFROM validated v\nJOIN appeals a\nON v.tenant_id IS NOT NULL\nAND v.appeal_id IS NOT NULL\nAND a.tenant_id = v.tenant_id\nAND a.id = v.appeal_id\nJOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN repair_types rt ON rt.id = a.repair_type_id AND rt.tenant_id = a.tenant_id\nLEFT JOIN deal_types dt ON dt.id = a.deal_type_id;",
+        "query": "WITH vals AS (\nSELECT\n'{{ $json.tenant_id || \"\" }}' AS tenant_id_text,\n'{{ $json.appeal_id || \"\" }}' AS appeal_id_text,\n'{{ $json.limit || 50 }}' AS limit_text\n),\nvalidated AS (\nSELECT\nCASE WHEN tenant_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN tenant_id_text::uuid ELSE NULL END AS tenant_id,\nCASE WHEN appeal_id_text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN appeal_id_text::uuid ELSE NULL END AS appeal_id,\nCASE WHEN limit_text ~ '^[0-9]+$' THEN LEAST(GREATEST(limit_text::int, 1), 200) ELSE 50 END AS lim\nFROM vals\n)\nSELECT\na.id, a.stage, a.operation_mode, a.updated_at,\na.estimated_cost, a.estimated_time, a.phone_model, a.brand_id, a.model_id, a.repair_type_id, a.deal_type_id, a.parts_owner,\na.conversation_context, a.conversation_focus,\nc.name AS client_name, c.phone AS client_phone,\nb.name AS brand_name, m.name AS model_name, rt.name AS repair_type_name, dt.name AS deal_type_name,\n(\n  SELECT oa.details->>'ai_response'\n  FROM operator_actions oa\n  WHERE oa.context_appeal_id = a.id\n    AND oa.action_type = 'notify_appeal_ready'\n    AND oa.details->>'ai_response' IS NOT NULL\n  ORDER BY oa.created_at DESC\n  LIMIT 1\n) AS ai_response,\n(\nSELECT jsonb_agg(\njsonb_build_object(\n'created_at', mh.created_at,\n'message_type', mh.message_type,\n'message_text', mh.message_text\n)\nORDER BY mh.created_at DESC\n)\nFROM messages_history mh\nWHERE mh.appeal_id = a.id\nLIMIT (SELECT lim FROM validated)\n) AS messages,\n(\nSELECT COALESCE(jsonb_agg(\n  jsonb_build_object(\n    'id', ad.id,\n    'device_index', ad.device_index,\n    'owner_label', ad.owner_label,\n    'brand_id', ad.brand_id,\n    'brand_name', adb.name,\n    'model_id', ad.model_id,\n    'model_name', adm.name,\n    'condition', ad.condition,\n    'repairs', (\n      SELECT COALESCE(jsonb_agg(\n        jsonb_build_object(\n          'id', ar.id,\n          'repair_category_id', ar.repair_category_id,\n          'issue_type_id', ar.issue_type_id,\n          'parts_owner', ar.parts_owner,\n          'repair_status', ar.repair_status,\n          'estimated_cost', ar.estimated_cost\n        )\n      ), '[]'::jsonb)\n      FROM appeal_repairs ar\n      WHERE ar.appeal_device_id = ad.id\n    )\n  )\n  ORDER BY ad.device_index\n), '[]'::jsonb)\nFROM appeal_devices ad\nLEFT JOIN brands adb ON adb.id = ad.brand_id\nLEFT JOIN models adm ON adm.id = ad.model_id\nWHERE ad.appeal_id = a.id\n) AS devices\nFROM validated v\nJOIN appeals a\nON v.tenant_id IS NOT NULL\nAND v.appeal_id IS NOT NULL\nAND a.tenant_id = v.tenant_id\nAND a.id = v.appeal_id\nJOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id\nLEFT JOIN brands b ON b.id = a.brand_id AND b.tenant_id = a.tenant_id\nLEFT JOIN models m ON m.id = a.model_id AND m.tenant_id = a.tenant_id\nLEFT JOIN repair_types rt ON rt.id = a.repair_type_id AND rt.tenant_id = a.tenant_id\nLEFT JOIN deal_types dt ON dt.id = a.deal_type_id;",
         "options": {}
       },
-      "id": "08cc68cd-2c50-4f00-a2d9-1a0840381ba6",
+      "id": "4e4ab31b-8b81-4bab-ad6d-389336fc69c5",
       "name": "Fetch Appeal & History",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        320,
-        -112
+        128,
+        0
       ],
       "credentials": {
         "postgres": {
@@ -119,15 +119,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const inp = $input.first()?.json;\nconst row = Array.isArray(inp) ? (inp[0] || null) : inp;\n\nif (!row || typeof row !== 'object' || !row.id) {\n  return { success: false, error: 'not_found' };\n}\n\nconst messages = Array.isArray(row.messages) ? row.messages : [];\nconst devices = Array.isArray(row.devices) ? row.devices : [];\nconst meta = row.meta || [];\n\nreturn {\n  success: true,\n  appeal: {\n    id: row.id,\n    stage: row.stage,\n    operation_mode: row.operation_mode,\n    estimated_cost: row.estimated_cost,\n    estimated_time: row.estimated_time,\n    phone_model: row.phone_model,\n    brand_id: row.brand_id,\n    model_id: row.model_id,\n    repair_type_id: row.repair_type_id,\n    repair_type_name: row.repair_type_name,\n    deal_type_id: row.deal_type_id,\n    deal_type_name: row.deal_type_name,\n    parts_owner: row.parts_owner,\n    updated_at: row.updated_at,\n    ai_response: row.ai_response || null,\n    meta: meta\n  },\n  client: {\n    name: row.client_name || null,\n    phone: row.client_phone || null,\n  },\n  device: {\n    brand: row.brand_name || null,\n    model: row.model_name || row.phone_model || null,\n  },\n  devices: devices.map(d => ({\n    id: d.id,\n    device_order: d.device_order,\n    brand_id: d.brand_id,\n    brand_name: d.brand_name,\n    model_id: d.model_id,\n    model_name: d.model_name,\n    phone_model: d.phone_model,\n    status: d.status,\n    repairs: (d.repairs || []).map(r => ({\n      id: r.id,\n      repair_category_id: r.repair_category_id,\n      repair_category_name: r.repair_category_name,\n      issue_type_id: r.issue_type_id,\n      issue_type_name: r.issue_type_name,\n      parts_owner: r.parts_owner,\n      status: r.status,\n      priority: r.priority\n    }))\n  })),\n  history: messages.map(m => ({\n    created_at: m.created_at,\n    type: m.message_type,\n    text: m.message_text,\n  })),\n};"
+        "jsCode": "const inp = $input.first()?.json;\nconst row = Array.isArray(inp) ? (inp[0] || null) : inp;\n\nif (!row || typeof row !== 'object' || !row.id) {\n  return { success: false, error: 'not_found' };\n}\n\nconst messages = Array.isArray(row.messages) ? row.messages : [];\nconst devices = Array.isArray(row.devices) ? row.devices : [];\nconst meta = row.meta || [];\n\nreturn {\n  success: true,\n  appeal: {\n    id: row.id,\n    stage: row.stage,\n    operation_mode: row.operation_mode,\n    estimated_cost: row.estimated_cost,\n    estimated_time: row.estimated_time,\n    phone_model: row.phone_model,\n    brand_id: row.brand_id,\n    model_id: row.model_id,\n    repair_type_id: row.repair_type_id,\n    repair_type_name: row.repair_type_name,\n    deal_type_id: row.deal_type_id,\n    deal_type_name: row.deal_type_name,\n    parts_owner: row.parts_owner,\n    updated_at: row.updated_at,\n    ai_response: row.ai_response || null,\n    meta: meta\n  },\n  client: {\n    name: row.client_name || null,\n    phone: row.client_phone || null,\n  },\n  device: {\n    brand: row.brand_name || null,\n    model: row.model_name || row.phone_model || null,\n  },\n  devices: devices.map(d => ({\n    id: d.id,\n    device_index: d.device_index,\n    owner_label: d.owner_label,\n    brand_id: d.brand_id,\n    brand_name: d.brand_name,\n    model_id: d.model_id,\n    model_name: d.model_name,\n    condition: d.condition,\n    repairs: (d.repairs || []).map(r => ({\n      id: r.id,\n      repair_category_id: r.repair_category_id,\n      issue_type_id: r.issue_type_id,\n      parts_owner: r.parts_owner,\n      repair_status: r.repair_status,\n      estimated_cost: r.estimated_cost\n    }))\n  })),\n  history: messages.map(m => ({\n    created_at: m.created_at,\n    type: m.message_type,\n    text: m.message_text,\n  })),\n};"
       },
-      "id": "39453e19-0bea-42e6-afd4-79a94d0fe266",
+      "id": "00dd7fcc-1f20-4e7b-9d21-c410549898af",
       "name": "Format Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1184,
-        -112
+        992,
+        0
       ]
     },
     {
@@ -158,10 +158,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1392,
-        -112
+        1200,
+        0
       ],
-      "id": "598fc348-0107-46cc-a10c-67359ffb6f8f",
+      "id": "2bd9b107-a1e1-4ed5-b16d-c9ecaa149e02",
       "name": "If"
     },
     {
@@ -180,13 +180,13 @@
           }
         }
       },
-      "id": "c47d88a5-60d4-4aa2-8b91-f3aec829b3ef",
+      "id": "c1e0a616-ce37-44d1-b7d7-82b7869bb718",
       "name": "Respond 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1712,
-        -128
+        1520,
+        -16
       ]
     },
     {
@@ -205,13 +205,13 @@
           }
         }
       },
-      "id": "944a8104-d7a5-4a83-a40b-212f30816228",
+      "id": "09be6bb5-16ac-4f94-b8d8-49e26f1566d4",
       "name": "Respond 404",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1712,
-        48
+        1520,
+        160
       ]
     },
     {
@@ -225,10 +225,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1328,
-        80
+        -1520,
+        192
       ],
-      "id": "575758d3-bedc-493d-875f-3d7bb3ecdf14",
+      "id": "db6ab491-d3c9-45ba-a301-15c0b5caa098",
       "name": "Webhook",
       "webhookId": "dbc87d6b-d3a8-4613-a2d8-b591d5533210"
     },
@@ -239,10 +239,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1056,
-        80
+        -1248,
+        192
       ],
-      "id": "01abe606-21d8-42bb-89c2-18686ff7bb9c",
+      "id": "09e0c18d-0517-4ae5-9604-0dc9f8362cd7",
       "name": "Parse Token"
     },
     {
@@ -269,10 +269,10 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        736,
-        -272
+        544,
+        -160
       ],
-      "id": "3bf66280-cd22-474f-9dbe-941c32b0e4c2",
+      "id": "5cab765e-9103-4c66-8613-e9322737055e",
       "name": "Tool - Build Appeal Meta"
     },
     {
@@ -282,10 +282,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        512,
-        -272
+        320,
+        -160
       ],
-      "id": "98c46a1f-ec5b-4627-9812-6cec9707c3a6",
+      "id": "c6bcf02d-dc95-4abb-acb6-56e4600152eb",
       "name": "Prepare Meta Input"
     },
     {
@@ -297,10 +297,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        944,
-        -112
+        752,
+        0
       ],
-      "id": "ef5074d9-5e8c-4cc1-bd58-63687c467924",
+      "id": "0dd8f5ae-ec0f-423c-8a78-26f181cfd84b",
       "name": "Merge Meta"
     }
   ],
@@ -459,7 +459,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
   "tags": [
     {
@@ -475,6 +476,6 @@
       "name": "BattCRM"
     }
   ],
-  "updatedAt": "2025-12-05T09:18:25.000Z",
-  "createdAt": "2025-11-05T12:34:14.133Z"
+  "updatedAt": "2025-12-04T12:35:48.000Z",
+  "createdAt": "2025-11-11T09:07:28.865Z"
 }

@@ -5,41 +5,41 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "a13e9b6c-3695-463a-83f3-42859af26799",
+      "id": "183faed4-d234-4652-a06e-e66435ffa44b",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -1056,
-        -352
+        -368,
+        -192
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Normalize Input - извлекаем appeal_id и tenant_id из разных форматов\nconst input = $input.first().json;\n\nconsole.log('=== NORMALIZE INPUT ===');\nconsole.log('Input keys:', Object.keys(input));\n\n// Ищем appeal_id в разных местах\nconst appeal_id = input.appeal_id \n  || input.appeal?.id \n  || input.id;\n\n// Ищем tenant_id\nconst tenant_id = input.tenant_id \n  || input.appeal?.tenant_id;\n\n// Текст сообщения\nconst text = input.text \n  || input.message \n  || input.chatInput \n  || '';\n\nconsole.log('Normalized appeal_id:', appeal_id);\nconsole.log('Normalized tenant_id:', tenant_id);\nconsole.log('Text:', text.substring(0, 50));\n\nif (!appeal_id) {\n  throw new Error('appeal_id not found in input! Keys: ' + Object.keys(input).join(', '));\n}\n\nif (!tenant_id) {\n  throw new Error('tenant_id not found in input!');\n}\n\nreturn {\n  ...input,\n  appeal_id: appeal_id,\n  tenant_id: tenant_id,\n  text: text\n};"
+        "jsCode": "// Normalize Input - извлекаем appeal_id и tenant_id из разных форматов\nconst input = $input.first().json;\n\nconsole.log('=== NORMALIZE INPUT ===');\nconsole.log('Input keys:', Object.keys(input));\n\n// Ищем appeal_id в разных местах\nconst appeal_id = input.appeal_id \n  || input.appeal?.id \n  || input.id;\n\n// Ищем tenant_id\nconst tenant_id = input.tenant_id \n  || input.appeal?.tenant_id;\n\n// Ищем client_id\nconst client_id = input.client_id\n  || input.appeal?.client_id;\n\n// Текст сообщения\nconst text = input.text \n  || input.message \n  || input.chatInput \n  || '';\n\nconsole.log('Normalized appeal_id:', appeal_id);\nconsole.log('Normalized tenant_id:', tenant_id);\nconsole.log('Normalized client_id:', client_id);\nconsole.log('Text:', text.substring(0, 50));\n\nif (!appeal_id) {\n  throw new Error('appeal_id not found in input! Keys: ' + Object.keys(input).join(', '));\n}\n\nif (!tenant_id) {\n  throw new Error('tenant_id not found in input!');\n}\n\nreturn {\n  ...input,\n  appeal_id: appeal_id,\n  tenant_id: tenant_id,\n  client_id: client_id,\n  text: text\n};"
       },
-      "id": "76cbd68a-04ca-4f04-b963-a01f7cbe2d62",
+      "id": "260e732d-fc23-4976-be90-7c9b80f6a4e7",
       "name": "Normalize Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -832,
-        -352
+        -144,
+        -192
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT json_build_object(\n  'appeal', row_to_json(a.*),\n  'devices', COALESCE(\n    (SELECT json_agg(json_build_object(\n      'id', ad.id,\n      'device_index', ad.device_index,\n      'brand_id', ad.brand_id,\n      'brand_name', b.name,\n      'model_id', ad.model_id,\n      'model_name', m.name,\n      'repairs', (SELECT json_agg(json_build_object(\n        'id', ar.id,\n        'category_id', ar.repair_category_id,\n        'category_name', rc.name\n      )) FROM appeal_repairs ar LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id WHERE ar.appeal_device_id = ad.id)\n    ) ORDER BY ad.device_index)\n    FROM appeal_devices ad\n    LEFT JOIN brands b ON b.id = ad.brand_id\n    LEFT JOIN models m ON m.id = ad.model_id\n    WHERE ad.appeal_id = a.id),\n    '[]'::json\n  ),\n  'entity_configs', COALESCE(\n    (SELECT json_agg(row_to_json(ec.*) ORDER BY ec.priority)\n     FROM ai_entity_configs ec\n     WHERE ec.tenant_id = a.tenant_id\n       AND ec.vertical_id = 'repair'\n       AND ec.is_active = true),\n    '[]'::json\n  )\n) as data\nFROM appeals a\nWHERE a.id = '{{ $json.appeal_id }}'::uuid;",
+        "query": "SELECT json_build_object(\n    'appeal', row_to_json(a.*),\n    'client_id', a.client_id,\n    'devices', COALESCE(\n      (SELECT json_agg(json_build_object(\n        'id', ad.id,\n        'device_index', ad.device_index,\n        'brand_id', ad.brand_id,\n        'brand_name', b.name,\n        'model_id', ad.model_id,\n        'model_name', mdl.name,\n        'repairs', (SELECT json_agg(json_build_object(\n          'id', ar.id,\n          'category_id', ar.repair_category_id,\n          'category_name', rc.name\n        )) FROM appeal_repairs ar LEFT JOIN repair_categories rc ON rc.id = ar.repair_category_id WHERE ar.appeal_device_id = ad.id)\n      ) ORDER BY ad.device_index)\n      FROM appeal_devices ad\n      LEFT JOIN brands b ON b.id = ad.brand_id\n      LEFT JOIN models mdl ON mdl.id = ad.model_id\n      WHERE ad.appeal_id = a.id),\n      '[]'::json\n    ),\n    'entity_configs', COALESCE(\n      (SELECT json_agg(row_to_json(ec.*) ORDER BY ec.priority)\n       FROM ai_entity_configs ec\n       WHERE ec.tenant_id = a.tenant_id\n         AND ec.vertical_id = 'repair'\n         AND ec.is_active = true),\n      '[]'::json\n    ),\n    'recent_messages', COALESCE(\n      (SELECT json_agg(json_build_object(\n        'text', mh.message_text,\n        'sender_type', mh.message_type,\n        'created_at', mh.created_at\n      ) ORDER BY mh.created_at DESC)\n       FROM messages_history mh\n       WHERE mh.appeal_id = a.id\n       LIMIT 10),\n      '[]'::json\n    )\n  ) as data\n  FROM appeals a\n  WHERE a.id = '{{ $json.appeal_id }}'::uuid;",
         "options": {}
       },
-      "id": "c47b022e-4eed-443d-8245-1fefa45a94df",
+      "id": "fd12d6f3-14b2-49db-a73c-fbf5d1041355",
       "name": "Load Appeal Data",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        -608,
-        -352
+        80,
+        -192
       ],
       "credentials": {
         "postgres": {
@@ -50,15 +50,37 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем нормализованные данные\nlet input = null;\ntry {\n  input = $('Normalize Input').first().json;\n} catch (e) {\n  input = $('Execute Workflow Trigger').first()?.json || {};\n}\n\nconst dbResult = $input.first().json;\nconst data = typeof dbResult.data === 'string' ? JSON.parse(dbResult.data) : dbResult.data;\n\nconst devices = data?.devices || [];\nconst entityConfigs = data?.entity_configs || [];\nconst message = input.text || input.message || '';\n\nconsole.log('=== PREPARE TASKS ===');\nconsole.log('Appeal ID:', input.appeal_id);\nconsole.log('Entity configs:', entityConfigs.length);\nconsole.log('Devices:', devices.length);\n\nconst activeDevice = devices.length > 0 ? devices[devices.length - 1] : null;\nconst hasExtractedData = activeDevice && (activeDevice.brand_id || activeDevice.model_id);\n\nconst batchId = `batch-${input.appeal_id}-${Date.now()}`;\n\n// Берём ВСЕ активные entity_types за один проход\nconst entitiesToExtract = entityConfigs\n  .filter(c => c.is_active !== false)\n  .map(c => c.entity_type);\n\nconst tasks = entityConfigs\n  .filter(c => entitiesToExtract.includes(c.entity_type))\n  .map((config, idx) => ({\n    json: {\n      id: `task-${Date.now()}-${idx}`,\n      batch_id: batchId,\n      tenant_id: input.tenant_id,\n      appeal_id: input.appeal_id,\n      entity_config_id: config.id,\n      entity_type: config.entity_type,\n      device_index: devices.length > 0 ? devices.length - 1 : 0,\n      priority: config.priority,\n      input_message: message,\n      prompt: config.user_prompt_template,\n      system_prompt: config.system_prompt,\n      _meta: {\n        batch_id: batchId,\n        total_tasks: entitiesToExtract.length,\n        has_extracted_data: hasExtractedData,\n        active_device: activeDevice\n      }\n    }\n  }));\n\nif (tasks.length === 0) {\n  console.log('No tasks to process');\n  return {\n    json: {\n      no_tasks: true,\n      appeal_id: input.appeal_id,\n      tenant_id: input.tenant_id,\n      has_extracted_data: hasExtractedData,\n      active_device: activeDevice\n    }\n  };\n}\n\nconsole.log('Created tasks:', tasks.length);\nreturn tasks;"
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/context",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"client_id\": \"{{ $('Load Appeal Data').first().json.data.client_id }}\",\n  \"action\": \"get_context\"\n}",
+        "options": {
+          "timeout": 5000
+        }
       },
-      "id": "de08041a-e554-4f05-9ce9-bbff18da18ec",
+      "id": "352d8dae-be0b-4d00-b118-52f111bac78e",
+      "name": "Get Neo4j Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        304,
+        -352
+      ],
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем нормализованные данные\nlet input = null;\ntry {\n  input = $('Normalize Input').first().json;\n} catch (e) {\n  input = $('Execute Workflow Trigger').first()?.json || {};\n}\n\nconst dbResult = $('Load Appeal Data').first().json;\nconst data = typeof dbResult.data === 'string' ? JSON.parse(dbResult.data) : dbResult.data;\n\n// Получаем контекст из Neo4j (может быть пустым если Neo4j недоступен)\nlet neo4jContext = {};\ntry {\n  neo4jContext = $('Get Neo4j Context').first()?.json || {};\n} catch (e) {\n  console.log('Neo4j context not available:', e.message);\n}\n\nconst devices = data?.devices || [];\nconst entityConfigs = data?.entity_configs || [];\nconst recentMessages = data?.recent_messages || [];\nconst message = input.text || input.message || '';\n\n// === ФОРМИРУЕМ КОНТЕКСТ ДЛЯ AI ===\n\n// 1. История сообщений (из PostgreSQL)\nconst messageHistory = recentMessages\n  .slice(0, 5)\n  .reverse()\n  .map(m => `${m.sender_type === 'client' ? 'Клиент' : 'Оператор'}: ${m.text}`)\n  .join('\\n') || 'Новый диалог';\n\n// 2. Текущие устройства (комбинируем PostgreSQL + Neo4j)\nlet currentDevices = '';\n\n// Сначала пробуем Neo4j (более полный контекст)\nif (neo4jContext.devices && neo4jContext.devices.length > 0) {\n  currentDevices = neo4jContext.devices\n    .map(d => {\n      let desc = `${d.brand || ''} ${d.model || ''}`.trim();\n      if (d.owner_label) desc += ` (${d.owner_label})`;\n      return desc;\n    })\n    .filter(d => d)\n    .join(', ');\n}\n\n// Fallback на PostgreSQL данные\nif (!currentDevices && devices.length > 0) {\n  currentDevices = devices\n    .map(d => {\n      let desc = `${d.brand_name || ''} ${d.model_name || ''}`.trim();\n      const repairs = d.repairs?.map(r => r.category_name).filter(Boolean).join(', ');\n      if (repairs) desc += ` [${repairs}]`;\n      return desc;\n    })\n    .filter(d => d)\n    .join(', ');\n}\n\nif (!currentDevices) {\n  currentDevices = 'Устройство не указано';\n}\n\n// 3. Активные проблемы из Neo4j\nlet activeProblems = '';\nif (neo4jContext.problems && neo4jContext.problems.length > 0) {\n  activeProblems = neo4jContext.problems\n    .filter(p => p.status === 'in_progress')\n    .map(p => p.type)\n    .join(', ');\n}\n\nconsole.log('=== PREPARE TASKS ===');\nconsole.log('Appeal ID:', input.appeal_id);\nconsole.log('Entity configs:', entityConfigs.length);\nconsole.log('Devices from DB:', devices.length);\nconsole.log('Neo4j context available:', !!neo4jContext.success);\nconsole.log('Message history length:', messageHistory.length);\nconsole.log('Current devices:', currentDevices);\n\nconst activeDevice = devices.length > 0 ? devices[devices.length - 1] : null;\nconst hasExtractedData = activeDevice && (activeDevice.brand_id || activeDevice.model_id);\n\nconst batchId = `batch-${input.appeal_id}-${Date.now()}`;\n\n// Берём ВСЕ активные entity_types за один проход\nconst entitiesToExtract = entityConfigs\n  .filter(c => c.is_active !== false)\n  .map(c => c.entity_type);\n\nconst tasks = entityConfigs\n  .filter(c => entitiesToExtract.includes(c.entity_type))\n  .map((config, idx) => {\n    // === ПОДСТАНОВКА ПЕРЕМЕННЫХ В ПРОМПТ ===\n    let prompt = config.user_prompt_template || '';\n    \n    // Заменяем плейсхолдеры\n    prompt = prompt\n      .replace(/\\{message_history\\}/g, messageHistory)\n      .replace(/\\{current_devices\\}/g, currentDevices)\n      .replace(/\\{active_problems\\}/g, activeProblems || 'Нет активных проблем')\n      .replace(/\\{client_message\\}/g, message);\n    \n    return {\n      json: {\n        id: `task-${Date.now()}-${idx}`,\n        batch_id: batchId,\n        tenant_id: input.tenant_id,\n        appeal_id: input.appeal_id,\n        entity_config_id: config.id,\n        entity_type: config.entity_type,\n        device_index: devices.length > 0 ? devices.length - 1 : 0,\n        priority: config.priority,\n        input_message: message,\n        prompt: prompt,\n        system_prompt: config.system_prompt,\n        _meta: {\n          batch_id: batchId,\n          total_tasks: entitiesToExtract.length,\n          has_extracted_data: hasExtractedData,\n          active_device: activeDevice,\n          neo4j_available: !!neo4jContext.success,\n          context: {\n            message_history: messageHistory,\n            current_devices: currentDevices,\n            active_problems: activeProblems\n          }\n        }\n      }\n    };\n  });\n\nif (tasks.length === 0) {\n  console.log('No tasks to process');\n  return {\n    json: {\n      no_tasks: true,\n      appeal_id: input.appeal_id,\n      tenant_id: input.tenant_id,\n      has_extracted_data: hasExtractedData,\n      active_device: activeDevice\n    }\n  };\n}\n\nconsole.log('Created tasks:', tasks.length);\nreturn tasks;"
+      },
+      "id": "c740600c-32a3-470f-9bcb-ae896371d261",
       "name": "Prepare Tasks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -384,
-        -352
+        528,
+        -192
       ]
     },
     {
@@ -84,13 +106,13 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "085eee56-849d-4ab8-a97f-b70673483046",
+      "id": "25c218bc-acc2-420e-b1ef-7080fd95526e",
       "name": "Has Tasks?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -160,
-        -352
+        752,
+        -192
       ]
     },
     {
@@ -100,13 +122,13 @@
         "messageData": "={{ JSON.stringify($json) }}",
         "tail": true
       },
-      "id": "657905dc-f01a-4b5d-a1dd-f56062109223",
+      "id": "9555e64d-1be8-4ba8-a9d0-b9626bdfecdd",
       "name": "Push to Redis",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        48,
-        -448
+        960,
+        -288
       ],
       "credentials": {
         "redis": {
@@ -123,13 +145,13 @@
         "expire": true,
         "ttl": 300
       },
-      "id": "94f9cba8-1e14-4ed2-b3ec-96ab6ef0a708",
+      "id": "5bf30066-db5f-44fc-acab-c09822070389",
       "name": "Set Batch Status",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        272,
-        -448
+        1184,
+        -288
       ],
       "credentials": {
         "redis": {
@@ -142,13 +164,13 @@
       "parameters": {
         "jsCode": "const firstItem = $('Prepare Tasks').first().json;\nconst meta = firstItem._meta;\n\nconst maxWaitMs = 30000;\nconst pollIntervalMs = 200;\nconst startTime = Date.now();\n\nreturn {\n  batch_id: meta.batch_id,\n  appeal_id: firstItem.appeal_id,\n  tenant_id: firstItem.tenant_id,\n  total_tasks: meta.total_tasks,\n  max_wait_ms: maxWaitMs,\n  poll_interval_ms: pollIntervalMs,\n  start_time: startTime,\n  poll_count: 0\n};"
       },
-      "id": "295773c5-a868-4b96-b686-6fa71c0a968a",
+      "id": "1bd7736a-4cbc-493f-8c10-cd7efa982a29",
       "name": "Init Wait Loop",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        496,
-        -448
+        1408,
+        -288
       ]
     },
     {
@@ -157,13 +179,13 @@
         "query": "SELECT \n  COUNT(*) FILTER (WHERE status = 'completed') as completed,\n  COUNT(*) FILTER (WHERE status = 'failed') as failed,\n  COUNT(*) as total,\n  json_agg(json_build_object(\n    'entity_type', entity_type,\n    'status', status,\n    'parsed_result', parsed_result\n  )) FILTER (WHERE status IN ('completed', 'failed')) as results\nFROM ai_extraction_tasks\nWHERE appeal_id = '{{ $json.appeal_id }}'::uuid\n  AND created_at > NOW() - INTERVAL '5 minutes';",
         "options": {}
       },
-      "id": "b1cf3036-1d0a-4fa0-857b-ff7930f776c5",
+      "id": "66f5977c-9fc9-41f1-a1f7-392fd0896d7c",
       "name": "Poll DB Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        720,
-        -448
+        1632,
+        -288
       ],
       "credentials": {
         "postgres": {
@@ -176,13 +198,13 @@
       "parameters": {
         "jsCode": "const waitData = $('Init Wait Loop').item.json;\nconst pollResult = $input.item.json;\n\nconst completed = parseInt(pollResult.completed) || 0;\nconst failed = parseInt(pollResult.failed) || 0;\nconst total = waitData.total_tasks;\nconst done = completed + failed;\n\nconst elapsed = Date.now() - waitData.start_time;\nconst isTimeout = elapsed >= waitData.max_wait_ms;\nconst isComplete = done >= total;\n\nreturn {\n  ...waitData,\n  poll_count: waitData.poll_count + 1,\n  completed: completed,\n  failed: failed,\n  done: done,\n  is_complete: isComplete,\n  is_timeout: isTimeout,\n  should_continue: !isComplete && !isTimeout,\n  results: pollResult.results || [],\n  elapsed_ms: elapsed\n};"
       },
-      "id": "06edddce-cf81-4c97-bce8-f1ebf4d8e235",
+      "id": "a6c93481-43a8-42bd-8db7-b66442ff360f",
       "name": "Check Completion",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        928,
-        -448
+        1840,
+        -288
       ]
     },
     {
@@ -210,26 +232,26 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "438775a1-6c31-4a6f-bc8a-2d3fde0b9d91",
+      "id": "ffd0133f-d825-4df4-95f6-ac05a5270289",
       "name": "Continue Polling?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1152,
-        -448
+        2064,
+        -288
       ]
     },
     {
       "parameters": {
         "amount": 0.3
       },
-      "id": "85e16091-e49a-4095-a9db-b102fff10e26",
+      "id": "1b1f350f-86a8-48e3-947e-5a0e2d2eedc8",
       "name": "Wait 300ms",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1344,
-        -704
+        2256,
+        -544
       ],
       "webhookId": "057ec02c-04fa-4a52-9624-64c00bd9fbb4"
     },
@@ -237,26 +259,26 @@
       "parameters": {
         "jsCode": "const checkResult = $('Check Completion').item.json;\nconst results = checkResult.results || [];\n\nconst extracted = {\n  appeal_type: null,\n  brand: null,\n  brand_id: null,\n  model: null,\n  model_id: null,\n  repair_category: null,\n  repair_category_id: null,\n  repair_action: null,\n  parts_owner: null\n};\n\nfor (const result of results) {\n  if (result.status !== 'completed') continue;\n  const parsed = result.parsed_result || {};\n  \n  switch (result.entity_type) {\n    case 'appeal_type':\n      extracted.appeal_type = parsed.appeal_type || parsed.type;\n      break;\n    case 'brand':\n      extracted.brand = parsed.brand || parsed.name;\n      extracted.brand_id = parsed.brand_id || parsed.id;\n      break;\n    case 'model':\n      extracted.model = parsed.model || parsed.name;\n      extracted.model_id = parsed.model_id || parsed.id;\n      break;\n    case 'repair_category':\n      extracted.repair_category = parsed.repair_category || parsed.category || parsed.name;\n      extracted.repair_category_id = parsed.repair_category_id || parsed.category_id || parsed.id;\n      break;\n    case 'repair_action':\n      extracted.repair_action = parsed.repair_action || parsed.action;\n      break;\n    case 'parts_owner':\n      extracted.parts_owner = parsed.parts_owner || 'workshop';\n      break;\n  }\n}\n\nreturn {\n  action: 'extraction_complete',\n  appeal_id: checkResult.appeal_id,\n  tenant_id: checkResult.tenant_id,\n  batch_id: checkResult.batch_id,\n  total_tasks: checkResult.total_tasks,\n  completed: checkResult.completed,\n  failed: checkResult.failed,\n  elapsed_ms: checkResult.elapsed_ms,\n  is_timeout: checkResult.is_timeout,\n  extracted_data: extracted,\n  raw_results: results\n};"
       },
-      "id": "12593bcf-de63-4343-aedf-0cd68435b288",
+      "id": "1f28955b-e06b-4108-a1f4-62cdfb2bdb0e",
       "name": "Collect Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1376,
-        -352
+        2288,
+        -192
       ]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\n\nreturn {\n  action: 'no_tasks',\n  appeal_id: data.appeal_id,\n  tenant_id: data.tenant_id,\n  has_extracted_data: data.has_extracted_data,\n  active_device: data.active_device,\n  extracted_data: {\n    brand: data.active_device?.brand_name,\n    brand_id: data.active_device?.brand_id,\n    model: data.active_device?.model_name,\n    model_id: data.active_device?.model_id,\n    repair_category: data.active_device?.repairs?.[0]?.category_name,\n    repair_category_id: data.active_device?.repairs?.[0]?.category_id\n  }\n};"
       },
-      "id": "29dc7e82-1d4d-4ef0-90f5-72706b782d2c",
+      "id": "6323266c-5caa-4f9f-96f1-6787c8625262",
       "name": "No Tasks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        48,
-        -256
+        960,
+        -96
       ]
     },
     {
@@ -268,10 +290,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1600,
-        -352
+        2512,
+        -192
       ],
-      "id": "11d96dc6-75f9-4fe6-a516-1223339670fa",
+      "id": "ef1c5b09-8810-4275-8e88-80e4b05b3200",
       "name": "Update Appeal",
       "credentials": {
         "postgres": {
@@ -305,6 +327,17 @@
       ]
     },
     "Load Appeal Data": {
+      "main": [
+        [
+          {
+            "node": "Get Neo4j Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Neo4j Context": {
       "main": [
         [
           {
@@ -459,6 +492,6 @@
       "name": "Tool"
     }
   ],
-  "updatedAt": "2025-12-08T08:50:04.000Z",
+  "updatedAt": "2025-12-08T13:32:33.000Z",
   "createdAt": "2025-11-25T13:30:43.830Z"
 }

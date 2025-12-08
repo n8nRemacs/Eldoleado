@@ -5,26 +5,61 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "ee5e013b-fb89-4c28-92d7-c40eeae23278",
+      "id": "4211abe2-d2b2-43b8-9806-4a6babb831cd",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -848,
-        -32
+        -816,
+        -112
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Подготовка данных для отправки через MCP Telegram\nconst input = $input.first().json;\nconst outMessage = input.out_message || input;\n\n// external_chat_id в формате tg_XXXXXXXXXX\nlet chatId = outMessage.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);  // Убираем префикс tg_\n}\n\nreturn {\n  chat_id: chatId,\n  text: outMessage.message_text || outMessage.text,\n  bot_token: outMessage.bot_token,\n  parse_mode: 'Markdown',\n  tenant_id: outMessage.tenant_id,\n  appeal_id: outMessage.appeal_id,\n  client_id: outMessage.client_id,\n  action_source: outMessage.action_source || 'response'\n};"
+        "jsCode": "// Подготовка данных для отправки через MCP Telegram\nconst input = $input.first().json;\nconst outMessage = input.out_message || {};\n\n// Берём данные из корня или из out_message\nlet chatId = input.external_chat_id || outMessage.external_chat_id || input.chat_id || outMessage.chat_id || '';\nif (chatId && chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);\n}\n\n// text может быть в разных местах\nconst text = input.message_text || outMessage.message_text || input.text || outMessage.text || input.response_text || '';\n\n// tenant_id для запроса bot_token\nconst tenantId = input.tenant_id || outMessage.tenant_id || '';\n\nreturn {\n  chat_id: chatId,\n  text: text,\n  parse_mode: 'Markdown',\n  tenant_id: tenantId,\n  appeal_id: input.appeal?.id || outMessage.appeal_id || input.appeal_id,\n  client_id: input.client?.id || outMessage.client_id || input.client_id,\n  action_source: input.action_source || outMessage.action_source || 'response'\n};"
       },
-      "id": "9df10f9a-c413-4388-aa1a-69558c815ea3",
+      "id": "14e83200-cea1-4390-b6d9-da0b0d245c05",
       "name": "Prepare Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -624,
-        -32
+        -592,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT value->>'token' as bot_token\nFROM tenant_configs\nWHERE tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND key = 'telegram_bot_token'\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "5f1960df-ae7c-4f8f-b7d0-80ab9fdfa287",
+      "name": "Get Bot Token",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -368,
+        -112
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prepared = $('Prepare Message').first().json;\nconst tokenResult = $input.first().json;\n\n// Получаем bot_token из результата запроса\nconst botToken = tokenResult?.bot_token || '';\n\nif (!botToken) {\n  console.error('Bot token not found for tenant:', prepared.tenant_id);\n}\n\nreturn {\n  ...prepared,\n  bot_token: botToken\n};"
+      },
+      "id": "df62cd19-b6b5-43fe-a652-a4e4a763b44d",
+      "name": "Merge Bot Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -112
       ]
     },
     {
@@ -49,26 +84,26 @@
         "jsonBody": "={\n  \"token\": \"{{ $json.bot_token }}\",\n  \"chat_id\": \"{{ $json.chat_id }}\",\n  \"text\": {{ JSON.stringify($json.text) }},\n  \"parse_mode\": \"{{ $json.parse_mode }}\"\n}",
         "options": {}
       },
-      "id": "1df747e1-9d43-4bb2-b39d-d1f32f4bcd36",
+      "id": "8f4177f5-b3d2-4bb5-8e2d-af0eda0977c4",
       "name": "Send via MCP Telegram",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        -400,
-        -32
+        80,
+        -112
       ]
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst preparedData = $('Prepare Message').first().json;\n\nif (!response.success) {\n  console.error('Telegram send failed:', response);\n}\n\n// Определяем тип touchpoint\nconst actionSource = preparedData.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...preparedData,\n  telegram_response: response,\n  message_id: response.message_id?.toString() || Date.now().toString(),\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection\n};"
+        "jsCode": "const response = $input.first().json;\nconst preparedData = $('Merge Bot Token').first().json;\n\nif (!response.success) {\n  console.error('Telegram send failed:', response);\n}\n\n// Определяем тип touchpoint\nconst actionSource = preparedData.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...preparedData,\n  telegram_response: response,\n  message_id: response.message_id?.toString() || Date.now().toString(),\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection\n};"
       },
-      "id": "239922c0-3f2f-450e-8206-2e7cec9599a5",
+      "id": "df2e9d74-4bd6-44ab-be37-06d8962a84c2",
       "name": "Process Telegram Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -176,
-        -32
+        304,
+        -112
       ]
     },
     {
@@ -77,13 +112,13 @@
         "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.tenant_id }}'::uuid,\n  '{{ $json.appeal_id }}'::uuid,\n  'agent',\n  {{ $json.text ? \"'\" + $json.text.replace(/'/g, \"''\") + \"'\" : \"NULL\" }},\n  'telegram',\n  (SELECT id FROM channels WHERE code = 'telegram' LIMIT 1),\n  '{{ $json.message_id }}',\n  'tg_{{ $json.chat_id }}'\nRETURNING *;",
         "options": {}
       },
-      "id": "a6f71c41-1787-4402-954d-075c4b25ed0d",
+      "id": "9c9201e1-d985-43df-9eb5-716d75cf84fa",
       "name": "Save Message History",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [
-        48,
-        -32
+        528,
+        -112
       ],
       "credentials": {
         "postgres": {
@@ -103,13 +138,13 @@
           "timeout": 5000
         }
       },
-      "id": "394969eb-9719-4bab-8b32-4ef7bcffa1cc",
+      "id": "e7d3ab39-affc-4d05-a9f3-52d0717d7247",
       "name": "Register Touchpoint",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        272,
-        -32
+        752,
+        -112
       ]
     }
   ],
@@ -126,6 +161,28 @@
       ]
     },
     "Prepare Message": {
+      "main": [
+        [
+          {
+            "node": "Get Bot Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bot Token": {
+      "main": [
+        [
+          {
+            "node": "Merge Bot Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Bot Token": {
       "main": [
         [
           {
@@ -187,6 +244,6 @@
       "name": "Out"
     }
   ],
-  "updatedAt": "2025-12-05T10:42:52.000Z",
+  "updatedAt": "2025-12-08T11:26:00.000Z",
   "createdAt": "2025-10-14T07:03:45.869Z"
 }
