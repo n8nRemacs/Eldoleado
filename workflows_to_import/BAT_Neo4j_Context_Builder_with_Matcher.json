@@ -1,0 +1,283 @@
+{
+  "name": "BAT Neo4j Context Builder",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/context",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-832, -272],
+      "webhookId": "neo4j-context",
+      "id": "61599988-3b67-4634-9885-ab61b0b7b07e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst clientId = body.client_id || null;\nconst action = body.action || 'get_context';\n\n// Для match_entities\nconst extracted = body.extracted || {};\nconst brand = extracted.brand || null;\nconst model = extracted.model || null;\nconst ownerLabel = extracted.owner_label || null;\nconst problemType = extracted.problem_type || null;\nconst currentFocus = body.current_focus || {};\n\nreturn {\n  clientId,\n  action,\n  extracted: {\n    brand,\n    model,\n    ownerLabel,\n    problemType\n  },\n  currentFocus\n};"
+      },
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-592, -272],
+      "id": "c30e1c57-2a9a-4a88-b4db-2f6cd7e1aeb2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.action }}", "rightValue": "get_context", "operator": { "type": "string", "operation": "equals" } }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get_context"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.action }}", "rightValue": "disambiguation", "operator": { "type": "string", "operation": "equals" } }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "disambiguation"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.action }}", "rightValue": "match_entities", "operator": { "type": "string", "operation": "equals" } }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "match_entities"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.action }}", "rightValue": "enrichment_suggestion", "operator": { "type": "string", "operation": "equals" } }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "enrichment"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [-352, -272],
+      "id": "route-by-action"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})\n      OPTIONAL MATCH (c)-[:OWNS]->(d:Device)\n      OPTIONAL MATCH (d)-[:HAS_PROBLEM]->(p:Problem)-[:OF_TYPE]->(pt:ProblemType)\n      OPTIONAL MATCH (c)-[:HAS_CHANNEL]->(ch:Channel)\n      OPTIONAL MATCH (c)-[:CUSTOMER_OF]->(v:Vertical)\n      OPTIONAL MATCH (t:Touchpoint)-[:ABOUT_DEVICE]->(d)\n      WHERE t.timestamp > datetime() - duration('P7D')\n      RETURN c, \n             collect(DISTINCT {id: d.id, brand: d.brand, model: d.model, owner_label: d.owner_label}) as devices,\n             collect(DISTINCT {id: p.id, status: p.status, type: pt.code}) as problems,\n             collect(DISTINCT {type: ch.type, identifier: ch.identifier}) as channels,\n             collect(DISTINCT v.type) as verticals\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": { "allowUnauthorizedCerts": true }
+      },
+      "name": "Neo4j Get Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [48, -432],
+      "id": "13d0cd60-ba3a-4a32-8a60-f7afc308b683",
+      "credentials": {
+        "httpBasicAuth": { "id": "bkJBnz7p38fXY4AN", "name": "Neo4j" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})-[:OWNS]->(d:Device)\n      OPTIONAL MATCH (t:Touchpoint)-[:ABOUT_DEVICE]->(d)\n      WHERE t.timestamp > datetime() - duration('P1D')\n      WITH d, max(t.timestamp) as lastMentioned, count(t) as mentionCount\n      OPTIONAL MATCH (d)-[:HAS_PROBLEM]->(p:Problem {status: 'in_progress'})\n      RETURN d.id as id, \n             d.brand as brand, \n             d.model as model, \n             d.owner_label as owner_label,\n             lastMentioned,\n             mentionCount,\n             p IS NOT NULL as hasActiveRepair\n      ORDER BY \n        CASE WHEN lastMentioned IS NOT NULL THEN 0 ELSE 1 END,\n        lastMentioned DESC,\n        hasActiveRepair DESC,\n        mentionCount DESC\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": { "allowUnauthorizedCerts": true }
+      },
+      "name": "Neo4j Disambiguation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [48, -272],
+      "id": "d62e16d0-be99-4430-9ae3-a3714aee1ecb",
+      "credentials": {
+        "httpBasicAuth": { "id": "bkJBnz7p38fXY4AN", "name": "Neo4j" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})-[:OWNS]->(d:Device)\n      WHERE ($brand IS NULL OR toLower(d.brand) CONTAINS toLower($brand))\n        AND ($model IS NULL OR toLower(d.model) CONTAINS toLower($model))\n        AND ($ownerLabel IS NULL OR toLower(d.owner_label) = toLower($ownerLabel))\n      OPTIONAL MATCH (d)-[:HAS_PROBLEM]->(p:Problem)\n      WHERE $problemType IS NULL OR p.type = $problemType\n      OPTIONAL MATCH (t:Touchpoint)-[:ABOUT_DEVICE]->(d)\n      WHERE t.timestamp > datetime() - duration('P1D')\n      WITH d, \n           collect(DISTINCT {id: p.id, type: p.type, status: p.status}) as problems,\n           max(t.timestamp) as lastMentioned,\n           count(t) as mentionCount\n      RETURN d.id as deviceId,\n             d.brand as brand,\n             d.model as model,\n             d.owner_label as ownerLabel,\n             problems,\n             lastMentioned,\n             mentionCount\n      ORDER BY \n        CASE WHEN lastMentioned IS NOT NULL THEN 0 ELSE 1 END,\n        lastMentioned DESC,\n        mentionCount DESC\n    `,\n    parameters: { \n      clientId: $json.clientId,\n      brand: $json.extracted.brand,\n      model: $json.extracted.model,\n      ownerLabel: $json.extracted.ownerLabel,\n      problemType: $json.extracted.problemType\n    }\n  }]\n}) }}",
+        "options": { "allowUnauthorizedCerts": true }
+      },
+      "name": "Neo4j Match Entities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [48, -112],
+      "id": "neo4j-match-entities",
+      "credentials": {
+        "httpBasicAuth": { "id": "bkJBnz7p38fXY4AN", "name": "Neo4j" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  statements: [{\n    statement: `\n      MATCH (c:Client {id: $clientId})\n      OPTIONAL MATCH (c)-[:HAS_CHANNEL]->(ch:Channel)\n      RETURN c.id as clientId,\n             collect({type: ch.type, identifier: ch.identifier, verified: ch.verified}) as existingChannels\n    `,\n    parameters: { clientId: $json.clientId }\n  }]\n}) }}",
+        "options": { "allowUnauthorizedCerts": true }
+      },
+      "name": "Neo4j Get Channels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [48, 48],
+      "id": "c6c6a0de-e2af-4a50-9f6d-5572f71fe263",
+      "credentials": {
+        "httpBasicAuth": { "id": "bkJBnz7p38fXY4AN", "name": "Neo4j" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM enrichment_paths WHERE enabled = true ORDER BY priority DESC, conversion_rate DESC",
+        "options": {}
+      },
+      "name": "Get Enrichment Paths",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [256, 48],
+      "id": "1dd73124-e14d-41ce-94fc-6a81ab3234c2",
+      "credentials": {
+        "postgres": { "id": "n2SyhP9QhMnp1ryk", "name": "Postgres account" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const neo4jResult = $('Neo4j Get Channels').first()?.json || {};\nconst enrichmentPaths = $('Get Enrichment Paths').all().map(i => i.json);\n\nconst data = neo4jResult.results?.[0]?.data?.[0]?.row || [];\nconst existingChannels = data[1] || [];\nconst existingTypes = new Set(existingChannels.map(ch => ch.type));\n\nconst suggestions = enrichmentPaths\n  .filter(path => {\n    const hasFrom = existingTypes.has(path.from_channel_type);\n    const needsTo = !existingTypes.has(path.to_channel_type);\n    return hasFrom && needsTo;\n  })\n  .slice(0, 3);\n\nreturn {\n  success: true,\n  clientId: data[0],\n  existingChannels,\n  suggestions\n};"
+      },
+      "name": "Build Enrichment Suggestions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 48],
+      "id": "790fa8e7-1657-403f-8ee6-92f7ea8196e9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nconst data = result.results?.[0]?.data?.[0]?.row || [];\n\nreturn {\n  success: true,\n  client: data[0],\n  devices: data[1] || [],\n  problems: data[2] || [],\n  channels: data[3] || [],\n  verticals: data[4] || []\n};"
+      },
+      "name": "Format Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [256, -432],
+      "id": "e33e02d4-b020-4c76-baf5-19072f11a3ac"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json;\nconst data = result.results?.[0]?.data || [];\n\nconst devices = data.map(d => ({\n  id: d.row[0],\n  brand: d.row[1],\n  model: d.row[2],\n  owner_label: d.row[3],\n  lastMentioned: d.row[4],\n  mentionCount: d.row[5],\n  hasActiveRepair: d.row[6]\n}));\n\nlet needsClarification = false;\nlet suggestedDevice = null;\nlet clarificationReason = null;\n\nif (devices.length === 0) {\n  needsClarification = false;\n} else if (devices.length === 1) {\n  suggestedDevice = devices[0];\n} else {\n  const recentlyMentioned = devices.filter(d => d.lastMentioned);\n  \n  if (recentlyMentioned.length === 1) {\n    suggestedDevice = recentlyMentioned[0];\n  } else if (recentlyMentioned.length > 1) {\n    needsClarification = true;\n    clarificationReason = 'multiple_mentioned_today';\n  } else {\n    const withActiveRepair = devices.filter(d => d.hasActiveRepair);\n    if (withActiveRepair.length === 1) {\n      suggestedDevice = withActiveRepair[0];\n    } else {\n      needsClarification = true;\n      clarificationReason = 'none_mentioned_recently';\n    }\n  }\n}\n\nreturn {\n  success: true,\n  devices,\n  needsClarification,\n  suggestedDevice,\n  clarificationReason\n};"
+      },
+      "name": "Format Disambiguation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [256, -272],
+      "id": "0417e863-01be-48c9-8374-917fb4658cf2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Match Entities Result\n// Определяем: создать новое или использовать существующее\n\nconst result = $json;\nconst inputData = $('Parse Request').first()?.json || {};\nconst extracted = inputData.extracted || {};\nconst currentFocus = inputData.currentFocus || {};\n\nconst data = result.results?.[0]?.data || [];\n\n// Парсим найденные устройства\nconst matchedDevices = data.map(d => ({\n  deviceId: d.row[0],\n  brand: d.row[1],\n  model: d.row[2],\n  ownerLabel: d.row[3],\n  problems: d.row[4] || [],\n  lastMentioned: d.row[5],\n  mentionCount: d.row[6]\n}));\n\nconsole.log('=== MATCH ENTITIES ===');\nconsole.log('Extracted:', JSON.stringify(extracted));\nconsole.log('Matched devices:', matchedDevices.length);\n\nlet deviceAction = 'create_new';  // по умолчанию создаём новое\nlet matchedDeviceId = null;\nlet matchedDevice = null;\nlet problemAction = 'create_new';\nlet matchedProblemId = null;\nlet needsClarification = false;\nlet clarificationReason = null;\n\n// Логика определения device_action\nif (!extracted.brand && !extracted.model) {\n  // Не извлечено устройство - используем текущий фокус\n  if (currentFocus.device_id) {\n    deviceAction = 'use_focus';\n    matchedDeviceId = currentFocus.device_id;\n  } else if (matchedDevices.length === 1) {\n    // Только одно устройство у клиента\n    deviceAction = 'use_existing';\n    matchedDeviceId = matchedDevices[0].deviceId;\n    matchedDevice = matchedDevices[0];\n  } else if (matchedDevices.length > 1) {\n    // Несколько устройств - нужно уточнение\n    deviceAction = 'needs_clarification';\n    needsClarification = true;\n    clarificationReason = 'multiple_devices_no_context';\n  }\n  // Если нет устройств - оставляем create_new\n  \n} else if (matchedDevices.length === 0) {\n  // Устройство извлечено, но не найдено в графе\n  deviceAction = 'create_new';\n  \n} else if (matchedDevices.length === 1) {\n  // Найдено ровно одно подходящее устройство\n  deviceAction = 'use_existing';\n  matchedDeviceId = matchedDevices[0].deviceId;\n  matchedDevice = matchedDevices[0];\n  \n} else {\n  // Найдено несколько подходящих устройств\n  // Проверяем - упоминали ли одно из них сегодня\n  const recentlyMentioned = matchedDevices.filter(d => d.lastMentioned);\n  \n  if (recentlyMentioned.length === 1) {\n    deviceAction = 'use_existing';\n    matchedDeviceId = recentlyMentioned[0].deviceId;\n    matchedDevice = recentlyMentioned[0];\n  } else {\n    deviceAction = 'needs_clarification';\n    needsClarification = true;\n    clarificationReason = 'multiple_similar_devices';\n  }\n}\n\n// Логика определения problem_action\nif (extracted.problemType && matchedDevice) {\n  const existingProblem = matchedDevice.problems.find(\n    p => p.type === extracted.problemType && p.status !== 'closed'\n  );\n  \n  if (existingProblem) {\n    problemAction = 'use_existing';\n    matchedProblemId = existingProblem.id;\n  } else {\n    problemAction = 'create_new';\n  }\n} else if (!extracted.problemType) {\n  problemAction = 'none';  // поломка не извлечена\n}\n\nreturn {\n  success: true,\n  \n  // Результат матчинга устройства\n  device: {\n    action: deviceAction,\n    matched_id: matchedDeviceId,\n    matched_device: matchedDevice,\n    all_matches: matchedDevices\n  },\n  \n  // Результат матчинга поломки\n  problem: {\n    action: problemAction,\n    matched_id: matchedProblemId\n  },\n  \n  // Нужно ли уточнение\n  needs_clarification: needsClarification,\n  clarification_reason: clarificationReason,\n  \n  // Входные данные для отладки\n  extracted,\n  current_focus: currentFocus\n};"
+      },
+      "name": "Format Match Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [256, -112],
+      "id": "format-match-result"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [{ "name": "Access-Control-Allow-Origin", "value": "*" }]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [656, -112],
+      "id": "c0e65988-ff00-4eb4-adcb-07390b59179b"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Parse Request", "type": "main", "index": 0 }]]
+    },
+    "Parse Request": {
+      "main": [[{ "node": "Route by Action", "type": "main", "index": 0 }]]
+    },
+    "Route by Action": {
+      "main": [
+        [{ "node": "Neo4j Get Context", "type": "main", "index": 0 }],
+        [{ "node": "Neo4j Disambiguation", "type": "main", "index": 0 }],
+        [{ "node": "Neo4j Match Entities", "type": "main", "index": 0 }],
+        [{ "node": "Neo4j Get Channels", "type": "main", "index": 0 }]
+      ]
+    },
+    "Neo4j Get Context": {
+      "main": [[{ "node": "Format Context", "type": "main", "index": 0 }]]
+    },
+    "Neo4j Disambiguation": {
+      "main": [[{ "node": "Format Disambiguation", "type": "main", "index": 0 }]]
+    },
+    "Neo4j Match Entities": {
+      "main": [[{ "node": "Format Match Result", "type": "main", "index": 0 }]]
+    },
+    "Neo4j Get Channels": {
+      "main": [[{ "node": "Get Enrichment Paths", "type": "main", "index": 0 }]]
+    },
+    "Get Enrichment Paths": {
+      "main": [[{ "node": "Build Enrichment Suggestions", "type": "main", "index": 0 }]]
+    },
+    "Format Context": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    },
+    "Format Disambiguation": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    },
+    "Format Match Result": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    },
+    "Build Enrichment Suggestions": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "id": "8zD9sDD78ytgu5T2", "name": "BattCRM" },
+    { "id": "eiI07cPEeFxzR69p", "name": "Core" }
+  ]
+}

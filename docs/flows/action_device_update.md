@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Device_Update
 participating_workflows:
   - API_Android_Device_Update
-generated: 2025-12-07 16:20:01
+generated: 2025-12-09 15:39:41
 ---
 
 # Действие: Обновить устройство
 
 **Обновить устройство**
 
-*Сгенерировано: 2025-12-07 16:20:01*
+*Сгенерировано: 2025-12-09 15:39:41*
 
 ---
 
@@ -44,7 +44,7 @@ API_Android_Device_Update (/android/appeal-devices/:id)
 
 **Workflow:** API_Android_Device_Update
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT od.operator_id, od.tenant_id

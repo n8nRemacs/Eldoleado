@@ -14,113 +14,114 @@ git pull
 ---
 
 ## Дата и время последнего обновления
-**8 декабря 2025, 18:45 (UTC+4)**
+**9 декабря 2025, 15:30 (UTC+4)**
+
+---
+
+## CORE_NEW — Новая архитектура CRM
+
+### Философия: "Люди общаются. Машина ведёт учёт."
+
+```
+Старый подход:  Клиент → Заявки → Устройства → Проблемы (50 таблиц)
+Новый подход:   Клиент → Диалоги (с контекстом внутри) (11 таблиц)
+```
+
+- Человеку — естественное общение в мессенджерах
+- Машине — рутина, учёт, таблицы (AI под капотом)
+- БЕЗ канбанов, БЕЗ заполнения форм
+- Отчётность из воздуха (AI понимает каждое сообщение)
 
 ---
 
 ## Что сделано в последних сессиях
 
-### Сессия 08.12.2025 (продолжение) — Graph Matcher + Исправление дублей
+### Сессия 09.12.2025 — CORE_NEW Архитектура
 
-1. **Graph Matcher webhook — СОЗДАН ✅**
-   - Добавлен action `match_entities` в Neo4j Context Builder
-   - Возвращает `device_action` (use_existing/create_new)
-   - Возвращает `matched_device_id` если найдено существующее
-   - Файл: `workflows_to_import/modified/BAT_Neo4j_Context_Builder_with_Matcher.json`
+1. **Vision Document — СОЗДАН ✅**
+   - Файл: `CORE_NEW/docs/00_VISION.md`
+   - Диалогоцентричная CRM
 
-2. **Appeal Router с Graph Matcher — ОБНОВЛЁН ✅**
-   - Добавлен вызов `match_entities` после Merge Results
-   - SQL изменён: использует matched_device_id вместо создания нового
-   - Файл: `workflows_to_import/modified/BAT_AI_Appeal_Router_with_Matcher.json`
+2. **PostgreSQL Schema — СОЗДАНА ✅**
+   - Файл: `CORE_NEW/docs/02_DATABASE_SCHEMA.md`
+   - **11 таблиц с префиксом `elo_` вместо 50!**
+   - `elo_dialogs` — центральная сущность
+   - `elo_events` — EventStore
+   - Context в JSONB (устройство, проблема, цена — внутри диалога)
 
-3. **Проблема дублей устройств — РЕШЕНА ✅**
-   - Теперь: извлечённые данные → матчинг с графом → create/use_existing
-   - SQL использует PL/pgSQL с условной логикой
+3. **Neo4j Graph Schema — СОЗДАНА ✅**
+   - Файл: `CORE_NEW/docs/03_GRAPH_SCHEMA.md`
+   - Лейблы с префиксом `ELO_`: Client, Dialog, Fact
+   - Связи: ELO_HAS_DIALOG, ELO_FAMILY, ELO_REFERRED
 
-### Сессия 08.12.2025 — Neo4j интеграция + Логика обработки сообщений
+4. **API Contracts v2 — СОЗДАНЫ ✅**
+   - Файл: `CORE_NEW/docs/04_API_CONTRACTS.md`
+   - `/dialogs` вместо `/appeals`
+   - AI Suggestions API
+   - Events API для timeline
 
-1. **Neo4j Context Builder — ИСПРАВЛЕН ✅**
-   - Проблема: HTTPS вместо HTTP для внутренних вызовов
-   - Решение: Изменено на `http://45.144.177.128:7474/db/neo4j/tx/commit`
+### Предыдущие сессии — Старая архитектура
 
-2. **Task Dispatcher с Neo4j контекстом — РАБОТАЕТ ✅**
-   - Добавлен вызов Neo4j Context Builder
-   - Контекст `{message_history}`, `{current_devices}` заполняется
-
-3. **Worker обрабатывает задачи — РАБОТАЕТ ✅**
-   - Worker 1 активен, забирает из `ai_extraction_queue`
-
-4. **Спецификация логики обработки сообщений — СОЗДАНА ✅**
-   - Файл: `docs/specs/message_processing_logic.md`
-   - Описана логика: ЗАПИСАТЬ → ВЫТАЩИТЬ → АНАЛИЗИРОВАТЬ
-   - Извлечение сущностей (brand, model, owner, problem)
-   - Матчинг с графом
-   - Управление фокусом (device_id, problem_id)
-
-### Сессия 06.12.2025 — Android API Gateway
-
-1. **Android API Gateway — РАЗВЁРНУТ ✅**
-   - URL: `http://45.144.177.128:8780`
-   - Health: ✅ Working
-   - Swagger: `http://45.144.177.128:8780/docs`
+- **Android API Gateway** — FastAPI на 45.144.177.128:8780 ✅
+- **Neo4j Context Builder** — работает ✅
+- **Task Dispatcher + Worker** — работают ✅
+- **95+ n8n workflows** — работают ✅
 
 ---
 
 ## Текущее состояние проекта
 
-### Что готово:
+### CORE_NEW (новая архитектура):
 
-1. **Knowledge Base система** — 294 компонента, 1080 nodes
-2. **Android приложение** — собирается, package `com.eldoleado.app`
-3. **Android API Gateway** — FastAPI на 45.144.177.128:8780 ✅
-4. **Neo4j Context Builder** — работает (HTTP) ✅
-5. **Task Dispatcher** — создаёт задачи с контекстом ✅
-6. **Worker** — обрабатывает задачи ✅
-7. **Спецификация обработки сообщений** — `docs/specs/message_processing_logic.md` ✅
-8. **GitHub** — https://github.com/n8nRemacs/Eldoleado
-9. **n8n workflows** — 95+ штук
+| Компонент | Статус | Файл |
+|-----------|--------|------|
+| Vision | ✅ | `CORE_NEW/docs/00_VISION.md` |
+| PostgreSQL Schema | ✅ | `CORE_NEW/docs/02_DATABASE_SCHEMA.md` |
+| Neo4j Schema | ✅ | `CORE_NEW/docs/03_GRAPH_SCHEMA.md` |
+| API v2 Contracts | ✅ | `CORE_NEW/docs/04_API_CONTRACTS.md` |
+| SQL миграции | ⏳ | TODO |
+| Workflows | ⏳ | TODO |
 
-### Что требует исправления:
+### Старая архитектура (рабочая):
 
-1. **Дубли устройств** — SQL в `BAT_AI_Appeal_Router` создаёт новые устройства вместо использования существующих
+| Компонент | Статус |
+|-----------|--------|
+| Android приложение | ✅ |
+| Android API Gateway | ✅ |
+| n8n workflows | ✅ |
+| Neo4j интеграция | ✅ |
+| PostgreSQL | ✅ |
 
 ---
 
 ## Следующие шаги (приоритет)
 
-### 1. Исправить логику создания устройств
-
-**Проблема:** SQL `Update Full Data` / `Update Partial Data` всегда делает INSERT
-
-**План реализации:**
-1. **Graph Matcher** — новый webhook `/webhook/neo4j/match-entities`
-   - Вход: `client_id` + извлечённые сущности
-   - Выход: `{device_action, matched_device_id}`
-
-2. **Entity Extractor** — выделить извлечение сущностей
-
-3. **Исправить SQL** — условный INSERT/UPDATE на основе `device_action`
-
-### 2. DNS + SSL для API
-```
-Добавить A-запись: android-api.eldoleado.ru → 45.144.177.128
-Затем: certbot --nginx -d android-api.eldoleado.ru
+### 1. SQL миграции для CORE_NEW
+```sql
+-- Создать elo_* таблицы
+-- Скрипты в CORE_NEW/migrations/
 ```
 
-### 3. Обновить Android приложение
-- Заменить прямые вызовы n8n на API Gateway
-- Base URL: `https://android-api.eldoleado.ru`
+### 2. Адаптировать workflows
+- Под `elo_dialogs` вместо `appeals`
+- Под новый API v2
+
+### 3. DNS + SSL для API
+```
+android-api.eldoleado.ru → 45.144.177.128
+certbot --nginx -d android-api.eldoleado.ru
+```
 
 ---
 
-## Ключевые файлы для продолжения
+## Ключевые файлы CORE_NEW
 
 | Файл | Описание |
 |------|----------|
-| `docs/specs/message_processing_logic.md` | Спецификация логики обработки |
-| `Plans/Eldoleado_Мультичат_ТЗ_v2.md` | Бизнес-требования мультичата |
-| `n8n_workflows/Core/BAT_AI_Appeal_Router.json` | Нужно исправить SQL |
-| `n8n_workflows/Tool/BAT_AI_Task_Dispatcher.json` | Task Dispatcher |
+| `CORE_NEW/docs/00_VISION.md` | Видение продукта |
+| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 11 elo_* таблиц |
+| `CORE_NEW/docs/03_GRAPH_SCHEMA.md` | Neo4j: ELO_* лейблы |
+| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 контракты |
 
 ---
 
@@ -138,7 +139,7 @@ git pull
 
 ---
 
-## Database Connection
+## Database Connections
 
 ```
 PostgreSQL: postgresql://supabase_admin:Mi31415926pS@185.221.214.83:6544/postgres
@@ -148,23 +149,25 @@ Redis (RU): redis://:Mi31415926pSss!@45.144.177.128:6379
 
 ---
 
-## Redis Quick Check
+## Quick Commands
 
 ```bash
-# Проверить очередь AI extraction (RU сервер!)
+# Redis queue check (RU server)
 ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! LLEN "ai_extraction_queue"'
 
-# Посмотреть содержимое
-ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! LRANGE "ai_extraction_queue" 0 5'
+# Neo4j status
+curl -u neo4j:Mi31415926pS http://45.144.177.128:7474/db/neo4j/tx/commit -d '{"statements":[]}'
+
+# API Gateway health
+curl http://45.144.177.128:8780/health
 ```
 
 ---
 
 ## Документация
 
-- `docs/specs/message_processing_logic.md` — логика обработки сообщений
-- `Plans/Eldoleado_Мультичат_ТЗ_v2.md` — мультичат ТЗ
-- `Plans/Eldoleado_Спецификация_Графа.md` — спецификация графа
+- `CORE_NEW/docs/` — документация новой архитектуры
+- `Plans/` — бизнес-требования
 - `CLAUDE.md` — инструкции для AI
 - `Stop.md` — чеклист завершения сессии
 

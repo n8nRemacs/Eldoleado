@@ -1,0 +1,365 @@
+{
+  "id": "pmDPBdREgE5wf1Cn",
+  "name": "BAT_IN_Telegram",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-in",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8915c2af-b9a5-4d55-8d16-71ea317766a0",
+      "name": "Telegram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        176
+      ],
+      "webhookId": "telegram-in-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// MCP Telegram присылает нормализованные данные\n  // Webhook передает данные в body\n  const rawInput = $input.first().json;\n  const event = rawInput.body || rawInput;\n\n  // Извлекаем данные из MCP формата\n  const chatId = event.chat_id?.toString() || '';\n  const userId = event.user_id?.toString() || '';\n  const messageText = event.text || '';\n  const messageId = event.message_id?.toString() || Date.now().toString();\n  const timestamp = event.timestamp || new Date().toISOString();\n  const botToken = event.bot_token || '';\n\n  // Имя пользователя\n  let clientName = event.first_name || '';\n  if (event.last_name) {\n    clientName += (clientName ? ' ' : '') + event.last_name;\n  }\n  if (!clientName && event.username) {\n    clientName = '@' + event.username;\n  }\n\n  // Проверяем медиа из attachments\n  const attachments = event.attachments || [];\n  const hasVoice = attachments.some(a => a.type === 'voice');\n  const hasPhoto = attachments.some(a => a.type === 'photo');\n  const hasVideo = attachments.some(a => a.type === 'video' || a.type === 'video_note');\n  const hasDocument = attachments.some(a => a.type === 'document');\n\n  // Получаем file_id для голосового\n  const voiceAttachment = attachments.find(a => a.type === 'voice');\n  const voiceFileId = voiceAttachment?.file_id || null;\n\n  // Получаем фото\n  const photoAttachments = attachments.filter(a => a.type === 'photo');\n  const videoAttachments = attachments.filter(a => a.type === 'video' || a.type === 'video_note');\n\n  return {\n    has_voice: hasVoice,\n    voice_file_id: voiceFileId,\n    bot_token: botToken,\n    raw_event: event.raw_data || event,\n    chat_id: chatId,\n    user_id: userId,\n    phone: null,\n    message_text: messageText,\n    message_id: messageId,\n    timestamp: timestamp,\n    sender_name: clientName,\n    username: event.username,\n    has_photo: hasPhoto,\n    photo_attachments: photoAttachments,\n    has_video: hasVideo,\n    video_attachments: videoAttachments,\n    has_document: hasDocument,\n    is_callback: event.is_callback || false,\n    callback_data: event.callback_data || null\n  };"
+      },
+      "id": "d5bedbd4-8fd7-4267-bfaf-2b0416f5cf62",
+      "name": "Extract Telegram Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_voice }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "bd4eb3fb-2539-4b2f-85f6-668caac0dc4f",
+      "name": "Has Voice?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $json.bot_token }}/getFile?file_id={{ $json.voice_file_id }}",
+        "options": {}
+      },
+      "id": "fcc16922-65f0-4611-a455-065ef84ba0a8",
+      "name": "Get Voice File Path",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -208,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $('Extract Telegram Data').item.json.bot_token }}/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "a20ef264-df54-4b01-b18b-dfa1ec339ec6",
+      "name": "Download Voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        16,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        240,
+        64
+      ],
+      "id": "65a9b6e2-6258-4b48-abf1-79ac28311149",
+      "name": "Transcribe Voice",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Extract Telegram Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'telegram',\n  bot_token: data.bot_token,\n  external_user_id: 'tg_' + data.user_id,\n  external_chat_id: 'tg_' + data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  client_username: data.username,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.photo_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_photo' })),\n    has_video: data.has_video,\n    videos: data.video_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_video' })),\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: 'voice',\n    telegram_user_id: data.user_id,\n    telegram_chat_id: data.chat_id,\n    is_callback: data.is_callback,\n    callback_data: data.callback_data,\n    raw: data.raw_event,\n    provider: 'mcp-telegram'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "8bbe38c2-ea26-49c2-bcd5-59a67f997b3c",
+      "name": "Normalize with Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'telegram',\n  bot_token: data.bot_token,\n  external_user_id: 'tg_' + data.user_id,\n  external_chat_id: 'tg_' + data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: null,\n  client_name: data.sender_name,\n  client_email: null,\n  client_username: data.username,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.photo_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_photo' })),\n    has_video: data.has_video,\n    videos: data.video_attachments.map(a => ({ file_id: a.file_id, type: 'telegram_video' })),\n    has_document: data.has_document,\n    has_callback: data.is_callback\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'telegram',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : data.is_callback ? 'callback' : 'text',\n    telegram_user_id: data.user_id,\n    telegram_chat_id: data.chat_id,\n    is_callback: data.is_callback,\n    callback_data: data.callback_data,\n    raw: data.raw_event,\n    provider: 'mcp-telegram'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "02fa5c60-969d-432b-8fe4-793be2f156a7",
+      "name": "Normalize without Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "rRO6sxLqiCdgvLZz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
+          "cachedResultName": "BAT_Tenant_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        176
+      ],
+      "id": "169e4c2e-d29d-4cf3-9841-382cfc3ceec7",
+      "name": "Execute Tenant Resolver"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
+      },
+      "id": "be2e87b0-ce4c-4667-8f5f-43f543e1cf3b",
+      "name": "Prepare for Queue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "queue:incoming",
+        "messageData": "={{ $json.message_json }}",
+        "tail": true
+      },
+      "id": "0afa500e-1032-44f3-8289-14cbf825247e",
+      "name": "Push to Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        176
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"queued\": true, \"batch_key\": $('Prepare for Queue').item.json.batch_key } }}",
+        "options": {}
+      },
+      "id": "533dd045-b34f-4178-b133-059723be4564",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        176
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Telegram Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Telegram Data": {
+      "main": [
+        [
+          {
+            "node": "Has Voice?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Voice?": {
+      "main": [
+        [
+          {
+            "node": "Get Voice File Path",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize without Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Voice File Path": {
+      "main": [
+        [
+          {
+            "node": "Download Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Voice": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Voice": {
+      "main": [
+        [
+          {
+            "node": "Normalize with Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize with Voice": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize without Voice": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Queue": {
+      "main": [
+        [
+          {
+            "node": "Push to Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Queue": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:03:40.721Z",
+      "createdAt": "2025-11-23T04:03:40.721Z",
+      "id": "nLdF41tEx70V7m3A",
+      "name": "In"
+    }
+  ],
+  "updatedAt": "2025-12-07T11:40:46.000Z",
+  "createdAt": "2025-10-14T06:44:54.979Z"
+}

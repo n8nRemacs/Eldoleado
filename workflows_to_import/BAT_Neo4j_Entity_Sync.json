@@ -1,0 +1,234 @@
+{
+  "name": "BAT Neo4j Entity Sync",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "neo4j/entity/sync",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-640, 0],
+      "webhookId": "neo4j-entity-sync",
+      "id": "webhook-entity-sync"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Валидация входных данных для Entity Sync\n// Поддерживаемые типы сущностей: client, device\n\nconst ALLOWED_ENTITIES = ['client', 'device'];\nconst ALLOWED_ACTIONS = ['create', 'update', 'delete', 'merge'];\n\nconst body = $json.body || {};\n\nconst entity_type = body.entity_type;\nconst action = body.action || 'create';\nconst entity_id = body.entity_id;\nconst data = body.data || {};\nconst tenant_id = body.tenant_id || null;\n\n// Валидация\nif (!entity_type || !ALLOWED_ENTITIES.includes(entity_type)) {\n  throw new Error(`Invalid entity_type: ${entity_type}. Allowed: ${ALLOWED_ENTITIES.join(', ')}`);\n}\n\nif (!ALLOWED_ACTIONS.includes(action)) {\n  throw new Error(`Invalid action: ${action}. Allowed: ${ALLOWED_ACTIONS.join(', ')}`);\n}\n\nif (!entity_id) {\n  throw new Error('entity_id is required');\n}\n\nconsole.log('Neo4j Entity Sync:', entity_type, action, entity_id);\n\nreturn {\n  entity_type,\n  action,\n  entity_id,\n  data,\n  tenant_id,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "name": "Parse & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "id": "parse-validate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.entity_type }}",
+              "rightValue": "client",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Is Client?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-160, 0],
+      "id": "is-client"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Создание/обновление Client в Neo4j\nconst data = $json;\nconst clientData = data.data || {};\n\nconst statements = [];\n\n// MERGE создаёт если нет, обновляет если есть\nstatements.push({\n  statement: `\n    MERGE (c:Client {id: $clientId})\n    ON CREATE SET \n      c.created_at = datetime($timestamp),\n      c.name = $name,\n      c.phone = $phone,\n      c.telegram_id = $telegram_id,\n      c.vk_id = $vk_id,\n      c.whatsapp_id = $whatsapp_id,\n      c.avito_id = $avito_id,\n      c.tenant_id = $tenant_id\n    ON MATCH SET\n      c.updated_at = datetime($timestamp),\n      c.name = COALESCE($name, c.name),\n      c.phone = COALESCE($phone, c.phone),\n      c.telegram_id = COALESCE($telegram_id, c.telegram_id),\n      c.vk_id = COALESCE($vk_id, c.vk_id),\n      c.whatsapp_id = COALESCE($whatsapp_id, c.whatsapp_id),\n      c.avito_id = COALESCE($avito_id, c.avito_id)\n    RETURN c\n  `,\n  parameters: {\n    clientId: data.entity_id,\n    timestamp: data.timestamp,\n    name: clientData.name || null,\n    phone: clientData.phone || null,\n    telegram_id: clientData.telegram_id || null,\n    vk_id: clientData.vk_id || null,\n    whatsapp_id: clientData.whatsapp_id || null,\n    avito_id: clientData.avito_id || null,\n    tenant_id: data.tenant_id || null\n  }\n});\n\nreturn {\n  ...data,\n  neo4j_body: { statements }\n};"
+      },
+      "name": "Prepare Client Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, -100],
+      "id": "prepare-client"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Создание/обновление Device в Neo4j + связь OWNS с Client\nconst data = $json;\nconst deviceData = data.data || {};\n\nconst statements = [];\n\n// 1. MERGE Device\nstatements.push({\n  statement: `\n    MERGE (d:Device {id: $deviceId})\n    ON CREATE SET \n      d.created_at = datetime($timestamp),\n      d.brand = $brand,\n      d.model = $model,\n      d.owner_label = $owner_label,\n      d.tenant_id = $tenant_id,\n      d.appeal_id = $appeal_id\n    ON MATCH SET\n      d.updated_at = datetime($timestamp),\n      d.brand = COALESCE($brand, d.brand),\n      d.model = COALESCE($model, d.model),\n      d.owner_label = COALESCE($owner_label, d.owner_label)\n    RETURN d\n  `,\n  parameters: {\n    deviceId: data.entity_id,\n    timestamp: data.timestamp,\n    brand: deviceData.brand || null,\n    model: deviceData.model || null,\n    owner_label: deviceData.owner_label || null,\n    tenant_id: data.tenant_id || null,\n    appeal_id: deviceData.appeal_id || null\n  }\n});\n\n// 2. Создаём связь OWNS если есть client_id\nif (deviceData.client_id) {\n  statements.push({\n    statement: `\n      MATCH (c:Client {id: $clientId})\n      MATCH (d:Device {id: $deviceId})\n      MERGE (c)-[:OWNS]->(d)\n      RETURN c, d\n    `,\n    parameters: {\n      clientId: deviceData.client_id,\n      deviceId: data.entity_id\n    }\n  });\n}\n\nreturn {\n  ...data,\n  neo4j_body: { statements }\n};"
+      },
+      "name": "Prepare Device Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 100],
+      "id": "prepare-device"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.neo4j_body) }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Neo4j Execute",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [320, 0],
+      "id": "neo4j-execute",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "bkJBnz7p38fXY4AN",
+          "name": "Neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const neo4jResult = $json;\nconst inputData = $('Parse & Validate').first()?.json || {};\n\n// Проверка на ошибки Neo4j\nif (neo4jResult.errors && neo4jResult.errors.length > 0) {\n  const errorMessages = neo4jResult.errors.map(e => e.message).join('; ');\n  return {\n    success: false,\n    error: 'Neo4j error: ' + errorMessages,\n    entity_type: inputData.entity_type,\n    entity_id: inputData.entity_id\n  };\n}\n\nreturn {\n  success: true,\n  entity_type: inputData.entity_type,\n  entity_id: inputData.entity_id,\n  action: inputData.action,\n  synced_at: new Date().toISOString()\n};"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 0],
+      "id": "format-response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 0],
+      "id": "respond"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate": {
+      "main": [
+        [
+          {
+            "node": "Is Client?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Client?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Client Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Device Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Client Query": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Device Query": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Execute": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Core"
+    }
+  ]
+}

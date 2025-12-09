@@ -5,14 +5,14 @@ entry_workflow: BAT IN Form
 participating_workflows:
   - BAT IN Form
   - BAT_Tenant_Resolver
-generated: 2025-12-07 16:19:59
+generated: 2025-12-09 15:39:39
 ---
 
 # Поток: Заявка с формы на сайте
 
 **Заявка с формы на сайте**
 
-*Сгенерировано: 2025-12-07 16:19:59*
+*Сгенерировано: 2025-12-09 15:39:39*
 
 ---
 

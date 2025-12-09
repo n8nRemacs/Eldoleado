@@ -4,14 +4,14 @@ doc_type: action
 entry_workflow: API_Android_Auth
 participating_workflows:
   - API_Android_Auth
-generated: 2025-12-07 16:20:00
+generated: 2025-12-09 15:39:40
 ---
 
 # Действие: Авторизация оператора
 
 **Авторизация оператора**
 
-*Сгенерировано: 2025-12-07 16:20:00*
+*Сгенерировано: 2025-12-09 15:39:40*
 
 ---
 

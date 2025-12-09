@@ -1,0 +1,356 @@
+{
+  "id": "ktU66Uf8f654kHvk",
+  "name": "BAT OUT Avito",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f65efffd-9145-4af6-bcfc-ebc4e5b0865e",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "avito_access_token",
+        "options": {}
+      },
+      "id": "29e00a74-5a5b-455f-acaa-4e6bd442d22b",
+      "name": "Get Access Token",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.value }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "e1d4dd24-4275-4c4c-afbb-69f2e85fbb5f",
+      "name": "Token Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avito.ru/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f9602f64-ca1d-4015-961b-9dd6a2be3e07",
+      "name": "Refresh Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1664,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "avito_access_token",
+        "value": "={{ $json.access_token }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "1471d7fd-266d-4edc-b0cc-8c7cd3964466",
+      "name": "Save New Token",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        144
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inMessage = $('Execute Workflow Trigger').first().json;\nconst tokenData = $input.first().json;\n\nconst accessToken = tokenData.value || tokenData.access_token;\n\nif (!accessToken) {\n  throw new Error('Avito access token is empty. Run Token Refresher first.');\n}\n\n// Определяем тип touchpoint\nconst actionSource = inMessage.out_message?.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...inMessage,\n  access_token: accessToken,\n  touchpoint_direction: touchpointDirection\n};"
+      },
+      "id": "1c8a9393-8625-4c18-a452-14c6d4c553cc",
+      "name": "Merge Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1232,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nif (!data.out_message?.message_text || data.out_message.message_text.trim() === '') {\n  throw new Error('Message text is empty');\n}\n\nconst escapedText = data.out_message.message_text\n  .replace(/\\\\/g, '\\\\\\\\')\n  .replace(/\"/g, '\\\\\"')\n  .replace(/\\n/g, '\\\\n')\n  .replace(/\\r/g, '\\\\r')\n  .replace(/\\t/g, '\\\\t');\n\nreturn {\n  ...data,\n  escaped_message_text: escapedText\n};"
+      },
+      "id": "a373f611-022f-4a8d-bf6b-1427614f2534",
+      "name": "Prepare Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1008,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.avito.ru/messenger/v3/accounts/{{ $env.AVITO_USER_ID }}/chats/{{ $json.out_message.external_chat_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": {\n    \"type\": \"text\",\n    \"text\": \"{{ $json.escaped_message_text }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "e87773ea-8952-4838-90b2-192854a7b22f",
+      "name": "Send Avito Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -784,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nif (!response.ok && response.error) {\n  throw new Error(`Avito API Error: ${JSON.stringify(response.error)}`);\n}\n\nconst inMessage = $('Merge Token').first().json;\n\nreturn {\n  ...inMessage,\n  avito_response: response,\n  message_id: response.id || Date.now().toString(),\n  sent_at: new Date().toISOString()\n};"
+      },
+      "id": "ffa7e194-4b1c-4381-82f8-1f76cee5109c",
+      "name": "Process Avito Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'avito',\n  (SELECT id FROM channels WHERE code = 'avito' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "options": {}
+      },
+      "id": "66a3ee2d-184e-4eed-9a5c-60ea75d5d855",
+      "name": "Save Message History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -352,
+        32
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  client_id: $('Process Avito Response').item.json.out_message.client_id,\n  appeal_id: $('Process Avito Response').item.json.out_message.appeal_id,\n  channel: 'avito',\n  direction: $('Process Avito Response').item.json.touchpoint_direction,\n  type: 'message',\n  tenant_id: $('Process Avito Response').item.json.out_message.tenant_id,\n  creates_entity: false\n}) }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "186cd599-ba10-4392-b9ea-bf431c8b8c89",
+      "name": "Register Touchpoint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -128,
+        32
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Access Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Access Token": {
+      "main": [
+        [
+          {
+            "node": "Token Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token Exists?": {
+      "main": [
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refresh Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refresh Token": {
+      "main": [
+        [
+          {
+            "node": "Save New Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Token": {
+      "main": [
+        [
+          {
+            "node": "Merge Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Token": {
+      "main": [
+        [
+          {
+            "node": "Prepare Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Message": {
+      "main": [
+        [
+          {
+            "node": "Send Avito Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Avito Message": {
+      "main": [
+        [
+          {
+            "node": "Process Avito Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Avito Response": {
+      "main": [
+        [
+          {
+            "node": "Save Message History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Message History": {
+      "main": [
+        [
+          {
+            "node": "Register Touchpoint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-23T04:03:34.766Z",
+      "createdAt": "2025-11-23T04:03:34.766Z",
+      "id": "IbDkJphbr4EygdRZ",
+      "name": "Out"
+    }
+  ],
+  "updatedAt": "2025-12-03T18:00:32.000Z",
+  "createdAt": "2025-10-14T06:45:42.563Z"
+}

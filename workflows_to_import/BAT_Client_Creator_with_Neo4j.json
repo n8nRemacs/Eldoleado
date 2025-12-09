@@ -1,0 +1,149 @@
+{
+  "name": "BAT Client Creator",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3a851a11-46ca-4944-95d9-8f9c5948efbb",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [384, 816]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH input_data AS (\n  SELECT\n    '{{ $json.tenant_id }}'::uuid as tenant_id,\n    CASE \n      WHEN '{{ $json.client_phone }}' IN ('', 'null', 'undefined', 'None') THEN NULL \n      ELSE '{{ $json.client_phone }}' \n    END as phone,\n    CASE \n      WHEN '{{ $json.client_name }}' IN ('', 'null', 'undefined', 'None') THEN NULL \n      ELSE '{{ $json.client_name }}' \n    END as name,\n    CASE \n      WHEN '{{ $json.channel }}' = 'telegram' THEN NULLIF('{{ $json.external_user_id }}', '') \n      ELSE NULL \n    END as telegram_id,\n    CASE \n      WHEN '{{ $json.channel }}' = 'vk' THEN NULLIF('{{ $json.external_user_id }}', '') \n      ELSE NULL \n    END as vk_id,\n    CASE \n      WHEN '{{ $json.channel }}' = 'whatsapp' THEN NULLIF('{{ $json.external_user_id }}', '') \n      ELSE NULL \n    END as whatsapp_id,\n    CASE \n      WHEN '{{ $json.channel }}' = 'avito' THEN NULLIF('{{ $json.external_user_id }}', '') \n      ELSE NULL \n    END as avito_id\n),\nexisting_client AS (\n  SELECT c.* \n  FROM clients c, input_data i\n  WHERE c.tenant_id = i.tenant_id\n    AND (\n      (i.phone IS NOT NULL AND c.phone = i.phone)\n      OR (i.telegram_id IS NOT NULL AND c.telegram_id = i.telegram_id)\n      OR (i.vk_id IS NOT NULL AND c.vk_id = i.vk_id)\n      OR (i.whatsapp_id IS NOT NULL AND c.whatsapp_id = i.whatsapp_id)\n      OR (i.avito_id IS NOT NULL AND c.avito_id = i.avito_id)\n    )\n  LIMIT 1\n),\ninserted AS (\n  INSERT INTO clients (tenant_id, phone, name, telegram_id, vk_id, whatsapp_id, avito_id)\n  SELECT tenant_id, phone, name, telegram_id, vk_id, whatsapp_id, avito_id\n  FROM input_data\n  WHERE NOT EXISTS (SELECT 1 FROM existing_client)\n  RETURNING *\n),\nupdated AS (\n  UPDATE clients c\n  SET\n    name = COALESCE(i.name, c.name),\n    phone = COALESCE(i.phone, c.phone),\n    telegram_id = COALESCE(i.telegram_id, c.telegram_id),\n    vk_id = COALESCE(i.vk_id, c.vk_id),\n    whatsapp_id = COALESCE(i.whatsapp_id, c.whatsapp_id),\n    avito_id = COALESCE(i.avito_id, c.avito_id),\n    updated_at = NOW()\n  FROM input_data i, existing_client ec\n  WHERE c.id = ec.id\n    AND c.tenant_id = i.tenant_id\n    AND EXISTS (SELECT 1 FROM existing_client)\n  RETURNING c.*\n)\nSELECT * FROM inserted\nUNION ALL\nSELECT * FROM updated;",
+        "options": {}
+      },
+      "id": "ab430f58-d6a6-4cc3-abc4-acb8345dfa5d",
+      "name": "Create Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [624, 816],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json || {};\nconst sqlResult = $input.first()?.json;\n\nconsole.log('═══════════════════════════════════');\nconsole.log('🆕 CLIENT CREATED - SQL RESULT');\nconsole.log('═══════════════════════════════════');\nconsole.log('SQL Result:', JSON.stringify(sqlResult, null, 2));\n\nlet clientRow = sqlResult;\nif (Array.isArray(sqlResult)) {\n  console.log('SQL returned array with length:', sqlResult.length);\n  clientRow = sqlResult[0];\n}\n\nconsole.log('clientRow:', JSON.stringify(clientRow, null, 2));\n\nif (!clientRow || !clientRow.id) {\n  console.error('❌ ERROR: Client Creator SQL did not return ID!');\n  throw new Error('Client creation failed - no ID returned');\n}\n\nconsole.log('✅ Client created with ID:', clientRow.id);\n\nconst sourceData = $('Execute Workflow Trigger').first()?.json || {};\n\nconst output = {\n  ...sourceData,\n  client: {\n    id: clientRow.id,\n    phone: clientRow.phone || null,\n    name: clientRow.name || null,\n    telegram_id: clientRow.telegram_id || null,\n    vk_id: clientRow.vk_id || null,\n    whatsapp_id: clientRow.whatsapp_id || null,\n    avito_id: clientRow.avito_id || null,\n    was_merged: false\n  },\n  client_found: true\n};\n\nconsole.log('=== CLIENT CREATOR OUTPUT ===');\nconsole.log('client.id:', output.client.id);\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [864, 816],
+      "id": "1d536096-4359-4de3-89f7-e64d7e6ed2e3",
+      "name": "Process Client Result"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/entity/sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  entity_type: 'client',\n  action: 'create',\n  entity_id: $json.client.id,\n  tenant_id: $json.tenant_id,\n  data: {\n    name: $json.client.name,\n    phone: $json.client.phone,\n    telegram_id: $json.client.telegram_id,\n    vk_id: $json.client.vk_id,\n    whatsapp_id: $json.client.whatsapp_id,\n    avito_id: $json.client.avito_id\n  }\n}) }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "sync-neo4j-client",
+      "name": "Sync Client to Neo4j",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1104, 816],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Восстанавливаем контекст после HTTP запроса\nconst neo4jResponse = $json;\nconst clientData = $('Process Client Result').first()?.json || {};\n\nconsole.log('Neo4j sync response:', JSON.stringify(neo4jResponse, null, 2));\n\nreturn {\n  ...clientData,\n  neo4j_synced: neo4jResponse?.success === true\n};"
+      },
+      "id": "74610595-472b-4afc-84b8-3ab45455a618",
+      "name": "Merge Neo4j Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1344, 816]
+    },
+    {
+      "parameters": {
+        "workflowId": "=laevudT8uPlXjpap",
+        "options": {}
+      },
+      "id": "a7f27735-6b8f-4e52-b98c-c28a8bf07341",
+      "name": "Execute Appeal Manager",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1584, 816]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client": {
+      "main": [
+        [
+          {
+            "node": "Process Client Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Client Result": {
+      "main": [
+        [
+          {
+            "node": "Sync Client to Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Client to Neo4j": {
+      "main": [
+        [
+          {
+            "node": "Merge Neo4j Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Neo4j Result": {
+      "main": [
+        [
+          {
+            "node": "Execute Appeal Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BattCRM"
+    },
+    {
+      "name": "Core"
+    }
+  ]
+}

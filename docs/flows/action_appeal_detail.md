@@ -5,14 +5,14 @@ entry_workflow: API_Android_Appeal_Detail
 participating_workflows:
   - API_Android_Appeal_Detail
   - Tool - Build Appeal Meta
-generated: 2025-12-07 16:20:00
+generated: 2025-12-09 15:39:41
 ---
 
 # Действие: Детали обращения
 
 **Детали обращения**
 
-*Сгенерировано: 2025-12-07 16:20:00*
+*Сгенерировано: 2025-12-09 15:39:41*
 
 ---
 
@@ -23,7 +23,7 @@ generated: 2025-12-07 16:20:00
 - **Операций с БД:** 4
 - **Операций Redis:** 0
 - **Вызовов AI:** 0
-- **Затронуто таблиц:** 18
+- **Затронуто таблиц:** 16
 
 ## Цепочка Workflows
 
@@ -46,13 +46,11 @@ API_Android_Appeal_Detail (/api/android/appeals/:id)
 | `brands` | чтение, **изменение** |
 | `clients` | чтение, **изменение** |
 | `deal_types` | чтение, **изменение** |
-| `issue_types` | **изменение** |
 | `messages_history` | **изменение** |
 | `models` | чтение, **изменение** |
 | `operator_actions` | **изменение** |
 | `operator_devices` | чтение |
 | `operators` | чтение |
-| `repair_categories` | **изменение** |
 | `repair_types` | чтение, **изменение** |
 
 ## Операции с базой данных
@@ -61,7 +59,7 @@ API_Android_Appeal_Detail (/api/android/appeals/:id)
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Чтение из `operators`, `operator_devices`
+**Операция:** Чтение из `operator_devices`, `operators`
 
 ```sql
 SELECT od.operator_id, od.tenant_id 
@@ -80,7 +78,7 @@ LIMIT 1;
 
 **Workflow:** API_Android_Appeal_Detail
 
-**Операция:** Изменение из `models`, `operator_actions`, `repair_categories`
+**Операция:** Изменение из `operator_actions`, `appeals`, `repair_types`
 
 ```sql
 WITH vals AS (
@@ -100,7 +98,7 @@ CASE WHEN limit_text
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `models`, `deal_types`, `brands`
+**Операция:** Чтение из `appeals`, `repair_types`, `deal_types`
 
 ```sql
 WITH appeal_data AS (
@@ -133,7 +131,7 @@ WITH appeal_data AS (
 
 **Workflow:** Tool - Build Appeal Meta
 
-**Операция:** Чтение из `appeal_info`, `appeal_meta_config`, `appeals`
+**Операция:** Чтение из `appeals`, `appeal_meta_visibility`, `appeal_info`
 
 ```sql
 WITH appeal_info AS (

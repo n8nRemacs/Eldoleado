@@ -5,14 +5,14 @@ entry_workflow: BAT IN Telegram
 participating_workflows:
   - BAT IN Telegram
   - BAT_Tenant_Resolver
-generated: 2025-12-07 16:19:57
+generated: 2025-12-09 15:39:37
 ---
 
 # Поток: Входящее сообщение из Telegram
 
 **Входящее сообщение из Telegram**
 
-*Сгенерировано: 2025-12-07 16:19:57*
+*Сгенерировано: 2025-12-09 15:39:37*
 
 ---
 
