@@ -1,0 +1,134 @@
+# ========================
+#   MIHOMO CONFIG (через ck-client SOCKS5)
+#
+#   ВАЖНО: Сначала запустить ck-client/start-all.bat
+#   ck-client создает SOCKS5 прокси, Mihomo подключается к нему
+# ========================
+
+mixed-port: 7890
+allow-lan: true
+mode: Rule
+log-level: info
+external-controller: 127.0.0.1:9090
+ipv6: false
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+  fallback:
+    - tls://1.1.1.1:853
+
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+proxies:
+  # ========================================
+  # SOCKS5 через локальный ck-client
+  # ck-client слушает как SOCKS5 прокси
+  # ========================================
+
+  - name: "Cloak VK"
+    type: socks5
+    server: 127.0.0.1
+    port: 1080
+
+  - name: "Cloak Yandex"
+    type: socks5
+    server: 127.0.0.1
+    port: 1081
+
+  - name: "Cloak Rutube"
+    type: socks5
+    server: 127.0.0.1
+    port: 1082
+
+  - name: "Cloak Kinopoisk"
+    type: socks5
+    server: 127.0.0.1
+    port: 1083
+
+  # ========================================
+  # Резерв - напрямую к FI
+  # ========================================
+  - name: "FI VLESS"
+    type: vless
+    server: 217.145.79.27
+    port: 10443
+    uuid: 9a8b2e5d-ace6-47f9-8452-dc20a22926cb
+    tls: true
+    network: ws
+    udp: true
+    sni: 217.145.79.27
+    skip-cert-verify: true
+    ws-opts:
+      path: /ws
+
+  - name: "FI Trojan"
+    type: trojan
+    server: 217.145.79.27
+    port: 10444
+    password: f374a2cf-06af-4878-8ed5-b2af0a000e6a
+    skip-cert-verify: true
+    alpn: [h2, http/1.1]
+    udp: true
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "Cloak VK"
+      - "Cloak Yandex"
+      - "Cloak Rutube"
+      - "Cloak Kinopoisk"
+      - "FI VLESS"
+      - "FI Trojan"
+      - DIRECT
+
+rules:
+  # YouTube
+  - DOMAIN-SUFFIX,youtube.com,Proxy
+  - DOMAIN-SUFFIX,googlevideo.com,Proxy
+  - DOMAIN-SUFFIX,ytimg.com,Proxy
+  - DOMAIN-SUFFIX,youtu.be,Proxy
+  - DOMAIN-KEYWORD,youtube,Proxy
+
+  # AI
+  - DOMAIN-SUFFIX,openai.com,Proxy
+  - DOMAIN-SUFFIX,anthropic.com,Proxy
+  - DOMAIN-SUFFIX,claude.ai,Proxy
+  - DOMAIN-KEYWORD,chatgpt,Proxy
+
+  # Social
+  - DOMAIN-SUFFIX,instagram.com,Proxy
+  - DOMAIN-SUFFIX,facebook.com,Proxy
+  - DOMAIN-SUFFIX,twitter.com,Proxy
+  - DOMAIN-SUFFIX,x.com,Proxy
+  - DOMAIN-SUFFIX,tiktok.com,Proxy
+  - DOMAIN-SUFFIX,discord.com,Proxy
+
+  # Dev
+  - DOMAIN-SUFFIX,github.com,Proxy
+
+  # Local
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+
+  # RU
+  - GEOIP,RU,DIRECT
+
+  # All other
+  - MATCH,Proxy

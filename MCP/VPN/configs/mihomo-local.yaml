@@ -1,0 +1,189 @@
+# ========================
+#   MIHOMO CONFIG (через локальный ck-client)
+#
+#   ВАЖНО: Сначала запустить ck-client/start-all.bat
+#   Схема: Mihomo → ck-client (localhost) → Cloak → SS → RU → FI → Internet
+# ========================
+
+mixed-port: 7890
+allow-lan: true
+mode: Rule
+log-level: info
+external-controller: 127.0.0.1:9090
+ipv6: false
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+  fallback:
+    - tls://1.1.1.1:853
+
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+proxies:
+  # ========================================
+  # SS через локальный Cloak client
+  # ck-client создает TCP туннель, SS идет поверх
+  # ========================================
+
+  - name: "SS+Cloak VK (local)"
+    type: ss
+    server: 127.0.0.1
+    port: 1080
+    cipher: chacha20-ietf-poly1305
+    password: "mOhXW0Mj+klpwrhRTXwY71Mi2nnUv/ANNmNJ9gHD/cY="
+
+  - name: "SS+Cloak Yandex (local)"
+    type: ss
+    server: 127.0.0.1
+    port: 1081
+    cipher: chacha20-ietf-poly1305
+    password: "k8H55Az7fkGj80wuBL6G0E+WYOPSIvu81SSnWJTMh/0="
+
+  - name: "SS+Cloak Rutube (local)"
+    type: ss
+    server: 127.0.0.1
+    port: 1082
+    cipher: chacha20-ietf-poly1305
+    password: "IsMeqvWEGoTsB+HWd9i9Z4hOJWOd8R12Z5IGuZtaWu4="
+
+  - name: "SS+Cloak Kinopoisk (local)"
+    type: ss
+    server: 127.0.0.1
+    port: 1083
+    cipher: chacha20-ietf-poly1305
+    password: "PsLzhchSSOpW2xMzybrudWcFbIV9B1UO8VJTQUuZhbY="
+
+  # ========================================
+  # Резерв - напрямую к FI (без маскировки)
+  # ========================================
+  - name: "FI Direct VLESS"
+    type: vless
+    server: 217.145.79.27
+    port: 10443
+    uuid: 9a8b2e5d-ace6-47f9-8452-dc20a22926cb
+    tls: true
+    network: ws
+    udp: true
+    sni: 217.145.79.27
+    skip-cert-verify: true
+    ws-opts:
+      path: /ws
+
+  - name: "FI Direct Trojan"
+    type: trojan
+    server: 217.145.79.27
+    port: 10444
+    password: f374a2cf-06af-4878-8ed5-b2af0a000e6a
+    skip-cert-verify: true
+    alpn: [h2, http/1.1]
+    udp: true
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "SS+Cloak VK (local)"
+      - "SS+Cloak Yandex (local)"
+      - "SS+Cloak Rutube (local)"
+      - "SS+Cloak Kinopoisk (local)"
+      - "FI Direct VLESS"
+      - "FI Direct Trojan"
+      - DIRECT
+
+  - name: "Auto"
+    type: url-test
+    proxies:
+      - "SS+Cloak VK (local)"
+      - "SS+Cloak Yandex (local)"
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+
+rules:
+  # YouTube
+  - DOMAIN-SUFFIX,youtube.com,Proxy
+  - DOMAIN-SUFFIX,googlevideo.com,Proxy
+  - DOMAIN-SUFFIX,ytimg.com,Proxy
+  - DOMAIN-SUFFIX,ggpht.com,Proxy
+  - DOMAIN-SUFFIX,youtu.be,Proxy
+  - DOMAIN-KEYWORD,youtube,Proxy
+
+  # Google AI / Gemini
+  - DOMAIN-SUFFIX,gemini.google.com,Proxy
+  - DOMAIN-SUFFIX,bard.google.com,Proxy
+  - DOMAIN-SUFFIX,ai.google.com,Proxy
+  - DOMAIN-KEYWORD,gemini,Proxy
+
+  # OpenAI / ChatGPT
+  - DOMAIN-SUFFIX,openai.com,Proxy
+  - DOMAIN-SUFFIX,chat.openai.com,Proxy
+  - DOMAIN-SUFFIX,api.openai.com,Proxy
+  - DOMAIN-KEYWORD,openai,Proxy
+  - DOMAIN-KEYWORD,chatgpt,Proxy
+
+  # Anthropic / Claude
+  - DOMAIN-SUFFIX,claude.ai,Proxy
+  - DOMAIN-SUFFIX,anthropic.com,Proxy
+
+  # Social Media
+  - DOMAIN-SUFFIX,instagram.com,Proxy
+  - DOMAIN-SUFFIX,cdninstagram.com,Proxy
+  - DOMAIN-SUFFIX,facebook.com,Proxy
+  - DOMAIN-SUFFIX,fbcdn.net,Proxy
+  - DOMAIN-SUFFIX,twitter.com,Proxy
+  - DOMAIN-SUFFIX,x.com,Proxy
+  - DOMAIN-SUFFIX,twimg.com,Proxy
+  - DOMAIN-SUFFIX,tiktok.com,Proxy
+  - DOMAIN-KEYWORD,instagram,Proxy
+  - DOMAIN-KEYWORD,facebook,Proxy
+
+  # Discord / Midjourney
+  - DOMAIN-SUFFIX,discord.com,Proxy
+  - DOMAIN-SUFFIX,discord.gg,Proxy
+  - DOMAIN-SUFFIX,midjourney.com,Proxy
+
+  # Development
+  - DOMAIN-SUFFIX,github.com,Proxy
+  - DOMAIN-SUFFIX,githubusercontent.com,Proxy
+  - DOMAIN-SUFFIX,figma.com,Proxy
+
+  # Telegram напрямую
+  - DOMAIN-SUFFIX,telegram.org,DIRECT
+  - DOMAIN-SUFFIX,t.me,DIRECT
+  - IP-CIDR,91.108.4.0/22,DIRECT
+  - IP-CIDR,91.108.8.0/22,DIRECT
+  - IP-CIDR,91.108.12.0/22,DIRECT
+  - IP-CIDR,91.108.16.0/22,DIRECT
+  - IP-CIDR,91.108.56.0/22,DIRECT
+  - IP-CIDR,149.154.160.0/20,DIRECT
+
+  # Локальная сеть
+  - DOMAIN-SUFFIX,local,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+
+  # Российские сайты
+  - DOMAIN-SUFFIX,ru,DIRECT
+  - DOMAIN-SUFFIX,yandex.ru,DIRECT
+  - DOMAIN-SUFFIX,mail.ru,DIRECT
+  - DOMAIN-SUFFIX,vk.com,DIRECT
+  - GEOIP,RU,DIRECT
+
+  # Всё остальное
+  - MATCH,Proxy

@@ -1,0 +1,434 @@
+{
+  "komplektuyushchie_dlya_remonta": {
+    "_info": {
+      "slug": "komplektuyushchie_dlya_remonta",
+      "full_path": "komplektuyushchie_dlya_remonta",
+      "depth": 1,
+      "children_count": 4
+    },
+    "zapchasti_dlya_apple": {
+      "_info": {
+        "slug": "zapchasti_dlya_apple",
+        "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple",
+        "depth": 2,
+        "children_count": 6
+      },
+      "displei": {
+        "_info": {
+          "slug": "displei",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/displei",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "prochee": {
+        "_info": {
+          "slug": "prochee",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/prochee",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "razemy": {
+        "_info": {
+          "slug": "razemy",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/razemy",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "shleyfy": {
+        "_info": {
+          "slug": "shleyfy",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/shleyfy",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "korpusa_chasti_korpusa": {
+        "_info": {
+          "slug": "korpusa_chasti_korpusa",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/korpusa_chasti_korpusa",
+          "depth": 3,
+          "children_count": 1
+        },
+        "chasti_korpusa": {
+          "_info": {
+            "slug": "chasti_korpusa",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/korpusa_chasti_korpusa/chasti_korpusa",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      },
+      "kamery": {
+        "_info": {
+          "slug": "kamery",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_apple/kamery",
+          "depth": 3,
+          "children_count": 0
+        }
+      }
+    },
+    "zapchasti_dlya_mobilnykh_ustroystv": {
+      "_info": {
+        "slug": "zapchasti_dlya_mobilnykh_ustroystv",
+        "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv",
+        "depth": 2,
+        "children_count": 5
+      },
+      "displei_2": {
+        "_info": {
+          "slug": "displei_2",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2",
+          "depth": 3,
+          "children_count": 7
+        },
+        "dlya_samsung": {
+          "_info": {
+            "slug": "dlya_samsung",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_samsung",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_huawei": {
+          "_info": {
+            "slug": "dlya_huawei",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_huawei",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_xiaomi": {
+          "_info": {
+            "slug": "dlya_xiaomi",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_xiaomi",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_realme": {
+          "_info": {
+            "slug": "dlya_realme",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_realme",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_oneplus": {
+          "_info": {
+            "slug": "dlya_oneplus",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_oneplus",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_infinix": {
+          "_info": {
+            "slug": "dlya_infinix",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_infinix",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "dlya_tecno": {
+          "_info": {
+            "slug": "dlya_tecno",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/displei_2/dlya_tecno",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      },
+      "shleyfy_2": {
+        "_info": {
+          "slug": "shleyfy_2",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2",
+          "depth": 3,
+          "children_count": 7
+        },
+        "shleyfy_dlya_samsung": {
+          "_info": {
+            "slug": "shleyfy_dlya_samsung",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_samsung",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_huawei": {
+          "_info": {
+            "slug": "shleyfy_dlya_huawei",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_huawei",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_xiaomi": {
+          "_info": {
+            "slug": "shleyfy_dlya_xiaomi",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_xiaomi",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_realme": {
+          "_info": {
+            "slug": "shleyfy_dlya_realme",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_realme",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_oppo": {
+          "_info": {
+            "slug": "shleyfy_dlya_oppo",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_oppo",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_infinix": {
+          "_info": {
+            "slug": "shleyfy_dlya_infinix",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_infinix",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "shleyfy_dlya_tecno": {
+          "_info": {
+            "slug": "shleyfy_dlya_tecno",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/shleyfy_2/shleyfy_dlya_tecno",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      },
+      "korpusa_chasti_korpusa_1": {
+        "_info": {
+          "slug": "korpusa_chasti_korpusa_1",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/korpusa_chasti_korpusa_1",
+          "depth": 3,
+          "children_count": 1
+        },
+        "chasti_korpusa_1": {
+          "_info": {
+            "slug": "chasti_korpusa_1",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/korpusa_chasti_korpusa_1/chasti_korpusa_1",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      },
+      "kamery_1": {
+        "_info": {
+          "slug": "kamery_1",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/kamery_1",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "sistemnye_razemy_razemy_pod_displei": {
+        "_info": {
+          "slug": "sistemnye_razemy_razemy_pod_displei",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/sistemnye_razemy_razemy_pod_displei",
+          "depth": 3,
+          "children_count": 1
+        },
+        "dlya_samsung_4": {
+          "_info": {
+            "slug": "dlya_samsung_4",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_mobilnykh_ustroystv/sistemnye_razemy_razemy_pod_displei/dlya_samsung_4",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      }
+    },
+    "zapchasti_dlya_planshetnykh_pk_igrovykh_konsoley": {
+      "_info": {
+        "slug": "zapchasti_dlya_planshetnykh_pk_igrovykh_konsoley",
+        "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_planshetnykh_pk_igrovykh_konsoley",
+        "depth": 2,
+        "children_count": 2
+      },
+      "displei_1": {
+        "_info": {
+          "slug": "displei_1",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_planshetnykh_pk_igrovykh_konsoley/displei_1",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "shleyfy_1": {
+        "_info": {
+          "slug": "shleyfy_1",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_planshetnykh_pk_igrovykh_konsoley/shleyfy_1",
+          "depth": 3,
+          "children_count": 0
+        }
+      }
+    },
+    "zapchasti_dlya_noutbukov": {
+      "_info": {
+        "slug": "zapchasti_dlya_noutbukov",
+        "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_noutbukov",
+        "depth": 2,
+        "children_count": 2
+      },
+      "akkumulyatornye_batarei": {
+        "_info": {
+          "slug": "akkumulyatornye_batarei",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_noutbukov/akkumulyatornye_batarei",
+          "depth": 3,
+          "children_count": 0
+        }
+      },
+      "bloki_pitaniya": {
+        "_info": {
+          "slug": "bloki_pitaniya",
+          "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_noutbukov/bloki_pitaniya",
+          "depth": 3,
+          "children_count": 1
+        },
+        "vixion_3": {
+          "_info": {
+            "slug": "vixion_3",
+            "full_path": "komplektuyushchie_dlya_remonta/zapchasti_dlya_noutbukov/bloki_pitaniya/vixion_3",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      }
+    }
+  },
+  "aksessuary_dlya_mobilnykh_ustroystv": {
+    "_info": {
+      "slug": "aksessuary_dlya_mobilnykh_ustroystv",
+      "full_path": "aksessuary_dlya_mobilnykh_ustroystv",
+      "depth": 1,
+      "children_count": 2
+    },
+    "akkumulyatornye_batarei_elementy_pitaniya": {
+      "_info": {
+        "slug": "akkumulyatornye_batarei_elementy_pitaniya",
+        "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya",
+        "depth": 2,
+        "children_count": 1
+      },
+      "akb_dlya_mobilnykh_ustroystv": {
+        "_info": {
+          "slug": "akb_dlya_mobilnykh_ustroystv",
+          "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv",
+          "depth": 3,
+          "children_count": 3
+        },
+        "akb_dlya_sotovykh_telefonov": {
+          "_info": {
+            "slug": "akb_dlya_sotovykh_telefonov",
+            "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov",
+            "depth": 4,
+            "children_count": 9
+          },
+          "akb_dlya_iphone": {
+            "_info": {
+              "slug": "akb_dlya_iphone",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_iphone",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_samsung": {
+            "_info": {
+              "slug": "akb_dlya_samsung",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_samsung",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_huawei": {
+            "_info": {
+              "slug": "akb_dlya_huawei",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_huawei",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_xiaomi": {
+            "_info": {
+              "slug": "akb_dlya_xiaomi",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_xiaomi",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_realme": {
+            "_info": {
+              "slug": "akb_dlya_realme",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_realme",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_oppo": {
+            "_info": {
+              "slug": "akb_dlya_oppo",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_oppo",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_oneplus": {
+            "_info": {
+              "slug": "akb_dlya_oneplus",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_oneplus",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_infinix": {
+            "_info": {
+              "slug": "akb_dlya_infinix",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_infinix",
+              "depth": 5,
+              "children_count": 0
+            }
+          },
+          "akb_dlya_tecno": {
+            "_info": {
+              "slug": "akb_dlya_tecno",
+              "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_sotovykh_telefonov/akb_dlya_tecno",
+              "depth": 5,
+              "children_count": 0
+            }
+          }
+        },
+        "akb_dlya_smart_chasov": {
+          "_info": {
+            "slug": "akb_dlya_smart_chasov",
+            "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_smart_chasov",
+            "depth": 4,
+            "children_count": 0
+          }
+        },
+        "akb_dlya_planshetov": {
+          "_info": {
+            "slug": "akb_dlya_planshetov",
+            "full_path": "aksessuary_dlya_mobilnykh_ustroystv/akkumulyatornye_batarei_elementy_pitaniya/akb_dlya_mobilnykh_ustroystv/akb_dlya_planshetov",
+            "depth": 4,
+            "children_count": 0
+          }
+        }
+      }
+    },
+    "zashchitnye_plenki_i_stekla": {
+      "_info": {
+        "slug": "zashchitnye_plenki_i_stekla",
+        "full_path": "aksessuary_dlya_mobilnykh_ustroystv/zashchitnye_plenki_i_stekla",
+        "depth": 2,
+        "children_count": 0
+      }
+    }
+  }
+}

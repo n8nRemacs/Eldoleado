@@ -1,0 +1,113 @@
+# ========================
+#   MIHOMO + CK-CLIENT CONFIG
+#
+#   Схема: App → Mihomo (SS) → ck-client → Cloak → Server SS → Internet
+#
+#   ЗАПУСК:
+#   1. Запустить ck-client: ck-client.exe -c ck-vk.json -l 1080
+#   2. Запустить Mihomo с этим конфигом
+# ========================
+
+mixed-port: 7890
+allow-lan: true
+mode: Rule
+log-level: debug
+external-controller: 127.0.0.1:9090
+ipv6: false
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+proxies:
+  # ========================================
+  # Shadowsocks через локальный ck-client
+  # ck-client слушает на 127.0.0.1:1080 и проксирует в Cloak
+  # Mihomo подключается как SS клиент к этому порту
+  # ========================================
+
+  - name: "SS via Cloak VK"
+    type: ss
+    server: 127.0.0.1
+    port: 11080
+    cipher: chacha20-ietf-poly1305
+    password: "mOhXW0Mj+klpwrhRTXwY71Mi2nnUv/ANNmNJ9gHD/cY="
+
+  - name: "SS via Cloak Yandex"
+    type: ss
+    server: 127.0.0.1
+    port: 11081
+    cipher: chacha20-ietf-poly1305
+    password: "k8H55Az7fkGj80wuBL6G0E+WYOPSIvu81SSnWJTMh/0="
+
+  - name: "SS via Cloak Rutube"
+    type: ss
+    server: 127.0.0.1
+    port: 11082
+    cipher: chacha20-ietf-poly1305
+    password: "IsMeqvWEGoTsB+HWd9i9Z4hOJWOd8R12Z5IGuZtaWu4="
+
+  - name: "SS via Cloak Kinopoisk"
+    type: ss
+    server: 127.0.0.1
+    port: 11083
+    cipher: chacha20-ietf-poly1305
+    password: "PsLzhchSSOpW2xMzybrudWcFbIV9B1UO8VJTQUuZhbY="
+
+  # Резерв
+  - name: "FI VLESS"
+    type: vless
+    server: 217.145.79.27
+    port: 10443
+    uuid: 9a8b2e5d-ace6-47f9-8452-dc20a22926cb
+    tls: true
+    network: ws
+    udp: true
+    sni: 217.145.79.27
+    skip-cert-verify: true
+    ws-opts:
+      path: /ws
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "SS via Cloak VK"
+      - "SS via Cloak Yandex"
+      - "SS via Cloak Rutube"
+      - "SS via Cloak Kinopoisk"
+      - "FI VLESS"
+      - DIRECT
+
+rules:
+  - DOMAIN-SUFFIX,youtube.com,Proxy
+  - DOMAIN-SUFFIX,googlevideo.com,Proxy
+  - DOMAIN-SUFFIX,ytimg.com,Proxy
+  - DOMAIN-SUFFIX,youtu.be,Proxy
+  - DOMAIN-SUFFIX,openai.com,Proxy
+  - DOMAIN-SUFFIX,anthropic.com,Proxy
+  - DOMAIN-SUFFIX,claude.ai,Proxy
+  - DOMAIN-SUFFIX,instagram.com,Proxy
+  - DOMAIN-SUFFIX,facebook.com,Proxy
+  - DOMAIN-SUFFIX,twitter.com,Proxy
+  - DOMAIN-SUFFIX,x.com,Proxy
+  - DOMAIN-SUFFIX,discord.com,Proxy
+  - DOMAIN-SUFFIX,github.com,Proxy
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - GEOIP,RU,DIRECT
+  - MATCH,Proxy
