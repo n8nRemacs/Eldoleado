@@ -14,7 +14,7 @@ git pull
 ---
 
 ## Дата и время последнего обновления
-**9 декабря 2025, 15:30 (UTC+4)**
+**9 декабря 2025, 17:00 (UTC+4)**
 
 ---
 
@@ -36,7 +36,28 @@ git pull
 
 ## Что сделано в последних сессиях
 
-### Сессия 09.12.2025 — CORE_NEW Архитектура
+### Сессия 09.12.2025 (вечер) — AI Архитектура
+
+1. **AI Architecture — СОЗДАНА ✅**
+   - Файл: `CORE_NEW/docs/05_AI_ARCHITECTURE.md`
+   - 7 уровней: от данных до мессенджеров
+   - Context Builder (PG + Neo4j)
+   - Request Builder (Правила + AI + Правила)
+   - Universal Orchestrator (промпт в запросе)
+   - Universal Tools (один worker — все вертикали)
+
+2. **Ключевые концепции:**
+   - **Prompt-in-Request** — промпты передаются в запросе, не хардкодятся
+   - **Кнут-Пряник-Кнут** — правила → AI-свобода → валидация
+   - **ai_freedom_level** — регулятор жёсткости (0-100)
+   - **Граф + Extractor** — двусторонняя связь (контекст ↔ обогащение)
+
+3. **Принцип вертикалей:**
+   - Ядро универсальное, вертикали = конфигурация в БД
+   - Один worker обрабатывает ВСЕ вертикали
+   - Разница только в промптах
+
+### Сессия 09.12.2025 (день) — CORE_NEW Архитектура
 
 1. **Vision Document — СОЗДАН ✅**
    - Файл: `CORE_NEW/docs/00_VISION.md`
@@ -79,6 +100,7 @@ git pull
 | PostgreSQL Schema | ✅ | `CORE_NEW/docs/02_DATABASE_SCHEMA.md` |
 | Neo4j Schema | ✅ | `CORE_NEW/docs/03_GRAPH_SCHEMA.md` |
 | API v2 Contracts | ✅ | `CORE_NEW/docs/04_API_CONTRACTS.md` |
+| AI Architecture | ✅ | `CORE_NEW/docs/05_AI_ARCHITECTURE.md` |
 | SQL миграции | ⏳ | TODO |
 | Workflows | ⏳ | TODO |
 
@@ -119,9 +141,11 @@ certbot --nginx -d android-api.eldoleado.ru
 | Файл | Описание |
 |------|----------|
 | `CORE_NEW/docs/00_VISION.md` | Видение продукта |
+| `CORE_NEW/docs/01_CORE_DESIGN.md` | Архитектура ядра, концепция ЛИНИИ |
 | `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 11 elo_* таблиц |
-| `CORE_NEW/docs/03_GRAPH_SCHEMA.md` | Neo4j: ELO_* лейблы |
+| `CORE_NEW/docs/03_NEO4J_SCHEMA.md` | Neo4j: Client, Device, Problem |
 | `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 контракты |
+| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 уровней, Prompt-in-Request |
 
 ---
 
