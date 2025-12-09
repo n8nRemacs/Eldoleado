@@ -11,107 +11,110 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    // Webhook paths synced with n8n workflows (2025-12-05)
-    // n8n production URLs use path only (without webhookId prefix)
+    // API Gateway endpoints (2025-12-09)
+    // Base URL: https://android-api.eldoleado.ru/
 
-    @POST("android/auth/login")
+    @POST("api/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-    @GET("api/operator/appeals/list")
+    @GET("api/appeals")
     fun getAppealsList(
         @Query("operator_id") operatorId: String,
         @Query("status") status: String? = null,
         @Query("limit") limit: Int = 20
     ): Call<AppealsListResponse>
 
-    @GET("dbc87d6b-d3a8-4613-a2d8-b591d5533210/api/android/appeals/{id}")
+    @GET("api/appeals/{appeal_id}")
     fun getAppealDetail(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Query("limit") limit: Int = 50
     ): Call<AppealDetailResponse>
 
-    @POST("unique-send-response/api/android/appeals/{id}/send")
+    @POST("api/appeals/{appeal_id}/send")
     fun sendResponse(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Body request: SendMessageRequest
     ): Call<ApiResponse>
 
-    @POST("unique-normalize/api/android/appeals/{id}/normalize")
+    @POST("api/appeals/{appeal_id}/normalize")
     fun normalizeText(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Body request: NormalizeRequest
     ): Call<NormalizeResponse>
 
-    @POST("unique-take-appeal/api/android/appeals/{id}/take")
+    @POST("api/appeals/{appeal_id}/take")
     fun takeAppeal(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Body request: TakeAppealRequest
     ): Call<ApiResponse>
 
-    @POST("api-operator-reject/api/android/appeals/{id}/reject")
+    @POST("api/appeals/{appeal_id}/reject")
     fun rejectAiResponse(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Body request: RejectRequest
     ): Call<ApiResponse>
 
-    @POST("operator-send-promo/api/android/appeals/{id}/promo")
+    @POST("api/appeals/{appeal_id}/promo")
     fun sendPromo(
-        @Path("id") appealId: String,
+        @Path("appeal_id") appealId: String,
         @Body request: PromoRequest
     ): Call<ApiResponse>
 
-    @POST("android/logout")
+    @POST("api/auth/logout")
     fun logout(): Call<ApiResponse>
 
-    @POST("android-register-fcm")
+    @POST("api/fcm/register")
     fun registerFCMToken(
         @Body request: FCMTokenRegisterRequest
     ): Call<FCMTokenResponse>
 
-    @POST("android-update-settings")
+    @POST("api/settings")
     fun updateSettings(
         @Body request: UpdateSettingsRequest
     ): Call<ApiResponse>
 
-    @POST("android-update-appeal-mode")
+    @POST("api/appeals/{appeal_id}/mode")
     fun updateAppealMode(
+        @Path("appeal_id") appealId: String,
         @Body request: UpdateAppealModeRequest
     ): Call<ApiResponse>
 
     // ========== DEVICE CRUD ==========
 
-    @POST("android/appeal-devices")
+    @POST("api/appeals/{appeal_id}/devices")
     fun createDevice(
+        @Path("appeal_id") appealId: String,
         @Body request: CreateDeviceRequest
     ): Call<DeviceResponse>
 
-    @PATCH("android/appeal-devices/{id}")
+    @PATCH("api/devices/{device_id}")
     fun updateDevice(
-        @Path("id") deviceId: String,
+        @Path("device_id") deviceId: String,
         @Body request: UpdateDeviceRequest
     ): Call<DeviceResponse>
 
-    @DELETE("android/appeal-devices/{id}")
+    @DELETE("api/devices/{device_id}")
     fun deleteDevice(
-        @Path("id") deviceId: String
+        @Path("device_id") deviceId: String
     ): Call<ApiResponse>
 
     // ========== REPAIR CRUD ==========
 
-    @POST("android/appeal-repairs")
+    @POST("api/devices/{device_id}/repairs")
     fun createRepair(
+        @Path("device_id") deviceId: String,
         @Body request: CreateRepairRequest
     ): Call<RepairResponse>
 
-    @PATCH("android/appeal-repairs/{id}")
+    @PATCH("api/repairs/{repair_id}")
     fun updateRepair(
-        @Path("id") repairId: String,
+        @Path("repair_id") repairId: String,
         @Body request: UpdateRepairRequest
     ): Call<RepairResponse>
 
-    @DELETE("android/appeal-repairs/{id}")
+    @DELETE("api/repairs/{repair_id}")
     fun deleteRepair(
-        @Path("id") repairId: String
+        @Path("repair_id") repairId: String
     ): Call<ApiResponse>
 }
 

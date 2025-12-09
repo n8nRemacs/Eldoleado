@@ -220,7 +220,7 @@ class AppealDetailActivity : AppCompatActivity() {
         val mode = if (isAutoMode) "auto" else "assist"
 
         val request = UpdateAppealModeRequest(operatorId, appealId, mode)
-        RetrofitClient.getApiService(this).updateAppealMode(request).enqueue(object : Callback<ApiResponse> {
+        RetrofitClient.getApiService(this).updateAppealMode(appealId, request).enqueue(object : Callback<ApiResponse> {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                 if (!response.isSuccessful || response.body()?.success != true) {
                     // Молча логируем ошибку, не показываем пользователю

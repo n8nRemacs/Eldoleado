@@ -13,7 +13,7 @@ class CallRecordingPreferences(context: Context) {
         private const val KEY_SERVER_URL = "server_url"
         private const val KEY_AUTO_UPLOAD = "auto_upload"
         private const val KEY_DELETE_AFTER_UPLOAD = "delete_after_upload"
-        private const val DEFAULT_SERVER_URL = "https://n8n.n8nsrv.ru/webhook/voice-upload"
+        private const val DEFAULT_SERVER_URL = "https://android-api.eldoleado.ru/api/voice/upload"
     }
 
     var isRecordingEnabled: Boolean
