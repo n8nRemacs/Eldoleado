@@ -479,25 +479,58 @@ Redis (RU): redis://:Mi31415926pSss!@45.144.177.128:6379
 
 ## NEXT STEPS (priority)
 
-### 1. Resolve 4 Graph questions
-- Register vs Tracker
-- Direction determination
-- enrichment_paths table
-- When to call which touchpoint
+### ПРИОРИТЕТ 1: Импорт n8n workflows и тестирование
 
-### 2. Document Core block
-- Appeal_Manager, AI_Router, Task_Dispatcher, AI_Universal_Worker
+**1.1 Импорт в n8n UI** (https://n8n.n8nsrv.ru)
+```
+Файлы для импорта:
+├── NEW/workflows/ELO_AI/ELO_AI_Extract.json
+├── NEW/workflows/ELO_AI/ELO_AI_Chat.json
+├── workflows_to_import/ELO_Input_Ingest.json
+├── workflows_to_import/ELO_Input_Worker.json
+├── workflows_to_import/ELO_Client_Resolve.json
+├── workflows_to_import/ELO_Graph_Query.json
+└── workflows_to_import/new/*.json (12 файлов)
+```
 
-### 3. Operator Web App
-- **BLOCKER for MVP**
-- Need operator interface
+**1.2 Активировать webhooks** — нажать "Active" toggle в каждом workflow
 
-### 4. Price parser (prototype)
-- Part name normalization
-- Model/type/quality directories
+**1.3 Тестировать curl:**
+```bash
+# Test ELO_AI_Extract
+curl -X POST https://n8n.n8nsrv.ru/webhook/elo-ai-extract \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Разбил экран iPhone 14", "extraction_schema": {"type": "object"}}'
 
-### 5. Voice → Graph
-- Telephony choice (Asterisk vs cloud vs smartphone)
+# Test ELO_Input_Ingest
+curl -X POST https://n8n.n8nsrv.ru/webhook/elo-input-ingest \
+  -H "Content-Type: application/json" \
+  -d '{"channel": "telegram", "external_chat_id": "123", "text": "test"}'
+```
+
+### ПРИОРИТЕТ 2: Deploy AI Tool MCP (8774)
+
+```bash
+ssh root@45.144.177.128
+cd /root/mcp
+# Добавить ai-tool в docker-compose.yml
+docker-compose up -d ai-tool
+curl http://localhost:8774/health
+```
+
+### ПРИОРИТЕТ 3: E2E тест
+
+После импорта — отправить тестовое сообщение через Telegram:
+```
+Telegram → MCP → n8n ELO_In_Telegram → ELO_Input_Ingest → ...
+```
+
+### Отложено (после MVP):
+
+- Graph questions (Register vs Tracker)
+- Operator Web App
+- Price parser prototype
+- Voice → Graph
 
 ---
 

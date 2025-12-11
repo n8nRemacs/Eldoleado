@@ -60,168 +60,246 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: December 11, 2025, 03:00 (UTC+4)
+## Last session: 11 December 2025, 16:30 (UTC+4)
 
 ---
 
 ## What's done in this session
 
-### COMMERCIAL STRATEGY — DEFINED ✅
+### АРХИТЕКТУРА: 4-контурная система ✅
 
-**Analyzed:**
-- Competitors: amoCRM, Bitrix24, Yclients, specialized CRMs
-- USP: AI understands client, omnichannel (7 channels), simplicity
-- Key insight: B2C service = 15 minutes to decision, response in 1-2 minutes
+**Спроектирована и задокументирована новая архитектура:**
 
-**Chosen:**
-- **Vertical:** Phone Repair + Buy/Sell
-- **WOW-effect:** "No lost customers" (AI responds at 11 PM)
-- **Monetization:** Freemium (minimal 300-500₽)
-- **Strategy:** NOT MVP, but full vertical product
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DATA FLOW                                          │
+│                                                                              │
+│  MCP Channels → Input (8771) → Client (8772) → Core (n8n) → Graph (8773)    │
+│  (Telegram,       (Ingest,      (Tenant,        (Business     (Neo4j        │
+│   WhatsApp,        Redis         Client,         Logic)        Proxy)       │
+│   Avito...)        Queue)        Dialog)              ↓                      │
+│                                               AI Tool (8774)                 │
+│                                               (Extract, Chat)                │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
----
+**MCP Contours (слепые исполнители):**
 
-### ROADMAP.md — CREATED ✅ (~1200 lines)
-
-File: `NEW/ROADMAP.md`
-
-**Content:**
-1. **Killer Features** (with diagrams):
-   - Smartphone-server (one app — two modes)
-   - Price parser with normalization workflow (4 steps)
-   - Voice → Graph → Messenger (6 stages)
-   - QR identification (4 types: tenant, device, repair, promo)
-   - Remonline/LiveSklad integrations (API + webhooks)
-   - Self-learning + Knowledge Base
-
-2. **AI Tools** (full catalog):
-   - appointment_extract, appointment_create, appointment_reschedule
-   - parts_search (with examples)
-   - Parts Catalog (parts file creation workflow)
-   - qr_resolve, qr_generate
-   - remonline_sync (API + webhooks)
-   - livesklad_sync (API + webhooks)
-
-3. **SQL Schemas** for new tables:
-   - elo_appointments
-   - elo_price_raw, elo_price_catalog, elo_price_market_avg
-   - elo_tenant_pricing
-   - elo_qr_codes, elo_qr_scans
-   - elo_external_integrations, elo_integration_logs
-
-4. **Tools Matrix by phases:**
-   - MVP: device/issue_extract, appointment_*, response_generate
-   - Phase 2: qr_*, parts_search, voice_transcribe
-   - Phase 3: remonline_sync, livesklad_sync
-
-5. **Pricing** (draft):
-   - Free: 0₽, 1 channel, 100 messages
-   - Minimal: 300-500₽, 3 channels, AI assist
-   - Basic: 1500-2000₽, 7 channels, AI auto
-   - Business: 4000+₽, smartphone-server, integrations
-
-6. **WOW-demo scenario** for first client
+| Contour | Port | Purpose | Code | Status |
+|---------|------|---------|------|--------|
+| Input | 8771 | Ingest + Redis queue | `MCP/input-contour/` | 📝 Documented |
+| Client | 8772 | Tenant/Client/Dialog | `MCP/client-contour/` | 📝 Documented |
+| Graph Tool | 8773 | Neo4j proxy | `MCP/graph-tool/` | 📝 Documented |
+| **AI Tool** | **8774** | Extract + Chat | `MCP/ai-tool/` | **✅ Created** |
 
 ---
 
-### ARCHITECTURE_SYNC.md — CREATED ✅ (~550 lines)
+### РАБОТА SENIOR (Claude Opus) ✅
 
-File: `NEW/ARCHITECTURE_SYNC.md`
+| # | Задача | Файлы | Статус |
+|---|--------|-------|--------|
+| 1 | **AI Tool MCP (8774)** | `MCP/ai-tool/main.py, config.py, Dockerfile, requirements.txt` | ✅ |
+| 2 | **AI Tool документация** | `NEW/Core_info/06_AI_Tool/AI_TOOL_OVERVIEW.md` | ✅ |
+| 3 | **ELO_AI_Extract.md** | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md` | ✅ |
+| 4 | **ELO_AI_Chat.md** | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md` | ✅ |
+| 5 | **n8n JSON workflows** | `NEW/workflows/ELO_AI/ELO_AI_Extract.json, ELO_AI_Chat.json` | ✅ |
+| 6 | **API_CONTRACTS.md** | Добавлен AI Tool (8774) | ✅ |
+| 7 | **Junior task** | `.claude/inbox.md` — задание на n8n workflows | ✅ |
+| 8 | **Junior review** | `.claude/outbox.md` — ответы на вопросы | ✅ |
+| 9 | **Документация** | `Start.md`, `CONTEXT.md` — обновлено | ✅ |
 
-**Content:**
-1. **Killer Features mapping to 7 levels:**
-   - Smartphone-server → Level 7 (MCP Channels) + Device Gateway
-   - Price parser → Level 0 (Data) + Level 4 (Tools) + Price Engine
-   - Voice→Graph → Levels 7→4→1→5→7
-   - QR → Levels 7, 1
-   - Integrations → Level 5 (Dialog Engine) + External Integrations
-   - Self-learning → Levels 0, 4, 5 + Learning Engine
-
-2. **New blocks:**
-   - Device Gateway (smartphone-server)
-   - Price Engine (parser + normalization)
-   - Learning Engine (feedback + self-learning)
-   - External Integrations (Remonline, LiveSklad)
-
-3. **Implementation order** (14 steps from simple to complex)
+**AI Tool endpoints:**
+- `POST /extract` — извлечение структурированных данных по schema
+- `POST /chat` — AI чат с поддержкой tools
+- `GET /health` — проверка состояния
 
 ---
 
-### GIT COMMITS
+### РАБОТА JUNIOR (Claude Cursor) ✅
+
+| # | Задача | Файлы | Статус |
+|---|--------|-------|--------|
+| 1 | **ELO_Input_Ingest.json** | `workflows_to_import/` | ✅ |
+| 2 | **ELO_Input_Worker.json** | `workflows_to_import/` | ✅ |
+| 3 | **ELO_Client_Resolve.json** | `workflows_to_import/` | ✅ |
+| 4 | **ELO_Graph_Query.json** | `workflows_to_import/` | ✅ |
+| 5 | **ELO_Core_Ingest.json** | `workflows_to_import/new/` | ✅ |
+| 6 | **Channel IN (6 шт)** | Telegram, WhatsApp, Avito, VK, MAX, Form | ✅ |
+| 7 | **Channel OUT (5 шт)** | Telegram, WhatsApp, Avito, VK, MAX | ✅ |
+
+**n8n v2.0 Compliance:**
+- Webhook typeVersion: 2
+- Code typeVersion: 2
+- HTTP Request typeVersion: 4.2
+- respondToWebhook typeVersion: 1.1
+- No Python Code Node
+- No process.env in Code
+
+---
+
+### GIT COMMITS (сегодня)
 
 | Hash | Description | Changes |
 |------|-------------|---------|
-| `890c6ef` | Docs: Product Roadmap + Architecture Sync + AI Tools | +2037 lines |
+| `5c2d9da` | Docs: Session 12.11.2025 - 4-contour architecture + Junior workflows | +1790 lines |
+| `cb0c105` | Answer Junior's questions: mocks sufficient | +64 lines |
+| `cafd516` | Update Junior task: add AI Tool workflows + answer questions | +202 lines |
+| `3c1b8e7` | Add ELO_AI n8n polygon workflows (JSON) | +238 lines |
+| `0b32d20` | Add AI Tool MCP (8774) + n8n polygon documentation | +1401 lines |
 
 ---
 
-## What's NOT done (for next session)
+## НА ЧЁМ ОСТАНОВИЛИСЬ
 
-### 1. Graph — 4 technical questions (PRIORITY!)
-- Register vs Tracker — when which?
-- Direction — who determines?
-- enrichment_paths — what is this?
-- When to call which touchpoint?
+### Создано, но НЕ задеплоено/импортировано:
 
-### 2. Core block — documentation
-- Appeal_Manager, AI_Router, Task_Dispatcher
-- AI_Universal_Worker, Client_Creator
+**1. MCP AI Tool (8774)** — код готов в `MCP/ai-tool/`, но:
+- [ ] НЕ запущен docker контейнер на сервере
+- [ ] НЕ добавлен в `MCP/docker-compose.yml`
+- [ ] НЕ протестирован /extract и /chat
 
-### 3. Operator Web App
-- **BLOCKER for MVP**
-- Need operator interface
+**2. n8n Workflows (17+ файлов)** — JSON готовы, но:
+- [ ] НЕ импортированы в n8n UI
+- [ ] НЕ активированы webhooks
+- [ ] НЕ протестирована цепочка
 
-### 4. Price parser (prototype)
-- Part name normalization
-- Model/type/quality directories
+**Файлы для импорта:**
+```
+NEW/workflows/ELO_AI/
+├── ELO_AI_Extract.json     ← Senior создал
+└── ELO_AI_Chat.json        ← Senior создал
+
+workflows_to_import/
+├── ELO_Input_Ingest.json   ← Junior создал
+├── ELO_Input_Worker.json   ← Junior создал
+├── ELO_Client_Resolve.json ← Junior создал
+├── ELO_Graph_Query.json    ← Junior создал
+└── new/
+    ├── ELO_Core_Ingest.json
+    ├── ELO_In_Telegram.json
+    ├── ELO_In_WhatsApp.json
+    ├── ELO_In_Avito.json
+    ├── ELO_In_VK.json
+    ├── ELO_In_MAX.json
+    ├── ELO_In_Form.json
+    ├── ELO_Out_Telegram.json
+    ├── ELO_Out_WhatsApp.json
+    ├── ELO_Out_Avito.json
+    ├── ELO_Out_VK.json
+    └── ELO_Out_MAX.json
+```
+
+---
+
+## ЧТО ДЕЛАТЬ В СЛЕДУЮЩЕЙ СЕССИИ
+
+### ПРИОРИТЕТ 1: Импорт и тестирование n8n workflows
+
+**Шаг 1:** Импорт в n8n UI (https://n8n.n8nsrv.ru)
+```
+1. Открыть n8n UI
+2. File → Import from File
+3. Выбрать JSON файлы по одному
+4. Сохранить каждый workflow
+```
+
+**Шаг 2:** Активация webhooks
+```
+1. Открыть workflow
+2. Нажать "Active" toggle
+3. Проверить что webhook URL создался
+```
+
+**Шаг 3:** Тестирование curl
+```bash
+# Test ELO_AI_Extract (n8n polygon)
+curl -X POST https://n8n.n8nsrv.ru/webhook/elo-ai-extract \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Разбил экран на iPhone 14 Pro",
+    "extraction_schema": {
+      "type": "object",
+      "properties": {
+        "device": {"type": "object"},
+        "symptoms": {"type": "array"}
+      }
+    }
+  }'
+
+# Test ELO_Input_Ingest
+curl -X POST https://n8n.n8nsrv.ru/webhook/elo-input-ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel": "telegram",
+    "external_chat_id": "123456",
+    "text": "Привет, сколько стоит замена экрана?"
+  }'
+```
+
+### ПРИОРИТЕТ 2: Deploy AI Tool MCP на сервер
+
+```bash
+# 1. Подключиться к серверу
+ssh root@45.144.177.128
+
+# 2. Добавить AI Tool в docker-compose.yml
+cd /root/mcp
+# Добавить service ai-tool
+
+# 3. Собрать и запустить
+docker-compose up -d ai-tool
+
+# 4. Проверить health
+curl http://localhost:8774/health
+```
+
+### ПРИОРИТЕТ 3: E2E тест
+
+После импорта и деплоя — отправить тестовое сообщение через Telegram и проследить путь:
+```
+Telegram → MCP Telegram → n8n ELO_In_Telegram → ELO_Input_Ingest → ...
+```
 
 ---
 
 ## Key files (created in this session)
 
-| File | Description | Lines |
-|------|-------------|-------|
-| `NEW/ROADMAP.md` | Product roadmap, killer features, AI tools, SQL schemas | ~1200 |
-| `NEW/ARCHITECTURE_SYNC.md` | Features mapping to 7 architecture levels | ~550 |
-
----
-
-## Key files (overall project)
-
-### Architecture:
 | File | Description |
 |------|-------------|
-| `CORE_NEW/docs/00_VISION.md` | Product vision |
-| `CORE_NEW/docs/01_CORE_DESIGN.md` | Core architecture, glossary |
-| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* tables |
-| `CORE_NEW/docs/03_NEO4J_SCHEMA.md` | Neo4j: Client, Device, Problem |
-| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 contracts |
-| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 levels, Prompt-in-Request |
-| `CORE_NEW/docs/06_DATA_CONTRACT.md` | Data package between workflows |
-
-### Workflows documentation:
-| Folder | Status |
-|--------|--------|
-| `NEW/Core_info/01_Channel_Layer/` | ✅ 12/12 |
-| `NEW/Core_info/02_Input_Contour/` | ✅ 5/5 |
-| `NEW/Core_info/03_Core/` | ⏳ empty |
-| `NEW/Core_info/04_Graph/` | 🔄 questions |
-| `NEW/Core_info/05_Diagnostic_Engine/` | ⏳ empty |
-| `NEW/Core_info/06_API/` | 🔄 2 docs |
+| `MCP/ai-tool/main.py` | AI Tool MCP service |
+| `MCP/ai-tool/config.py` | Configuration |
+| `MCP/ai-tool/Dockerfile` | Docker build |
+| `NEW/Core_info/06_AI_Tool/AI_TOOL_OVERVIEW.md` | AI Tool overview |
+| `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md` | Extract doc |
+| `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md` | Chat doc |
+| `NEW/workflows/ELO_AI/ELO_AI_Extract.json` | n8n workflow |
+| `NEW/workflows/ELO_AI/ELO_AI_Chat.json` | n8n workflow |
+| `.claude/inbox.md` | Junior task |
+| `.claude/outbox.md` | Junior feedback |
+| `workflows_to_import/` | 16 n8n workflows |
 
 ---
 
 ## Servers
+
+### MCP Contours (NEW):
+
+| Service | Port | IP | Status |
+|---------|------|----|--------|
+| Input Contour | 8771 | 45.144.177.128 | 📝 Documented |
+| Client Contour | 8772 | 45.144.177.128 | 📝 Documented |
+| Graph Tool | 8773 | 45.144.177.128 | 📝 Documented |
+| **AI Tool** | **8774** | 45.144.177.128 | **✅ Code ready, NOT deployed** |
+
+### Infrastructure:
 
 | Server | IP/URL | Port | Purpose |
 |--------|--------|------|---------|
 | n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
 | Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
 | PostgreSQL | 185.221.214.83 | 6544 | Main database |
-| Android API | 45.144.177.128 | 8780 | API Gateway (FastAPI) |
-| Redis (RU) | 45.144.177.128 | 6379 | ai_extraction_queue |
+| Redis (RU) | 45.144.177.128 | 6379 | Queues |
 | Redis (n8n) | 185.221.214.83 | 6379 | n8n cache |
-| MCP Telegram | 217.145.79.27 | 443 | tg.eldoleado.ru |
 
 ---
 
@@ -233,8 +311,8 @@ File: `NEW/ARCHITECTURE_SYNC.md`
 
 ## To continue
 
-1. Read `Start.md`
-2. Read `NEW/ROADMAP.md` — killer features and AI tools
-3. Read `NEW/ARCHITECTURE_SYNC.md` — architecture mapping
-4. Resolve 4 Graph questions
-5. Document Core block
+1. **git pull** — sync latest changes
+2. **Read Start.md** — full session history
+3. **Import workflows to n8n** — priority!
+4. **Test webhooks** — curl commands above
+5. **Deploy AI Tool** — if testing n8n polygons works
