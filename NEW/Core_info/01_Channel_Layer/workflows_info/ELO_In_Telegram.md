@@ -11,14 +11,32 @@
 | **File** | `NEW/workflows/ELO_In/ELO_In_Telegram.json` |
 | **Trigger** | Webhook POST `/telegram-in` |
 | **Called from** | mcp-telegram (HTTP POST) |
-| **Calls** | ELO_Core_Tenant_Resolver (Execute Workflow) |
-| **Output** | Redis PUSH to `queue:incoming` |
+| **Calls** | **Input Contour (8771)** POST `/ingest` |
+| **Output** | HTTP Response {accepted: true} |
+
+---
+
+## Architecture Change (MCP-aligned)
+
+> **IMPORTANT:** This workflow now calls Input Contour MCP `/ingest` instead of Tenant Resolver directly.
+>
+> **Old flow (deprecated):**
+> ```
+> mcp-telegram → ELO_In_Telegram → Tenant Resolver → Redis queue
+> ```
+>
+> **New flow (MCP-aligned):**
+> ```
+> mcp-telegram → ELO_In_Telegram → Input Contour (8771) /ingest → (async processing)
+> ```
+>
+> Tenant resolution now happens in **Client Contour (8772)**, not Channel Layer.
 
 ---
 
 ## Purpose
 
-Receives incoming messages from Telegram via mcp-telegram, normalizes them into ELO Core Contract, resolves tenant, and places them in Redis queue.
+Receives incoming messages from Telegram via mcp-telegram, normalizes them into ELO Core Contract, and sends to Input Contour for queueing and debounce.
 
 ---
 
@@ -429,70 +447,39 @@ return {
 
 ---
 
-### 9. Execute Tenant Resolver
+### 9. ~~Execute Tenant Resolver~~ → POST to Input Contour (MCP-aligned)
 
 | Parameter | Value |
 |----------|----------|
 | **ID** | `169e4c2e-d29d-4cf3-9841-382cfc3ceec7` |
-| **Type** | n8n-nodes-base.executeWorkflow |
-| **Purpose** | Determine tenant by bot_token |
+| **Type** | n8n-nodes-base.httpRequest |
+| **typeVersion** | 4.2 |
+| **Purpose** | Send normalized message to Input Contour |
 
-**Calls:** `ELO_Core_Tenant_Resolver` (id: rRO6sxLqiCdgvLZz)
+> **DEPRECATED:** Old node called `ELO_Core_Tenant_Resolver` directly.
+> **NEW:** Call Input Contour MCP `/ingest` endpoint.
+
+**HTTP Request:**
+- **URL:** `http://45.144.177.128:8771/ingest` (MCP) or `https://n8n.n8nsrv.ru/webhook/elo-input-ingest` (n8n polygon)
+- **Method:** POST
+- **Body:** ELO Core Contract (JSON)
 
 **What it does:**
-- Searches for record in `elo_channel_accounts` by `bot_token`
-- Returns `tenant_id`
+- Sends normalized message to Input Contour
+- Input Contour handles idempotency, queue, debounce
+- Returns immediately with `{accepted: true, message_id, trace_id}`
 
 ---
 
-### 10. Prepare for Queue
+### ~~10. Prepare for Queue~~ (REMOVED)
 
-| Parameter | Value |
-|----------|----------|
-| **ID** | `be2e87b0-ce4c-4667-8f5f-43f543e1cf3b` |
-| **Type** | n8n-nodes-base.code |
-| **Purpose** | Serialize for Redis |
-
-**Code:**
-```javascript
-// Подготавливаем сообщение для Redis очереди
-const data = $input.first().json;
-
-return {
-  message_json: JSON.stringify(data),
-  batch_key: `${data.channel}:${data.external_chat_id}`
-};
-```
-
-**Output:**
-```json
-{
-  "message_json": "{...serialized ELO Core Contract...}",
-  "batch_key": "telegram:tg_123456789"
-}
-```
+> **DEPRECATED:** Redis queueing now handled by Input Contour, not Channel workflow.
 
 ---
 
-### 11. Push to Queue
+### ~~11. Push to Queue~~ (REMOVED)
 
-| Parameter | Value |
-|----------|----------|
-| **ID** | `0afa500e-1032-44f3-8289-14cbf825247e` |
-| **Type** | n8n-nodes-base.redis |
-| **Purpose** | Add to Redis queue |
-
-**Redis operation:**
-- **Operation:** PUSH (RPUSH)
-- **List:** `queue:incoming`
-- **Data:** `message_json`
-- **Tail:** true (add to end)
-
-**Credentials:** Redis account (id: 7FQcEivUY94atW24)
-
-**What we store:** Serialized ELO Core Contract
-**Who stores:** ELO_In_Telegram
-**For whom:** ELO_Queue_Processor (will retrieve with LPOP)
+> **DEPRECATED:** Redis operations now in Input Contour MCP, not Channel workflow.
 
 ---
 
@@ -589,10 +576,13 @@ return {
 
 | Type | Name | ID | Purpose |
 |-----|----------|-----|------------|
-| Credentials | Redis account | 7FQcEivUY94atW24 | Push to queue |
 | Credentials | OpenAi account | ptoy1RvCOn39G0Af | Voice transcription |
-| Workflow | ELO_Core_Tenant_Resolver | rRO6sxLqiCdgvLZz | Determine tenant |
+| Service | **Input Contour (8771)** | — | POST /ingest |
 | External API | Telegram Bot API | — | Download voice files |
+
+**Removed dependencies (now in Input/Client Contour):**
+- ~~Redis account~~ — queue operations in Input Contour
+- ~~ELO_Core_Tenant_Resolver~~ — tenant resolution in Client Contour
 
 ---
 
@@ -602,5 +592,5 @@ return {
 |--------|---------|-----------|
 | Telegram API error | API unavailable | Retry or skip voice |
 | OpenAI transcription error | Whisper error | Use empty text |
-| Redis push error | Redis unavailable | Workflow fail, MCP gets 500 |
-| Tenant not found | Unknown bot_token | Depends on Tenant Resolver |
+| Input Contour error | 8771 unavailable | Return 503, MCP gets error |
+| Input Contour timeout | 8771 slow | Return 504, MCP gets error |

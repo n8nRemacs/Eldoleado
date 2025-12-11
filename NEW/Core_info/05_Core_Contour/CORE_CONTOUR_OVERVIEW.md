@@ -2,6 +2,25 @@
 
 > Business logic, AI processing, vertical detection, dialog management
 
+**Ingest Endpoint:** POST `https://n8n.n8nsrv.ru/webhook/elo-core-ingest`
+**AI Model:** Qwen3-30B via OpenRouter
+
+---
+
+## MVP v0 Scope
+
+| Feature | MVP v0 | Full |
+|---------|--------|------|
+| **Vertical** | phone_repair only | Multi-vertical |
+| **AI Model** | Qwen3-30B (OpenRouter) | Claude |
+| **Response** | Stub (manual check graph) | Full AI response |
+| **Funnel** | Not active | Microfunnel stages |
+| **Tools** | extraction only | All tools |
+
+**Test scenario:** "Привет, сколько стоит поменять дисплей на iPhone 14 Pro?"
+
+**MVP Goal:** Verify extraction writes to graph correctly, then tune responses.
+
 ---
 
 ## Purpose
@@ -696,40 +715,100 @@ ORDER BY issue_count DESC;
 
 ## Dependencies
 
-| Type | Resource | Purpose |
-|------|----------|---------|
-| Table | `dialogs` | Dialog state |
-| Table | `messages` | Message history |
-| Table | `prompts` | AI prompts |
-| Table | `ai_settings` | Stick-Carrot-Stick rules |
-| Table | `funnel_stages` | Microfunnel config |
-| Table | `cypher_queries` | Graph queries |
-| Tool | Graph Query | Neo4j operations |
-| Tool | AI Call | Claude/GPT |
-| External | Claude API | AI responses |
+| Type | Resource | Purpose | MVP v0 |
+|------|----------|---------|--------|
+| Table | `elo_dialogs` | Dialog state | ✅ |
+| Table | `elo_messages` | Message history | ✅ |
+| Table | `elo_clients` | Client records | ✅ |
+| Table | `prompts` | AI prompts | Later |
+| Table | `ai_settings` | Stick-Carrot-Stick rules | Later |
+| Table | `funnel_stages` | Microfunnel config | Later |
+| Table | `cypher_queries` | Graph queries | ✅ |
+| Database | Neo4j | Graph storage | ✅ |
+| External | OpenRouter API | AI extraction | ✅ |
+| External | Claude API | AI responses | Later |
 
 ---
 
 ## Current Implementation
 
-**Status:** n8n workflows (temporary), target = MCP service
+**Status:** n8n workflow (MVP v0)
 
-| Component | Current | Target |
-|-----------|---------|--------|
-| Context Builder | n8n workflow | MCP Core service |
-| Request Builder | n8n workflow | MCP Core service |
-| Orchestrator | n8n workflow | MCP Core service |
-| Dialog Engine | n8n workflow | MCP Core service |
+| Component | MVP v0 | Target |
+|-----------|--------|--------|
+| Context Builder | Simplified (Neo4j full history) | MCP Core service |
+| Request Builder | Static prompt + extraction schema | MCP Core service |
+| Orchestrator | OpenRouter Qwen3-30B | MCP Core service |
+| Dialog Engine | Write to graph, stub response | MCP Core service |
 
-**Why migrate to MCP:**
+### MVP v0 Workflow
+
+```
+POST /webhook/elo-core-ingest
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  1. LOAD CONTEXT (Neo4j)                                         │
+│     • Get full client history                                   │
+│     • Get dialog state                                          │
+└─────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  2. AI EXTRACTION (Qwen3-30B via OpenRouter)                    │
+│     • Extract device info                                       │
+│     • Extract symptoms                                          │
+│     • Suggest vertical (phone_repair for MVP)                   │
+└─────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  3. WRITE TO GRAPH (Neo4j)                                      │
+│     • Create/update Device                                      │
+│     • Create/update Issue                                       │
+│     • Add Symptoms to Intake                                    │
+└─────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  4. STUB RESPONSE                                               │
+│     • "Спасибо, данные записаны"                                │
+│     • Manual verification in Neo4j Browser                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### MVP v0 Validation Checklist
+
+1. Send test message: "Привет, сколько стоит поменять дисплей на iPhone 14 Pro?"
+2. Check Neo4j Browser:
+   - Device node created? (brand: Apple, model: iPhone 14 Pro)
+   - Issue node created? (vertical: phone_repair)
+   - Symptom extracted? (screen replacement needed)
+3. If extraction correct → move to response tuning
+4. If extraction wrong → adjust prompts
+
+### OpenRouter Configuration
+
+```env
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_MODEL=qwen/qwen3-30b-a3b
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+### Future Migration to MCP
+
+**Why migrate:**
 - Better tool handling
 - Faster execution
 - Easier debugging
 - Horizontal scaling
+- Python ecosystem for AI tools
+
+**When:** After MVP v0 validates extraction + response quality
 
 ---
 
 **Document:** CORE_CONTOUR_OVERVIEW.md
 **Date:** 2025-12-11
 **Author:** Dmitry + Claude
-**Status:** Complete
+**Status:** MVP v0 (extraction only, stub response)

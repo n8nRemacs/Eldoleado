@@ -71,25 +71,30 @@ Channel Contour is responsible for **both IN and OUT**:
 
 ```
 ┌─────────────────┐
-│ CHANNEL CONTOUR │  ← IN: receive, normalize, transcribe
+│ CHANNEL CONTOUR │  ← IN: receive, normalize, transcribe, POST /ingest
 └────────┬────────┘
          ↓
 ┌─────────────────┐
-│  INPUT CONTOUR  │  ← Tenant Resolver, Queue, Batcher
+│  INPUT CONTOUR  │  ← Queue + Debounce (NO tenant resolution here!)
+│     (8771)      │     POST to Client Contour when ready
 └────────┬────────┘
          ↓
 ┌─────────────────┐
-│ CLIENT CONTOUR  │  ← Client Resolver, Dialog Resolver
+│ CLIENT CONTOUR  │  ← Tenant + Client + Dialog Resolver
+│     (8772)      │     POST to Core when resolved
 └────────┬────────┘
          ↓
 ┌─────────────────┐
 │  CORE CONTOUR   │  ← Context Builder, Orchestrator, Dialog Engine
+│     (n8n)       │
 └────────┬────────┘
          ↓
 ┌─────────────────┐
 │ CHANNEL CONTOUR │  ← OUT: Response Builder, send via MCP
 └─────────────────┘
 ```
+
+**Note:** Tenant resolution moved from Input Contour to Client Contour in MCP architecture.
 
 ---
 
@@ -276,10 +281,12 @@ Voice message → Download file → OpenAI Whisper → Text
 | Type | Resource | Purpose |
 |------|----------|---------|
 | Credentials | OpenAI | Voice transcription |
-| Workflow | ELO_Core_Tenant_Resolver | Determine tenant (IN flow) |
+| Service | **Input Contour (8771)** | POST /ingest for all IN messages |
 | External | Telegram Bot API | Download voice, send messages |
 | External | Wappi.pro API | WhatsApp integration |
-| Service | MCP-INPUT | Receive normalized messages |
+
+**Note:** Channel IN workflows call Input Contour `/ingest` endpoint, NOT Tenant Resolver directly.
+Tenant resolution happens in Client Contour (8772), not Channel Layer.
 
 ---
 

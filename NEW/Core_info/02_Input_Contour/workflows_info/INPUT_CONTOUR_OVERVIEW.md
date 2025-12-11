@@ -1,6 +1,9 @@
 # Input Contour — Overview
 
-> Input contour: buffering and preparing messages before Core
+> Input contour: buffering and preparing messages before Client Contour
+
+**MCP Service:** 45.144.177.128:8771
+**n8n Polygon:** Webhooks for debugging
 
 ---
 
@@ -11,54 +14,87 @@ Input Contour solves:
 - **Batcher is slow** (10s+ debounce) — waits for client to finish typing
 - **Redis as buffer** — decouples speeds
 
+**Input Contour does NOT:**
+- ❌ Resolve tenant (this is Client Contour)
+- ❌ Resolve client (this is Client Contour)
+- ❌ Resolve dialog (this is Client Contour)
+
 ---
 
-## Architecture
+## Architecture (aligned with MCP)
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  IN Workflows (fast, ~100ms)                                      │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐     │
-│  │Telegram │ │WhatsApp │ │  Avito  │ │   VK    │ │   MAX   │     │
-│  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘     │
-│       │           │           │           │           │          │
-│       └───────────┴─────┬─────┴───────────┴───────────┘          │
-│                         ↓                                         │
-│         ┌───────────────────────────────┐                        │
-│         │  1. Tenant Resolver           │  ← tenant_id, domain_id│
-│         └───────────────┬───────────────┘                        │
-│                         ↓                                         │
-│         ┌───────────────────────────────┐                        │
-│         │  Redis RPUSH queue:incoming   │  ← fast exit           │
-│         └───────────────┬───────────────┘                        │
-└─────────────────────────│────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CHANNEL IN (MCP servers per channel)                                        │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐                │
+│  │Telegram │ │WhatsApp │ │  Avito  │ │   VK    │ │   MAX   │                │
+│  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘                │
+│       │           │           │           │           │                     │
+│       └───────────┴─────┬─────┴───────────┴───────────┘                     │
+│                         │                                                    │
+│                         │  POST /ingest                                      │
+└─────────────────────────│───────────────────────────────────────────────────┘
                           ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│  Batcher (slow, 10s debounce)                                       │
-│         ┌───────────────────────────────┐                           │
-│         │  2. Queue Processor           │  ← every 5s              │
-│         │     POP from queue:incoming   │                           │
-│         │     Group by tenant + chat_id │                           │
-│         └───────────────┬───────────────┘                           │
-│                         ↓                                            │
-│         ┌───────────────────────────────┐                           │
-│         │  3. Batch Debouncer ×10       │  ← waits 10s silence      │
-│         │     Merges messages           │                           │
-│         └───────────────┬───────────────┘                           │
-│                         ↓                                            │
-│         ┌───────────────────────────────┐                           │
-│         │  4. Client Resolver           │  ← find/create client     │
-│         └───────────────┬───────────────┘                           │
-│                         ↓                                            │
-│         ┌───────────────────────────────┐                           │
-│         │  5. Dialog Resolver           │  ← find/create dialog     │
-│         └───────────────┬───────────────┘                           │
-└─────────────────────────│───────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  INPUT CONTOUR (MCP:8771)                                                    │
+│                                                                              │
+│         ┌───────────────────────────────┐                                   │
+│         │  1. /ingest endpoint          │  ← idempotency check              │
+│         │     + generate message_id     │                                   │
+│         │     + generate trace_id       │                                   │
+│         └───────────────┬───────────────┘                                   │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  2. Redis RPUSH queue:incoming│  ← fast exit (~10ms)              │
+│         └───────────────┬───────────────┘                                   │
+│                         │                                                    │
+│  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  │
+│                         │  Worker Loop (async)                               │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  3. process_batch()           │  ← LPOP queue:incoming            │
+│         │     Group by batch_key        │     batch_key = tenant:channel:id │
+│         │     Set deadline per batch    │                                   │
+│         └───────────────┬───────────────┘                                   │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  4. process_deadlines()       │  ← check ZSET deadlines           │
+│         │     Wait for silence (10s)    │     or max_wait (300s)            │
+│         └───────────────┬───────────────┘                                   │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  5. aggregate_and_dispatch()  │  ← merge texts, send              │
+│         │     Retry 3x with backoff     │                                   │
+│         │     DLQ on failure            │                                   │
+│         └───────────────┬───────────────┘                                   │
+│                         │                                                    │
+│                         │  POST /resolve                                     │
+└─────────────────────────│───────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CLIENT CONTOUR (MCP:8772)                                                   │
+│                                                                              │
+│         ┌───────────────────────────────┐                                   │
+│         │  1. Tenant Resolver           │  ← tenant_id by credential        │
+│         └───────────────┬───────────────┘                                   │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  2. Client Resolver           │  ← find/create client             │
+│         └───────────────┬───────────────┘                                   │
+│                         ↓                                                    │
+│         ┌───────────────────────────────┐                                   │
+│         │  3. Dialog Resolver           │  ← find/create dialog             │
+│         └───────────────┬───────────────┘                                   │
+│                         │                                                    │
+│                         │  POST /webhook/elo-core-ingest                     │
+└─────────────────────────│───────────────────────────────────────────────────┘
                           ↓
                     ┌───────────┐
                     │   CORE    │  ← vertical_id определяется здесь
                     └───────────┘
 ```
+
+**Note:** In MCP architecture, Client/Dialog Resolver is in **Client Contour (8772)**, not Input Contour.
 
 ---
 
@@ -86,105 +122,45 @@ Input Contour solves:
 
 ---
 
-## Components
+## Components (n8n Polygon)
 
 | # | Workflow | Purpose | Output |
 |---|----------|---------|--------|
-| 1 | Tenant Resolver | Determines tenant by credentials | +tenant_id, +domain_id |
-| 2 | Queue Processor | Takes from queue, groups by tenant+chat | batches |
-| 3 | Batch Debouncer | Waits for silence, merges messages | merged text |
-| 4 | Client Resolver | Finds/creates client | +client_id |
-| 5 | Dialog Resolver | Finds/creates dialog | +dialog_id |
+| 1 | **ELO_Input_Ingest** | Receives messages, pushes to queue | accepted: true |
+| 2 | **ELO_Input_Worker** | Processes queue, debounces, dispatches | POST to Client Contour |
+
+**Deprecated (moved to Client Contour):**
+| # | Old Workflow | New Location | Note |
+|---|--------------|--------------|------|
+| ~~1~~ | ELO_Core_Tenant_Resolver | Client Contour | Now in 8772 |
+| ~~2~~ | ELO_Core_Client_Resolver | Client Contour | Now in 8772 |
+| ~~3~~ | ELO_Core_Queue_Processor | Merged into ELO_Input_Worker | n8n-native approach |
+| ~~4~~ | ELO_Core_Batch_Debouncer | Merged into ELO_Input_Worker | n8n-native approach |
 
 ---
 
-## Tenant Resolver (updated for new schema)
+## ~~Tenant Resolver~~ → Moved to Client Contour
 
-**SQL Query:**
-```sql
-SELECT
-  t.id as tenant_id,
-  t.domain_id,                    -- ← for multi-domain
-  t.name as tenant_name,
-  ca.id as channel_account_id
-FROM tenants t
-JOIN channel_accounts ca ON ca.tenant_id = t.id
-JOIN channels c ON c.id = ca.channel_id
-WHERE ca.account_id = $credential    -- bot_token, phone_id, etc.
-  AND c.code = $channel              -- 'telegram', 'whatsapp', etc.
-  AND ca.is_active = true
-  AND t.is_active = true
-LIMIT 1;
-```
-
-**Tables used:**
-- `tenants` — tenant with domain_id
-- `channel_accounts` — tenant ↔ channel ↔ credentials
-- `channels` — channel directory
+> **DEPRECATED:** Tenant resolution is now in Client Contour (8772)
+> See: `03_Client_Contour/workflows_info/CLIENT_CONTOUR_OVERVIEW.md`
 
 ---
 
-## Client Resolver
+## ~~Client Resolver~~ → Moved to Client Contour
 
-**Logic:**
-1. By `channel_id` + `external_chat_id` → search in `client_channels`
-2. If found → return `client_id`
-3. If not found → create `client` + `client_channel` record
-
-**SQL (find):**
-```sql
-SELECT c.id as client_id, c.name, c.phone
-FROM clients c
-JOIN client_channels cc ON cc.client_id = c.id
-WHERE cc.channel_id = $channel_id
-  AND cc.external_id = $external_chat_id
-  AND c.tenant_id = $tenant_id
-LIMIT 1;
-```
-
-**SQL (create):**
-```sql
--- 1. Create client
-INSERT INTO clients (tenant_id, name, phone)
-VALUES ($tenant_id, $name, $phone)
-RETURNING id as client_id;
-
--- 2. Link to channel
-INSERT INTO client_channels (client_id, channel_id, external_id, external_username)
-VALUES ($client_id, $channel_id, $external_chat_id, $username);
-```
+> **DEPRECATED:** Client resolution is now in Client Contour (8772)
+> See: `03_Client_Contour/workflows_info/ELO_Client_Resolve.md`
 
 ---
 
-## Dialog Resolver
+## ~~Dialog Resolver~~ → Moved to Client Contour
 
-**Logic:**
-1. By `client_id` + `channel_id` → search active dialog
-2. If found → return `dialog_id`
-3. If not found → create new dialog (without vertical_id!)
-
-**SQL (find active):**
-```sql
-SELECT id as dialog_id, vertical_id, status_id
-FROM dialogs
-WHERE client_id = $client_id
-  AND channel_id = $channel_id
-  AND status_id IN (1, 2)  -- active, waiting
-ORDER BY updated_at DESC
-LIMIT 1;
-```
-
-**SQL (create):**
-```sql
-INSERT INTO dialogs (tenant_id, client_id, channel_id, status_id)
-VALUES ($tenant_id, $client_id, $channel_id, 1)  -- status: active
-RETURNING id as dialog_id;
--- Note: vertical_id is NULL, will be set by Core
-```
+> **DEPRECATED:** Dialog resolution is now in Client Contour (8772)
+> See: `03_Client_Contour/workflows_info/ELO_Client_Resolve.md`
 
 ---
 
-## Redis Keys
+## Redis Keys (n8n Polygon)
 
 | Key | Type | TTL | Purpose |
 |-----|------|-----|---------|
@@ -293,20 +269,47 @@ Later in same dialog: "А еще хочу продать старый Samsung"
 
 ---
 
-## Dependencies
+## Dependencies (n8n Polygon)
 
 | Type | Resource | Purpose |
 |------|----------|---------|
-| Table | `tenants` | Tenant lookup |
-| Table | `channel_accounts` | Credentials → tenant mapping |
-| Table | `clients` | Client storage |
-| Table | `client_channels` | External ID → client mapping |
-| Table | `dialogs` | Dialog storage |
-| Redis | queue:incoming | Message buffer |
+| Redis | queue:incoming | Global message queue |
+| Redis | batch:deadlines | Debounce deadline ZSET |
+| Redis | batch:first_seen | First message time ZSET |
+| Redis | dlq:input_contour | Dead letter queue |
+| Service | Client Contour (8772) | Next step for resolved messages |
+
+**Note:** Input Contour does NOT access PostgreSQL directly. All DB operations are in Client Contour.
+
+---
+
+## n8n Polygon Workflows
+
+| Workflow | File | Description |
+|----------|------|-------------|
+| **ELO_Input_Ingest** | `ELO_Input_Ingest.json` | Webhook `/webhook/elo-input-ingest` |
+| **ELO_Input_Worker** | `ELO_Input_Worker.json` | Schedule trigger, debounce, dispatch |
+
+**Workflow descriptions:**
+- `ELO_Input_Ingest.md` — Detailed node descriptions
+- `ELO_Input_Worker.md` — Detailed node descriptions
+
+---
+
+## Deprecated Old Workflows
+
+| Old File | Status | Replacement |
+|----------|--------|-------------|
+| `ELO_Core_Tenant_Resolver.md` | ⚠️ Deprecated | Moved to Client Contour |
+| `ELO_Core_Client_Resolver.md` | ⚠️ Deprecated | Moved to Client Contour |
+| `ELO_Core_Queue_Processor.md` | ⚠️ Deprecated | Merged into ELO_Input_Worker |
+| `ELO_Core_Batch_Debouncer.md` | ⚠️ Deprecated | Merged into ELO_Input_Worker |
+
+**Keep old files for reference, but use new n8n polygon workflows for development.**
 
 ---
 
 **Document:** INPUT_CONTOUR_OVERVIEW.md
 **Date:** 2025-12-11
 **Author:** Dmitry + Claude
-**Status:** Updated for multi-vertical/multi-domain
+**Status:** Updated for n8n polygon architecture (aligned with MCP)
