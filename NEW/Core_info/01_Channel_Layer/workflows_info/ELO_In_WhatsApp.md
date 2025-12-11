@@ -1,30 +1,30 @@
 # ELO_In_WhatsApp
 
-> Входящий workflow для WhatsApp (Wappi.pro)
+> Incoming workflow for WhatsApp (Wappi.pro)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_WhatsApp.json` |
-| **Триггер** | Webhook POST `/whatsapp` |
-| **Вызывается из** | mcp-whatsapp (Wappi.pro webhook) |
-| **Вызывает** | ELO_Core_Tenant_Resolver |
-| **Выход** | Redis PUSH в `queue:incoming` |
+| **File** | `NEW/workflows/ELO_In/ELO_In_WhatsApp.json` |
+| **Trigger** | Webhook POST `/whatsapp` |
+| **Called from** | mcp-whatsapp (Wappi.pro webhook) |
+| **Calls** | ELO_Core_Tenant_Resolver |
+| **Output** | Redis PUSH to `queue:incoming` |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает входящие сообщения из WhatsApp через Wappi.pro API, нормализует в ELO Core Contract, резолвит tenant и помещает в Redis очередь.
+Receives incoming messages from WhatsApp via Wappi.pro API, normalizes them into ELO Core Contract, resolves tenant and places them in Redis queue.
 
 ---
 
-## Входные данные
+## Input Data
 
-**Источник:** HTTP POST от Wappi.pro webhook
+**Source:** HTTP POST from Wappi.pro webhook
 
 ```json
 {
@@ -44,9 +44,9 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
-**Куда:** Redis list `queue:incoming`
+**Destination:** Redis list `queue:incoming`
 
 ```json
 {
@@ -77,26 +77,26 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. WhatsApp Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `6c0afab1-a6e2-4d31-b80e-4e4bcc364fa2` |
-| **Тип** | n8n-nodes-base.webhook |
+| **Type** | n8n-nodes-base.webhook |
 | **Path** | `/whatsapp` |
 
 ---
 
 ### 2. Extract WhatsApp Data
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `cf70854f-bd22-4020-9a24-e7c0c95e3b6c` |
-| **Тип** | n8n-nodes-base.code |
+| **Type** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const event = $input.first().json;
 
@@ -149,53 +149,53 @@ return {
 
 ### 3. Has Voice?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `ed0d8d4b-f1c5-4c79-ab66-c809d95eaa37` |
-| **Тип** | n8n-nodes-base.if |
+| **Type** | n8n-nodes-base.if |
 
-**Условие:** `$json.has_voice === true`
+**Condition:** `$json.has_voice === true`
 
 ---
 
 ### 4. Download Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `ca48afee-dd4f-45bb-b629-ffd423179943` |
-| **Тип** | n8n-nodes-base.httpRequest |
+| **Type** | n8n-nodes-base.httpRequest |
 | **URL** | `{{ $json.voice_url }}` |
 
 ---
 
 ### 5. Transcribe Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `40afe54b-5196-4f9a-b5bf-6c75e839c4d7` |
-| **Тип** | @n8n/n8n-nodes-langchain.openAi |
+| **Type** | @n8n/n8n-nodes-langchain.openAi |
 | **Credentials** | OpenAi account (ptoy1RvCOn39G0Af) |
 
 ---
 
 ### 6. Normalize with Voice / without Voice
 
-Формирует ELO Core Contract с учётом наличия голоса.
+Forms ELO Core Contract with or without voice.
 
-**Ключевые поля:**
-- `external_user_id`: телефон без `+`
-- `external_chat_id`: полный chatId (79991234567@c.us)
-- `client_phone`: телефон с `+`
+**Key fields:**
+- `external_user_id`: phone number without `+`
+- `external_chat_id`: full chatId (79991234567@c.us)
+- `client_phone`: phone number with `+`
 - `provider`: 'wappi'
 
 ---
 
 ### 7. Execute Tenant Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `1eef9d59-66b3-4674-bd86-489df8db51c0` |
-| **Вызывает** | ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz) |
+| **Calls** | ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz) |
 
 ---
 
@@ -213,7 +213,7 @@ return {
 
 ### 9. Push to Queue
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `31da9709-1005-4aeb-8bf6-c9c37463cb60` |
 | **Redis** | RPUSH `queue:incoming` |
@@ -230,7 +230,7 @@ return {
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 WhatsApp Trigger → Extract Data → Has Voice?
@@ -244,8 +244,8 @@ WhatsApp Trigger → Extract Data → Has Voice?
 
 ---
 
-## Особенности
+## Features
 
-- **Телефон из chatId:** Извлекается из формата `79991234567@c.us`
+- **Phone from chatId:** Extracted from format `79991234567@c.us`
 - **Provider:** wappi (Wappi.pro API)
-- **Media URL:** Прямые ссылки от Wappi.pro
+- **Media URL:** Direct links from Wappi.pro

@@ -1,28 +1,28 @@
 # ELO_Out_VK
 
-> Исходящий workflow для VK Community Messages
+> Outgoing workflow for VK Community Messages
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/ELO_Out/ELO_Out_VK.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Dialog Engine, AI Router, API |
 | **Вызывает** | VK API, Neo4j Touchpoint Register |
-| **Выход** | Сохранение в messages_history + touchpoint |
+| **Выход** | Save to messages_history + touchpoint |
 
 ---
 
-## Назначение
+## Purpose
 
-Отправляет сообщение клиенту в VK через API сообществ.
+Sends a message to the client in VK via community API.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -39,11 +39,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `c1793240-7a20-4d79-915e-e32355865147` |
 
@@ -51,7 +51,7 @@
 
 ### 2. Send VK Message
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `2cc59825-5ac3-4c7d-8b44-0feec498cae6` |
 | **Тип** | n8n-nodes-base.httpRequest |
@@ -66,18 +66,18 @@ random_id={{ Math.floor(Math.random() * 1000000000) }}
 v=5.131
 ```
 
-**Важно:** `random_id` обязателен для VK API — уникальный ID для дедупликации.
+**Important:** `random_id` is required by VK API — unique ID for deduplication.
 
 ---
 
 ### 3. Process VK Response
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `637dba7f-fb2c-4687-9def-18f9fc1ecf19` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const response = $input.first().json;
 

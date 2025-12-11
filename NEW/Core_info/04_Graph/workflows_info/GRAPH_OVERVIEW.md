@@ -1,213 +1,371 @@
 # Graph Block — Overview
 
-> Neo4j графовая БД для контекста клиентов, устройств, проблем
+> Neo4j graph database for client context, device history, diagnostic chain
 
-**Сервер:** 45.144.177.128:7474 (RU Server)
-**База:** neo4j (HTTP API)
+**Server:** 45.144.177.128:7474 (RU Server)
+**Bolt:** bolt+ssc://45.144.177.128:7687
 
 ---
 
-## Архитектура
+## Purpose
+
+Graph stores **relationships** that PostgreSQL cannot efficiently query:
+- Client → Device ownership history
+- Device → Issue → Symptom → Diagnosis → Repair chain
+- Client networks (family, referrals)
+- Client traits (behavioral patterns)
+
+**Principle:** PostgreSQL = fast reads, Neo4j = source of truth for relationships.
+
+---
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Graph Block (Neo4j)                                │
+│                              CORE                                            │
+│                   (logic, orchestration, decisions)                          │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Tool: Graph Query                                     │
+│                    (blind Cypher executor)                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Context Builder                                                     │    │
-│  │  POST /webhook/neo4j/context                                         │    │
-│  │                                                                      │    │
-│  │  • get_context      — полный контекст клиента                       │    │
-│  │  • disambiguation   — определить устройство                          │    │
-│  │  • match_entities   — найти/создать сущности                        │    │
-│  │  • enrichment       — предложить собрать контакты                   │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  CRUD Operations                                                     │    │
-│  │  POST /webhook/neo4j/crud                                            │    │
-│  │                                                                      │    │
-│  │  • create, read, update, delete                                      │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Sync (PostgreSQL → Neo4j)                                           │    │
-│  │  POST /webhook/neo4j/sync                                            │    │
-│  │                                                                      │    │
-│  │  • client, device, problem, channel                                  │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Touchpoint Register                                                 │    │
-│  │  POST /webhook/neo4j/touchpoint/register                             │    │
-│  │                                                                      │    │
-│  │  • inbound / outbound / mutual                                       │    │
-│  │  • Сохраняет в Neo4j + PostgreSQL                                   │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Touchpoint Tracker                                                  │    │
-│  │  POST /webhook/neo4j/touchpoint                                      │    │
-│  │                                                                      │    │
-│  │  • Трекинг упоминаний устройств/проблем                             │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
+│  Input: { query_code, params }                                              │
+│  1. SELECT query FROM cypher_queries WHERE code = $query_code               │
+│  2. Substitute params                                                        │
+│  3. Execute in Neo4j                                                         │
+│  4. Return result                                                            │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Neo4j                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+**Tool: Graph Query** — blind executor. Doesn't know business logic, only executes queries by code.
+
 ---
 
-## Neo4j Schema
+## Node Types (9 main nodes)
 
-### Node Types
+| Node | Purpose | Key Properties | Scope |
+|------|---------|----------------|-------|
+| **Client** | Client in graph | pg_id, tenant_id, name, phone | Global |
+| **Device** | Device/object | pg_id, tenant_id, brand, model, color | Per vertical |
+| **Issue** | Contact case | pg_id, tenant_id, vertical_id, dialog_id, status | Per vertical |
+| **Intake** | Client's words | pg_id, raw_text, created_at | Per vertical |
+| **Symptom** | Extracted symptom | pg_id, symptom_type_id, text | Per vertical |
+| **Diagnosis** | Technician finding | pg_id, diagnosis_type_id, text, confirmed_by | Per vertical |
+| **Repair** | Completed repair | pg_id, repair_action_id, text, cost | Per vertical |
+| **Message** | Graph-changing message | pg_id, direction, created_at | Global |
+| **Trait** | Client attribute | type, value, confidence, source | Global |
 
-| Node | Описание | Ключевые свойства |
-|------|----------|-------------------|
-| Client | Клиент | id, phone, name |
-| Device | Устройство клиента | id, brand, model, owner_label |
-| Problem | Проблема устройства | id, type, status |
-| ProblemType | Тип проблемы | code |
-| Channel | Канал связи | type, identifier, verified |
-| Vertical | Вертикаль бизнеса | type |
-| Touchpoint | Точка касания | id, timestamp, type, channel, direction |
+**Notes:**
+- `tenant_id` — on all main nodes for multi-tenant isolation
+- `vertical_id` — on Issue for multi-vertical support
+- `Message` — stored ONLY when it changes the graph
+- `Trait` — client attributes (vip, knows_prices, prefers_whatsapp)
 
-### Edge Types (Relationships)
+---
+
+## Reference Nodes (per vertical)
+
+| Node | Purpose | Properties |
+|------|---------|------------|
+| **SymptomType** | Symptom type reference | pg_id, vertical_id, code, name |
+| **DiagnosisType** | Diagnosis type reference | pg_id, vertical_id, code, name |
+| **RepairAction** | Repair type reference | pg_id, vertical_id, code, name |
+| **ProblemCategory** | Problem category reference | pg_id, vertical_id, code, name |
+
+---
+
+## Relationships
+
+```cypher
+// Client relationships
+(Client)-[:OWNS]->(Device)
+(Client)-[:BROUGHT]->(Device)           // someone else's device
+(Client)-[:FAMILY {type: "spouse"|"parent"|"child"|"sibling"}]->(Client)
+(Client)-[:REFERRED]->(Client)          // referral chain
+(Client)-[:HAS_TRAIT]->(Trait)
+
+// Device relationships
+(Device)-[:HAS_ISSUE]->(Issue)
+
+// Issue relationships (per vertical)
+(Issue)-[:HAS_INTAKE]->(Intake)
+(Issue)-[:HAS_DIAGNOSIS]->(Diagnosis)
+(Issue)-[:HAS_REPAIR]->(Repair)
+(Issue)-[:PROBLEM_CATEGORY]->(ProblemCategory)
+
+// Intake relationships
+(Intake)-[:HAS_SYMPTOM]->(Symptom)
+
+// Type references
+(Symptom)-[:SYMPTOM_TYPE]->(SymptomType)
+(Diagnosis)-[:DIAGNOSIS_TYPE]->(DiagnosisType)
+(Repair)-[:REPAIR_ACTION]->(RepairAction)
+
+// Message relationships (graph-changing only)
+(Message)-[:FROM]->(Client)
+(Message)-[:CREATED]->(Device | Issue | Symptom | Trait)
+```
+
+---
+
+## Visual Schema
 
 ```
-Client -[:OWNS]-> Device
-Device -[:HAS_PROBLEM]-> Problem
-Problem -[:OF_TYPE]-> ProblemType
-Client -[:HAS_CHANNEL]-> Channel
-Client -[:CUSTOMER_OF]-> Vertical
-
-Touchpoint -[:FROM]-> Client     (inbound — клиент пишет)
-Touchpoint -[:TO]-> Client       (outbound — мы пишем)
-Touchpoint -[:ABOUT_DEVICE]-> Device    {confidence, explicit}
-Touchpoint -[:ABOUT_PROBLEM]-> Problem  {confidence, explicit}
-Touchpoint -[:IN_VERTICAL]-> Vertical
-```
-
-### Визуальная схема
-
-```
-                         ┌─────────────┐
-                         │   Client    │
-                         └──────┬──────┘
-            ┌──────────────────┼──────────────────┐
-            │                  │                  │
-      [:OWNS]            [:HAS_CHANNEL]    [:CUSTOMER_OF]
-            │                  │                  │
-            ▼                  ▼                  ▼
-     ┌──────────┐       ┌──────────┐       ┌──────────┐
-     │  Device  │       │ Channel  │       │ Vertical │
-     └────┬─────┘       └──────────┘       └──────────┘
-          │
-    [:HAS_PROBLEM]
-          │
-          ▼
-     ┌──────────┐      ┌─────────────┐
-     │ Problem  │─────▶│ ProblemType │
-     └──────────┘      └─────────────┘
-                [:OF_TYPE]
-
-
-     ┌────────────┐
-     │ Touchpoint │
-     └─────┬──────┘
+                              ┌─────────────┐
+                              │   Client    │
+                              └──────┬──────┘
+               ┌──────────────────┬──┴───┬──────────────────┐
+               │                  │      │                  │
+         [:OWNS]           [:BROUGHT] [:HAS_TRAIT]    [:FAMILY]
+               │                  │      │            [:REFERRED]
+               ▼                  ▼      ▼                  │
+        ┌──────────┐       ┌──────────┐ ┌───────┐          │
+        │  Device  │       │  Device  │ │ Trait │     ┌────▼────┐
+        └────┬─────┘       │(brought) │ └───────┘     │ Client  │
+             │             └──────────┘               └─────────┘
+       [:HAS_ISSUE]
+             │
+             ▼
+      ┌──────────┐
+      │  Issue   │ ◄─── vertical_id (multi-vertical support)
+      └────┬─────┘
            │
-           ├──[:FROM]────────▶ Client (inbound)
-           ├──[:TO]──────────▶ Client (outbound)
-           ├──[:ABOUT_DEVICE]▶ Device
-           ├──[:ABOUT_PROBLEM]▶ Problem
-           └──[:IN_VERTICAL]─▶ Vertical
+    ┌──────┼──────┬─────────────┐
+    │      │      │             │
+    ▼      ▼      ▼             ▼
+┌────────┐ ┌──────────┐ ┌──────────┐
+│ Intake │ │Diagnosis │ │  Repair  │
+└───┬────┘ └──────────┘ └──────────┘
+    │
+[:HAS_SYMPTOM]
+    │
+    ▼
+┌─────────┐
+│ Symptom │
+└─────────┘
 ```
 
 ---
 
-## Workflows
+## Three Layers of Truth
 
-| # | Workflow | ID | Webhook | Назначение |
-|---|----------|-----|---------|------------|
-| 1 | ELO_Graph_Context_Builder | gF8hYMVuCRqCkw83 | /neo4j/context | AI контекст |
-| 2 | ELO_Graph_CRUD | gtm1CfLF557Ta40P | /neo4j/crud | CRUD операции |
-| 3 | ELO_Graph_Sync | Jqu7d7yWOjyxm80x | /neo4j/sync | PostgreSQL → Neo4j |
-| 4 | ELO_Graph_Touchpoint_Register | TrCjdgREvPAB2yyL | /neo4j/touchpoint/register | Регистрация касаний |
-| 5 | ELO_Graph_Touchpoint_Tracker | tKHYEwn1AR18UrDS | /neo4j/touchpoint | Трекинг упоминаний |
-
----
-
-## Кто вызывает Graph
-
-| Вызывающий | Webhook | Зачем |
-|------------|---------|-------|
-| AI Router | /neo4j/context | get_context, match_entities |
-| Task Dispatcher | /neo4j/context | get_context для AI |
-| Appeal Manager | /neo4j/touchpoint/register | Регистрация касания |
-| ELO_Out_* | /neo4j/touchpoint/register | Исходящие сообщения |
-| Client Creator | /neo4j/sync | Синхронизация нового клиента |
-
----
-
-## Direction (направление касания)
-
-| Direction | Описание | Edge |
-|-----------|----------|------|
-| **inbound** | Клиент пишет нам (первое обращение) | `(Touchpoint)-[:FROM]->(Client)` |
-| **outbound** | Мы пишем клиенту (промо, рассылка) | `(Touchpoint)-[:TO]->(Client)` |
-| **mutual** | Диалог (после первого ответа) | Оба edge: `[:FROM]` и `[:TO]` |
-
----
-
-## PostgreSQL таблицы
-
-| Таблица | Назначение |
-|---------|------------|
-| touchpoints | Все касания (дублирует Neo4j) |
-| enrichment_paths | Пути обогащения каналов |
-
----
-
-## Примеры запросов
-
-### Get Context
-```json
-POST /webhook/neo4j/context
-{
-  "client_id": "uuid",
-  "action": "get_context"
-}
+```
+Intake (container of client's words)
+    │
+    ├── Symptom 1 ("doesn't charge")     ← AI extracted from client's words
+    ├── Symptom 2 ("screen cracked")
+    └── Symptom 3 ("battery swollen")
+           │
+           ▼
+    Diagnosis                             ← Technician's finding
+           │
+           ▼
+    Repair                                ← What was actually done
 ```
 
-### Disambiguation
-```json
-POST /webhook/neo4j/context
-{
-  "client_id": "uuid",
-  "action": "disambiguation"
-}
+| Entity | Source | Description |
+|--------|--------|-------------|
+| **Intake** | Dialog | Container — everything client said |
+| **Symptom** | AI | Extracted symptoms from client's words |
+| **Diagnosis** | Technician | What was actually found |
+| **Repair** | Technician | What was done |
+
+---
+
+## Multi-Vertical Support
+
+One client can have issues in multiple verticals:
+
+```
+Client "Ivan"
+  └── Device "iPhone 14"
+        ├── Issue (vertical: phone_repair) - screen cracked
+        └── Issue (vertical: buy_sell) - wants to sell
+
+Same client, same device, different verticals.
+Each Issue has its own vertical_id.
 ```
 
-### Match Entities
+---
+
+## Graph Schema Storage (PostgreSQL)
+
+**Problem:** Graph Query Tool is blind. Who knows the graph structure?
+
+**Solution:** Structure stored in PostgreSQL, Worker reads and creates.
+
+| Table | Purpose |
+|-------|---------|
+| `graph_node_types` | What nodes exist (Client, Device, Issue...) |
+| `graph_node_properties` | What properties nodes have (pg_id, brand...) |
+| `graph_relationship_types` | What relationships exist (OWNS, HAS_ISSUE...) |
+
+**MVP:** Minimal structure from seed data, Worker creates on vertical init.
+
+**Future:** Dynamic addition via UI/AI during dialog.
+
+---
+
+## Cypher Queries Storage
+
+Queries stored in `cypher_queries` table:
+
+| code | Purpose |
+|------|---------|
+| `get_client_context` | Full client context with all relationships |
+| `find_similar_cases` | Similar diagnosis cases for AI suggestions |
+| `get_device_history` | Device repair history |
+| `get_client_network` | Family and referrals |
+| `get_client_traits` | Client behavioral traits |
+| `create_device` | Create device with owner |
+| `create_issue` | Create issue for device |
+| `add_client_trait` | Add trait to client |
+| `get_symptom_diagnosis_stats` | Symptom → Diagnosis statistics |
+| `get_client_verticals` | All verticals client interacted with |
+
+---
+
+## Tool: Graph Query
+
+**Input:**
 ```json
-POST /webhook/neo4j/context
 {
-  "client_id": "uuid",
-  "action": "match_entities",
-  "extracted": {
-    "brand": "Apple",
-    "model": "iPhone 14"
+  "query_code": "get_client_context",
+  "params": {
+    "client_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
 ```
 
-### Register Touchpoint
+**Logic:**
+1. `SELECT query FROM cypher_queries WHERE code = $query_code`
+2. Substitute params into query
+3. Execute in Neo4j
+4. Return result
+
+**Output:**
 ```json
-POST /webhook/neo4j/touchpoint/register
 {
-  "client_id": "uuid",
-  "channel": "telegram",
-  "direction": "inbound",
-  "type": "message"
+  "success": true,
+  "data": { ... },
+  "execution_time_ms": 12
 }
 ```
+
+**Doesn't know:**
+- Why this query is needed
+- What happens with the result
+- Business logic
+
+---
+
+## Constraints and Indexes
+
+```cypher
+// Uniqueness constraints
+CREATE CONSTRAINT client_pg_id IF NOT EXISTS FOR (c:Client) REQUIRE c.pg_id IS UNIQUE;
+CREATE CONSTRAINT device_pg_id IF NOT EXISTS FOR (d:Device) REQUIRE d.pg_id IS UNIQUE;
+CREATE CONSTRAINT issue_pg_id IF NOT EXISTS FOR (i:Issue) REQUIRE i.pg_id IS UNIQUE;
+CREATE CONSTRAINT message_pg_id IF NOT EXISTS FOR (m:Message) REQUIRE m.pg_id IS UNIQUE;
+
+// Multi-tenant indexes
+CREATE INDEX client_tenant IF NOT EXISTS FOR (c:Client) ON (c.tenant_id);
+CREATE INDEX device_tenant IF NOT EXISTS FOR (d:Device) ON (d.tenant_id);
+CREATE INDEX issue_tenant IF NOT EXISTS FOR (i:Issue) ON (i.tenant_id);
+
+// Multi-vertical indexes
+CREATE INDEX issue_vertical IF NOT EXISTS FOR (i:Issue) ON (i.vertical_id);
+
+// Search indexes
+CREATE INDEX device_brand_model IF NOT EXISTS FOR (d:Device) ON (d.brand, d.model);
+CREATE INDEX trait_type IF NOT EXISTS FOR (t:Trait) ON (t.type);
+```
+
+---
+
+## Example Queries
+
+### Get Client Context
+```json
+{
+  "query_code": "get_client_context",
+  "params": { "client_id": "uuid" }
+}
+```
+
+### Create Device
+```json
+{
+  "query_code": "create_device",
+  "params": {
+    "client_id": "uuid",
+    "device_id": "uuid",
+    "brand": "Apple",
+    "model": "iPhone 14",
+    "color": "blue"
+  }
+}
+```
+
+### Add Trait
+```json
+{
+  "query_code": "add_client_trait",
+  "params": {
+    "client_id": "uuid",
+    "type": "behavior",
+    "value": "vip",
+    "confidence": 0.9,
+    "source": "ai_extraction"
+  }
+}
+```
+
+### Find Similar Cases
+```json
+{
+  "query_code": "find_similar_cases",
+  "params": {
+    "category": "battery",
+    "vertical_id": 1
+  }
+}
+```
+
+---
+
+## Dependencies
+
+| Type | Resource | Purpose |
+|------|----------|---------|
+| Database | Neo4j (45.144.177.128:7687) | Graph storage |
+| Table | `cypher_queries` | Query storage |
+| Table | `graph_node_types` | Schema storage |
+| Table | `graph_node_properties` | Properties storage |
+| Table | `graph_relationship_types` | Relationships storage |
+
+---
+
+## Who Calls Graph
+
+| Caller | Query Code | Purpose |
+|--------|------------|---------|
+| Context Builder | `get_client_context` | AI context |
+| Dialog Engine | `create_device`, `create_issue` | Graph updates |
+| AI Pipeline | `find_similar_cases` | Suggestions |
+| API | `get_device_history` | Client app |
+
+---
+
+**Document:** GRAPH_OVERVIEW.md
+**Date:** 2025-12-11
+**Author:** Dmitry + Claude
+**Status:** Updated for new architecture

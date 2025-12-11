@@ -1,28 +1,28 @@
 # ELO_In_VK
 
-> Входящий workflow для VK Community Messages
+> Incoming workflow for VK Community Messages
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_VK.json` |
-| **Триггер** | Webhook POST `/vk` |
-| **Вызывается из** | VK Callback API |
-| **Вызывает** | ELO_Core_Tenant_Resolver |
-| **Выход** | Redis PUSH в `queue:incoming` |
+| **File** | `NEW/workflows/ELO_In/ELO_In_VK.json` |
+| **Trigger** | Webhook POST `/vk` |
+| **Called from** | VK Callback API |
+| **Calls** | ELO_Core_Tenant_Resolver |
+| **Output** | Redis PUSH to `queue:incoming` |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает входящие сообщения из VK сообществ через Callback API, обрабатывает confirmation запросы, нормализует и помещает в очередь.
+Receives incoming messages from VK communities via Callback API, handles confirmation requests, normalizes and places them in queue.
 
 ---
 
-## Входные данные
+## Input Data
 
 **Confirmation request:**
 ```json
@@ -41,7 +41,7 @@
       "id": 12345,
       "from_id": 123456789,
       "peer_id": 123456789,
-      "text": "Здравствуйте",
+  "text": "Здравствуйте",
       "date": 1702200000,
       "attachments": [
         {
@@ -58,7 +58,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 ```json
 {
@@ -77,11 +77,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. VK Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `640302a9-28d4-4e52-994a-a48259d07422` |
 | **Path** | `/vk` |
@@ -90,46 +90,46 @@
 
 ### 2. Is Confirmation?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `5a1b6925-ebe6-42c8-a575-715616ff2bb3` |
-| **Тип** | n8n-nodes-base.if |
+| **Type** | n8n-nodes-base.if |
 
-**Условие:** `$json.type === "confirmation"`
+**Condition:** `$json.type === "confirmation"`
 
-VK требует подтверждения webhook при настройке.
+VK requires webhook confirmation during setup.
 
 ---
 
 ### 3. Send Confirmation
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `b92668a6-18d9-4191-bb73-1a38354cdf4c` |
 | **Response** | `$env.VK_CONFIRMATION_STRING` |
 
-Возвращает confirmation code из env переменной.
+Returns confirmation code from env variable.
 
 ---
 
 ### 4. Is New Message?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `6067d84a-2098-4d69-8670-e274d8f7d767` |
-| **Условие** | `$json.type === "message_new"` |
+| **Condition** | `$json.type === "message_new"` |
 
-- TRUE → обрабатываем сообщение
-- FALSE → Respond OK (Other) — игнорируем другие события
+- TRUE → process message
+- FALSE → Respond OK (Other) — ignore other events
 
 ---
 
 ### 5. Has Voice?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `943521d1-905b-42f3-ab47-578678f34ac3` |
-| **Условие** | `attachments.some(a => a.type === 'audio_message')` |
+| **Condition** | `attachments.some(a => a.type === 'audio_message')` |
 
 ---
 
@@ -150,13 +150,13 @@ return {
 
 ### 7-8. Download Voice + Transcribe
 
-Стандартная обработка голоса через OpenAI Whisper.
+Standard voice processing via OpenAI Whisper.
 
 ---
 
 ### 9-10. Normalize with/without Voice
 
-**Особенности VK:**
+**VK specifics:**
 ```javascript
 const msg = $input.first().json.object.message;
 
@@ -184,11 +184,11 @@ return {
 
 ### 11-14. Tenant Resolver → Queue → Respond
 
-**Response:** `ok` (plain text, требование VK)
+**Response:** `ok` (plain text, VK requirement)
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 VK Trigger → Is Confirmation?
@@ -204,21 +204,21 @@ VK Trigger → Is Confirmation?
 
 ---
 
-## Особенности VK
+## VK Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
-| **Confirmation** | Первый запрос — подтверждение webhook |
-| **Response** | Всегда `ok` (plain text), иначе VK retry |
-| **audio_message** | Голосовые в `.link_mp3` |
-| **photo.sizes** | Массив размеров, выбираем максимальный |
-| **from_id** | ID пользователя |
-| **peer_id** | ID чата (= from_id для личных сообщений) |
+| **Confirmation** | First request — webhook confirmation |
+| **Response** | Always `ok` (plain text), otherwise VK retries |
+| **audio_message** | Voice messages in `.link_mp3` |
+| **photo.sizes** | Array of sizes, select maximum |
+| **from_id** | User ID |
+| **peer_id** | Chat ID (= from_id for private messages) |
 
 ---
 
-## Env переменные
+## Env Variables
 
-| Переменная | Описание |
+| Variable | Description |
 |------------|----------|
-| `VK_CONFIRMATION_STRING` | Код подтверждения webhook |
+| `VK_CONFIRMATION_STRING` | Webhook confirmation code |

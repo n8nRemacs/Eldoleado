@@ -1,53 +1,53 @@
 # ELO_Core_Batch_Debouncer
 
-> Ждёт тишины, склеивает сообщения, передаёт в Client Resolver
+> Waits for silence, merges messages, passes to Client Resolver
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `hwYfaLAKCwaWpoQk` |
 | **Файл** | `NEW/workflows/n8n_old/TaskWork/ELO_Core_Batch_Debouncer.json` |
-| **Копий** | 10 (для параллельной обработки) |
+| **Копий** | 10 (for parallel processing) |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | ELO_Core_Queue_Processor |
 | **Выход** | → ELO_Core_Client_Resolver |
 
 ---
 
-## Назначение
+## Purpose
 
-1. Ждёт тишины (10 секунд без новых сообщений)
-2. Склеивает все сообщения батча в один текст
-3. Очищает Redis (очередь + lock)
-4. Передаёт в Client Resolver
+1. Waits for silence (10 seconds without new messages)
+2. Merges all batch messages into one text
+3. Cleans Redis (queue + lock)
+4. Passes to Client Resolver
 
 ---
 
-## Параметры Debounce
+## Debounce Parameters
 
-| Параметр | Значение | Описание |
+| Parameter | Value | Description |
 |----------|----------|----------|
-| `debounce_seconds` | **10** | Время тишины для срабатывания |
-| `max_wait_seconds` | 300 | Максимальное ожидание (защита) |
+| `debounce_seconds` | **10** | Silence window to trigger |
+| `max_wait_seconds` | 300 | Max wait (safety) |
 
-> **TODO:** Сделать `debounce_seconds` настраиваемым в tenant settings
+> **TODO:** Make `debounce_seconds` configurable in tenant settings
 
 ---
 
-## Redis ключи
+## Redis keys
 
-| Ключ | Операция | Назначение |
+| Key | Operation | Purpose |
 |------|----------|------------|
-| `last_seen:{batch_key}` | GET | Время последнего сообщения |
-| `queue:batch:{batch_key}` | GET/DELETE | Очередь сообщений батча |
-| `lock:batch:{batch_key}` | DELETE | Lock обработки чата |
+| `last_seen:{batch_key}` | GET | Time of last message |
+| `queue:batch:{batch_key}` | GET/DELETE | Batch message queue |
+| `lock:batch:{batch_key}` | DELETE | Chat processing lock |
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -62,7 +62,7 @@
 
 ---
 
-## Выходные данные (в Client Resolver)
+## Output Data (to Client Resolver)
 
 ```json
 {
@@ -92,11 +92,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-Входная точка — вызывается из Queue Processor.
+Entry point — called from Queue Processor.
 
 ---
 
@@ -112,7 +112,7 @@ return {
   queue_key: input.queue_key || `queue:batch:${input.batch_key}`,
   lock_key: input.lock_key || `lock:batch:${input.batch_key}`,
   last_seen_key: input.last_seen_key || `last_seen:${input.batch_key}`,
-  debounce_seconds: 10,  // TODO: из tenant settings
+  debounce_seconds: 10,  // TODO: from tenant settings
   max_wait_seconds: 300,
   start_time: new Date().toISOString()
 };
@@ -122,7 +122,7 @@ return {
 
 ### 3. Wait 10s (Debounce)
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Тип** | Wait |
 | **Amount** | 10 секунд |
@@ -131,7 +131,7 @@ return {
 
 ### 4. Get Last Seen
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Тип** | Redis GET |
 | **Key** | `last_seen:{batch_key}` |

@@ -1,30 +1,30 @@
 # ELO_In_Form
 
-> Входящий workflow для Web-форм и квизов
+> Incoming workflow for Web forms and quizzes
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_Form.json` |
-| **Триггер** | Webhook POST `/form` |
-| **Вызывается из** | Лендинги, квизы, формы обратной связи |
-| **Вызывает** | Execute Client Resolver, ELO_Core_Tenant_Resolver |
-| **Выход** | HTTP Response (без Redis очереди!) |
+| **File** | `NEW/workflows/ELO_In/ELO_In_Form.json` |
+| **Trigger** | Webhook POST `/form` |
+| **Called from** | Landing pages, quizzes, feedback forms |
+| **Calls** | Execute Client Resolver, ELO_Core_Tenant_Resolver |
+| **Output** | HTTP Response (NO Redis queue!) |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает заявки с web-форм, нормализует контактные данные и создаёт клиента/диалог.
+Receives requests from web forms, normalizes contact data and creates client/dialog.
 
-**Особенность:** Не использует Redis очередь — сразу обрабатывает через Client Resolver.
+**Feature:** Does not use Redis queue — processes directly through Client Resolver.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -39,7 +39,7 @@
 }
 ```
 
-**Поддерживаемые варианты полей:**
+**Supported field variants:**
 - phone / telephone / mobile / cell
 - name / full_name / client_name / customer_name
 - phone_model / model / device_model / device
@@ -47,7 +47,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 **HTTP Response:**
 ```json
@@ -59,11 +59,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Form Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `39820b0b-a59e-41d8-b548-c397a65d1f5b` |
 | **Path** | `/form` |
@@ -73,12 +73,12 @@
 
 ### 2. Normalize Form
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `2a784909-75d9-46fa-9dba-3be9ae9ba689` |
-| **Тип** | n8n-nodes-base.code |
+| **Type** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const formData = $input.first().json;
 
@@ -147,7 +147,7 @@ return {
   },
 
   prefilled_data: {
-    model: phoneModel,  // <-- предзаполненная модель!
+    model: phoneModel,  // <-- prefilled model!
     parts_owner: null
   }
 };
@@ -157,19 +157,19 @@ return {
 
 ### 3. Execute Client Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `e650cfe1-5df0-4c05-823c-5c01eaca330f` |
-| **Вызывает** | `$env.CLIENT_RESOLVER_WORKFLOW_ID` |
+| **Calls** | `$env.CLIENT_RESOLVER_WORKFLOW_ID` |
 
 ---
 
 ### 4. Execute Tenant Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `9168577b-2691-4a26-abbd-0333e92cf428` |
-| **Вызывает** | ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz) |
+| **Calls** | ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz) |
 
 ---
 
@@ -184,30 +184,30 @@ return {
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 Form Trigger → Normalize Form → Execute Client Resolver → Execute Tenant Resolver → Respond Success
 ```
 
-**Без Redis!** Форма обрабатывается синхронно.
+**NO Redis!** Form is processed synchronously.
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
-| **Без очереди** | Синхронная обработка, нет Redis |
-| **prefilled_data.model** | Модель телефона из формы сразу в prefilled |
-| **Нормализация телефона** | 8→7, добавление недостающей 7 |
-| **Fallback ID** | email или 'unknown' если нет телефона |
-| **form_source** | UTM метка или название источника |
+| **No queue** | Synchronous processing, no Redis |
+| **prefilled_data.model** | Phone model from form goes directly to prefilled |
+| **Phone normalization** | 8→7, adding missing 7 |
+| **Fallback ID** | email or 'unknown' if no phone |
+| **form_source** | UTM tag or source name |
 
 ---
 
-## Env переменные
+## Env Variables
 
-| Переменная | Описание |
+| Variable | Description |
 |------------|----------|
-| `CLIENT_RESOLVER_WORKFLOW_ID` | ID workflow для создания/поиска клиента |
+| `CLIENT_RESOLVER_WORKFLOW_ID` | Workflow ID for finding/creating client |

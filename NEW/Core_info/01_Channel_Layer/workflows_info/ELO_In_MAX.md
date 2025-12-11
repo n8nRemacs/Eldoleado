@@ -1,28 +1,28 @@
 # ELO_In_MAX
 
-> Входящий workflow для MAX (VK Teams/Mail.ru Messenger)
+> Incoming workflow for MAX (VK Teams/Mail.ru Messenger)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_MAX.json` |
-| **Триггер** | Webhook POST `/max` |
-| **Вызывается из** | MAX.ru Bot API |
-| **Вызывает** | ELO_Core_Tenant_Resolver |
-| **Выход** | Redis PUSH в `queue:incoming` |
+| **File** | `NEW/workflows/ELO_In/ELO_In_MAX.json` |
+| **Trigger** | Webhook POST `/max` |
+| **Called from** | MAX.ru Bot API |
+| **Calls** | ELO_Core_Tenant_Resolver |
+| **Output** | Redis PUSH to `queue:incoming` |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает входящие сообщения из MAX (VK Teams, бывший Агент Mail.ru), нормализует и помещает в очередь.
+Receives incoming messages from MAX (VK Teams, formerly Agent Mail.ru), normalizes and places them in queue.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -49,7 +49,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 ```json
 {
@@ -68,11 +68,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. MAX Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `fdf2ef76-3a9a-4209-aa49-716f9cca1bfe` |
 | **Path** | `/max` |
@@ -81,12 +81,12 @@
 
 ### 2. Extract MAX Data
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `3ff642aa-05b1-4b07-94f9-0efe7782cb72` |
-| **Тип** | n8n-nodes-base.code |
+| **Type** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const event = $input.first().json;
 const msg = event.message || event;
@@ -138,7 +138,7 @@ return {
 
 ### 3-6. Voice Processing
 
-Стандартный поток: Has Voice? → Download → Transcribe → Normalize
+Standard flow: Has Voice? → Download → Transcribe → Normalize
 
 ---
 
@@ -151,7 +151,7 @@ return {
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 MAX Trigger → Extract Data → Has Voice?
@@ -163,19 +163,19 @@ MAX Trigger → Extract Data → Has Voice?
 
 ---
 
-## Особенности MAX
+## MAX Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
-| **Телефон** | Может приходить в `sender.phone` |
-| **Нормализация телефона** | 8 → 7 в начале |
-| **Media URL** | Прямые ссылки в `msg.voice.url`, `msg.image.url` |
+| **Phone** | Can come in `sender.phone` |
+| **Phone normalization** | 8 → 7 at beginning |
+| **Media URL** | Direct links in `msg.voice.url`, `msg.image.url` |
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | ID | Назначение |
+| Type | ID | Purpose |
 |-----|-----|------------|
 | Workflow | rRO6sxLqiCdgvLZz | Tenant Resolver |
 | Redis | 7FQcEivUY94atW24 | Queue |

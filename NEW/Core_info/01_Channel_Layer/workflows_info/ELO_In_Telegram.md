@@ -1,30 +1,30 @@
 # ELO_In_Telegram
 
-> Входящий workflow для Telegram
+> Incoming workflow for Telegram
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_Telegram.json` |
-| **Триггер** | Webhook POST `/telegram-in` |
-| **Вызывается из** | mcp-telegram (HTTP POST) |
-| **Вызывает** | ELO_Core_Tenant_Resolver (Execute Workflow) |
-| **Выход** | Redis PUSH в `queue:incoming` |
+| **File** | `NEW/workflows/ELO_In/ELO_In_Telegram.json` |
+| **Trigger** | Webhook POST `/telegram-in` |
+| **Called from** | mcp-telegram (HTTP POST) |
+| **Calls** | ELO_Core_Tenant_Resolver (Execute Workflow) |
+| **Output** | Redis PUSH to `queue:incoming` |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает входящие сообщения из Telegram через mcp-telegram, нормализует в ELO Core Contract, резолвит tenant, и помещает в Redis очередь.
+Receives incoming messages from Telegram via mcp-telegram, normalizes them into ELO Core Contract, resolves tenant, and places them in Redis queue.
 
 ---
 
-## Входные данные
+## Input Data
 
-**Источник:** HTTP POST от mcp-telegram
+**Source:** HTTP POST from mcp-telegram
 
 ```json
 {
@@ -49,9 +49,9 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
-**Куда:** Redis list `queue:incoming`
+**Destination:** Redis list `queue:incoming`
 
 ```json
 {
@@ -93,20 +93,20 @@
 
 ---
 
-## Входная нода
+## Input Node
 
 **Telegram Webhook**
-- Тип: `n8n-nodes-base.webhook`
-- Метод: POST
+- Type: `n8n-nodes-base.webhook`
+- Method: POST
 - Path: `/telegram-in`
 - Response Mode: responseNode
 
 ---
 
-## Выходная нода
+## Output Node
 
 **Respond Success**
-- Тип: `n8n-nodes-base.respondToWebhook`
+- Type: `n8n-nodes-base.respondToWebhook`
 - Response: 200 OK
 
 ```json
@@ -119,29 +119,29 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Telegram Webhook
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `8915c2af-b9a5-4d55-8d16-71ea317766a0` |
-| **Тип** | n8n-nodes-base.webhook |
-| **Назначение** | Приём HTTP POST от mcp-telegram |
+| **Type** | n8n-nodes-base.webhook |
+| **Purpose** | Receive HTTP POST from mcp-telegram |
 
-**Логика:** Принимает JSON body и передаёт дальше.
+**Logic:** Accepts JSON body and passes it forward.
 
 ---
 
 ### 2. Extract Telegram Data
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `d5bedbd4-8fd7-4267-bfaf-2b0416f5cf62` |
-| **Тип** | n8n-nodes-base.code |
-| **Назначение** | Извлечение и нормализация данных из MCP формата |
+| **Type** | n8n-nodes-base.code |
+| **Purpose** | Extract and normalize data from MCP format |
 
-**Код:**
+**Code:**
 ```javascript
 // MCP Telegram присылает нормализованные данные
 // Webhook передает данные в body
@@ -203,7 +203,7 @@ return {
 };
 ```
 
-**Выход:**
+**Output:**
 ```json
 {
   "has_voice": true,
@@ -230,34 +230,34 @@ return {
 
 ### 3. Has Voice?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `bd4eb3fb-2539-4b2f-85f6-668caac0dc4f` |
-| **Тип** | n8n-nodes-base.if |
-| **Назначение** | Ветвление: есть голосовое или нет |
+| **Type** | n8n-nodes-base.if |
+| **Purpose** | Branch: voice present or not |
 
-**Условие:** `$json.has_voice === true`
+**Condition:** `$json.has_voice === true`
 
-**Ветки:**
-- TRUE → Get Voice File Path (обработка голоса)
-- FALSE → Normalize without Voice (пропуск транскрипции)
+**Branches:**
+- TRUE → Get Voice File Path (process voice)
+- FALSE → Normalize without Voice (skip transcription)
 
 ---
 
 ### 4. Get Voice File Path
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `fcc16922-65f0-4611-a455-065ef84ba0a8` |
-| **Тип** | n8n-nodes-base.httpRequest |
-| **Назначение** | Получение пути к файлу через Telegram API |
+| **Type** | n8n-nodes-base.httpRequest |
+| **Purpose** | Get file path via Telegram API |
 
 **URL:**
 ```
 https://api.telegram.org/bot{{ $json.bot_token }}/getFile?file_id={{ $json.voice_file_id }}
 ```
 
-**Выход:**
+**Output:**
 ```json
 {
   "ok": true,
@@ -272,11 +272,11 @@ https://api.telegram.org/bot{{ $json.bot_token }}/getFile?file_id={{ $json.voice
 
 ### 5. Download Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `a20ef264-df54-4b01-b18b-dfa1ec339ec6` |
-| **Тип** | n8n-nodes-base.httpRequest |
-| **Назначение** | Скачивание аудиофайла |
+| **Type** | n8n-nodes-base.httpRequest |
+| **Purpose** | Download audio file |
 
 **URL:**
 ```
@@ -289,15 +289,15 @@ https://api.telegram.org/file/bot{{ $('Extract Telegram Data').item.json.bot_tok
 
 ### 6. Transcribe Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `65a9b6e2-6258-4b48-abf1-79ac28311149` |
-| **Тип** | @n8n/n8n-nodes-langchain.openAi |
-| **Назначение** | Транскрипция через OpenAI Whisper |
+| **Type** | @n8n/n8n-nodes-langchain.openAi |
+| **Purpose** | Transcription via OpenAI Whisper |
 
 **Credentials:** OpenAi account (id: ptoy1RvCOn39G0Af)
 
-**Выход:**
+**Output:**
 ```json
 {
   "text": "Здравствуйте нужен ремонт айфона"
@@ -308,13 +308,13 @@ https://api.telegram.org/file/bot{{ $('Extract Telegram Data').item.json.bot_tok
 
 ### 7. Normalize with Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `8bbe38c2-ea26-49c2-bcd5-59a67f997b3c` |
-| **Тип** | n8n-nodes-base.code |
-| **Назначение** | Формирование ELO Core Contract (с голосом) |
+| **Type** | n8n-nodes-base.code |
+| **Purpose** | Form ELO Core Contract (with voice) |
 
-**Код:**
+**Code:**
 ```javascript
 const data = $('Extract Telegram Data').first().json;
 const transcription = $input.first().json.text;
@@ -372,13 +372,13 @@ return {
 
 ### 8. Normalize without Voice
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `02fa5c60-969d-432b-8fe4-793be2f156a7` |
-| **Тип** | n8n-nodes-base.code |
-| **Назначение** | Формирование ELO Core Contract (без голоса) |
+| **Type** | n8n-nodes-base.code |
+| **Purpose** | Form ELO Core Contract (without voice) |
 
-**Код:**
+**Code:**
 ```javascript
 const data = $input.first().json;
 
@@ -431,29 +431,29 @@ return {
 
 ### 9. Execute Tenant Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `169e4c2e-d29d-4cf3-9841-382cfc3ceec7` |
-| **Тип** | n8n-nodes-base.executeWorkflow |
-| **Назначение** | Определение tenant по bot_token |
+| **Type** | n8n-nodes-base.executeWorkflow |
+| **Purpose** | Determine tenant by bot_token |
 
-**Вызывает:** `ELO_Core_Tenant_Resolver` (id: rRO6sxLqiCdgvLZz)
+**Calls:** `ELO_Core_Tenant_Resolver` (id: rRO6sxLqiCdgvLZz)
 
-**Что делает:**
-- По `bot_token` ищет запись в `elo_channel_accounts`
-- Возвращает `tenant_id`
+**What it does:**
+- Searches for record in `elo_channel_accounts` by `bot_token`
+- Returns `tenant_id`
 
 ---
 
 ### 10. Prepare for Queue
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `be2e87b0-ce4c-4667-8f5f-43f543e1cf3b` |
-| **Тип** | n8n-nodes-base.code |
-| **Назначение** | Сериализация для Redis |
+| **Type** | n8n-nodes-base.code |
+| **Purpose** | Serialize for Redis |
 
-**Код:**
+**Code:**
 ```javascript
 // Подготавливаем сообщение для Redis очереди
 const data = $input.first().json;
@@ -464,7 +464,7 @@ return {
 };
 ```
 
-**Выход:**
+**Output:**
 ```json
 {
   "message_json": "{...serialized ELO Core Contract...}",
@@ -476,33 +476,33 @@ return {
 
 ### 11. Push to Queue
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `0afa500e-1032-44f3-8289-14cbf825247e` |
-| **Тип** | n8n-nodes-base.redis |
-| **Назначение** | Добавление в очередь Redis |
+| **Type** | n8n-nodes-base.redis |
+| **Purpose** | Add to Redis queue |
 
-**Redis операция:**
+**Redis operation:**
 - **Operation:** PUSH (RPUSH)
 - **List:** `queue:incoming`
 - **Data:** `message_json`
-- **Tail:** true (добавляем в конец)
+- **Tail:** true (add to end)
 
 **Credentials:** Redis account (id: 7FQcEivUY94atW24)
 
-**Что кладём:** Сериализованный ELO Core Contract
-**Кто кладёт:** ELO_In_Telegram
-**Для кого:** ELO_Queue_Processor (заберёт LPOP)
+**What we store:** Serialized ELO Core Contract
+**Who stores:** ELO_In_Telegram
+**For whom:** ELO_Queue_Processor (will retrieve with LPOP)
 
 ---
 
 ### 12. Respond Success
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `533dd045-b34f-4178-b133-059723be4564` |
-| **Тип** | n8n-nodes-base.respondToWebhook |
-| **Назначение** | HTTP Response для mcp-telegram |
+| **Type** | n8n-nodes-base.respondToWebhook |
+| **Purpose** | HTTP Response for mcp-telegram |
 
 **Response:** 200 OK
 ```json
@@ -515,7 +515,7 @@ return {
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 ┌─────────────────┐
@@ -585,22 +585,22 @@ return {
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | Название | ID | Назначение |
+| Type | Name | ID | Purpose |
 |-----|----------|-----|------------|
-| Credentials | Redis account | 7FQcEivUY94atW24 | Push в очередь |
-| Credentials | OpenAi account | ptoy1RvCOn39G0Af | Транскрипция голоса |
-| Workflow | ELO_Core_Tenant_Resolver | rRO6sxLqiCdgvLZz | Определение tenant |
-| External API | Telegram Bot API | — | Скачивание voice файлов |
+| Credentials | Redis account | 7FQcEivUY94atW24 | Push to queue |
+| Credentials | OpenAi account | ptoy1RvCOn39G0Af | Voice transcription |
+| Workflow | ELO_Core_Tenant_Resolver | rRO6sxLqiCdgvLZz | Determine tenant |
+| External API | Telegram Bot API | — | Download voice files |
 
 ---
 
-## Ошибки и обработка
+## Error Handling
 
-| Ошибка | Причина | Обработка |
+| Error | Reason | Handling |
 |--------|---------|-----------|
-| Telegram API error | Недоступен API | Retry или skip voice |
-| OpenAI transcription error | Ошибка Whisper | Использовать пустой text |
-| Redis push error | Redis недоступен | Workflow fail, MCP получит 500 |
-| Tenant not found | Неизвестный bot_token | Зависит от Tenant Resolver |
+| Telegram API error | API unavailable | Retry or skip voice |
+| OpenAI transcription error | Whisper error | Use empty text |
+| Redis push error | Redis unavailable | Workflow fail, MCP gets 500 |
+| Tenant not found | Unknown bot_token | Depends on Tenant Resolver |

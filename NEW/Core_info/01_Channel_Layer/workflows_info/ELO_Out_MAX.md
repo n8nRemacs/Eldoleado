@@ -1,28 +1,28 @@
 # ELO_Out_MAX
 
-> Исходящий workflow для MAX (VK Teams/Mail.ru Messenger)
+> Outgoing workflow for MAX (VK Teams/Mail.ru Messenger)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/ELO_Out/ELO_Out_MAX.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Dialog Engine, AI Router, API |
 | **Вызывает** | MAX API, Neo4j Touchpoint Register |
-| **Выход** | Сохранение в messages_history + touchpoint |
+| **Выход** | Save to messages_history + touchpoint |
 
 ---
 
-## Назначение
+## Purpose
 
-Отправляет сообщение клиенту в MAX (VK Teams).
+Sends a message to the client in MAX (VK Teams).
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -39,11 +39,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `a71503cc-25c1-400a-81f8-94e7331e68c7` |
 
@@ -51,7 +51,7 @@
 
 ### 2. Send MAX Message
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `332b966b-a89f-4d90-a203-ccc4d62ec9b2` |
 | **Тип** | n8n-nodes-base.httpRequest |
@@ -75,7 +75,7 @@
 | **ID** | `e0ef6423-d19d-4706-8ca8-b35fd7180f59` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const response = $input.first().json;
 
@@ -103,12 +103,12 @@ return {
 
 ### 4. Save Message History
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `c7f02af3-8f38-455b-84f7-ac8124c722be` |
 | **Тип** | n8n-nodes-base.postgres |
 
-**SQL запрос:**
+**SQL query:**
 ```sql
 INSERT INTO messages_history (
   tenant_id, appeal_id, message_type, message_text,
@@ -130,7 +130,7 @@ RETURNING *;
 
 ### 5. Register Touchpoint
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `30f3276e-0e45-4c04-9738-f4f3dab53f85` |
 | **URL** | `https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register` |
@@ -150,7 +150,7 @@ RETURNING *;
 
 ---
 
-## Схема потока
+## Flow Diagram
 
 ```
 Execute Trigger → Send MAX Message → Process Response → Save History → Register Touchpoint
@@ -158,17 +158,17 @@ Execute Trigger → Send MAX Message → Process Response → Save History → R
 
 ---
 
-## Env переменные
+## Env variables
 
-| Переменная | Описание |
+| Variable | Description |
 |------------|----------|
 | `MAX_API_URL` | Base URL для MAX API |
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
 | **Простой API** | Минимальные параметры |
 | **chat_id** | ID чата в MAX |

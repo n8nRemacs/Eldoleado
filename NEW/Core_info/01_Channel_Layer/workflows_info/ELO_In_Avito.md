@@ -1,30 +1,30 @@
 # ELO_In_Avito
 
-> Входящий workflow для Avito Messenger
+> Incoming workflow for Avito Messenger
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_Avito.json` |
-| **Триггер** | Webhook POST `/avito` |
-| **Вызывается из** | Avito Messenger webhook |
-| **Вызывает** | ELO_Core_Tenant_Resolver |
-| **Выход** | Redis PUSH в `queue:incoming` |
+| **File** | `NEW/workflows/ELO_In/ELO_In_Avito.json` |
+| **Trigger** | Webhook POST `/avito` |
+| **Called from** | Avito Messenger webhook |
+| **Calls** | ELO_Core_Tenant_Resolver |
+| **Output** | Redis PUSH to `queue:incoming` |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает входящие сообщения из Avito Messenger, фильтрует системные сообщения, нормализует и помещает в очередь.
+Receives incoming messages from Avito Messenger, filters system messages, normalizes and places them in queue.
 
 ---
 
-## Входные данные
+## Input Data
 
-**Источник:** Avito Messenger webhook
+**Source:** Avito Messenger webhook
 
 ```json
 {
@@ -36,8 +36,8 @@
       "chat_id": "chat-uuid",
       "user_id": 123456,
       "author_id": 789012,
-      "author": {"name": "Покупатель"},
-      "content": {"text": "Здравствуйте"},
+  "author": {"name": "Покупатель"},
+  "content": {"text": "Здравствуйте"},
       "type": "text",
       "created": 1702200000,
       "item_id": 12345678
@@ -48,7 +48,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 ```json
 {
@@ -68,11 +68,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Avito Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `fe64d5c7-7982-4d3d-aa9e-f93a078ff6f4` |
 | **Path** | `/avito` |
@@ -81,12 +81,12 @@
 
 ### 2. Parse Auth Filter
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `99c5e201-93fc-49d9-9150-3eded9edeb4f` |
-| **Тип** | n8n-nodes-base.code |
+| **Type** | n8n-nodes-base.code |
 
-**Логика фильтрации системных сообщений:**
+**System message filtering logic:**
 ```javascript
 const webhookData = $input.first().json;
 const msg = webhookData.payload?.value;
@@ -120,24 +120,24 @@ return {
 };
 ```
 
-**Фильтр системных:**
-- `author_id === user_id` — сообщение от продавца (мы сами)
-- `author_id === 0` — системное уведомление
-- `!author_id` — нет автора
+**System message filter:**
+- `author_id === user_id` — message from seller (ourselves)
+- `author_id === 0` — system notification
+- `!author_id` — no author
 
 ---
 
 ### 3. Should Skip?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `13395364-4167-4f5e-a011-77440689eb14` |
-| **Тип** | n8n-nodes-base.if |
+| **Type** | n8n-nodes-base.if |
 
-**Условие:** `$json.skip === true`
+**Condition:** `$json.skip === true`
 
-- TRUE → Respond Skipped (200 OK, пропускаем)
-- FALSE → продолжаем обработку
+- TRUE → Respond Skipped (200 OK, skip)
+- FALSE → continue processing
 
 ---
 
@@ -151,12 +151,12 @@ return {
 
 ### 5-9. Voice Processing + Normalize
 
-Аналогично другим каналам: Download → Transcribe → Normalize
+Similar to other channels: Download → Transcribe → Normalize
 
-**Особенности Avito:**
-- `external_user_id`: author_id (ID покупателя)
-- `ad_id`: item_id (ID объявления)
-- `chat_type`: из raw_message
+**Avito specifics:**
+- `external_user_id`: author_id (buyer ID)
+- `ad_id`: item_id (ad ID)
+- `chat_type`: from raw_message
 
 ---
 
@@ -169,7 +169,7 @@ return {
 
 ---
 
-## Схема потока
+## Flow Schema
 
 ```
 Avito Trigger → Parse Auth Filter → Should Skip?
@@ -183,20 +183,20 @@ Avito Trigger → Parse Auth Filter → Should Skip?
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
-| **Фильтр системных** | Пропускает сообщения от продавца и системные |
-| **ad_id** | ID объявления для привязки к товару |
-| **author_id** | ID покупателя (не user_id!) |
-| **chat_type** | Тип чата (u2i - user to item) |
+| **System filter** | Skips messages from seller and system |
+| **ad_id** | Ad ID for linking to item |
+| **author_id** | Buyer ID (not user_id!) |
+| **chat_type** | Chat type (u2i - user to item) |
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | ID | Назначение |
+| Type | ID | Purpose |
 |-----|-----|------------|
 | Workflow | rRO6sxLqiCdgvLZz | Tenant Resolver |
 | Redis | 7FQcEivUY94atW24 | Queue |

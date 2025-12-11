@@ -1,32 +1,32 @@
 # ELO_Core_Tenant_Resolver
 
-> Определяет tenant по credentials канала
+> Determines tenant by channel credentials
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `rRO6sxLqiCdgvLZz` |
 | **Файл** | `NEW/workflows/n8n_old/Core/ELO_Core_Tenant_Resolver.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Все BAT_IN_* workflows |
-| **Выход** | Данные + tenant_id |
+| **Выход** | Data + tenant_id |
 
 ---
 
-## Назначение
+## Purpose
 
-Определяет какому tenant принадлежит входящее сообщение по credentials канала:
-- Telegram → по `bot_token`
-- VK → по `app_id`
-- WhatsApp → по `phone_id`
-- Avito → по `client_id`
+Determines which tenant an incoming message belongs to via channel credentials:
+- Telegram → by `bot_token`
+- VK → by `app_id`
+- WhatsApp → by `phone_id`
+- Avito → by `client_id`
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -40,7 +40,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 ```json
 {
@@ -56,11 +56,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. When Executed by Another Workflow
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `13b5f187-9f26-4bdb-9ad7-09424b7dca1e` |
 | **Тип** | executeWorkflowTrigger |
@@ -70,12 +70,12 @@
 
 ### 2. Prepare Lookup
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `6755978f-3f9a-46b3-a5f6-158d82cbf74e` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const data = $input.first().json;
 const channel = data.channel;
@@ -107,9 +107,9 @@ return {
 };
 ```
 
-**Маппинг channel → lookup_key:**
+**Mapping channel → lookup_key:**
 
-| Channel | Поле в данных | lookup_key в tenant_configs |
+| Channel | Field in data | lookup_key in tenant_configs |
 |---------|---------------|----------------------------|
 | telegram | bot_token | telegram_bot_token |
 | vk | app_id | vk_app_id |
@@ -120,7 +120,7 @@ return {
 
 ### 3. Skip DB Lookup?
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `796b3841-439d-42c0-a0d9-fd34732004a9` |
 | **Условие** | `needs_default_tenant === true` |

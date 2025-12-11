@@ -1,31 +1,31 @@
 # API_Android_Appeals_List
 
-> Список обращений для оператора (Android приложение)
+> Appeals list for operator (Android app)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/n8n_old/API/API_Android_Appeals_List.json` |
 | **ID в n8n** | 0t7CnDCcHA4MnmTp |
 | **Триггер** | Webhook GET `/api/operator/appeals/list` |
 | **Вызывается из** | Android App |
 | **Вызывает** | — |
-| **Выход** | HTTP Response (список appeals + counts) |
+| **Выход** | HTTP Response (appeals list + counts) |
 
 ---
 
-## Назначение
+## Purpose
 
-Возвращает список обращений (appeals) для авторизованного оператора с фильтрацией по статусу и счётчиками для UI.
+Returns appeals list for authorized operator with status filter and counters for UI.
 
 ---
 
-## Входные данные
+## Input Data
 
-**Источник:** HTTP GET от Android App
+**Source:** HTTP GET from Android App
 
 **Headers:**
 ```
@@ -37,16 +37,16 @@ x-session-token: <session_token>
 ?status=new&limit=20
 ```
 
-| Параметр | Тип | Описание | Default |
+| Parameter | Type | Description | Default |
 |----------|-----|----------|---------|
 | `status` | string | Фильтр: `new`, `in_progress`, `completed` | все |
 | `limit` | int | Макс. количество | 20 (max 100) |
 
 ---
 
-## Выходные данные
+## Output Data
 
-**Успех (200):**
+**Success (200):**
 ```json
 {
   "success": true,
@@ -75,7 +75,7 @@ x-session-token: <session_token>
 }
 ```
 
-**Ошибка (401):**
+**Error (401):**
 ```json
 {
   "success": false,
@@ -85,43 +85,43 @@ x-session-token: <session_token>
 
 ---
 
-## Входная нода
+## Input node
 
 **Webhook**
-- Тип: `n8n-nodes-base.webhook`
-- Метод: GET
+- Type: `n8n-nodes-base.webhook`
+- Method: GET
 - Path: `/api/operator/appeals/list`
 - Response Mode: responseNode
 - CORS: `*`
 
 ---
 
-## Выходные ноды
+## Output nodes
 
 1. **Respond to Webhook** (200 OK)
 2. **Respond 401** (unauthorized)
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Webhook
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `3a93ea19-8f72-472e-a3a2-2153e857fb1b` |
 | **Тип** | n8n-nodes-base.webhook |
-| **Назначение** | Приём GET запроса |
+| **Назначение** | Handle GET request |
 
 ---
 
 ### 2. Parse Query
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `0a30cacd-1dc6-47ed-b3e5-3ba33d88fd5b` |
 | **Тип** | n8n-nodes-base.code |
-| **Назначение** | Парсинг query параметров и header |
+| **Назначение** | Parse query parameters and header |
 
 **Код:**
 ```javascript
@@ -137,7 +137,7 @@ return {
 };
 ```
 
-**Выход:**
+**Output:**
 ```json
 {
   "status": "new",

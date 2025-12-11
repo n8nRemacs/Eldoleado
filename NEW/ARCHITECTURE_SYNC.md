@@ -1,24 +1,24 @@
-# Синхронизация Roadmap с Архитектурой CORE_NEW
+# Roadmap Synchronization with CORE_NEW Architecture
 
-> Маппинг killer features на 7 уровней AI архитектуры
+> Mapping killer features to 7-layer AI architecture
 
-**Последнее обновление:** 2025-12-10
+**Last updated:** 2025-12-10
 
 ---
 
-## Обзор: 7 уровней + Новые блоки
+## Overview: 7 Layers + New Blocks
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
-│                         НОВЫЕ БЛОКИ (из roadmap)                             │
+│                         NEW BLOCKS (from roadmap)                            │
 │                                                                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │   PRICE     │  │   DEVICE    │  │  EXTERNAL   │  │  LEARNING   │         │
 │  │   ENGINE    │  │   GATEWAY   │  │  INTEGR.    │  │    ENGINE   │         │
 │  │             │  │             │  │             │  │             │         │
-│  │ Парсер цен  │  │ Смартфон-   │  │ LiveSklad   │  │ Самообучение│         │
-│  │ Нормализ.   │  │ сервер      │  │ Remonline   │  │ Фидбек      │         │
+│  │ Price Parse │  │ Smartphone  │  │ LiveSklad   │  │ Self-learn  │         │
+│  │ Normalize   │  │ Server      │  │ Remonline   │  │ Feedback    │         │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘         │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -26,70 +26,70 @@
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
-│                     7 УРОВНЕЙ CORE_NEW (существующие)                        │
+│                     7 LEVELS CORE_NEW (existing)                             │
 │                                                                              │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 7: MCP КАНАЛЫ                                                  │ │
+│  │ LEVEL 7: MCP CHANNELS                                                  │ │
 │  │ + Telegram, WhatsApp, VK, Avito, MAX, Form, Phone                      │ │
-│  │ + [NEW] Device Gateway (смартфон-сервер)                               │ │
+│  │ + [NEW] Device Gateway (smartphone server)                             │ │
 │  │ + [NEW] QR Entry Point                                                 │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 6: RESPONSE BUILDER                                            │ │
-│  │ + Форматирование под канал                                             │ │
-│  │ + [NEW] Голосовой ответ (TTS для оператора)                            │ │
+│  │ LEVEL 6: RESPONSE BUILDER                                              │ │
+│  │ + Format per channel                                                   │ │
+│  │ + [NEW] Voice response (TTS for operator)                              │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 5: DIALOG ENGINE                                               │ │
-│  │ + Сохранение в elo_dialogs                                             │ │
-│  │ + Sync в Neo4j                                                         │ │
-│  │ + [NEW] Sync в LiveSklad/Remonline (External Integrations)             │ │
+│  │ LEVEL 5: DIALOG ENGINE                                                 │ │
+│  │ + Save to elo_dialogs                                                  │ │
+│  │ + Sync to Neo4j                                                        │ │
+│  │ + [NEW] Sync to LiveSklad/Remonline (External Integrations)           │ │
 │  │ + [NEW] Feedback Loop (Learning Engine)                                │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 4: UNIVERSAL TOOLS                                             │ │
+│  │ LEVEL 4: UNIVERSAL TOOLS                                               │ │
 │  │ + device_extract, issue_extract, intent_classify                       │ │
-│  │ + [NEW] price_lookup_live (из Price Engine)                            │ │
+│  │ + [NEW] price_lookup_live (from Price Engine)                          │ │
 │  │ + [NEW] voice_transcribe (Whisper)                                     │ │
-│  │ + [NEW] knowledge_lookup (предписанные ответы тенанта)                 │ │
+│  │ + [NEW] knowledge_lookup (tenant prescriptive answers)                 │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 3: ORCHESTRATOR                                                │ │
-│  │ + Слепой исполнитель                                                   │ │
+│  │ LEVEL 3: ORCHESTRATOR                                                  │ │
+│  │ + Blind executor                                                       │ │
 │  │ + [UNCHANGED]                                                          │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 2: REQUEST BUILDER                                             │ │
-│  │ + Кнут-Пряник-Кнут                                                     │ │
-│  │ + [NEW] Подключение Price Engine tools                                 │ │
-│  │ + [NEW] Подключение Knowledge tools                                    │ │
+│  │ LEVEL 2: REQUEST BUILDER                                               │ │
+│  │ + Stick-Carrot-Stick                                                   │ │
+│  │ + [NEW] Connect Price Engine tools                                     │ │
+│  │ + [NEW] Connect Knowledge tools                                        │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 1: CONTEXT BUILDER                                             │ │
+│  │ LEVEL 1: CONTEXT BUILDER                                               │ │
 │  │ + PostgreSQL + Neo4j                                                   │ │
 │  │ + [NEW] QR → client_id resolution                                      │ │
-│  │ + [NEW] Phone call context (транскрипт → граф)                         │ │
+│  │ + [NEW] Phone call context (transcript → graph)                        │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │ УРОВЕНЬ 0: ДАННЫЕ                                                      │ │
-│  │ + PostgreSQL (elo_* таблицы)                                           │ │
+│  │ LEVEL 0: DATA                                                          │ │
+│  │ + PostgreSQL (elo_* tables)                                            │ │
 │  │ + Neo4j (Client, Device, Problem)                                      │ │
-│  │ + [NEW] Price Engine DB (нормализованные цены)                         │ │
-│  │ + [NEW] Knowledge Base (предписанные ответы)                           │ │
+│  │ + [NEW] Price Engine DB (normalized prices)                            │ │
+│  │ + [NEW] Knowledge Base (prescriptive answers)                          │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -97,11 +97,11 @@
 
 ---
 
-## Детальный маппинг Killer Features
+## Detailed Mapping of Killer Features
 
-### 1. Смартфон-сервер (Device Gateway)
+### 1. Smartphone Server (Device Gateway)
 
-**Уровень:** 7 (MCP Каналы) + Новый блок
+**Level:** 7 (MCP Channels) + New Block
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -110,11 +110,11 @@
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  Android App (смартфон тенанта)                                      │   │
-│  │  ├── РЕЖИМ ОПЕРАТОР (всегда)                                         │   │
-│  │  │   └── Push, ответы, история                                       │   │
+│  │  Android App (tenant smartphone)                                     │   │
+│  │  ├── OPERATOR MODE (always)                                          │   │
+│  │  │   └── Push, replies, history                                      │   │
 │  │  │                                                                    │   │
-│  │  └── РЕЖИМ СЕРВЕР (по флагу)                                         │   │
+│  │  └── SERVER MODE (by flag)                                           │   │
 │  │      ├── Foreground Service                                          │   │
 │  │      ├── Local API Server                                            │   │
 │  │      └── WebSocket → ELO Backend                                     │   │
@@ -124,7 +124,7 @@
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  ELO Backend (маршрутизатор)                                         │   │
+│  │  ELO Backend (router)                                                │   │
 │  │                                                                       │   │
 │  │  channel_router(tenant, channel, message):                           │   │
 │  │    if tenant.device_gateway_enabled AND device.is_online:            │   │
@@ -137,33 +137,33 @@
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  Модули на устройстве                                                │   │
+│  │  Modules on device                                                   │   │
 │  │  ├── WhatsApp Module (reverse-engineered)                            │   │
 │  │  ├── Avito Module (reverse-engineered)                               │   │
 │  │  └── MAX Module (reverse-engineered)                                 │   │
 │  │                                                                       │   │
-│  │  Входящие: Webhook Listener → WebSocket → Backend                    │   │
-│  │  Исходящие: Backend → WebSocket → Local API → Channel                │   │
+│  │  Incoming: Webhook Listener → WebSocket → Backend                    │   │
+│  │  Outgoing: Backend → WebSocket → Local API → Channel                 │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-Интеграция с существующими MCP:
+Integration with existing MCP:
 
-  УРОВЕНЬ 7 (MCP Каналы):
-  ├── mcp-telegram     (как есть, бесплатно)
-  ├── mcp-whatsapp     (Wappi 600₽ ИЛИ Device Gateway 0₽)
-  ├── mcp-avito        (API 1500₽ ИЛИ Device Gateway 0₽)
-  ├── mcp-vk           (как есть, бесплатно)
-  ├── mcp-max          (API ИЛИ Device Gateway 0₽)
-  └── mcp-device-gw    [NEW] — маршрутизатор на смартфоны
+  LEVEL 7 (MCP Channels):
+  ├── mcp-telegram     (as is, free)
+  ├── mcp-whatsapp     (Wappi 600₽ OR Device Gateway 0₽)
+  ├── mcp-avito        (API 1500₽ OR Device Gateway 0₽)
+  ├── mcp-vk           (as is, free)
+  ├── mcp-max          (API OR Device Gateway 0₽)
+  └── mcp-device-gw    [NEW] — router to smartphones
 ```
 
-**Новые таблицы:**
+**New tables:**
 
 ```sql
--- Устройства-серверы тенантов
+-- Tenant device servers
 CREATE TABLE elo_device_gateways (
   id UUID PRIMARY KEY,
   tenant_id UUID REFERENCES elo_tenants(id),
@@ -174,10 +174,10 @@ CREATE TABLE elo_device_gateways (
   is_online BOOLEAN DEFAULT false,
   last_seen TIMESTAMPTZ,
 
-  -- Какие каналы активны на устройстве
+  -- Active channels on device
   channels JSONB,              -- {whatsapp: true, avito: true, max: false}
 
-  -- Статистика
+  -- Statistics
   messages_routed INT DEFAULT 0,
 
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -186,9 +186,9 @@ CREATE TABLE elo_device_gateways (
 
 ---
 
-### 2. Прайс-парсер + Автоцены (Price Engine)
+### 2. Price Parser + Auto-pricing (Price Engine)
 
-**Уровень:** 0 (Данные) + 4 (Universal Tools) + Новый блок
+**Level:** 0 (Data) + 4 (Universal Tools) + New Block
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -197,35 +197,35 @@ CREATE TABLE elo_device_gateways (
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  ПАРСЕР (фоновый процесс)                                            │   │
+│  │  PARSER (background process)                                         │   │
 │  │                                                                       │   │
-│  │  Источники:                                                          │   │
+│  │  Sources:                                                            │   │
 │  │  ├── mobileboost.ru                                                  │   │
 │  │  ├── all-spares.ru                                                   │   │
 │  │  ├── gsm-komplekt.ru                                                 │   │
-│  │  └── + другие по конфигу                                             │   │
+│  │  └── + others by config                                              │   │
 │  │                                                                       │   │
-│  │  Расписание: ежедневно 3:00 AM                                       │   │
+│  │  Schedule: daily at 3:00 AM                                          │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  НОРМАЛИЗАТОР                                                        │   │
+│  │  NORMALIZER                                                          │   │
 │  │                                                                       │   │
-│  │  Входные данные (сырые):                                             │   │
+│  │  Raw input data:                                                     │   │
 │  │  "Дисплей айфон 12 копия олед черный"                                │   │
 │  │  "Display iPhone 12 OLED Copy Black"                                 │   │
 │  │  "дисп. ip12 oled коп."                                              │   │
 │  │                                                                       │   │
-│  │  Справочники:                                                        │   │
-│  │  ├── elo_device_models (бренд, модель, алиасы)                       │   │
-│  │  ├── elo_part_types (дисплей, акб, шлейф, алиасы)                    │   │
-│  │  ├── elo_part_qualities (original, oem, copy, алиасы)                │   │
-│  │  └── elo_colors (черный, белый, алиасы)                              │   │
+│  │  Dictionaries:                                                       │   │
+│  │  ├── elo_device_models (brand, model, aliases)                       │   │
+│  │  ├── elo_part_types (display, battery, cable, aliases)               │   │
+│  │  ├── elo_part_qualities (original, oem, copy, aliases)               │   │
+│  │  └── elo_colors (black, white, aliases)                              │   │
 │  │                                                                       │   │
-│  │  Выходные данные (нормализованные):                                  │   │
+│  │  Normalized output:                                                  │   │
 │  │  {                                                                    │   │
 │  │    part_type: "display",                                             │   │
 │  │    brand: "Apple",                                                    │   │
@@ -243,12 +243,12 @@ CREATE TABLE elo_device_gateways (
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  ХРАНИЛИЩЕ ЦЕН                                                       │   │
+│  │  PRICE STORAGE                                                       │   │
 │  │                                                                       │   │
 │  │  elo_price_catalog:                                                  │   │
-│  │  ├── Нормализованные записи                                          │   │
-│  │  ├── История изменений                                               │   │
-│  │  └── Средние цены по рынку                                           │   │
+│  │  ├── Normalized records                                              │   │
+│  │  ├── Change history                                                  │   │
+│  │  └── Market average prices                                           │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
@@ -257,9 +257,9 @@ CREATE TABLE elo_device_gateways (
 │  │                                                                       │   │
 │  │  UNIVERSAL TOOL: price_lookup_live                                   │   │
 │  │                                                                       │   │
-│  │  Вход: {brand: "Apple", model: "iPhone 12", issue: "display"}        │   │
+│  │  Input: {brand: "Apple", model: "iPhone 12", issue: "display"}      │   │
 │  │                                                                       │   │
-│  │  Выход:                                                               │   │
+│  │  Output:                                                             │   │
 │  │  {                                                                    │   │
 │  │    prices: [                                                          │   │
 │  │      {quality: "copy_lcd", price: 1800, source: "market_avg"},       │   │
@@ -275,10 +275,10 @@ CREATE TABLE elo_device_gateways (
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Новые таблицы:**
+**New tables:**
 
 ```sql
--- Справочник моделей устройств
+-- Device model dictionary
 CREATE TABLE elo_device_models (
   id SERIAL PRIMARY KEY,
   brand VARCHAR NOT NULL,          -- Apple, Samsung
@@ -288,61 +288,61 @@ CREATE TABLE elo_device_models (
   is_active BOOLEAN DEFAULT true
 );
 
--- Справочник типов запчастей
+-- Part types dictionary
 CREATE TABLE elo_part_types (
   id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,           -- display, battery, back_cover
-  display_name VARCHAR,            -- Дисплей, АКБ, Задняя крышка
+  display_name VARCHAR,            -- Display, Battery, Back Cover
   aliases VARCHAR[],               -- {экран, стекло, дисп}
   subtypes VARCHAR[]               -- {lcd, oled, amoled}
 );
 
--- Справочник качества запчастей
+-- Part quality dictionary
 CREATE TABLE elo_part_qualities (
   id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,           -- original, oem, copy
-  display_name VARCHAR,            -- Оригинал, OEM, Копия
+  display_name VARCHAR,            -- Original, OEM, Copy
   aliases VARCHAR[],               -- {ориг, orig, оригинальный}
   rank INT                         -- 1=best, 3=cheapest
 );
 
--- Каталог цен (нормализованный)
+-- Price catalog (normalized)
 CREATE TABLE elo_price_catalog (
   id UUID PRIMARY KEY,
 
-  -- Нормализованные поля
+  -- Normalized fields
   device_model_id INT REFERENCES elo_device_models(id),
   part_type_id INT REFERENCES elo_part_types(id),
   part_quality_id INT REFERENCES elo_part_qualities(id),
-  subtype VARCHAR,                 -- oled, lcd для display
+  subtype VARCHAR,                 -- oled, lcd for display
   color VARCHAR,
 
-  -- Цена
+  -- Price
   price DECIMAL(10,2) NOT NULL,
   currency VARCHAR DEFAULT 'RUB',
 
-  -- Источник
+  -- Source
   source_url VARCHAR,
   source_name VARCHAR,             -- mobileboost.ru
 
-  -- Метаданные
-  raw_title VARCHAR,               -- Оригинальное название
+  -- Metadata
+  raw_title VARCHAR,               -- Original title
   parsed_at TIMESTAMPTZ DEFAULT NOW(),
   is_active BOOLEAN DEFAULT true
 );
 
--- Наценки тенантов
+-- Tenant pricing
 CREATE TABLE elo_tenant_pricing (
   id UUID PRIMARY KEY,
   tenant_id UUID REFERENCES elo_tenants(id),
 
-  -- Глобальная наценка
+  -- Global markup
   global_markup DECIMAL(5,2) DEFAULT 1.3,  -- x1.3 = +30%
 
-  -- Наценки по типам
+  -- Markup by type
   markup_by_type JSONB,            -- {display: 1.4, battery: 1.2}
 
-  -- Фиксированные цены (переопределяют рыночные)
+  -- Fixed prices (override market)
   fixed_prices JSONB,              -- {device_model_id: {part_type: price}}
 
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -351,44 +351,44 @@ CREATE TABLE elo_tenant_pricing (
 
 ---
 
-### 3. Голос → Граф → Мессенджер
+### 3. Voice → Graph → Messenger
 
-**Уровни:** 7 (Phone) → 4 (voice_transcribe) → 1 (Context Builder) → 5 (Dialog Engine) → 7 (Messenger)
+**Levels:** 7 (Phone) → 4 (voice_transcribe) → 1 (Context Builder) → 5 (Dialog Engine) → 7 (Messenger)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
-│                    ГОЛОС → ГРАФ → МЕССЕНДЖЕР                                │
+│                    VOICE → GRAPH → MESSENGER                                │
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ ЭТАП 1: ЗВОНОК (УРОВЕНЬ 7)                                           │   │
+│  │ STAGE 1: CALL (LEVEL 7)                                              │   │
 │  │                                                                       │   │
-│  │  Источники:                                                          │   │
-│  │  ├── Asterisk (своя АТС)                                             │   │
-│  │  ├── Облачная АТС (Mango, Zadarma)                                   │   │
-│  │  └── Смартфон-сервер (запись через mic)                              │   │
+│  │  Sources:                                                            │   │
+│  │  ├── Asterisk (own PBX)                                              │   │
+│  │  ├── Cloud PBX (Mango, Zadarma)                                      │   │
+│  │  └── Smartphone server (mic recording)                               │   │
 │  │                                                                       │   │
-│  │  Выход: audio_file (wav/mp3) + call_metadata                         │   │
+│  │  Output: audio_file (wav/mp3) + call_metadata                        │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ ЭТАП 2: ТРАНСКРИБАЦИЯ (УРОВЕНЬ 4 - NEW TOOL)                         │   │
+│  │ STAGE 2: TRANSCRIPTION (LEVEL 4 - NEW TOOL)                          │   │
 │  │                                                                       │   │
 │  │  Tool: voice_transcribe                                              │   │
 │  │  API: Whisper (OpenAI) / Whisper (self-hosted)                       │   │
 │  │                                                                       │   │
-│  │  Вход: {audio_url, language: "ru"}                                   │   │
-│  │  Выход: {transcript: "...", segments: [...], duration: 45}           │   │
+│  │  Input: {audio_url, language: "ru"}                                  │   │
+│  │  Output: {transcript: "...", segments: [...], duration: 45}          │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ ЭТАП 3: AI ИЗВЛЕЧЕНИЕ (УРОВНИ 3-4)                                   │   │
+│  │ STAGE 3: AI EXTRACTION (LEVELS 3-4)                                  │   │
 │  │                                                                       │   │
-│  │  Стандартный пайплайн:                                               │   │
+│  │  Standard pipeline:                                                  │   │
 │  │  ├── device_extract → {brand, model}                                 │   │
 │  │  ├── issue_extract → {category, description}                         │   │
 │  │  ├── intent_classify → {intent: REPAIR}                              │   │
@@ -398,7 +398,7 @@ CREATE TABLE elo_tenant_pricing (
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ ЭТАП 4: ЗАПИСЬ В ГРАФ (УРОВНИ 1, 5)                                  │   │
+│  │ STAGE 4: WRITE TO GRAPH (LEVELS 1, 5)                                │   │
 │  │                                                                       │   │
 │  │  Context Builder: resolve client by phone number                     │   │
 │  │  Dialog Engine: save + sync to Neo4j                                 │   │
@@ -414,16 +414,16 @@ CREATE TABLE elo_tenant_pricing (
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ ЭТАП 5: ПРОДОЛЖЕНИЕ В МЕССЕНДЖЕРЕ (УРОВНИ 6-7)                       │   │
+│  │ STAGE 5: CONTINUE IN MESSENGER (LEVELS 6-7)                          │   │
 │  │                                                                       │   │
-│  │  Response Builder генерирует follow-up:                              │   │
-│  │  "Добрый день! Вы звонили по поводу {device},                        │   │
-│  │   который {issue}. Ждём вас {appointment}.                           │   │
-│  │   Напомнить за час до визита?"                                       │   │
+│  │  Response Builder generates follow-up:                               │   │
+│  │  "Hello! You called about {device},                                  │   │
+│  │   which has {issue}. Waiting for you {appointment}.                  │   │
+│  │   Remind you an hour before visit?"                                  │   │
 │  │                                                                       │   │
-│  │  Отправка через доступный канал:                                     │   │
-│  │  ├── Telegram (если есть)                                            │   │
-│  │  ├── WhatsApp (если есть)                                            │   │
+│  │  Send via available channel:                                         │   │
+│  │  ├── Telegram (if exists)                                            │   │
+│  │  ├── WhatsApp (if exists)                                            │   │
 │  │  └── SMS (fallback)                                                  │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
@@ -431,78 +431,78 @@ CREATE TABLE elo_tenant_pricing (
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Новые tools:**
+**New tools:**
 
 ```sql
 INSERT INTO ai_tools (name, display_name, description, prompt_template, output_schema) VALUES
-('voice_transcribe', 'Транскрибация голоса',
- 'Преобразует аудио в текст',
- NULL,  -- не AI, внешний API
+('voice_transcribe', 'Voice Transcription',
+ 'Converts audio to text',
+ NULL,  -- not AI, external API
  '{"transcript": "string", "segments": "array", "duration": "number"}'
 ),
-('appointment_extract', 'Извлечение записи',
- 'Извлекает договорённости о визите из текста',
- 'Извлеки из текста информацию о записи на визит. Дата, время, особые пожелания.',
+('appointment_extract', 'Appointment Extraction',
+ 'Extracts appointment information from text',
+ 'Extract from text information about visit appointment. Date, time, special requests.',
  '{"date": "string", "time": "string", "notes": "string"}'
 );
 ```
 
 ---
 
-### 4. QR для идентификации клиента
+### 4. QR for Client Identification
 
-**Уровни:** 7 (новый entry point) → 1 (Context Builder)
+**Levels:** 7 (new entry point) → 1 (Context Builder)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
-│                       QR ИДЕНТИФИКАЦИЯ                                       │
+│                       QR IDENTIFICATION                                      │
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  QR КОДЫ (генерация)                                                 │   │
+│  │  QR CODES (generation)                                               │   │
 │  │                                                                       │   │
-│  │  Тип 1: На стойке/визитке                                            │   │
+│  │  Type 1: On desk/business card                                       │   │
 │  │  URL: https://elo.do/{tenant_code}                                   │   │
-│  │  → Открывает deep link в Telegram/WhatsApp                           │   │
-│  │  → Сообщение: /start {tenant_code}                                   │   │
+│  │  → Opens deep link in Telegram/WhatsApp                              │   │
+│  │  → Message: /start {tenant_code}                                     │   │
 │  │                                                                       │   │
-│  │  Тип 2: На устройстве после ремонта                                  │   │
+│  │  Type 2: On device after repair                                      │   │
 │  │  URL: https://elo.do/{tenant_code}/d/{device_id_short}               │   │
-│  │  → Открывает чат с привязкой к устройству                            │   │
-│  │  → Сообщение: /start {tenant_code}_{device_id}                       │   │
+│  │  → Opens chat with device binding                                    │   │
+│  │  → Message: /start {tenant_code}_{device_id}                         │   │
 │  │                                                                       │   │
-│  │  Тип 3: На чеке/квитанции                                            │   │
+│  │  Type 3: On receipt/invoice                                          │   │
 │  │  URL: https://elo.do/{tenant_code}/r/{repair_id_short}               │   │
-│  │  → Открывает чат с историей ремонта                                  │   │
+│  │  → Opens chat with repair history                                    │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  CONTEXT BUILDER (расширение)                                        │   │
+│  │  CONTEXT BUILDER (extension)                                         │   │
 │  │                                                                       │   │
-│  │  Вход: /start {code}                                                 │   │
+│  │  Input: /start {code}                                                │   │
 │  │                                                                       │   │
-│  │  Парсинг:                                                            │   │
+│  │  Parse:                                                              │   │
 │  │  ├── code = "ABC123"         → tenant only                           │   │
 │  │  ├── code = "ABC123_D456"    → tenant + device                       │   │
 │  │  └── code = "ABC123_R789"    → tenant + repair                       │   │
 │  │                                                                       │   │
-│  │  Резолв клиента:                                                     │   │
-│  │  ├── По telegram_id/whatsapp_phone                                   │   │
-│  │  ├── Если device_id → подгрузить историю устройства                  │   │
-│  │  └── Если repair_id → подгрузить историю ремонта                     │   │
+│  │  Resolve client:                                                     │   │
+│  │  ├── By telegram_id/whatsapp_phone                                   │   │
+│  │  ├── If device_id → load device history                              │   │
+│  │  └── If repair_id → load repair history                              │   │
 │  │                                                                       │   │
-│  │  Выход: unified_context с предзаполненными данными                   │   │
+│  │  Output: unified_context with prefilled data                         │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Новая таблица:**
+**New table:**
 
 ```sql
 CREATE TABLE elo_qr_codes (
@@ -512,25 +512,25 @@ CREATE TABLE elo_qr_codes (
   code VARCHAR UNIQUE NOT NULL,    -- ABC123
   type VARCHAR NOT NULL,           -- tenant, device, repair
 
-  -- Привязка (опционально)
+  -- Binding (optional)
   device_id UUID,
   repair_id UUID,
 
-  -- Статистика
+  -- Statistics
   scans_count INT DEFAULT 0,
   last_scanned_at TIMESTAMPTZ,
 
-  -- Метаданные
-  label VARCHAR,                   -- "Стойка у входа", "Визитка Иван"
+  -- Metadata
+  label VARCHAR,                   -- "Desk at entrance", "Business card Ivan"
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
 ---
 
-### 5. Интеграции LiveSklad/Remonline
+### 5. LiveSklad/Remonline Integrations
 
-**Уровень:** 5 (Dialog Engine) + Новый блок External Integrations
+**Level:** 5 (Dialog Engine) + New Block External Integrations
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -539,11 +539,11 @@ CREATE TABLE elo_qr_codes (
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  DIALOG ENGINE → ИНТЕГРАЦИЯ                                          │   │
+│  │  DIALOG ENGINE → INTEGRATION                                         │   │
 │  │                                                                       │   │
-│  │  Триггер: stage изменился на SCHEDULED/RECEIVED                      │   │
+│  │  Trigger: stage changed to SCHEDULED/RECEIVED                        │   │
 │  │                                                                       │   │
-│  │  Данные для отправки:                                                │   │
+│  │  Data to send:                                                       │   │
 │  │  {                                                                    │   │
 │  │    client: {name, phone, source_channel},                            │   │
 │  │    device: {brand, model, serial, imei},                             │   │
@@ -555,17 +555,17 @@ CREATE TABLE elo_qr_codes (
 │  │  → API LiveSklad: POST /api/orders                                   │   │
 │  │  → API Remonline: POST /api/v1/orders                                │   │
 │  │                                                                       │   │
-│  │  Ответ: external_order_id                                            │   │
-│  │  Сохраняем в: elo_dialogs.external_ids                               │   │
+│  │  Response: external_order_id                                         │   │
+│  │  Save to: elo_dialogs.external_ids                                   │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  ИНТЕГРАЦИЯ → DIALOG ENGINE (обратная связь)                         │   │
+│  │  INTEGRATION → DIALOG ENGINE (feedback)                              │   │
 │  │                                                                       │   │
-│  │  Webhook от LiveSklad/Remonline:                                     │   │
+│  │  Webhook from LiveSklad/Remonline:                                   │   │
 │  │  {                                                                    │   │
 │  │    order_id: "ext_123",                                              │   │
 │  │    status: "completed",                                               │   │
@@ -577,17 +577,17 @@ CREATE TABLE elo_qr_codes (
 │  │    total_price: 9700                                                  │   │
 │  │  }                                                                    │   │
 │  │                                                                       │   │
-│  │  Действия:                                                           │   │
-│  │  ├── Обновить elo_dialogs.context                                    │   │
-│  │  ├── Обновить Neo4j (Problem.resolved = true)                        │   │
-│  │  └── Сохранить для обучения AI                                       │   │
+│  │  Actions:                                                            │   │
+│  │  ├── Update elo_dialogs.context                                      │   │
+│  │  ├── Update Neo4j (Problem.resolved = true)                          │   │
+│  │  └── Save for AI training                                            │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Новые таблицы:**
+**New tables:**
 
 ```sql
 CREATE TABLE elo_external_integrations (
@@ -601,7 +601,7 @@ CREATE TABLE elo_external_integrations (
   api_url VARCHAR,
   webhook_secret VARCHAR,
 
-  -- Настройки синхронизации
+  -- Sync settings
   sync_on_stages VARCHAR[],        -- {SCHEDULED, RECEIVED}
   sync_back_enabled BOOLEAN DEFAULT true,
 
@@ -609,14 +609,14 @@ CREATE TABLE elo_external_integrations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Логирование синхронизации
+-- Integration logging
 CREATE TABLE elo_integration_logs (
   id UUID PRIMARY KEY,
   integration_id UUID REFERENCES elo_external_integrations(id),
   dialog_id UUID REFERENCES elo_dialogs(id),
 
   direction VARCHAR,               -- outbound, inbound
-  external_id VARCHAR,             -- ID в внешней системе
+  external_id VARCHAR,             -- ID in external system
 
   request_payload JSONB,
   response_payload JSONB,
@@ -630,9 +630,9 @@ CREATE TABLE elo_integration_logs (
 
 ---
 
-### 6. Самообучение + Предписанные ответы (Learning Engine)
+### 6. Self-learning + Prescriptive Answers (Learning Engine)
 
-**Уровни:** 0 (Knowledge Base) + 4 (knowledge_lookup) + 5 (Feedback Loop)
+**Levels:** 0 (Knowledge Base) + 4 (knowledge_lookup) + 5 (Feedback Loop)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -641,17 +641,17 @@ CREATE TABLE elo_integration_logs (
 │                                                                              │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  KNOWLEDGE BASE (предписанные ответы тенанта)                        │   │
+│  │  KNOWLEDGE BASE (tenant prescriptive answers)                        │   │
 │  │                                                                       │   │
-│  │  Тенант задаёт:                                                      │   │
-│  │  ├── Триггер: "гарантия"                                             │   │
-│  │  │   Ответ: "Гарантия 30 дней на работу, 90 дней на запчасти"       │   │
+│  │  Tenant defines:                                                     │   │
+│  │  ├── Trigger: "warranty"                                             │   │
+│  │  │   Answer: "30 days warranty on labor, 90 days on parts"          │   │
 │  │  │                                                                    │   │
-│  │  ├── Триггер: "адрес|как добраться|где находитесь"                   │   │
-│  │  │   Ответ: "ул. Ленина 15, вход со двора, красная дверь"           │   │
+│  │  ├── Trigger: "address|how to get|where are you"                     │   │
+│  │  │   Answer: "Lenin St 15, entrance from yard, red door"            │   │
 │  │  │                                                                    │   │
-│  │  └── Триггер: "график|время работы|до скольки"                       │   │
-│  │      Ответ: "Работаем ежедневно с 10:00 до 20:00"                    │   │
+│  │  └── Trigger: "schedule|hours|until what time"                       │   │
+│  │      Answer: "Open daily from 10:00 to 20:00"                        │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
@@ -660,104 +660,104 @@ CREATE TABLE elo_integration_logs (
 │  │                                                                       │   │
 │  │  UNIVERSAL TOOL: knowledge_lookup                                    │   │
 │  │                                                                       │   │
-│  │  Вход: {message, tenant_id}                                          │   │
+│  │  Input: {message, tenant_id}                                         │   │
 │  │                                                                       │   │
-│  │  Логика:                                                             │   │
-│  │  1. Проверить триггеры (regex/embedding)                             │   │
-│  │  2. Если match → вернуть предписанный ответ                          │   │
-│  │  3. Если нет → вернуть null (AI генерирует)                          │   │
+│  │  Logic:                                                              │   │
+│  │  1. Check triggers (regex/embedding)                                 │   │
+│  │  2. If match → return prescriptive answer                            │   │
+│  │  3. If no match → return null (AI generates)                         │   │
 │  │                                                                       │   │
-│  │  Выход: {matched: true, response: "...", source: "knowledge_base"}   │   │
+│  │  Output: {matched: true, response: "...", source: "knowledge_base"}  │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                              │                                               │
 │                              ▼                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                       │   │
-│  │  FEEDBACK LOOP (обучение)                                            │   │
+│  │  FEEDBACK LOOP (learning)                                            │   │
 │  │                                                                       │   │
-│  │  Источники обучения:                                                 │   │
+│  │  Learning sources:                                                   │   │
 │  │                                                                       │   │
-│  │  1. Подтверждённые ответы операторов:                                │   │
-│  │     AI предложил → Оператор подтвердил/исправил → Сохраняем          │   │
+│  │  1. Confirmed operator answers:                                      │   │
+│  │     AI suggested → Operator confirmed/edited → Save                  │   │
 │  │                                                                       │   │
-│  │  2. Реальные ремонты (из External Integrations):                     │   │
-│  │     Клиент сказал: "телефон глючит"                                  │   │
-│  │     Реальный ремонт: замена АКБ                                      │   │
-│  │     → AI учится: "глючит" часто = проблема с АКБ                     │   │
+│  │  2. Real repairs (from External Integrations):                       │   │
+│  │     Client said: "phone glitching"                                   │   │
+│  │     Actual repair: battery replacement                               │   │
+│  │     → AI learns: "glitching" often = battery problem                 │   │
 │  │                                                                       │   │
-│  │  3. Голосовые ответы операторов:                                     │   │
-│  │     Оператор надиктовал → Транскрибация → Нормализация               │   │
-│  │     → Добавление в Knowledge Base (с review)                         │   │
+│  │  3. Operator voice answers:                                          │   │
+│  │     Operator dictated → Transcription → Normalization                │   │
+│  │     → Add to Knowledge Base (with review)                            │   │
 │  │                                                                       │   │
-│  │  Хранение:                                                           │   │
-│  │  ├── elo_learning_examples (примеры)                                 │   │
-│  │  └── elo_learning_feedback (оценки операторов)                       │   │
+│  │  Storage:                                                            │   │
+│  │  ├── elo_learning_examples (examples)                                │   │
+│  │  └── elo_learning_feedback (operator ratings)                        │   │
 │  │                                                                       │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Новые таблицы:**
+**New tables:**
 
 ```sql
--- База знаний тенанта (предписанные ответы)
+-- Tenant knowledge base (prescriptive answers)
 CREATE TABLE elo_knowledge_base (
   id UUID PRIMARY KEY,
   tenant_id UUID REFERENCES elo_tenants(id),
 
-  -- Триггер (что ищем)
+  -- Trigger (what we search for)
   trigger_type VARCHAR,            -- regex, keywords, embedding
-  trigger_pattern VARCHAR,         -- "гарантия|гарантии|гарантией"
-  trigger_embedding VECTOR(1536),  -- для semantic search
+  trigger_pattern VARCHAR,         -- "warranty|warranties"
+  trigger_embedding VECTOR(1536),  -- for semantic search
 
-  -- Ответ
+  -- Answer
   response TEXT NOT NULL,
   response_type VARCHAR,           -- text, template
 
-  -- Метаданные
+  -- Metadata
   category VARCHAR,                -- faq, policy, location
-  priority INT DEFAULT 0,          -- выше = важнее
+  priority INT DEFAULT 0,          -- higher = more important
 
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Примеры для обучения
+-- Training examples
 CREATE TABLE elo_learning_examples (
   id UUID PRIMARY KEY,
   tenant_id UUID REFERENCES elo_tenants(id),
 
-  -- Что клиент сказал
+  -- What client said
   client_message TEXT NOT NULL,
-  extracted_entities JSONB,        -- что AI извлёк
+  extracted_entities JSONB,        -- what AI extracted
 
-  -- Что реально оказалось
-  actual_repair JSONB,             -- из External Integration
-  actual_entities JSONB,           -- реальные устройство/проблема
+  -- What actually happened
+  actual_repair JSONB,             -- from External Integration
+  actual_entities JSONB,           -- real device/problem
 
-  -- Качество извлечения
+  -- Extraction quality
   extraction_correct BOOLEAN,
 
   source VARCHAR,                  -- integration_callback, operator_feedback
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Фидбек операторов
+-- Operator feedback
 CREATE TABLE elo_learning_feedback (
   id UUID PRIMARY KEY,
   dialog_id UUID REFERENCES elo_dialogs(id),
   operator_id UUID REFERENCES elo_operators(id),
 
-  -- AI предложил
+  -- AI suggested
   ai_response TEXT,
 
-  -- Оператор сделал
+  -- Operator did
   operator_action VARCHAR,         -- approved, edited, rejected
-  operator_response TEXT,          -- если edited
+  operator_response TEXT,          -- if edited
 
-  -- Оценка
+  -- Rating
   rating INT,                      -- 1-5
   comment TEXT,
 
@@ -767,7 +767,7 @@ CREATE TABLE elo_learning_feedback (
 
 ---
 
-## Итоговая схема
+## Final Schema
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -775,7 +775,7 @@ CREATE TABLE elo_learning_feedback (
 │                           ELO FULL ARCHITECTURE                              │
 │                                                                              │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                     НОВЫЕ БЛОКИ                                      │    │
+│  │                     NEW BLOCKS                                       │    │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │    │
 │  │  │  PRICE   │ │  DEVICE  │ │ EXTERNAL │ │ LEARNING │               │    │
 │  │  │  ENGINE  │ │  GATEWAY │ │  INTEGR. │ │  ENGINE  │               │    │
@@ -786,7 +786,7 @@ CREATE TABLE elo_learning_feedback (
 │          ▼            ▼            ▼            ▼                           │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │                                                                      │    │
-│  │  7. MCP КАНАЛЫ + Device Gateway + QR                                │    │
+│  │  7. MCP CHANNELS + Device Gateway + QR                              │    │
 │  │     TG | WA | VK | Avito | MAX | Phone | Form | [DeviceGW] | [QR]   │    │
 │  │                                                                      │    │
 │  │  6. RESPONSE BUILDER + Voice TTS                                    │    │
@@ -802,7 +802,7 @@ CREATE TABLE elo_learning_feedback (
 │  │                                                                      │    │
 │  │  1. CONTEXT BUILDER + QR resolution + Phone context                 │    │
 │  │                                                                      │    │
-│  │  0. ДАННЫЕ: PostgreSQL + Neo4j + PriceCatalog + KnowledgeBase       │    │
+│  │  0. DATA: PostgreSQL + Neo4j + PriceCatalog + KnowledgeBase         │    │
 │  │                                                                      │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                              │
@@ -811,27 +811,27 @@ CREATE TABLE elo_learning_feedback (
 
 ---
 
-## Порядок реализации
+## Implementation Order
 
-| # | Блок/Фича | Зависимости | Сложность |
-|---|-----------|-------------|-----------|
-| 1 | Knowledge Base + knowledge_lookup | Нет | Низкая |
-| 2 | QR идентификация | Нет | Низкая |
-| 3 | Voice transcribe tool | Whisper API | Низкая |
-| 4 | Phone → Graph → Messenger flow | #3 | Средняя |
-| 5 | Price Engine (парсер) | Нет | Средняя |
-| 6 | Price Engine (нормализация) | #5 | Средняя |
-| 7 | price_lookup_live tool | #6 | Низкая |
-| 8 | External Integrations (outbound) | Нет | Средняя |
-| 9 | External Integrations (inbound webhook) | #8 | Средняя |
-| 10 | Learning Engine (feedback) | #8, #9 | Средняя |
-| 11 | Device Gateway (архитектура) | Нет | Высокая |
-| 12 | Device Gateway (WhatsApp module) | #11 | Высокая |
-| 13 | Device Gateway (Avito module) | #11 | Высокая |
-| 14 | Device Gateway (MAX module) | #11 | Высокая |
+| # | Block/Feature | Dependencies | Complexity |
+|---|--------------|--------------|------------|
+| 1 | Knowledge Base + knowledge_lookup | None | Low |
+| 2 | QR identification | None | Low |
+| 3 | Voice transcribe tool | Whisper API | Low |
+| 4 | Phone → Graph → Messenger flow | #3 | Medium |
+| 5 | Price Engine (parser) | None | Medium |
+| 6 | Price Engine (normalization) | #5 | Medium |
+| 7 | price_lookup_live tool | #6 | Low |
+| 8 | External Integrations (outbound) | None | Medium |
+| 9 | External Integrations (inbound webhook) | #8 | Medium |
+| 10 | Learning Engine (feedback) | #8, #9 | Medium |
+| 11 | Device Gateway (architecture) | None | High |
+| 12 | Device Gateway (WhatsApp module) | #11 | High |
+| 13 | Device Gateway (Avito module) | #11 | High |
+| 14 | Device Gateway (MAX module) | #11 | High |
 
 ---
 
-**Автор:** User + Claude Code
-**Дата:** 2025-12-10
-**Версия:** 1.0
+**Author:** User + Claude Code
+**Date:** 2025-12-10
+**Version:** 1.0

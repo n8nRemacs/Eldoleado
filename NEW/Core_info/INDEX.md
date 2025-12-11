@@ -1,17 +1,17 @@
-# Core_info — Документация Workflows
+# Core_info — Workflow Documentation
 
-> Детальное описание каждого workflow: входы, выходы, ноды, SQL, Redis, Neo4j
+> Detailed description of each workflow: inputs, outputs, nodes, SQL, Redis, Neo4j
 
-**[HOW_TO_DOCUMENT.md](HOW_TO_DOCUMENT.md)** — Инструкция по документированию workflows
+**[HOW_TO_DOCUMENT.md](HOW_TO_DOCUMENT.md)** — Workflow documentation guide
 
 ---
 
-## Структура
+## Structure
 
 ```
 Core_info/
-├── INDEX.md                              ← этот файл
-├── HOW_TO_DOCUMENT.md                    ← инструкция
+├── INDEX.md                              ← this file
+├── HOW_TO_DOCUMENT.md                    ← guide
 ├── 01_Channel_Layer/
 │   └── workflows_info/
 │       ├── ELO_In_Telegram.md            ✅
@@ -33,15 +33,14 @@ Core_info/
 │       ├── ELO_Core_Queue_Processor.md      ✅
 │       ├── ELO_Core_Batch_Debouncer.md      ✅
 │       └── ELO_Core_Client_Resolver.md      ✅
-├── 03_Core/
+├── 03_Client_Contour/
 │   └── workflows_info/
-│       └── (TODO)
+│       └── CLIENT_CONTOUR_OVERVIEW.md   ✅
 ├── 04_Graph/
 │   └── workflows_info/
-│       └── (TODO)
-├── 05_Diagnostic_Engine/
-│   └── workflows_info/
-│       └── (TODO)
+│       └── GRAPH_OVERVIEW.md            ✅
+├── 05_Core_Contour/
+│   └── CORE_CONTOUR_OVERVIEW.md         ✅
 └── 06_API/
     └── workflows_info/
         ├── API_Android_Auth.md           ✅
@@ -50,68 +49,92 @@ Core_info/
 
 ---
 
-## Блоки системы
+## System Blocks
 
-| # | Блок | Описание | Статус |
+| # | Block | Description | Status |
 |---|------|----------|--------|
-| 1 | Channel Layer | ELO_In_*, ELO_Out_* | **12/12** |
-| 2 | Input Contour | Tenant Resolver, Queue Processor, Debouncer, Client Resolver | **5/5** |
-| 3 | Core | Dialog Engine, AI Router | TODO |
-| 4 | Graph | Neo4j операции | TODO |
-| 5 | Diagnostic Engine | Симптомы, диагнозы | TODO |
+| 1 | Channel Layer | ELO_In_*, ELO_Out_*, Response Builder | **13/13** |
+| 2 | Input Contour | Tenant Resolver, Queue, Batcher | **5/5** |
+| 3 | Client Contour | Client Resolver, Dialog Resolver | **1/1** |
+| 4 | Graph | Neo4j operations, Graph Query Tool | **1/1** |
+| 5 | Core Contour | Context Builder, Request Builder, Orchestrator, Dialog Engine | **1/1** |
 | 6 | API | Android API endpoints | 2/27 |
 
 ---
 
-## Задокументированные Workflows
+## Documented Workflows
 
-### 01_Channel_Layer — ELO_In (7)
+### 01_Channel_Layer (13)
 
-| Workflow | Файл | Особенности |
+| Document | File | Features |
+|----------|------|----------|
+| **Overview** | [CHANNEL_CONTOUR_OVERVIEW.md](01_Channel_Layer/CHANNEL_CONTOUR_OVERVIEW.md) | IN + OUT unified, Response Builder, channel limits |
+
+#### ELO_In (7)
+
+| Workflow | File | Features |
 |----------|------|-------------|
 | ELO_In_Telegram | [ELO_In_Telegram.md](01_Channel_Layer/workflows_info/ELO_In_Telegram.md) | MCP API, bot_token passthrough |
-| ELO_In_WhatsApp | [ELO_In_WhatsApp.md](01_Channel_Layer/workflows_info/ELO_In_WhatsApp.md) | Wappi.pro, phone из chatId |
-| ELO_In_Avito | [ELO_In_Avito.md](01_Channel_Layer/workflows_info/ELO_In_Avito.md) | Фильтр системных, ad_id |
+| ELO_In_WhatsApp | [ELO_In_WhatsApp.md](01_Channel_Layer/workflows_info/ELO_In_WhatsApp.md) | Wappi.pro, phone from chatId |
+| ELO_In_Avito | [ELO_In_Avito.md](01_Channel_Layer/workflows_info/ELO_In_Avito.md) | Filter system messages, ad_id |
 | ELO_In_VK | [ELO_In_VK.md](01_Channel_Layer/workflows_info/ELO_In_VK.md) | Confirmation flow, "ok" response |
 | ELO_In_MAX | [ELO_In_MAX.md](01_Channel_Layer/workflows_info/ELO_In_MAX.md) | Phone 8→7, sender extraction |
 | ELO_In_Form | [ELO_In_Form.md](01_Channel_Layer/workflows_info/ELO_In_Form.md) | **NO Redis**, prefilled model |
 | ELO_In_Phone | [ELO_In_Phone.md](01_Channel_Layer/workflows_info/ELO_In_Phone.md) | **NO Redis**, always voice |
 
-### 01_Channel_Layer — ELO_Out (5)
+#### ELO_Out (5)
 
-| Workflow | Файл | Особенности |
+| Workflow | File | Features |
 |----------|------|-------------|
-| ELO_Out_Telegram | [ELO_Out_Telegram.md](01_Channel_Layer/workflows_info/ELO_Out_Telegram.md) | Bot token из БД, MCP API |
+| ELO_Out_Telegram | [ELO_Out_Telegram.md](01_Channel_Layer/workflows_info/ELO_Out_Telegram.md) | Bot token from DB, MCP API |
 | ELO_Out_WhatsApp | [ELO_Out_WhatsApp.md](01_Channel_Layer/workflows_info/ELO_Out_WhatsApp.md) | Wappi.pro sync API |
 | ELO_Out_Avito | [ELO_Out_Avito.md](01_Channel_Layer/workflows_info/ELO_Out_Avito.md) | OAuth token refresh, Redis cache |
-| ELO_Out_VK | [ELO_Out_VK.md](01_Channel_Layer/workflows_info/ELO_Out_VK.md) | random_id обязателен |
+| ELO_Out_VK | [ELO_Out_VK.md](01_Channel_Layer/workflows_info/ELO_Out_VK.md) | random_id required |
 | ELO_Out_MAX | [ELO_Out_MAX.md](01_Channel_Layer/workflows_info/ELO_Out_MAX.md) | MAX_API_URL env |
 
 ### 02_Input_Contour (5)
 
-| Workflow | Файл | Особенности |
+| Workflow | File | Features |
 |----------|------|-------------|
-| Overview | [INPUT_CONTOUR_OVERVIEW.md](02_Input_Contour/workflows_info/INPUT_CONTOUR_OVERVIEW.md) | Архитектура, Redis ключи, debounce логика |
-| ELO_Core_Tenant_Resolver | [ELO_Core_Tenant_Resolver.md](02_Input_Contour/workflows_info/ELO_Core_Tenant_Resolver.md) | Определение tenant по credentials |
-| ELO_Core_Queue_Processor | [ELO_Core_Queue_Processor.md](02_Input_Contour/workflows_info/ELO_Core_Queue_Processor.md) | POP из очереди, группировка по chat |
-| ELO_Core_Batch_Debouncer | [ELO_Core_Batch_Debouncer.md](02_Input_Contour/workflows_info/ELO_Core_Batch_Debouncer.md) | 10s debounce, склейка сообщений |
-| ELO_Core_Client_Resolver | [ELO_Core_Client_Resolver.md](02_Input_Contour/workflows_info/ELO_Core_Client_Resolver.md) | Поиск/создание клиента |
+| Overview | [INPUT_CONTOUR_OVERVIEW.md](02_Input_Contour/workflows_info/INPUT_CONTOUR_OVERVIEW.md) | Architecture, Redis keys, debounce logic |
+| ELO_Core_Tenant_Resolver | [ELO_Core_Tenant_Resolver.md](02_Input_Contour/workflows_info/ELO_Core_Tenant_Resolver.md) | Determine tenant by credentials |
+| ELO_Core_Queue_Processor | [ELO_Core_Queue_Processor.md](02_Input_Contour/workflows_info/ELO_Core_Queue_Processor.md) | POP from queue, group by chat |
+| ELO_Core_Batch_Debouncer | [ELO_Core_Batch_Debouncer.md](02_Input_Contour/workflows_info/ELO_Core_Batch_Debouncer.md) | 10s debounce, message concatenation |
+| ELO_Core_Client_Resolver | [ELO_Core_Client_Resolver.md](02_Input_Contour/workflows_info/ELO_Core_Client_Resolver.md) | Find/create client |
 
-### 06_API
+### 03_Client_Contour (1)
 
-| Workflow | Файл | Описание |
+| Document | File | Features |
 |----------|------|----------|
-| API_Android_Auth | [API_Android_Auth.md](06_API/workflows_info/API_Android_Auth.md) | Авторизация оператора |
-| API_Android_Appeals_List | [API_Android_Appeals_List.md](06_API/workflows_info/API_Android_Appeals_List.md) | Список обращений |
+| Overview | [CLIENT_CONTOUR_OVERVIEW.md](03_Client_Contour/workflows_info/CLIENT_CONTOUR_OVERVIEW.md) | Client Resolver, Dialog Resolver, future merge logic |
+
+### 04_Graph (1)
+
+| Document | File | Features |
+|----------|------|----------|
+| Overview | [GRAPH_OVERVIEW.md](04_Graph/workflows_info/GRAPH_OVERVIEW.md) | Neo4j schema, Graph Query Tool, cypher_queries |
+
+### 05_Core_Contour (1)
+
+| Document | File | Features |
+|----------|------|----------|
+| Overview | [CORE_CONTOUR_OVERVIEW.md](05_Core_Contour/CORE_CONTOUR_OVERVIEW.md) | Context Builder, Request Builder (Stick-Carrot-Stick), Orchestrator, Dialog Engine |
+
+### 06_API (2)
+
+| Workflow | File | Description |
+|----------|------|----------|
+| API_Android_Auth | [API_Android_Auth.md](06_API/workflows_info/API_Android_Auth.md) | Operator authorization |
+| API_Android_Appeals_List | [API_Android_Appeals_List.md](06_API/workflows_info/API_Android_Appeals_List.md) | Appeals list |
 
 ---
 
-## Паттерны ELO_In
+## ELO_In Patterns
 
-| Тип | Workflows | Особенности |
+| Type | Workflows | Features |
 |-----|-----------|-------------|
 | **Standard** | Telegram, WhatsApp, VK, MAX, Avito | Redis queue, Tenant Resolver |
-| **Direct** | Form, Phone | NO Redis, Client Resolver сразу |
+| **Direct** | Form, Phone | NO Redis, Client Resolver directly |
 
 **Standard flow:**
 ```
@@ -125,14 +148,14 @@ Webhook → Extract → (Voice?) → Normalize → Tenant Resolver → Client Re
 
 ---
 
-## Паттерны ELO_Out
+## ELO_Out Patterns
 
-**Общий flow:**
+**Common flow:**
 ```
 Execute Trigger → [Get Credentials?] → Send Message → Process Response → Save History → Register Touchpoint
 ```
 
-| Channel | Credentials | Особенности |
+| Channel | Credentials | Features |
 |---------|------------|-------------|
 | Telegram | PostgreSQL (tenant_configs) | MCP API |
 | WhatsApp | - | Wappi.pro direct |
@@ -145,20 +168,20 @@ Execute Trigger → [Get Credentials?] → Send Message → Process Response →
 ## Input Contour — Redis Flow
 
 ```
-IN Workflows (быстрые, ~100ms)
+IN Workflows (fast, ~100ms)
      │
      ▼
 ┌─────────────────┐
-│ Tenant Resolver │  ← определяет tenant
+│ Tenant Resolver │  ← determines tenant
 └────────┬────────┘
          ▼
    Redis RPUSH
    queue:incoming
          │
-═════════│═════════════ граница IN / Batcher
+═════════│═════════════ boundary IN / Batcher
          ▼
 ┌─────────────────┐
-│ Queue Processor │  ← каждые 5 сек
+│ Queue Processor │  ← every 5 sec
 │  POP × 10       │
 └────────┬────────┘
          ▼
@@ -173,8 +196,8 @@ IN Workflows (быстрые, ~100ms)
          │
          ▼
 ┌─────────────────┐
-│ Batch Debouncer │  ← ждёт 10s тишины
-│  × 10 копий     │
+│ Batch Debouncer │  ← waits 10s silence
+│  × 10 copies    │
 └────────┬────────┘
          ▼
    Combine messages
@@ -183,65 +206,57 @@ IN Workflows (быстрые, ~100ms)
 ┌─────────────────┐
 │ Client Resolver │  ← find/create client
 └────────┬────────┘
-═════════│═════════════ граница Input Contour / Core
+═════════│═════════════ boundary Input Contour / Core
          ▼
     Appeal Manager
 ```
 
-**Redis ключи:**
-| Ключ | TTL | Назначение |
+**Redis keys:**
+| Key | TTL | Purpose |
 |------|-----|------------|
-| `queue:incoming` | — | Входящая очередь |
-| `queue:processor:lock` | 30s | Mutex процессора |
-| `lock:batch:{key}` | 300s | Lock обработки чата |
-| `queue:batch:{key}` | — | Per-chat очередь |
-| `last_seen:{key}` | — | Время последнего сообщения |
+| `queue:incoming` | — | Incoming queue |
+| `queue:processor:lock` | 30s | Processor mutex |
+| `lock:batch:{key}` | 300s | Chat processing lock |
+| `queue:batch:{key}` | — | Per-chat queue |
+| `last_seen:{key}` | — | Last message time |
 
 ---
 
-## Формат документации
+## Documentation Format
 
-Каждый файл содержит:
+Each file contains:
 
-1. **Общая информация** — триггер, входы/выходы
-2. **Входные данные** — JSON формат
-3. **Выходные данные** — JSON формат
-4. **Ноды** — детальное описание каждой:
-   - Тип ноды
-   - Назначение
-   - **Код** (если Code нода)
-   - **SQL запрос** (если Postgres)
-   - **Redis операция** (что кладём/забираем)
-   - **Neo4j запрос** (что ищем)
-5. **Схема потока** — ASCII диаграмма
-6. **Зависимости** — credentials, внешние API
-7. **Особенности** — специфика канала
+1. **General Information** — trigger, inputs/outputs
+2. **Input Data** — JSON format
+3. **Output Data** — JSON format
+4. **Nodes** — detailed description of each:
+   - Node type
+   - Purpose
+   - **Code** (if Code node)
+   - **SQL query** (if Postgres)
+   - **Redis operation** (what we store/retrieve)
+   - **Neo4j query** (what we search)
+5. **Flow Schema** — ASCII diagram
+6. **Dependencies** — credentials, external APIs
+7. **Features** — channel specifics
 
 ---
 
-## Workflows для документирования
+## Remaining Documentation
 
-### Приоритет 2: Core (из n8n_old → ELO_Core_*)
-
-- [ ] ELO_Core_Appeal_Manager (L2pYPcv7r8j5XFU3)
-- [ ] ELO_Core_Client_Creator (vkQwat1iZhJJj7C9)
-- [ ] ELO_Core_AI_Router (Flhmu33l0ZhZhr90)
-- [ ] ELO_Core_AI_Universal_Worker (×7 копий)
-- [ ] ELO_Core_Out_Processor (×6 копий)
-
-### Приоритет 3: API (из n8n_old)
+### API (from n8n_old)
 
 - [ ] API_Android_Appeal_Detail
 - [ ] API_Android_Device_Create
 - [ ] API_Android_Device_Update
 - [ ] API_Android_Send_Promo
-- [ ] ... (и другие 20+)
+- [ ] ... (and 20+ others)
 
 ---
 
-## Как добавить новый workflow
+## How to Add New Workflow
 
-1. Прочитать JSON файл workflow
-2. Создать `.md` файл в соответствующей папке `workflows_info/`
-3. Заполнить по шаблону (см. существующие файлы)
-4. Обновить этот INDEX.md
+1. Read workflow JSON file
+2. Create `.md` file in corresponding `workflows_info/` folder
+3. Fill using template (see existing files)
+4. Update this INDEX.md

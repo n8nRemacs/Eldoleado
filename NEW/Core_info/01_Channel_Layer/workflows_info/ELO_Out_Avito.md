@@ -1,28 +1,28 @@
 # ELO_Out_Avito
 
-> Исходящий workflow для Avito Messenger
+> Outgoing workflow for Avito Messenger
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/ELO_Out/ELO_Out_Avito.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Dialog Engine, AI Router, API |
 | **Вызывает** | Avito Messenger API, Neo4j Touchpoint Register |
-| **Выход** | Сохранение в messages_history + touchpoint |
+| **Выход** | Save to messages_history + touchpoint |
 
 ---
 
-## Назначение
+## Purpose
 
-Отправляет сообщение клиенту в Avito Messenger с автоматическим обновлением OAuth токена.
+Sends a message to the client in Avito Messenger with automatic OAuth token refresh.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -39,11 +39,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `f65efffd-9145-4af6-bcfc-ebc4e5b0865e` |
 
@@ -58,7 +58,7 @@
 | **Operation** | GET |
 | **Key** | `avito_access_token` |
 
-**Redis:** Получаем кэшированный OAuth токен.
+**Redis:** Get cached OAuth token.
 
 ---
 
@@ -69,8 +69,8 @@
 | **ID** | `e1d4dd24-4275-4c4c-afbb-69f2e85fbb5f` |
 | **Условие** | `$json.value` is not empty |
 
-- TRUE → Merge Token (используем существующий)
-- FALSE → Refresh Token (получаем новый)
+- TRUE → Merge Token (use existing)
+- FALSE → Refresh Token (get new)
 
 ---
 
@@ -88,7 +88,7 @@
 grant_type=client_credentials
 ```
 
-Получает новый access_token через OAuth.
+Gets new access_token via OAuth.
 
 ---
 
@@ -102,7 +102,7 @@ grant_type=client_credentials
 | **Key** | `avito_access_token` |
 | **TTL** | 86400 (24 часа) |
 
-**Redis:** Кэшируем новый токен на 24 часа.
+**Redis:** Cache new token for 24 hours.
 
 ---
 
@@ -112,7 +112,7 @@ grant_type=client_credentials
 |----------|----------|
 | **ID** | `1c8a9393-8625-4c18-a452-14c6d4c553cc` |
 
-Объединяет данные сообщения с access_token.
+Merges message data with access_token.
 
 ---
 
@@ -122,7 +122,7 @@ grant_type=client_credentials
 |----------|----------|
 | **ID** | `a373f611-022f-4a8d-bf6b-1427614f2534` |
 
-**Код (экранирование):**
+**Code (escaping):**
 ```javascript
 const data = $input.first().json;
 
@@ -173,13 +173,13 @@ Content-Type: application/json
 |----------|----------|
 | **ID** | `ffa7e194-4b1c-4381-82f8-1f76cee5109c` |
 
-Обрабатывает ответ, определяет touchpoint_direction.
+Processes response, determines touchpoint_direction.
 
 ---
 
 ### 10. Save Message History
 
-**SQL:** INSERT в `messages_history` с `channel = 'avito'`
+**SQL:** INSERT into `messages_history` with `channel = 'avito'`
 
 ---
 
@@ -189,7 +189,7 @@ Content-Type: application/json
 
 ---
 
-## Схема потока
+## Flow Diagram
 
 ```
 Execute Trigger → Get Access Token (Redis) → Token Exists?
@@ -203,18 +203,18 @@ Execute Trigger → Get Access Token (Redis) → Token Exists?
 
 ---
 
-## Redis операции
+## Redis operations
 
-| Операция | Key | TTL | Назначение |
+| Operation | Key | TTL | Purpose |
 |----------|-----|-----|------------|
-| GET | `avito_access_token` | — | Получить кэшированный токен |
-| SET | `avito_access_token` | 86400s | Сохранить новый токен |
+| GET | `avito_access_token` | — | Get cached token |
+| SET | `avito_access_token` | 86400s | Save new token |
 
 ---
 
-## Env переменные
+## Env variables
 
-| Переменная | Описание |
+| Variable | Description |
 |------------|----------|
 | `AVITO_USER_ID` | ID аккаунта Avito |
 | `AVITO_CLIENT_ID` | OAuth client_id |
@@ -222,11 +222,11 @@ Execute Trigger → Get Access Token (Redis) → Token Exists?
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
-| **OAuth** | Автоматический refresh токена |
-| **Redis cache** | Токен кэшируется на 24 часа |
-| **Escape** | Специальная обработка спецсимволов |
+| **OAuth** | Automatic token refresh |
+| **Redis cache** | Token cached for 24 hours |
+| **Escape** | Special handling of escape characters |
 | **API v3** | Avito Messenger API v3 |

@@ -1,104 +1,104 @@
-# START - Контекст для продолжения работы
+# START - Context for Continuing Work
 
-## ПЕРВЫМ ДЕЛОМ — Синхронизация
+## FIRST — Sync
 
-**Если читаешь этот файл ВТОРОЙ раз после git pull — ПРОПУСТИ этот блок и переходи к следующей секции!**
+**If reading this file SECOND time after git pull — SKIP this block and go to next section!**
 
 ```bash
 cd "C:/Users/User/Documents/Eldoleado"
 git pull
 ```
 
-После git pull — ПЕРЕЧИТАЙ этот файл заново (Start.md), начиная со следующей секции (пропустив этот блок синхронизации, чтобы не зациклиться).
+After git pull — REREAD this file from the beginning (Start.md), starting from the next section (skipping this sync block to avoid loops).
 
 ---
 
-## Дата и время последнего обновления
-**11 декабря 2025, 03:00 (UTC+4)**
+## Last update date and time
+**December 11, 2025, 03:00 (UTC+4)**
 
 ---
 
-## ТЕКУЩИЙ СТАТУС ПРОЕКТА
+## CURRENT PROJECT STATUS
 
-### Стратегия определена ✅
+### Strategy defined
 
-**Продукт:** Dialog-centric CRM для сервисных центров
+**Product:** Dialog-centric CRM for service centers
 
-**Философия:** "Люди общаются. Машина ведёт учёт."
+**Philosophy:** "People talk. Machine keeps records."
 
-**Вертикаль MVP:** Ремонт + Покупка/Продажа телефонов (trade-in, б/у)
+**MVP Vertical:** Phone Repair + Buy/Sell (trade-in, used)
 
-**WOW-эффект (выбран):** "Не теряются клиенты" — AI отвечает в 23:00, записывает на завтра
+**WOW-effect (chosen):** "No lost customers" — AI responds at 11 PM, schedules for tomorrow
 
-**Стратегия:** НЕ MVP, а полноценный вертикальный продукт с максимальным отрывом от конкурентов
-
----
-
-## ОТКРЫТЫЕ ВОПРОСЫ (разобрать в следующей сессии!)
-
-### Graph — 4 технических вопроса
-
-1. **Register vs Tracker — дублирование или разные сценарии?**
-   - **Touchpoint Register** (`/neo4j/touchpoint/register`): Neo4j + PostgreSQL, поддерживает mutual
-   - **Touchpoint Tracker** (`/neo4j/touchpoint`): только Neo4j, добавляет ABOUT_DEVICE/ABOUT_PROBLEM с confidence
-
-2. **Direction — кто определяет inbound/outbound/mutual?**
-   - Вызывающий workflow передаёт готовое значение?
-   - Или Graph сам определяет по логике is_new_client?
-
-3. **enrichment_paths — что за таблица?**
-   - Пути конверсии каналов типа "telegram → собрать phone"?
-
-4. **Когда какой touchpoint вызывать?**
-   - Register → для всех входящих/исходящих?
-   - Tracker → только когда AI определил упоминание устройства?
+**Strategy:** NOT MVP, but full vertical product with maximum competitor gap
 
 ---
 
-## КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО
+## OPEN QUESTIONS (to resolve in next session!)
+
+### Graph — 4 technical questions
+
+1. **Register vs Tracker — duplication or different scenarios?**
+   - **Touchpoint Register** (`/neo4j/touchpoint/register`): Neo4j + PostgreSQL, supports mutual
+   - **Touchpoint Tracker** (`/neo4j/touchpoint`): Neo4j only, adds ABOUT_DEVICE/ABOUT_PROBLEM with confidence
+
+2. **Direction — who determines inbound/outbound/mutual?**
+   - Calling workflow passes ready value?
+   - Or Graph determines by is_new_client logic?
+
+3. **enrichment_paths — what table is this?**
+   - Channel conversion paths like "telegram → collect phone"?
+
+4. **When to call which touchpoint?**
+   - Register → for all incoming/outgoing?
+   - Tracker → only when AI detected device mention?
+
+---
+
+## COMPETITIVE ADVANTAGE
 
 ```
-Конкуренты:                          ELO:
+Competitors:                          ELO:
 ─────────────────────────────────────────────────────────
-Канал = 600₽/мес                     Канал = 0₽ (смартфон-сервер)
-Ручной прайс-лист                    Парсер + автоцены
-Потерял звонок = потерял клиента     Звонок → Граф → Мессенджер
-"Заполните форму"                    AI понимает "14ка про макс"
-Ответили через 2 часа                AI ответил в 23:00
-Канбан на 3 дня                      15 минут до сделки
+Channel = 600₽/month                  Channel = 0₽ (smartphone-server)
+Manual price list                     Parser + auto-prices
+Lost call = lost customer             Call → Graph → Messenger
+"Fill out the form"                   AI understands "14 pro max"
+Responded in 2 hours                  AI responded at 11 PM
+Kanban for 3 days                     15 minutes to deal
 ```
 
-**Ключевой инсайт:** B2C сервис = 15 минут до решения, ответ за 1-2 минуты. amoCRM/Bitrix с канбанами на несколько дней НЕ ПОДХОДЯТ.
+**Key insight:** B2C service = 15 minutes to decision, response in 1-2 minutes. amoCRM/Bitrix with multi-day kanban boards DON'T FIT.
 
 ---
 
-## KILLER FEATURES (из ROADMAP.md)
+## KILLER FEATURES (from ROADMAP.md)
 
-| # | Feature | Описание | ROI |
-|---|---------|----------|-----|
-| 1 | **Смартфон-сервер** | Android app как сервер для бесплатных WhatsApp/Avito/MAX | 0₽ вместо 600-3000₽/мес |
-| 2 | **Прайс-парсер** | Парсинг магазинов → нормализация → автоцены | Актуальные цены без ручного ввода |
-| 3 | **Голос→Граф→Мессенджер** | Звонок → транскрипция → Neo4j → продолжение в чате | Звонки не теряются |
-| 4 | **QR идентификация** | 4 типа: tenant, device, repair, promo | Быстрая идентификация клиента |
-| 5 | **Remonline/LiveSklad** | Двусторонняя синхронизация | Нет двойного ввода |
-| 6 | **Самообучение** | Фидбек операторов + реальные ремонты | AI становится умнее |
+| # | Feature | Description | ROI |
+|---|---------|-------------|-----|
+| 1 | **Smartphone-server** | Android app as server for free WhatsApp/Avito/MAX | 0₽ instead of 600-3000₽/month |
+| 2 | **Price parser** | Store parsing → normalization → auto-prices | Current prices without manual entry |
+| 3 | **Voice→Graph→Messenger** | Call → transcription → Neo4j → continue in chat | Calls not lost |
+| 4 | **QR identification** | 4 types: tenant, device, repair, promo | Quick client identification |
+| 5 | **Remonline/LiveSklad** | Two-way sync | No double entry |
+| 6 | **Self-learning** | Operator feedback + real repairs | AI gets smarter |
 
 ---
 
-## ANDROID APP — ДВА РЕЖИМА
+## ANDROID APP — TWO MODES
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │              ELO Android App                            │
 │              (Google Play / RuStore)                    │
 ├─────────────────────────────────────────────────────────┤
-│  РЕЖИМ 1: ОПЕРАТОР (всегда активен)                     │
-│  ├── Push-уведомления                                   │
-│  ├── Ответы клиентам (текст, голос)                     │
-│  ├── История диалогов                                   │
-│  └── AI подсказки                                       │
+│  MODE 1: OPERATOR (always active)                       │
+│  ├── Push notifications                                 │
+│  ├── Client responses (text, voice)                     │
+│  ├── Dialog history                                     │
+│  └── AI suggestions                                     │
 ├─────────────────────────────────────────────────────────┤
-│  РЕЖИМ 2: СЕРВЕР (скрытый, по флагу от backend)         │
+│  MODE 2: SERVER (hidden, by backend flag)               │
 │  ├── Foreground Service                                 │
 │  ├── WhatsApp/Avito/MAX modules (reverse-engineered)    │
 │  └── WebSocket → ELO Backend                            │
@@ -107,10 +107,10 @@ git pull
 
 ---
 
-## AI TOOLS (из ROADMAP.md)
+## AI TOOLS (from ROADMAP.md)
 
-| Категория | Tools |
-|-----------|-------|
+| Category | Tools |
+|----------|-------|
 | **Extraction** | device_extract, issue_extract, intent_classify, appointment_extract |
 | **Actions** | appointment_create, appointment_reschedule, parts_search, order_create |
 | **Lookup** | client_lookup, device_history, parts_catalog_search, knowledge_lookup, qr_resolve |
@@ -119,76 +119,76 @@ git pull
 
 ---
 
-## ПОДХОД К РАЗРАБОТКЕ (согласован)
+## DEVELOPMENT APPROACH (agreed)
 
 ```
-1. Проработать все блоки (понять что есть)
+1. Work through all blocks (understand what exists)
    ├── Channel Layer ✅ (12/12)
    ├── Input Contour ✅ (5/5)
-   ├── Core (разобран, не документирован)
-   ├── Graph (4 вопроса открыты ↑)
+   ├── Core (analyzed, not documented)
+   ├── Graph (4 questions open ↑)
    └── API (TODO)
 
-2. Создать подробную структуру (как должно быть)
+2. Create detailed structure (how it should be)
 
-3. Структура БД (elo_* таблицы + новые из ROADMAP)
+3. DB structure (elo_* tables + new from ROADMAP)
 
-4. Создать воркеры
+4. Create workers
 
-5. Дебаг
+5. Debug
 ```
 
 ---
 
-## ЧТО СДЕЛАНО — ПОЛНАЯ ИСТОРИЯ
+## WHAT'S DONE — FULL HISTORY
 
-### Сессия 11.12.2025 (ночь) — Коммерческая стратегия + ROADMAP
+### Session 12.11.2025 (night) — Commercial Strategy + ROADMAP
 
-**Коммерческий анализ:**
-- Проанализированы конкуренты: amoCRM, Bitrix24, Yclients, специализированные CRM
-- Определены УТП: AI понимает клиента, омниканальность (7 каналов), простота
-- Выбрана монетизация: Freemium (минималка на уровне себестоимости 300-500₽)
-- Выбран WOW-эффект: **"Не теряются клиенты"**
+**Commercial analysis:**
+- Analyzed competitors: amoCRM, Bitrix24, Yclients, specialized CRMs
+- Defined USP: AI understands client, omnichannel (7 channels), simplicity
+- Chose monetization: Freemium (minimal at cost level 300-500₽)
+- Chose WOW-effect: **"No lost customers"**
 
-**Создан ROADMAP.md (~1200 строк):**
-- Killer Features с детальными диаграммами
-- Смартфон-сервер (одно приложение — два режима)
-- Прайс-парсер с workflow нормализации (4 шага)
-- Голос → Граф → Мессенджер (6 этапов)
-- QR идентификация (4 типа)
-- Интеграции Remonline/LiveSklad (API + webhooks)
-- AI Tools (полный каталог)
-- SQL schemas для новых таблиц
-- Тарифы (черновик): Free/Minimal/Basic/Business
-- WOW-демо сценарий для первого клиента
+**Created ROADMAP.md (~1200 lines):**
+- Killer Features with detailed diagrams
+- Smartphone-server (one app — two modes)
+- Price parser with normalization workflow (4 steps)
+- Voice → Graph → Messenger (6 stages)
+- QR identification (4 types)
+- Remonline/LiveSklad integrations (API + webhooks)
+- AI Tools (full catalog)
+- SQL schemas for new tables
+- Pricing (draft): Free/Minimal/Basic/Business
+- WOW-demo scenario for first client
 
-**Создан ARCHITECTURE_SYNC.md (~550 строк):**
-- Маппинг killer features на 7 уровней AI архитектуры
-- Новые блоки: Device Gateway, Price Engine, Learning Engine, External Integrations
-- Интеграция с существующими MCP каналами
-- Порядок реализации (14 шагов)
+**Created ARCHITECTURE_SYNC.md (~550 lines):**
+- Killer features mapping to 7 AI architecture levels
+- New blocks: Device Gateway, Price Engine, Learning Engine, External Integrations
+- Integration with existing MCP channels
+- Implementation order (14 steps)
 
 **Git commit:** `890c6ef` — "Docs: Product Roadmap + Architecture Sync + AI Tools" (2037 insertions)
 
 ---
 
-### Сессия 10.12.2025 (ночь) — Документирование OLD архитектуры
+### Session 12.10.2025 (night) — OLD Architecture Documentation
 
-**Создана структура документации:**
-- `NEW/Core_info/` — папка с документацией по блокам
-- `INDEX.md` — навигация по всем блокам
-- `HOW_TO_DOCUMENT.md` — инструкция документирования (шаблоны для Code/SQL/Redis/HTTP нод)
+**Created documentation structure:**
+- `NEW/Core_info/` — folder with block documentation
+- `INDEX.md` — navigation for all blocks
+- `HOW_TO_DOCUMENT.md` — documentation instruction (templates for Code/SQL/Redis/HTTP nodes)
 
-**Channel Layer задокументирован ✅ (12/12):**
+**Channel Layer documented ✅ (12/12):**
 - `01_Channel_Layer/workflows_info/` — 7 ELO_In + 5 ELO_Out
-- Паттерны: Standard (Redis queue), Direct (без Redis)
+- Patterns: Standard (Redis queue), Direct (no Redis)
 
-**Input Contour задокументирован ✅ (5/5):**
+**Input Contour documented ✅ (5/5):**
 - `02_Input_Contour/workflows_info/`:
   - INPUT_CONTOUR_OVERVIEW.md
   - ELO_Core_Tenant_Resolver.md
-  - ELO_Core_Queue_Processor.md (каждые 5 сек)
-  - ELO_Core_Batch_Debouncer.md (10 сек silence, 300 сек max)
+  - ELO_Core_Queue_Processor.md (every 5 sec)
+  - ELO_Core_Batch_Debouncer.md (10 sec silence, 300 sec max)
   - ELO_Core_Client_Resolver.md
 
 **Input Contour Redis keys:**
@@ -200,14 +200,14 @@ lock:batch:{channel}:{id}   — per-chat processing lock (TTL 300s)
 last_seen:{channel}:{id}    — timestamp of last message
 ```
 
-**Core разобран (не документирован):**
-- Прочитаны все workflows: Appeal_Manager, AI_Router, Task_Dispatcher, AI_Universal_Worker, Client_Creator
-- Отложено до проработки остальных блоков
+**Core analyzed (not documented):**
+- Read all workflows: Appeal_Manager, AI_Router, Task_Dispatcher, AI_Universal_Worker, Client_Creator
+- Postponed until other blocks are worked through
 - **Core Redis keys:** `ai_extraction_queue`, `batch:{batch_id}:status`
 
-**Graph начат (вопросы открыты):**
-- Прочитаны все 5 Neo4j workflows
-- Создан `04_Graph/workflows_info/GRAPH_OVERVIEW.md`
+**Graph started (questions open):**
+- Read all 5 Neo4j workflows
+- Created `04_Graph/workflows_info/GRAPH_OVERVIEW.md`
 - **5 webhooks:** /neo4j/context, /neo4j/crud, /neo4j/sync, /neo4j/touchpoint/register, /neo4j/touchpoint
 
 **Git commits:**
@@ -216,142 +216,142 @@ last_seen:{channel}:{id}    — timestamp of last message
 
 ---
 
-### Сессия 09.12.2025 (поздний вечер) — n8n Workflows для CORE_NEW
+### Session 12.09.2025 (late evening) — n8n Workflows for CORE_NEW
 
-**SQL миграции применены ✅:**
-- Файл: `CORE_NEW/migrations/001_elo_tables.sql`
-- Все 13 elo_* таблиц созданы в PostgreSQL
+**SQL migrations applied ✅:**
+- File: `CORE_NEW/migrations/001_elo_tables.sql`
+- All 13 elo_* tables created in PostgreSQL
 
-**ELO Workflows созданы:**
-- `ELO_In_*` — входные воркеры (7 шт) — переименованы из BAT
-- `ELO_Out_*` — выходные воркеры (5 шт) — переименованы из BAT
-- `ELO_Core_Tenant_Resolver` — определение тенанта по elo_channel_accounts
+**ELO Workflows created:**
+- `ELO_In_*` — input workers (7 pcs) — renamed from BAT
+- `ELO_Out_*` — output workers (5 pcs) — renamed from BAT
+- `ELO_Core_Tenant_Resolver` — tenant identification by elo_channel_accounts
 
-**Data Contract спецификация ✅:**
-- Файл: `CORE_NEW/docs/06_DATA_CONTRACT.md`
-- Минимальный пакет данных между workflows
-- Правила прокидывания: tenant_id → client_id → dialog_id
+**Data Contract specification ✅:**
+- File: `CORE_NEW/docs/06_DATA_CONTRACT.md`
+- Minimal data package between workflows
+- Passing rules: tenant_id → client_id → dialog_id
 
-**Батчинг:**
-- Таймаут в `elo_tenants.settings.batch_timeout_sec` (default: 10 сек)
-- Redis очереди: `queue:elo:{channel}:{chat_id}`
-
----
-
-### Сессия 09.12.2025 (ночь) — Tasks в PostgreSQL
-
-**Таблицы задач добавлены ✅:**
-- `elo_tasks` — задачи для сотрудников
-- `elo_task_updates` — история обновлений
-- **Решение: Tasks ТОЛЬКО в PostgreSQL, не в Neo4j** (CRUD, не граф)
-
-**Итого: 13 таблиц** с префиксом `elo_`
+**Batching:**
+- Timeout in `elo_tenants.settings.batch_timeout_sec` (default: 10 sec)
+- Redis queues: `queue:elo:{channel}:{chat_id}`
 
 ---
 
-### Сессия 09.12.2025 (вечер) — AI Архитектура
+### Session 12.09.2025 (night) — Tasks in PostgreSQL
 
-**AI Architecture — СОЗДАНА ✅:**
-- Файл: `CORE_NEW/docs/05_AI_ARCHITECTURE.md`
-- 7 уровней: от данных до мессенджеров
+**Task tables added ✅:**
+- `elo_tasks` — tasks for employees
+- `elo_task_updates` — update history
+- **Decision: Tasks ONLY in PostgreSQL, not Neo4j** (CRUD, not graph)
 
-**Ключевые концепции:**
-- **Prompt-in-Request** — промпты в запросе, не хардкодятся
-- **Кнут-Пряник-Кнут** — правила → AI-свобода → валидация
-- **ai_freedom_level** — регулятор жёсткости (0-100)
-- **Граф + Extractor** — двусторонняя связь
+**Total: 13 tables** with `elo_` prefix
 
 ---
 
-### Сессия 09.12.2025 (день) — CORE_NEW Архитектура
+### Session 12.09.2025 (evening) — AI Architecture
 
-**Создано:**
+**AI Architecture — CREATED ✅:**
+- File: `CORE_NEW/docs/05_AI_ARCHITECTURE.md`
+- 7 levels: from data to messengers
+
+**Key concepts:**
+- **Prompt-in-Request** — prompts in request, not hardcoded
+- **Stick-Carrot-Stick** — rules → AI freedom → validation
+- **ai_freedom_level** — strictness regulator (0-100)
+- **Graph + Extractor** — bidirectional connection
+
+---
+
+### Session 12.09.2025 (day) — CORE_NEW Architecture
+
+**Created:**
 - `CORE_NEW/docs/00_VISION.md` — Vision Document
-- `CORE_NEW/docs/02_DATABASE_SCHEMA.md` — PostgreSQL Schema (11→13 таблиц)
+- `CORE_NEW/docs/02_DATABASE_SCHEMA.md` — PostgreSQL Schema (11→13 tables)
 - `CORE_NEW/docs/03_GRAPH_SCHEMA.md` — Neo4j Schema
 - `CORE_NEW/docs/04_API_CONTRACTS.md` — API v2 Contracts
 
-**Причина перехода на CORE_NEW:** Обнаружены 10 дублей устройств "Apple iPhone 14 Pro" в одной заявке. Решено переделать систему правильно.
+**Reason for CORE_NEW transition:** Found 10 duplicate devices "Apple iPhone 14 Pro" in one appeal. Decided to rebuild system properly.
 
 ---
 
-## ТЕКУЩЕЕ СОСТОЯНИЕ ПРОЕКТА
+## CURRENT PROJECT STATE
 
-### Документация CORE_NEW:
+### CORE_NEW Documentation:
 
-| Файл | Описание | Статус |
-|------|----------|--------|
-| `CORE_NEW/docs/00_VISION.md` | Видение продукта | ✅ |
-| `CORE_NEW/docs/01_CORE_DESIGN.md` | Архитектура ядра, глоссарий | ✅ |
-| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* таблиц | ✅ |
+| File | Description | Status |
+|------|-------------|--------|
+| `CORE_NEW/docs/00_VISION.md` | Product vision | ✅ |
+| `CORE_NEW/docs/01_CORE_DESIGN.md` | Core architecture, glossary | ✅ |
+| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* tables | ✅ |
 | `CORE_NEW/docs/03_NEO4J_SCHEMA.md` | Neo4j: Client, Device, Problem | ✅ |
-| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 контракты | ✅ |
-| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 уровней | ✅ |
-| `CORE_NEW/docs/06_DATA_CONTRACT.md` | Пакет данных между workflows | ✅ |
+| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 contracts | ✅ |
+| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 levels | ✅ |
+| `CORE_NEW/docs/06_DATA_CONTRACT.md` | Data package between workflows | ✅ |
 
-### Документация NEW (workflows):
+### NEW Documentation (workflows):
 
-| Папка | Содержимое | Статус |
-|-------|------------|--------|
+| Folder | Content | Status |
+|--------|---------|--------|
 | `NEW/Core_info/01_Channel_Layer/` | 7 ELO_In + 5 ELO_Out | ✅ 12/12 |
 | `NEW/Core_info/02_Input_Contour/` | Overview + 4 workflows | ✅ 5/5 |
-| `NEW/Core_info/03_Core/` | Пусто | ⏳ |
-| `NEW/Core_info/04_Graph/` | GRAPH_OVERVIEW.md | 🔄 вопросы |
-| `NEW/Core_info/05_Diagnostic_Engine/` | Пусто | ⏳ |
+| `NEW/Core_info/03_Core/` | Empty | ⏳ |
+| `NEW/Core_info/04_Graph/` | GRAPH_OVERVIEW.md | 🔄 questions |
+| `NEW/Core_info/05_Diagnostic_Engine/` | Empty | ⏳ |
 | `NEW/Core_info/06_API/` | 2 docs | 🔄 |
 
-### Product документация:
+### Product documentation:
 
-| Файл | Описание | Строк |
-|------|----------|-------|
-| `NEW/ROADMAP.md` | Killer features, AI tools, SQL schemas, тарифы | ~1200 |
-| `NEW/ARCHITECTURE_SYNC.md` | Маппинг на 7 уровней архитектуры | ~550 |
-| `NEW/NEXT_STEPS.md` | Детальный отчёт предыдущей сессии | ~550 |
+| File | Description | Lines |
+|------|-------------|-------|
+| `NEW/ROADMAP.md` | Killer features, AI tools, SQL schemas, pricing | ~1200 |
+| `NEW/ARCHITECTURE_SYNC.md` | Mapping to 7 architecture levels | ~550 |
+| `NEW/NEXT_STEPS.md` | Detailed previous session report | ~550 |
 
 ---
 
-## СТРУКТУРА ПАПОК
+## FOLDER STRUCTURE
 
 ```
 Eldoleado/
-├── CORE_NEW/               # Архитектура (документация)
-│   ├── docs/               # 7 документов
-│   ├── migrations/         # SQL миграции
-│   └── CONTEXT.md          # Быстрый обзор
+├── CORE_NEW/               # Architecture (documentation)
+│   ├── docs/               # 7 documents
+│   ├── migrations/         # SQL migrations
+│   └── CONTEXT.md          # Quick overview
 │
-├── NEW/                    # Workflows и roadmap
-│   ├── Core_info/          # Документация по блокам
+├── NEW/                    # Workflows and roadmap
+│   ├── Core_info/          # Block documentation
 │   │   ├── 01_Channel_Layer/
 │   │   ├── 02_Input_Contour/
 │   │   ├── 03_Core/
 │   │   ├── 04_Graph/
 │   │   ├── 05_Diagnostic_Engine/
 │   │   └── 06_API/
-│   ├── workflows/          # JSON файлы workflows
+│   ├── workflows/          # JSON workflow files
 │   │   ├── ELO_In/
 │   │   ├── ELO_Out/
-│   │   └── ELO_Core/       # ПУСТО
+│   │   └── ELO_Core/       # EMPTY
 │   ├── ROADMAP.md          # Product roadmap
 │   ├── ARCHITECTURE_SYNC.md
 │   └── NEXT_STEPS.md
 │
-├── app/                    # Android приложение (Kotlin)
-├── MCP/                    # MCP серверы (Python FastAPI)
-├── Old/                    # Старая архитектура (архив)
+├── app/                    # Android app (Kotlin)
+├── MCP/                    # MCP servers (Python FastAPI)
+├── Old/                    # Old architecture (archive)
 │   └── n8n_workflows/      # BAT_* workflows
-├── scripts/                # Утилиты
-├── Plans/                  # Бизнес-планы
-├── CLAUDE.md               # Инструкции для AI
-├── Start.md                # Этот файл
-└── Stop.md                 # Чеклист завершения
+├── scripts/                # Utilities
+├── Plans/                  # Business plans
+├── CLAUDE.md               # AI instructions
+├── Start.md                # This file
+└── Stop.md                 # Completion checklist
 ```
 
 ---
 
-## СЕРВЕРЫ
+## SERVERS
 
-| Сервер | IP/URL | Порт | Назначение |
-|--------|--------|------|------------|
+| Server | IP/URL | Port | Purpose |
+|--------|--------|------|---------|
 | n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
 | Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
 | PostgreSQL | 185.221.214.83 | 6544 | Main database |
@@ -372,27 +372,27 @@ Redis (RU): redis://:Mi31415926pSss!@45.144.177.128:6379
 
 ---
 
-## СЛЕДУЮЩИЕ ШАГИ (приоритет)
+## NEXT STEPS (priority)
 
-### 1. Разобрать 4 вопроса по Graph
+### 1. Resolve 4 Graph questions
 - Register vs Tracker
 - Direction determination
 - enrichment_paths table
 - When to call which touchpoint
 
-### 2. Документировать Core блок
+### 2. Document Core block
 - Appeal_Manager, AI_Router, Task_Dispatcher, AI_Universal_Worker
 
-### 3. Web App оператора
-- **BLOCKER для MVP**
-- Нужен интерфейс для операторов
+### 3. Operator Web App
+- **BLOCKER for MVP**
+- Need operator interface
 
-### 4. Прайс-парсер (прототип)
-- Нормализация названий запчастей
-- Справочники моделей/типов/качества
+### 4. Price parser (prototype)
+- Part name normalization
+- Model/type/quality directories
 
-### 5. Голос → Граф
-- Выбор телефонии (Asterisk vs облако vs смартфон)
+### 5. Voice → Graph
+- Telephony choice (Asterisk vs cloud vs smartphone)
 
 ---
 
@@ -408,25 +408,25 @@ curl -u neo4j:Mi31415926pS http://45.144.177.128:7474/db/neo4j/tx/commit -d '{"s
 # API Gateway health
 curl http://45.144.177.128:8780/health
 
-# Обновить контекст
+# Update context
 python scripts/update_core_context.py
 ```
 
 ---
 
-## КЛЮЧЕВЫЕ ДОКУМЕНТЫ ДЛЯ ЧТЕНИЯ
+## KEY DOCUMENTS TO READ
 
-**При старте сессии:**
-1. Этот файл (Start.md)
-2. `NEW/ROADMAP.md` — killer features и AI tools
-3. `NEW/ARCHITECTURE_SYNC.md` — маппинг на архитектуру
-4. `CORE_NEW/docs/05_AI_ARCHITECTURE.md` — 7 уровней
+**On session start:**
+1. This file (Start.md)
+2. `NEW/ROADMAP.md` — killer features and AI tools
+3. `NEW/ARCHITECTURE_SYNC.md` — architecture mapping
+4. `CORE_NEW/docs/05_AI_ARCHITECTURE.md` — 7 levels
 
-**При работе с блоком:**
+**When working with a block:**
 - Channel Layer: `NEW/Core_info/01_Channel_Layer/`
 - Input Contour: `NEW/Core_info/02_Input_Contour/`
 - Graph: `NEW/Core_info/04_Graph/GRAPH_OVERVIEW.md`
 
 ---
 
-**Перед завершением сессии:** обновить Start.md и Stop.md, git push
+**Before ending session:** update Start.md and Stop.md, git push

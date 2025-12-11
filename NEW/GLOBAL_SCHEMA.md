@@ -1,28 +1,28 @@
-# Глобальная схема данных ELO
+# ELO Global Data Schema
 
-> Версия: 1.0
-> Дата: 2025-12-10
-
----
-
-## Принципы
-
-1. **Все таблицы реляционные** — никакого хардкода, только FK на справочники
-2. **Гибридные ID** — INT для справочников, UUID для сущностей
-3. **Минимальный пакет** — tenant_id + dialog_id для передачи между блоками
+> Version: 1.0
+> Date: 2025-12-10
 
 ---
 
-## Контракты данных
+## Principles
 
-### Internal (между блоками n8n)
+1. **All tables are relational** — no hardcoding, only FK to directories
+2. **Hybrid IDs** — INT for directories, UUID for entities
+3. **Minimal package** — tenant_id + dialog_id for passing between blocks
+
+---
+
+## Data Contracts
+
+### Internal (between n8n blocks)
 ```json
 {
   "tenant_id": "uuid",
   "dialog_id": "uuid"
 }
 ```
-Минимум. Остальное — запрос в БД. `domain_id` достаём из `tenant_id`.
+Minimum. Everything else — query from DB. `domain_id` is retrieved from `tenant_id`.
 
 ### External (API → Android App)
 ```json
@@ -31,7 +31,7 @@
   "dialog_id": "uuid",
   "client": {
     "id": "uuid",
-    "name": "Иван",
+    "name": "Ivan",
     "phone": "+7..."
   },
   "channel": "telegram",
@@ -40,33 +40,33 @@
   "updated_at": "..."
 }
 ```
-Развёрнутые данные для отображения.
+Expanded data for display.
 
 ---
 
-## Иерархия: Домен → Вертикаль
+## Hierarchy: Domain → Vertical
 
 ```
-Домен (domain)
-  └── Вертикаль (vertical)
+Domain (domain)
+  └── Vertical (vertical)
 
-Пример:
+Example:
 Electronics (domain)
   ├── phone_repair (vertical)
   ├── buy_sell (vertical)
   └── accessories (vertical)
 ```
 
-**Правило:** диалог может переключаться между вертикалями внутри одного домена. Переход в другой домен — эскалация или новый диалог.
+**Rule:** dialog can switch between verticals within one domain. Switching to another domain — escalation or new dialog.
 
-**MVP:** один домен на тенанта.
+**MVP:** one domain per tenant.
 
 ---
 
-## Справочники (INT PRIMARY KEY)
+## Directories (INT PRIMARY KEY)
 
 ### elo_domains
-Бизнес-домены верхнего уровня.
+Top-level business domains.
 ```sql
 CREATE TABLE elo_domains (
     id SERIAL PRIMARY KEY,
@@ -77,7 +77,7 @@ CREATE TABLE elo_domains (
 ```
 
 ### elo_verticals
-Вертикали внутри домена.
+Verticals within a domain.
 ```sql
 CREATE TABLE elo_verticals (
     id SERIAL PRIMARY KEY,
@@ -89,7 +89,7 @@ CREATE TABLE elo_verticals (
 ```
 
 ### elo_channels
-Каналы коммуникации.
+Communication channels.
 ```sql
 CREATE TABLE elo_channels (
     id SERIAL PRIMARY KEY,
@@ -100,7 +100,7 @@ CREATE TABLE elo_channels (
 ```
 
 ### elo_dialog_statuses
-Статусы диалога.
+Dialog statuses.
 ```sql
 CREATE TABLE elo_dialog_statuses (
     id SERIAL PRIMARY KEY,
@@ -110,7 +110,7 @@ CREATE TABLE elo_dialog_statuses (
 ```
 
 ### elo_message_types
-Типы сообщений.
+Message types.
 ```sql
 CREATE TABLE elo_message_types (
     id SERIAL PRIMARY KEY,
@@ -120,7 +120,7 @@ CREATE TABLE elo_message_types (
 ```
 
 ### elo_directions
-Направление сообщения.
+Message direction.
 ```sql
 CREATE TABLE elo_directions (
     id SERIAL PRIMARY KEY,
@@ -130,7 +130,7 @@ CREATE TABLE elo_directions (
 ```
 
 ### elo_operator_types
-Типы операторов.
+Operator types.
 ```sql
 CREATE TABLE elo_operator_types (
     id SERIAL PRIMARY KEY,
@@ -141,10 +141,10 @@ CREATE TABLE elo_operator_types (
 
 ---
 
-## Основные сущности (UUID PRIMARY KEY)
+## Main Entities (UUID PRIMARY KEY)
 
 ### elo_tenants
-Арендаторы системы.
+System tenants.
 ```sql
 CREATE TABLE elo_tenants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -157,21 +157,21 @@ CREATE TABLE elo_tenants (
 ```
 
 ### elo_operators
-Операторы (люди и AI).
+Operators (humans and AI).
 ```sql
 CREATE TABLE elo_operators (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES elo_tenants(id),
     type_id INT NOT NULL REFERENCES elo_operator_types(id),
-    name VARCHAR(255) NOT NULL,           -- "Иван Петров" или "AI Assistant"
-    ai_model VARCHAR(50),                 -- NULL для human, 'claude-3' для ai
+    name VARCHAR(255) NOT NULL,           -- "Ivan Petrov" or "AI Assistant"
+    ai_model VARCHAR(50),                 -- NULL for human, 'claude-3' for ai
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
 ### elo_clients
-Клиенты.
+Clients.
 ```sql
 CREATE TABLE elo_clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -185,7 +185,7 @@ CREATE TABLE elo_clients (
 ```
 
 ### elo_dialogs
-Диалоги с клиентами.
+Client dialogs.
 ```sql
 CREATE TABLE elo_dialogs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -193,20 +193,20 @@ CREATE TABLE elo_dialogs (
     client_id UUID NOT NULL REFERENCES elo_clients(id),
     channel_id INT NOT NULL REFERENCES elo_channels(id),
     status_id INT NOT NULL REFERENCES elo_dialog_statuses(id),
-    operator_id UUID REFERENCES elo_operators(id),   -- текущий ответственный
+    operator_id UUID REFERENCES elo_operators(id),   -- current responsible
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
 ### elo_messages
-Сообщения в диалогах.
+Dialog messages.
 ```sql
 CREATE TABLE elo_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     dialog_id UUID NOT NULL REFERENCES elo_dialogs(id),
     direction_id INT NOT NULL REFERENCES elo_directions(id),
-    operator_id UUID REFERENCES elo_operators(id),   -- NULL для входящих, заполнен для исходящих
+    operator_id UUID REFERENCES elo_operators(id),   -- NULL for incoming, filled for outgoing
     message_type_id INT NOT NULL REFERENCES elo_message_types(id),
     content TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -215,10 +215,10 @@ CREATE TABLE elo_messages (
 
 ---
 
-## Связующие таблицы
+## Junction Tables
 
 ### elo_tenant_verticals
-Какие вертикали доступны тенанту.
+Which verticals are available to tenant.
 ```sql
 CREATE TABLE elo_tenant_verticals (
     tenant_id UUID NOT NULL REFERENCES elo_tenants(id),
@@ -229,13 +229,13 @@ CREATE TABLE elo_tenant_verticals (
 ```
 
 ### elo_dialog_verticals
-Какие вертикали активны в диалоге.
+Which verticals are active in dialog.
 ```sql
 CREATE TABLE elo_dialog_verticals (
     dialog_id UUID NOT NULL REFERENCES elo_dialogs(id),
     vertical_id INT NOT NULL REFERENCES elo_verticals(id),
-    status_id INT NOT NULL REFERENCES elo_dialog_statuses(id),   -- статус по этой вертикали
-    operator_id UUID REFERENCES elo_operators(id),               -- ответственный по этой вертикали
+    status_id INT NOT NULL REFERENCES elo_dialog_statuses(id),   -- status for this vertical
+    operator_id UUID REFERENCES elo_operators(id),               -- responsible for this vertical
     created_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (dialog_id, vertical_id)
 );
@@ -243,26 +243,26 @@ CREATE TABLE elo_dialog_verticals (
 
 ---
 
-## Блоки системы
+## System Blocks
 
-| # | Блок | Описание |
-|---|------|----------|
+| # | Block | Description |
+|---|-------|-------------|
 | 1 | Channel Layer | MCP + In + Out (per channel) |
-| 2 | Billing | Подписки, балансы, проверки |
+| 2 | Billing | Subscriptions, balances, checks |
 | 3 | Input Contour | Tenant Resolver → Batcher |
 | 4 | Core | Dialog Engine + AI Pipeline |
 | 5 | Graph | Neo4j (Client, Device, Symptom, Diagnosis, Repair) |
-| 6 | Diagnostic Engine | Симптомы → Диагнозы → Ремонты |
+| 6 | Diagnostic Engine | Symptoms → Diagnoses → Repairs |
 
-+ **Tools** — отдельно потом.
++ **Tools** — separately later.
 
 ---
 
-## Блок 1: Channel Layer (IN/OUT)
+## Block 1: Channel Layer (IN/OUT)
 
-### Что получает ELO_In от MCP (NormalizedMessage)
+### What ELO_In receives from MCP (NormalizedMessage)
 
-MCP уже делает нормализацию и транскрипцию голоса.
+MCP already does normalization and voice transcription.
 
 ```json
 {
@@ -272,11 +272,11 @@ MCP уже делает нормализацию и транскрипцию г�
   "chat_id": 789,
   "user_id": 456,
   "user_name": "ivan",
-  "first_name": "Иван",
-  "last_name": "Петров",
+  "first_name": "Ivan",
+  "last_name": "Petrov",
   "username": "ivan",
-  "text": "Привет, не работает телефон",
-  "voice_text": "транскрипция если голос",
+  "text": "Hi, my phone is broken",
+  "voice_text": "transcription if voice",
   "attachments": [
     {"type": "photo", "file_id": "..."},
     {"type": "voice", "file_id": "...", "duration": 5}
@@ -288,38 +288,38 @@ MCP уже делает нормализацию и транскрипцию г�
 }
 ```
 
-### Что делает ELO_In
+### What ELO_In does
 
-1. По `bot_token` → найти `tenant_id` (Tenant Resolver, таблица `elo_channel_accounts`)
-2. По `chat_id` + `channel` → найти или создать `client_id`
-3. По `client_id` + `channel` → найти или создать `dialog_id`
-4. Сохранить message в `elo_messages`
-5. Отдать дальше: `{tenant_id, dialog_id}`
+1. By `bot_token` → find `tenant_id` (Tenant Resolver, table `elo_channel_accounts`)
+2. By `chat_id` + `channel` → find or create `client_id`
+3. By `client_id` + `channel` → find or create `dialog_id`
+4. Save message in `elo_messages`
+5. Pass further: `{tenant_id, dialog_id}`
 
-### Что получает ELO_Out
+### What ELO_Out receives
 
 ```json
 {
   "tenant_id": "uuid",
   "dialog_id": "uuid",
   "message": {
-    "text": "Ответ клиенту",
+    "text": "Response to client",
     "operator_id": "uuid",
     "reply_markup": {}
   }
 }
 ```
 
-### Что делает ELO_Out
+### What ELO_Out does
 
-1. Из `dialog_id` достать `channel_id`, внешний `chat_id`
-2. Из `elo_channel_accounts` достать `bot_token` / credentials
-3. Вызвать MCP `/api/send` с нужными параметрами
-4. Сохранить message в `elo_messages` (direction = out)
+1. From `dialog_id` get `channel_id`, external `chat_id`
+2. From `elo_channel_accounts` get `bot_token` / credentials
+3. Call MCP `/api/send` with needed parameters
+4. Save message in `elo_messages` (direction = out)
 
-### Таблица elo_channel_accounts
+### Table elo_channel_accounts
 
-Связь tenant ↔ канал ↔ аккаунт для Tenant Resolver и отправки.
+Tenant ↔ channel ↔ account link for Tenant Resolver and sending.
 
 ```sql
 CREATE TABLE elo_channel_accounts (
@@ -327,18 +327,18 @@ CREATE TABLE elo_channel_accounts (
     tenant_id UUID NOT NULL REFERENCES elo_tenants(id),
     channel_id INT NOT NULL REFERENCES elo_channels(id),
 
-    -- Идентификация
+    -- Identification
     account_id VARCHAR(100) NOT NULL,    -- bot_token, phone, group_id
-    account_name VARCHAR(255),           -- отображаемое имя
-    webhook_hash VARCHAR(32) UNIQUE,     -- для Tenant Resolver: /webhook/{hash} → tenant_id
+    account_name VARCHAR(255),           -- display name
+    webhook_hash VARCHAR(32) UNIQUE,     -- for Tenant Resolver: /webhook/{hash} → tenant_id
 
-    -- Credentials (для отправки)
+    -- Credentials (for sending)
     credentials JSONB,                   -- {token, api_key, secret...}
 
     -- MCP endpoint
     mcp_base_url VARCHAR(255),           -- https://mcp-telegram.example.com
 
-    -- Статус
+    -- Status
     is_active BOOLEAN DEFAULT true,
 
     -- Audit
@@ -348,14 +348,14 @@ CREATE TABLE elo_channel_accounts (
     UNIQUE(tenant_id, channel_id, account_id)
 );
 
--- Индекс для быстрого поиска по bot_token/account_id
+-- Index for fast lookup by bot_token/account_id
 CREATE INDEX idx_channel_accounts_account ON elo_channel_accounts(account_id);
 CREATE INDEX idx_channel_accounts_webhook ON elo_channel_accounts(webhook_hash);
 ```
 
-### Таблица elo_client_channels
+### Table elo_client_channels
 
-Связь клиента с его идентификаторами в разных каналах.
+Client link with their identifiers in different channels.
 
 ```sql
 CREATE TABLE elo_client_channels (
@@ -363,23 +363,23 @@ CREATE TABLE elo_client_channels (
     client_id UUID NOT NULL REFERENCES elo_clients(id),
     channel_id INT NOT NULL REFERENCES elo_channels(id),
 
-    external_id VARCHAR(100) NOT NULL,   -- chat_id в Telegram, phone в WhatsApp
-    external_username VARCHAR(100),      -- @username если есть
+    external_id VARCHAR(100) NOT NULL,   -- chat_id in Telegram, phone in WhatsApp
+    external_username VARCHAR(100),      -- @username if available
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
 
     UNIQUE(client_id, channel_id, external_id)
 );
 
--- Индекс для быстрого поиска клиента по external_id
+-- Index for fast client lookup by external_id
 CREATE INDEX idx_client_channels_external ON elo_client_channels(channel_id, external_id);
 ```
 
 ---
 
-## Блок 3: Input Contour
+## Block 3: Input Contour
 
-**Поток:**
+**Flow:**
 ```
 MCP → ELO_In → [Input Contour] → Core
                     ↓
@@ -388,7 +388,7 @@ MCP → ELO_In → [Input Contour] → Core
 
 ### 3.1 Tenant Resolver
 
-**Получает от ELO_In:**
+**Receives from ELO_In:**
 ```json
 {
   "channel": "telegram",
@@ -400,12 +400,12 @@ MCP → ELO_In → [Input Contour] → Core
 }
 ```
 
-**Делает:**
-1. По `bot_token` → SELECT из `elo_channel_accounts` → `tenant_id`, `account_id`
-2. Проверка `is_active` у tenant и channel_account
-3. Если не найден → логировать и отбросить
+**Does:**
+1. By `bot_token` → SELECT from `elo_channel_accounts` → `tenant_id`, `account_id`
+2. Check `is_active` for tenant and channel_account
+3. If not found → log and discard
 
-**Отдаёт:**
+**Returns:**
 ```json
 {
   "tenant_id": "uuid",
@@ -422,9 +422,9 @@ MCP → ELO_In → [Input Contour] → Core
 
 ### 3.2 Batcher (Debounce)
 
-**Зачем:** клиент шлёт 5 сообщений подряд за 3 секунды — обрабатываем как одно.
+**Why:** client sends 5 messages in 3 seconds — process as one.
 
-**Архитектура:** высоконагруженный компонент, параллельная обработка через Redis.
+**Architecture:** high-load component, parallel processing via Redis.
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -432,31 +432,31 @@ MCP → ELO_In → [Input Contour] → Core
 ├─────────────┤     │             │     │             │
 │ ELO_In_WA   │────▶│    Redis    │────▶│  Batcher    │
 ├─────────────┤     │   Queue     │     │  Workers    │
-│ ELO_In_VK   │────▶│             │     │  (N штук)   │
+│ ELO_In_VK   │────▶│             │     │  (N copies) │
 └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-**Redis структуры:**
+**Redis structures:**
 ```
-# Очередь входящих
-elo:in:queue                    -- LIST, входящие сообщения
+# Incoming queue
+elo:in:queue                    -- LIST, incoming messages
 
-# Батчи по ключу (tenant + external_chat_id + channel)
-elo:batch:{key}:messages        -- LIST, сообщения в батче
-elo:batch:{key}:timer           -- STRING, timestamp последнего сообщения
+# Batches by key (tenant + external_chat_id + channel)
+elo:batch:{key}:messages        -- LIST, messages in batch
+elo:batch:{key}:timer           -- STRING, timestamp of last message
 
-# Настройки debounce (из tenant settings)
-elo:tenant:{id}:debounce_ms     -- STRING, время ожидания (default 3000)
+# Debounce settings (from tenant settings)
+elo:tenant:{id}:debounce_ms     -- STRING, wait time (default 3000)
 ```
 
-**Логика:**
-1. Сообщение приходит в `elo:in:queue`
-2. Worker берёт, вычисляет `batch_key = {tenant_id}:{channel_id}:{external_chat_id}`
-3. RPUSH в `elo:batch:{key}:messages`
+**Logic:**
+1. Message arrives in `elo:in:queue`
+2. Worker takes it, calculates `batch_key = {tenant_id}:{channel_id}:{external_chat_id}`
+3. RPUSH to `elo:batch:{key}:messages`
 4. SET `elo:batch:{key}:timer` = NOW
-5. Отдельный процесс проверяет таймеры, если прошло N ms — отправляет батч дальше
+5. Separate process checks timers, if N ms passed — sends batch further
 
-**Отдаёт:**
+**Returns:**
 ```json
 {
   "tenant_id": "uuid",
@@ -466,7 +466,7 @@ elo:tenant:{id}:debounce_ms     -- STRING, время ожидания (default 
   "external_chat_id": "789",
   "batch": {
     "message_count": 3,
-    "combined_text": "Привет\nНе работает телефон\nЭкран разбит",
+    "combined_text": "Hi\nMy phone is broken\nScreen is cracked",
     "attachments": [...],
     "first_timestamp": "...",
     "last_timestamp": "..."
@@ -476,15 +476,15 @@ elo:tenant:{id}:debounce_ms     -- STRING, время ожидания (default 
 
 ### 3.3 Client/Dialog Resolver
 
-**Получает:** батч с `tenant_id`, `channel_id`, `external_chat_id`
+**Receives:** batch with `tenant_id`, `channel_id`, `external_chat_id`
 
-**Делает:**
-1. По `channel_id` + `external_chat_id` → ищет в `elo_client_channels` → `client_id`
-2. Если не найден → создаёт `client` и `client_channel`
-3. По `client_id` + `channel_id` → ищет активный `dialog` или создаёт новый
-4. Сохраняет messages в `elo_messages`
+**Does:**
+1. By `channel_id` + `external_chat_id` → search in `elo_client_channels` → `client_id`
+2. If not found → create `client` and `client_channel`
+3. By `client_id` + `channel_id` → search active `dialog` or create new
+4. Save messages in `elo_messages`
 
-**Отдаёт в Core:**
+**Returns to Core:**
 ```json
 {
   "tenant_id": "uuid",
@@ -492,92 +492,92 @@ elo:tenant:{id}:debounce_ms     -- STRING, время ожидания (default 
 }
 ```
 
-Минимальный Internal-контракт. Core сам достаёт что нужно.
+Minimal Internal contract. Core fetches what it needs itself.
 
-### Принцип передачи данных между нодами
+### Principle of data passing between nodes
 
-**Проблема n8n:** после SQL-ноды теряется входящий payload.
+**n8n problem:** after SQL node the incoming payload is lost.
 
-**Решение:** Code-нода после каждого SQL для мержа данных.
+**Solution:** Code node after each SQL for merging data.
 
 ```javascript
-// Пример: после SQL "Tenant Resolver"
-const input = $('Webhook').first().json;  // исходные данные
-const sqlResult = $input.first().json;    // результат SQL
+// Example: after SQL "Tenant Resolver"
+const input = $('Webhook').first().json;  // original data
+const sqlResult = $input.first().json;    // SQL result
 
 return {
-  ...input,                    // пробрасываем всё
+  ...input,                    // pass through everything
   tenant_id: sqlResult.tenant_id,
   channel_id: sqlResult.channel_id,
   account_id: sqlResult.id
 };
 ```
 
-**Принцип:** один растущий объект, каждый воркер добавляет свои поля.
+**Principle:** one growing object, each worker adds its fields.
 
-### Воркеры Input Contour (предварительно)
+### Input Contour Workers (preliminary)
 
-| # | Воркер | Входит | SQL | Добавляет |
-|---|--------|--------|-----|-----------|
+| # | Worker | Input | SQL | Adds |
+|---|--------|-------|-----|------|
 | 1 | Tenant Resolver | MCP payload | 1 (channel_accounts) | tenant_id, channel_id, account_id |
 | 2 | Batcher | + tenant_id | 0 (Redis) | batch{} |
 | 3 | Client Resolver | + batch | 1-2 (client, client_channels) | client_id |
 | 4 | Dialog Resolver | + client_id | 1-2 (dialog) | dialog_id |
 | 5 | Message Saver | + dialog_id | 1 INSERT (messages) | message_id |
 
-**TODO:** решить — много мелких воркеров или объединить 3+4+5.
+**TODO:** decide — many small workers or combine 3+4+5.
 
 ---
 
-## Seed данные
+## Seed Data
 
 ### elo_domains
 | id | code | name |
 |----|------|------|
-| 1 | electronics | Электроника |
+| 1 | electronics | Electronics |
 
 ### elo_verticals
 | id | domain_id | code | name |
 |----|-----------|------|------|
-| 1 | 1 | phone_repair | Ремонт телефонов |
-| 2 | 1 | buy_sell | Купля-продажа |
+| 1 | 1 | phone_repair | Phone Repair |
+| 2 | 1 | buy_sell | Buy/Sell |
 
 ### elo_channels
 | id | code | name |
 |----|------|------|
 | 1 | telegram | Telegram |
 | 2 | whatsapp | WhatsApp |
-| 3 | vk | ВКонтакте |
-| 4 | avito | Авито |
+| 3 | vk | VKontakte |
+| 4 | avito | Avito |
 | 5 | max | MAX |
-| 6 | form | Форма |
-| 7 | phone | Телефон |
+| 6 | form | Form |
+| 7 | phone | Phone |
 
 ### elo_dialog_statuses
 | id | code | name |
 |----|------|------|
-| 1 | active | Активный |
-| 2 | waiting | Ожидание |
-| 3 | closed | Закрыт |
-| 4 | escalated | Эскалация |
+| 1 | active | Active |
+| 2 | waiting | Waiting |
+| 3 | closed | Closed |
+| 4 | escalated | Escalated |
 
 ### elo_message_types
 | id | code | name |
 |----|------|------|
-| 1 | text | Текст |
-| 2 | voice | Голос |
-| 3 | image | Изображение |
-| 4 | file | Файл |
-| 5 | location | Геолокация |
+| 1 | text | Text |
+| 2 | voice | Voice |
+| 3 | image | Image |
+| 4 | file | File |
+| 5 | location | Location |
 
 ### elo_directions
 | id | code | name |
 |----|------|------|
-| 1 | in | Входящее |
-| 2 | out | Исходящее |
+| 1 | in | Incoming |
+| 2 | out | Outgoing |
 
 ### elo_operator_types
 | id | code | name |
 |----|------|------|
-| 1 | human | Человек |
+| 1 | human | Human |
 | 2 | ai | AI |

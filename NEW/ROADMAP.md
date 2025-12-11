@@ -1,315 +1,315 @@
 # ELO Product Roadmap
 
-> Стратегия: Заходим с козырей. Не MVP, а полноценный вертикальный продукт с максимальным WOW-эффектом.
+> Strategy: Leading with our best. Not MVP, but a full-fledged vertical product with maximum WOW effect.
 
-**Последнее обновление:** 2025-12-10
-
----
-
-## Вертикаль MVP
-
-**Домен:** Сервис телефонов = Ремонт + Покупка/Продажа (trade-in, б/у)
-
-**Философия:** "Люди общаются. Машина ведёт учёт."
-
-**Ключевой инсайт:** B2C сервис = 15 минут до решения, ответ за 1-2 минуты. amoCRM/Bitrix с канбанами на несколько дней НЕ ПОДХОДЯТ.
+**Last updated:** 2025-12-10
 
 ---
 
-## Конкурентное преимущество
+## MVP Vertical
+
+**Domain:** Phone service = Repair + Purchase/Sale (trade-in, used)
+
+**Philosophy:** "People communicate. Machine keeps records."
+
+**Key insight:** B2C service = 15 minutes to solution, response in 1-2 minutes. amoCRM/Bitrix with kanban boards for several days DO NOT WORK.
+
+---
+
+## Competitive Advantage
 
 ```
-Конкуренты:                          ELO:
+Competitors:                         ELO:
 ─────────────────────────────────────────────────────────
-Канал = 600₽/мес                     Канал = 0₽ (смартфон-сервер)
-Ручной прайс-лист                    Парсер + автоцены
-Потерял звонок = потерял клиента     Звонок → Граф → Мессенджер
-"Заполните форму"                    AI понимает "14ка про макс"
-Ответили через 2 часа                AI ответил в 23:00
-Канбан на 3 дня                      15 минут до сделки
+Channel = 600₽/month                 Channel = 0₽ (smartphone-server)
+Manual price list                    Parser + auto-pricing
+Missed call = lost client            Call → Graph → Messenger
+"Fill out the form"                  AI understands "14 pro max"
+Replied in 2 hours                   AI replied at 11pm
+Kanban for 3 days                    15 minutes to deal
 ```
 
 ---
 
-## WOW-эффект (выбран)
+## WOW Effect (selected)
 
-**"Не теряются клиенты"**
+**"Don't lose clients"**
 
-> "Клиент написал в 23:00. Ты спал. AI ответил, записал на завтра. Сколько таких ты теряешь в месяц?"
+> "Client wrote at 11pm. You were sleeping. AI replied, scheduled for tomorrow. How many like this do you lose per month?"
 
 ---
 
 ## Killer Features
 
-### 1. Смартфон-сервер (бесплатные каналы)
+### 1. Smartphone-Server (free channels)
 
 ```
-Проблема:
-  WhatsApp Wappi/GreenAPI = 600₽/канал/мес
-  Avito API = 1500-3000₽/мес
-  MAX = платный
+Problem:
+  WhatsApp Wappi/GreenAPI = 600₽/channel/month
+  Avito API = 1500-3000₽/month
+  MAX = paid
 
-Решение:
-  Приложение на смартфон клиента (тенанта)
+Solution:
+  Application on client's smartphone (tenant)
   ├── Reverse-engineered WhatsApp API
   ├── Reverse-engineered MAX API
-  └── Бесплатный Avito API
+  └── Free Avito API
 
-Архитектура:
+Architecture:
   ┌─────────────────────────────────────────────────┐
-  │  Смартфон клиента (реальный IP)                 │
-  │  ├── ELO App (скрытый функционал)               │
-  │  └── Локальный сервер API                       │
+  │  Client's smartphone (real IP)                  │
+  │  ├── ELO App (hidden functionality)             │
+  │  └── Local API server                           │
   └─────────────────────────────────────────────────┘
                       ↓ NAT traversal
   ┌─────────────────────────────────────────────────┐
   │  ELO Backend                                    │
-  │  └── Определяет: сервер или приложение          │
+  │  └── Determines: server or application          │
   └─────────────────────────────────────────────────┘
 
-Авторизация:
-  1. Клиент вводит логин/пароль в приложении
-  2. Backend определяет режим:
-     - Сервер (наш) → используем платные API
-     - Приложение (смартфон клиента) → используем бесплатные API
+Authorization:
+  1. Client enters login/password in application
+  2. Backend determines mode:
+     - Server (ours) → use paid APIs
+     - Application (client's smartphone) → use free APIs
 
-Дистрибуция:
-  ├── Google Play (со скрытым функционалом)
-  └── RuStore (со скрытым функционалом)
+Distribution:
+  ├── Google Play (with hidden functionality)
+  └── RuStore (with hidden functionality)
 
-Невидимость:
-  - Реальный IP смартфона
-  - Реальный user-agent
-  - Нет признаков автоматизации
+Invisibility:
+  - Real smartphone IP
+  - Real user-agent
+  - No signs of automation
 ```
 
-**ROI для клиента:** Экономия 600-3000₽/мес на каналах
+**ROI for client:** Savings of 600-3000₽/month on channels
 
 ---
 
-### 2. Умный прайс-лист с парсером
+### 2. Smart price list with parser
 
 ```
-Источники:
-  ├── Магазины запчастей (парсинг)
-  └── Собственная база цен
+Sources:
+  ├── Parts stores (parsing)
+  └── Own price database
 
-Нормализация (чёткая, не fuzzy):
-  Входные данные:
-    "Дисплей айфон 12 копия олед черный"
+Normalization (strict, not fuzzy):
+  Input data:
+    "Display iPhone 12 copy OLED black"
     "Display iPhone 12 OLED Copy Black"
-    "дисп. ip12 oled коп."
+    "disp. ip12 oled copy"
 
-  Нормализованный результат:
+  Normalized result:
   ┌──────────┬───────────┬──────┬──────┬─────────────┬───────┬────────────┐
-  │ Тип      │ Модель    │ Тип  │ Цвет │ Производит. │ Цена  │ Магазин    │
+  │ Type     │ Model     │ Type │ Color│ Manufacturer│ Price │ Store      │
   ├──────────┼───────────┼──────┼──────┼─────────────┼───────┼────────────┤
   │ Display  │ iPhone 12 │ OLED │ Black│ China Copy  │ 2500₽ │ MobileOpt  │
   │ Display  │ iPhone 12 │ OLED │ Black│ OEM         │ 4500₽ │ iPartsRu   │
   │ Display  │ iPhone 12 │ Orig │ Black│ Apple       │ 8500₽ │ iPartsRu   │
   └──────────┴───────────┴──────┴──────┴─────────────┴───────┴────────────┘
 
-Категории ремонта:
-  ├── АКБ (аккумулятор)
-  ├── Дисплей (Original/OEM/Copy/OLED/LCD)
-  ├── Задняя крышка
-  ├── Шлейфа (зарядки, кнопок, камеры)
-  ├── Камера (фронт/тыл)
-  └── Корпусные элементы
+Repair categories:
+  ├── Battery
+  ├── Display (Original/OEM/Copy/OLED/LCD)
+  ├── Back cover
+  ├── Flex cables (charging, buttons, camera)
+  ├── Camera (front/rear)
+  └── Body parts
 
-AI подстановка:
-  Клиент: "разбил экран на 12ке"
-  AI: "Замена дисплея iPhone 12:
-       • Копия LCD: 1800₽
-       • Копия OLED: 2500₽
-       • Оригинал: 8500₽
-       Какой вариант рассмотрите?"
+AI substitution:
+  Client: "broke screen on 12"
+  AI: "iPhone 12 display replacement:
+       • Copy LCD: 1800₽
+       • Copy OLED: 2500₽
+       • Original: 8500₽
+       Which option would you consider?"
 ```
 
-**ROI для клиента:** Актуальные цены без ручного обновления, быстрые ответы
+**ROI for client:** Current prices without manual updates, fast responses
 
 ---
 
-### 3. Голос → Граф → Мессенджер
+### 3. Voice → Graph → Messenger
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ 1. ЗВОНОК                                               │
-│    Клиент звонит: "Алло, у меня айфон не заряжается,    │
-│    можете посмотреть? Завтра в три подойду"             │
+│ 1. CALL                                                 │
+│    Client calls: "Hello, my iPhone won't charge,        │
+│    can you check? I'll come tomorrow at 3"              │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 2. ЗАПИСЬ + ТРАНСКРИБАЦИЯ                               │
-│    Whisper API → текст разговора                        │
+│ 2. RECORDING + TRANSCRIPTION                            │
+│    Whisper API → conversation text                      │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 3. AI ИЗВЛЕЧЕНИЕ СУЩНОСТЕЙ                              │
-│    ├── Устройство: iPhone (модель неизвестна)           │
-│    ├── Проблема: не заряжается                          │
-│    ├── Договорённость: завтра в 15:00                   │
-│    └── Настроение: нейтральное                          │
+│ 3. AI ENTITY EXTRACTION                                 │
+│    ├── Device: iPhone (model unknown)                   │
+│    ├── Problem: not charging                            │
+│    ├── Agreement: tomorrow at 15:00                     │
+│    └── Mood: neutral                                    │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 4. ЗАПИСЬ В ГРАФ Neo4j                                  │
+│ 4. WRITE TO Neo4j GRAPH                                 │
 │    (Client)-[:OWNS]->(Device:iPhone)                    │
-│    (Device)-[:HAS_PROBLEM]->(Problem:не_заряжается)     │
+│    (Device)-[:HAS_PROBLEM]->(Problem:not_charging)      │
 │    (Client)-[:TOUCHPOINT {channel:phone, direction:in}] │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 5. НОВАЯ ЛИНИЯ КОНТЕКСТА                                │
-│    Диалог продолжается с полным контекстом звонка       │
+│ 5. NEW CONTEXT LINE                                     │
+│    Dialog continues with full call context              │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 6. ПРОДОЛЖЕНИЕ В МЕССЕНДЖЕРЕ                            │
-│    AI в Telegram/WhatsApp:                              │
-│    "Добрый день! Вы звонили по поводу iPhone,           │
-│    который не заряжается. Ждём вас завтра в 15:00.      │
-│    Напомнить за час до визита?"                         │
+│ 6. CONTINUATION IN MESSENGER                            │
+│    AI in Telegram/WhatsApp:                             │
+│    "Good day! You called about an iPhone that           │
+│    won't charge. We expect you tomorrow at 15:00.       │
+│    Remind you an hour before the visit?"                │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**ROI для клиента:** Звонок не теряется, контекст сохраняется, допродажи через мессенджер
+**ROI for client:** Call isn't lost, context preserved, upsells via messenger
 
 ---
 
-### 4. QR для идентификации клиента
+### 4. QR for client identification
 
 ```
-Сценарий 1: Новый клиент в сервисе
+Scenario 1: New client in service
   ┌─────────────────────────────────────────────────┐
-  │ QR-код на стойке / визитке                      │
-  │ → Клиент сканирует                              │
-  │ → Открывается Telegram/WhatsApp                 │
-  │ → Система создаёт профиль                       │
-  │ → Оператор видит "новый клиент"                 │
+  │ QR code on counter / business card              │
+  │ → Client scans                                  │
+  │ → Opens Telegram/WhatsApp                       │
+  │ → System creates profile                        │
+  │ → Operator sees "new client"                    │
   └─────────────────────────────────────────────────┘
 
-Сценарий 2: Повторный клиент
+Scenario 2: Returning client
   ┌─────────────────────────────────────────────────┐
-  │ QR-код на стойке                                │
-  │ → Клиент сканирует                              │
-  │ → Система узнаёт по номеру телефона             │
-  │ → Оператор видит всю историю:                   │
-  │   "Иван, был 2 недели назад, менял дисплей      │
-  │    на iPhone 13, гарантия до 15.01"             │
+  │ QR code on counter                              │
+  │ → Client scans                                  │
+  │ → System recognizes by phone number             │
+  │ → Operator sees entire history:                 │
+  │   "Ivan, was 2 weeks ago, replaced display      │
+  │    on iPhone 13, warranty until 15.01"          │
   └─────────────────────────────────────────────────┘
 
-Сценарий 3: QR на устройстве после ремонта
+Scenario 3: QR on device after repair
   ┌─────────────────────────────────────────────────┐
-  │ Наклейка с QR на телефон клиента                │
-  │ → Клиент сканирует через месяц                  │
-  │ → Попадает в чат с историей ремонта             │
-  │ → Может задать вопрос по гарантии               │
+  │ Sticker with QR on client's phone               │
+  │ → Client scans a month later                    │
+  │ → Goes to chat with repair history              │
+  │ → Can ask question about warranty               │
   └─────────────────────────────────────────────────┘
 ```
 
-**ROI для клиента:** Быстрая идентификация, лояльность, повторные продажи
+**ROI for client:** Fast identification, loyalty, repeat sales
 
 ---
 
-### 5. Интеграции с учётными системами
+### 5. Integrations with accounting systems
 
 ```
-Поддерживаемые системы:
+Supported systems:
   ├── LiveSklad
   ├── Remonline
-  └── Другие по запросу
+  └── Others on request
 
-Двусторонняя синхронизация:
+Two-way synchronization:
 
-  ELO → Учётка:
+  ELO → Accounting:
   ┌─────────────────────────────────────────────────┐
-  │ AI собрал данные из диалога:                    │
-  │ • Клиент: Иван Петров, +79991234567             │
-  │ • Устройство: iPhone 14 Pro Max                 │
-  │ • Проблема: разбит дисплей                      │
-  │ • Тип ремонта: замена дисплея                   │
+  │ AI collected data from dialog:                  │
+  │ • Client: Ivan Petrov, +79991234567             │
+  │ • Device: iPhone 14 Pro Max                     │
+  │ • Problem: broken display                       │
+  │ • Repair type: display replacement              │
   │                                                 │
-  │ → Создаётся заявка в LiveSklad/Remonline        │
-  │   с заполненными полями                         │
+  │ → Creates order in LiveSklad/Remonline          │
+  │   with filled fields                            │
   └─────────────────────────────────────────────────┘
 
-  Учётка → ELO:
+  Accounting → ELO:
   ┌─────────────────────────────────────────────────┐
-  │ Мастер закрыл заявку:                           │
-  │ • Фактический ремонт: замена дисплея + АКБ      │
-  │ • Запчасти: Display OLED Copy, Battery OEM      │
-  │ • Стоимость: 4500₽                              │
+  │ Technician closed order:                        │
+  │ • Actual repair: display + battery replacement  │
+  │ • Parts: Display OLED Copy, Battery OEM         │
+  │ • Cost: 4500₽                                   │
   │                                                 │
-  │ → Данные возвращаются в ELO                     │
-  │ → AI обучается на реальных ремонтах             │
-  │ → Граф обогащается фактическими данными         │
+  │ → Data returns to ELO                           │
+  │ → AI learns from real repairs                   │
+  │ → Graph enriched with actual data               │
   └─────────────────────────────────────────────────┘
 
-Обучение AI:
-  • Что клиенты говорят vs что реально ремонтируют
-  • Какие запчасти чаще всего используются
-  • Средняя стоимость по типам ремонта
+AI learning:
+  • What clients say vs what actually gets repaired
+  • Which parts are most commonly used
+  • Average cost by repair types
 ```
 
-**ROI для клиента:** Нет двойного ввода, AI становится умнее
+**ROI for client:** No double entry, AI gets smarter
 
 ---
 
-### 6. Самообучение + предписанные ответы
+### 6. Self-learning + prescribed responses
 
 ```
-Источники обучения:
+Learning sources:
 
-1. Предписанные ответы (тенант задаёт сам):
+1. Prescribed responses (tenant sets themselves):
    ┌─────────────────────────────────────────────────┐
-   │ Триггер: "гарантия"                             │
-   │ Ответ: "Гарантия 30 дней на работу,             │
-   │        90 дней на оригинальные запчасти"        │
+   │ Trigger: "warranty"                             │
+   │ Response: "30 days warranty on work,            │
+   │           90 days on original parts"            │
    ├─────────────────────────────────────────────────┤
-   │ Триггер: "как добраться"                        │
-   │ Ответ: "Мы находимся по адресу: ул. Ленина 15,  │
-   │        вход со двора. Ориентир - красная дверь" │
+   │ Trigger: "how to get there"                     │
+   │ Response: "We are located at: 15 Lenin St.,     │
+   │           entrance from courtyard. Red door"    │
    └─────────────────────────────────────────────────┘
 
-2. Ответы операторов (подтверждённые):
+2. Operator responses (confirmed):
    ┌─────────────────────────────────────────────────┐
-   │ AI предложил ответ                              │
-   │ Оператор подтвердил / исправил                  │
-   │ → AI запоминает правильный вариант              │
+   │ AI suggested response                           │
+   │ Operator confirmed / corrected                  │
+   │ → AI remembers correct version                  │
    └─────────────────────────────────────────────────┘
 
-3. Реальные ремонты (из учётки):
+3. Real repairs (from accounting):
    ┌─────────────────────────────────────────────────┐
-   │ Клиент сказал: "телефон глючит"                 │
-   │ Реальный ремонт: замена АКБ                     │
-   │ → AI учится: "глючит" часто = проблема с АКБ    │
+   │ Client said: "phone glitching"                  │
+   │ Actual repair: battery replacement              │
+   │ → AI learns: "glitching" often = battery issue  │
    └─────────────────────────────────────────────────┘
 
-4. Голосовые ответы операторов:
+4. Voice responses from operators:
    ┌─────────────────────────────────────────────────┐
-   │ Оператор надиктовал ответ голосом               │
-   │ → Транскрибация                                 │
-   │ → Нормализация (убрать "эээ", "ну")             │
-   │ → Отправка клиенту                              │
-   │ → Добавление в базу знаний                      │
+   │ Operator dictated response by voice             │
+   │ → Transcription                                 │
+   │ → Normalization (remove "umm", "well")          │
+   │ → Send to client                                │
+   │ → Add to knowledge base                         │
    └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## AI Tools / Инструменты
+## AI Tools / Tools
 
-> Атомарные инструменты которые вызывает AI для выполнения задач
+> Atomic tools that AI calls to perform tasks
 
-### Обзор инструментов
+### Tool Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                          AI TOOLS                                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  ИЗВЛЕЧЕНИЕ (Extraction)          ДЕЙСТВИЯ (Actions)                        │
+│  EXTRACTION                       ACTIONS                                    │
 │  ├── device_extract               ├── appointment_create                    │
 │  ├── issue_extract                ├── appointment_reschedule                │
 │  ├── intent_classify              ├── parts_search                          │
@@ -317,12 +317,12 @@ AI подстановка:
 │  ├── appointment_extract          ├── order_create (Remonline/LiveSklad)    │
 │  └── sentiment_analyze            └── notification_send                     │
 │                                                                              │
-│  ПОИСК (Lookup)                   ГЕНЕРАЦИЯ (Generation)                    │
+│  LOOKUP                           GENERATION                                 │
 │  ├── client_lookup                ├── response_generate                     │
 │  ├── device_history               ├── summary_generate                      │
 │  ├── parts_catalog_search         └── greeting_generate                     │
 │  ├── knowledge_lookup                                                       │
-│  └── qr_resolve                   ИНТЕГРАЦИИ (External)                     │
+│  └── qr_resolve                   INTEGRATIONS (External)                   │
 │                                   ├── remonline_sync                        │
 │                                   ├── livesklad_sync                        │
 │                                   └── voice_transcribe                      │
@@ -332,44 +332,44 @@ AI подстановка:
 
 ---
 
-### 1. Запись на приём (Appointment)
+### 1. Appointment
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  TOOL: appointment_extract                                                   │
-│  Назначение: Извлечь из сообщения дату/время/пожелания                      │
+│  Purpose: Extract date/time/preferences from message                        │
 │                                                                              │
-│  Вход: "Завтра в три подойду, после обеда"                                  │
-│  Выход: {                                                                    │
+│  Input: "Tomorrow at 3, after lunch"                                        │
+│  Output: {                                                                   │
 │    date: "2025-12-11",                                                       │
 │    time: "15:00",                                                            │
 │    time_flexible: true,                                                      │
-│    notes: "после обеда"                                                      │
+│    notes: "after lunch"                                                      │
 │  }                                                                           │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  TOOL: appointment_create                                                    │
-│  Назначение: Создать запись в календаре/системе                             │
+│  Purpose: Create entry in calendar/system                                   │
 │                                                                              │
-│  Вход: {                                                                     │
+│  Input: {                                                                    │
 │    client_id: "uuid",                                                        │
 │    date: "2025-12-11",                                                       │
 │    time: "15:00",                                                            │
 │    service_type: "repair",                                                   │
 │    device: "iPhone 14",                                                      │
-│    issue: "экран"                                                            │
+│    issue: "screen"                                                           │
 │  }                                                                           │
 │                                                                              │
-│  Действия:                                                                   │
-│  ├── Проверить свободные слоты                                              │
-│  ├── Создать запись в elo_appointments                                      │
-│  ├── Создать событие в Google Calendar (опц.)                               │
-│  ├── Создать заявку в Remonline/LiveSklad (опц.)                            │
-│  └── Запланировать напоминание клиенту                                      │
+│  Actions:                                                                    │
+│  ├── Check available slots                                                  │
+│  ├── Create entry in elo_appointments                                       │
+│  ├── Create event in Google Calendar (optional)                             │
+│  ├── Create order in Remonline/LiveSklad (optional)                         │
+│  └── Schedule reminder to client                                            │
 │                                                                              │
-│  Выход: {                                                                    │
+│  Output: {                                                                   │
 │    appointment_id: "uuid",                                                   │
 │    confirmed_time: "15:00",                                                  │
 │    reminder_scheduled: true                                                  │
@@ -378,20 +378,20 @@ AI подстановка:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  TOOL: appointment_reschedule                                                │
-│  Назначение: Перенести существующую запись                                  │
+│  Purpose: Reschedule existing appointment                                   │
 │                                                                              │
-│  Вход: "Не смогу завтра, давайте в пятницу"                                 │
+│  Input: "Can't make it tomorrow, let's do Friday"                           │
 │                                                                              │
-│  Логика:                                                                     │
-│  ├── Найти активную запись клиента                                          │
-│  ├── Извлечь новую дату/время                                               │
-│  ├── Проверить доступность                                                  │
-│  ├── Обновить запись                                                        │
-│  └── Уведомить клиента о подтверждении                                      │
+│  Logic:                                                                      │
+│  ├── Find active client appointment                                         │
+│  ├── Extract new date/time                                                  │
+│  ├── Check availability                                                     │
+│  ├── Update appointment                                                     │
+│  └── Notify client of confirmation                                          │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-Таблица:
+Table:
 
 CREATE TABLE elo_appointments (
   id UUID PRIMARY KEY,
@@ -399,26 +399,26 @@ CREATE TABLE elo_appointments (
   client_id UUID REFERENCES elo_clients(id),
   dialog_id UUID REFERENCES elo_dialogs(id),
 
-  -- Время
+  -- Time
   scheduled_date DATE NOT NULL,
   scheduled_time TIME,
   time_flexible BOOLEAN DEFAULT false,
   duration_minutes INT DEFAULT 30,
 
-  -- Тип
+  -- Type
   service_type VARCHAR,            -- repair, consultation, pickup
 
-  -- Связь с устройством/проблемой
+  -- Link to device/problem
   device_info JSONB,               -- {brand, model, issue}
 
-  -- Статус
+  -- Status
   status VARCHAR DEFAULT 'scheduled',  -- scheduled, confirmed, completed, cancelled, no_show
 
-  -- Напоминания
+  -- Reminders
   reminder_sent BOOLEAN DEFAULT false,
   reminder_scheduled_at TIMESTAMPTZ,
 
-  -- Внешние системы
+  -- External systems
   external_ids JSONB,              -- {remonline: "123", google_calendar: "abc"}
 
   notes TEXT,
@@ -428,26 +428,26 @@ CREATE TABLE elo_appointments (
 
 ---
 
-### 2. Поиск запчастей (Parts Search)
+### 2. Parts Search
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  TOOL: parts_search                                                          │
-│  Назначение: Найти запчасти по параметрам                                   │
+│  Purpose: Find parts by parameters                                          │
 │                                                                              │
-│  Вход: {                                                                     │
+│  Input: {                                                                    │
 │    device_brand: "Apple",                                                    │
 │    device_model: "iPhone 14",                                                │
 │    part_type: "display",                                                     │
-│    quality: null  // все варианты                                           │
+│    quality: null  // all variants                                           │
 │  }                                                                           │
 │                                                                              │
-│  Выход: {                                                                    │
+│  Output: {                                                                   │
 │    parts: [                                                                  │
 │      {                                                                       │
 │        id: "uuid",                                                           │
-│        name: "Дисплей iPhone 14 OLED Copy",                                 │
+│        name: "Display iPhone 14 OLED Copy",                                 │
 │        quality: "copy",                                                      │
 │        subtype: "oled",                                                      │
 │        price: 4500,                                                          │
@@ -456,7 +456,7 @@ CREATE TABLE elo_appointments (
 │      },                                                                      │
 │      {                                                                       │
 │        id: "uuid",                                                           │
-│        name: "Дисплей iPhone 14 Original",                                  │
+│        name: "Display iPhone 14 Original",                                  │
 │        quality: "original",                                                  │
 │        price: 12000,                                                         │
 │        in_stock: false,                                                      │
@@ -469,83 +469,83 @@ CREATE TABLE elo_appointments (
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-Сценарии использования:
+Usage scenarios:
 
-1. Клиент спрашивает цену:
-   "Сколько стоит поменять экран на 14ке?"
+1. Client asks about price:
+   "How much to replace screen on 14?"
    → device_extract → parts_search → response_generate
-   → "Замена дисплея iPhone 14: копия 5850₽, оригинал 15600₽"
+   → "iPhone 14 display replacement: copy 5850₽, original 15600₽"
 
-2. Оператор проверяет наличие:
-   Приложение → parts_search (internal) → показать stock status
+2. Operator checks availability:
+   Application → parts_search (internal) → show stock status
 
-3. AI предлагает альтернативы:
-   "Оригинал нет в наличии, доставка 3 дня. Копия OLED есть сейчас."
+3. AI suggests alternatives:
+   "Original not in stock, 3 day delivery. OLED copy available now."
 ```
 
 ---
 
-### 3. Блок создания файла запчастей (Parts Catalog)
+### 3. Parts Catalog Block
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  PRICE ENGINE: Parts Catalog                                                 │
-│  Назначение: Создание и поддержка каталога запчастей                        │
+│  Purpose: Create and maintain parts catalog                                 │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  ИСТОЧНИКИ ДАННЫХ                                                           │
+│  DATA SOURCES                                                               │
 │                                                                              │
-│  1. Парсинг магазинов (автоматически):                                      │
+│  1. Store parsing (automatic):                                              │
 │     ├── mobileboost.ru                                                      │
 │     ├── all-spares.ru                                                       │
 │     ├── gsm-komplekt.ru                                                     │
 │     └── opt-mobile.ru                                                       │
 │                                                                              │
-│  2. Импорт от тенанта (вручную):                                            │
-│     ├── Excel/CSV файл                                                      │
-│     ├── API поставщика                                                      │
-│     └── Ручной ввод                                                         │
+│  2. Import from tenant (manual):                                            │
+│     ├── Excel/CSV file                                                      │
+│     ├── Supplier API                                                        │
+│     └── Manual entry                                                        │
 │                                                                              │
-│  3. Синхронизация из учётки:                                                │
-│     ├── LiveSklad → актуальные остатки                                      │
-│     └── Remonline → актуальные остатки                                      │
+│  3. Sync from accounting:                                                   │
+│     ├── LiveSklad → current stock                                           │
+│     └── Remonline → current stock                                           │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  ПРОЦЕСС НОРМАЛИЗАЦИИ                                                       │
+│  NORMALIZATION PROCESS                                                      │
 │                                                                              │
-│  Сырые данные:                                                              │
-│  "Дисп. айф. 14 олед копия чёрн."                                           │
+│  Raw data:                                                                  │
+│  "Disp. iPhone 14 OLED copy black"                                          │
 │  "LCD iPhone14 black copy"                                                  │
-│  "Экран для Apple iPhone 14 OLED (черный) - копия"                          │
+│  "Screen for Apple iPhone 14 OLED (black) - copy"                           │
 │                                                                              │
 │                          ↓                                                   │
 │                                                                              │
-│  Справочники:                                                               │
+│  Dictionaries:                                                              │
 │  ┌────────────────────────────────────────────────────────────────────┐     │
 │  │ elo_device_models                                                  │     │
 │  │ ├── brand: "Apple"                                                 │     │
 │  │ ├── model: "iPhone 14"                                             │     │
-│  │ └── aliases: ["айф 14", "iphone14", "ip14", "14ка", "айфон 14"]   │     │
+│  │ └── aliases: ["iphone 14", "iphone14", "ip14", "14"]              │     │
 │  ├────────────────────────────────────────────────────────────────────┤     │
 │  │ elo_part_types                                                     │     │
 │  │ ├── name: "display"                                                │     │
-│  │ ├── display_name: "Дисплей"                                        │     │
-│  │ ├── aliases: ["экран", "дисп", "lcd", "стекло", "тач"]            │     │
+│  │ ├── display_name: "Display"                                        │     │
+│  │ ├── aliases: ["screen", "disp", "lcd", "glass", "touch"]          │     │
 │  │ └── subtypes: ["lcd", "oled", "amoled", "incell"]                 │     │
 │  ├────────────────────────────────────────────────────────────────────┤     │
 │  │ elo_part_qualities                                                 │     │
 │  │ ├── name: "copy"                                                   │     │
-│  │ ├── display_name: "Копия"                                          │     │
-│  │ ├── aliases: ["копия", "copy", "коп", "реплика", "china"]         │     │
+│  │ ├── display_name: "Copy"                                           │     │
+│  │ ├── aliases: ["copy", "replica", "china"]                          │     │
 │  │ └── rank: 3  // 1=best, 3=cheapest                                │     │
 │  └────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
 │                          ↓                                                   │
 │                                                                              │
-│  Нормализованная запись:                                                    │
+│  Normalized entry:                                                          │
 │  {                                                                           │
 │    device_model_id: 142,       // → Apple iPhone 14                         │
 │    part_type_id: 1,            // → display                                 │
@@ -554,14 +554,14 @@ CREATE TABLE elo_appointments (
 │    color: "black",                                                          │
 │    price: 4500,                                                             │
 │    source: "mobileboost.ru",                                                │
-│    raw_title: "Дисп. айф. 14 олед копия чёрн."                             │
+│    raw_title: "Disp. iPhone 14 OLED copy black"                            │
 │  }                                                                           │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  WORKFLOW СОЗДАНИЯ КАТАЛОГА                                                 │
+│  CATALOG CREATION WORKFLOW                                                  │
 │                                                                              │
-│  Шаг 1: Парсинг (ежедневно 3:00)                                           │
+│  Step 1: Parsing (daily at 3:00)                                           │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ ELO_Price_Parser                                                    │   │
 │  │ ├── Fetch HTML/API from sources                                     │   │
@@ -569,7 +569,7 @@ CREATE TABLE elo_appointments (
 │  │ └── Save to elo_price_raw (staging)                                 │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                          ↓                                                   │
-│  Шаг 2: Нормализация                                                        │
+│  Step 2: Normalization                                                      │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ ELO_Price_Normalizer                                                │   │
 │  │ ├── Match against dictionaries                                      │   │
@@ -578,7 +578,7 @@ CREATE TABLE elo_appointments (
 │  │ └── Save to elo_price_catalog                                       │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                          ↓                                                   │
-│  Шаг 3: Дедупликация                                                        │
+│  Step 3: Deduplication                                                      │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ ELO_Price_Deduplicator                                              │   │
 │  │ ├── Find duplicates (same part, different sources)                  │   │
@@ -586,7 +586,7 @@ CREATE TABLE elo_appointments (
 │  │ └── Update elo_price_market_avg                                     │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                          ↓                                                   │
-│  Шаг 4: Применение наценок                                                  │
+│  Step 4: Apply markups                                                      │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │ parts_search (runtime)                                              │   │
 │  │ ├── Load market prices                                              │   │
@@ -596,9 +596,9 @@ CREATE TABLE elo_appointments (
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-Таблицы:
+Tables:
 
--- Сырые данные (staging)
+-- Raw data (staging)
 CREATE TABLE elo_price_raw (
   id UUID PRIMARY KEY,
   source_name VARCHAR NOT NULL,
@@ -610,7 +610,7 @@ CREATE TABLE elo_price_raw (
   processed BOOLEAN DEFAULT false
 );
 
--- Нормализованный каталог
+-- Normalized catalog
 CREATE TABLE elo_price_catalog (
   id UUID PRIMARY KEY,
   device_model_id INT REFERENCES elo_device_models(id),
@@ -622,12 +622,12 @@ CREATE TABLE elo_price_catalog (
   source_name VARCHAR,
   source_url VARCHAR,
   raw_title VARCHAR,
-  confidence DECIMAL(3,2),    -- 0.00-1.00, уверенность нормализации
+  confidence DECIMAL(3,2),    -- 0.00-1.00, normalization confidence
   parsed_at TIMESTAMPTZ DEFAULT NOW(),
   is_active BOOLEAN DEFAULT true
 );
 
--- Средние цены по рынку
+-- Market average prices
 CREATE TABLE elo_price_market_avg (
   id UUID PRIMARY KEY,
   device_model_id INT,
@@ -641,7 +641,7 @@ CREATE TABLE elo_price_market_avg (
   calculated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Наценки тенанта
+-- Tenant markups
 CREATE TABLE elo_tenant_pricing (
   id UUID PRIMARY KEY,
   tenant_id UUID REFERENCES elo_tenants(id),
@@ -655,66 +655,66 @@ CREATE TABLE elo_tenant_pricing (
 
 ---
 
-### 4. QR код авторизация/регистрация
+### 4. QR code authorization/registration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  TOOL: qr_resolve                                                            │
-│  Назначение: Определить клиента/контекст по QR коду                         │
+│  Purpose: Identify client/context by QR code                                │
 │                                                                              │
-│  Типы QR кодов:                                                             │
+│  QR code types:                                                             │
 │                                                                              │
-│  1. TENANT QR (на стойке, визитке)                                          │
+│  1. TENANT QR (on counter, business card)                                   │
 │     URL: https://elo.do/ABC123                                              │
-│     → Новый клиент: создать профиль, начать диалог                          │
-│     → Существующий: узнать по telegram_id/phone, показать историю           │
+│     → New client: create profile, start dialog                              │
+│     → Existing: recognize by telegram_id/phone, show history                │
 │                                                                              │
-│  2. DEVICE QR (на устройстве после ремонта)                                 │
+│  2. DEVICE QR (on device after repair)                                      │
 │     URL: https://elo.do/ABC123/d/XYZ789                                     │
-│     → Клиент сканирует → видит историю ремонтов этого устройства            │
-│     → Может задать вопрос по гарантии                                       │
+│     → Client scans → sees repair history of this device                     │
+│     → Can ask warranty question                                             │
 │                                                                              │
-│  3. REPAIR QR (на чеке/квитанции)                                           │
+│  3. REPAIR QR (on receipt)                                                  │
 │     URL: https://elo.do/ABC123/r/REP456                                     │
-│     → Клиент сканирует → видит детали конкретного ремонта                   │
-│     → Статус, стоимость, гарантия                                           │
+│     → Client scans → sees specific repair details                           │
+│     → Status, cost, warranty                                                │
 │                                                                              │
-│  4. PROMO QR (на рекламе)                                                   │
+│  4. PROMO QR (on advertisement)                                             │
 │     URL: https://elo.do/ABC123/p/PROMO1                                     │
-│     → Отслеживание источника привлечения                                    │
-│     → Автоматическое применение скидки                                      │
+│     → Track acquisition source                                              │
+│     → Automatically apply discount                                          │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  FLOW: QR → Мессенджер → Авторизация                                        │
+│  FLOW: QR → Messenger → Authorization                                       │
 │                                                                              │
-│  1. Клиент сканирует QR                                                     │
-│  2. Открывается ссылка → редирект на Telegram/WhatsApp                      │
-│  3. Автостарт: /start ABC123_d_XYZ789                                       │
-│  4. Backend парсит код:                                                     │
+│  1. Client scans QR                                                         │
+│  2. Opens link → redirects to Telegram/WhatsApp                             │
+│  3. Autostart: /start ABC123_d_XYZ789                                       │
+│  4. Backend parses code:                                                    │
 │     ├── tenant_code: ABC123 → tenant_id                                     │
 │     ├── type: d (device)                                                    │
 │     └── entity_id: XYZ789 → device_id                                       │
-│  5. Резолв клиента:                                                         │
-│     ├── По telegram_id → найден → подгрузить историю                        │
-│     └── Не найден → создать профиль                                         │
-│  6. Подгрузить контекст устройства/ремонта                                  │
-│  7. AI готов к диалогу с полным контекстом                                  │
+│  5. Resolve client:                                                         │
+│     ├── By telegram_id → found → load history                               │
+│     └── Not found → create profile                                          │
+│  6. Load device/repair context                                              │
+│  7. AI ready for dialog with full context                                   │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  TOOL: qr_generate                                                           │
-│  Назначение: Создать QR код                                                 │
+│  Purpose: Create QR code                                                    │
 │                                                                              │
-│  Вход: {                                                                     │
+│  Input: {                                                                    │
 │    tenant_id: "uuid",                                                        │
 │    type: "device",                                                           │
 │    entity_id: "uuid",      // device_id, repair_id, promo_id                │
-│    label: "iPhone 14 Иванов"  // для отслеживания                           │
+│    label: "iPhone 14 Ivanov"  // for tracking                               │
 │  }                                                                           │
 │                                                                              │
-│  Выход: {                                                                    │
+│  Output: {                                                                   │
 │    qr_id: "uuid",                                                            │
 │    code: "ABC123_d_XYZ789",                                                 │
 │    url: "https://elo.do/ABC123/d/XYZ789",                                   │
@@ -723,7 +723,7 @@ CREATE TABLE elo_tenant_pricing (
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-Таблица:
+Table:
 
 CREATE TABLE elo_qr_codes (
   id UUID PRIMARY KEY,
@@ -732,26 +732,26 @@ CREATE TABLE elo_qr_codes (
   code VARCHAR UNIQUE NOT NULL,    -- ABC123_d_XYZ789
   type VARCHAR NOT NULL,           -- tenant, device, repair, promo
 
-  -- Привязка к сущности
+  -- Entity binding
   entity_type VARCHAR,             -- device, repair, promo
   entity_id UUID,
 
-  -- Для промо
+  -- For promo
   promo_config JSONB,              -- {discount: 10, valid_until: "2025-01-01"}
 
-  -- Статистика
+  -- Statistics
   scans_count INT DEFAULT 0,
   unique_clients INT DEFAULT 0,
   last_scanned_at TIMESTAMPTZ,
 
-  -- Метаданные
-  label VARCHAR,                   -- "Стойка у входа", "Визитка Иван"
+  -- Metadata
+  label VARCHAR,                   -- "Counter at entrance", "Business card Ivan"
 
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Логирование сканирований
+-- Scan logging
 CREATE TABLE elo_qr_scans (
   id UUID PRIMARY KEY,
   qr_id UUID REFERENCES elo_qr_codes(id),
@@ -763,144 +763,144 @@ CREATE TABLE elo_qr_scans (
 
 ---
 
-### 5. API Remonline
+### 5. Remonline API
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  TOOL: remonline_sync                                                        │
-│  Назначение: Двусторонняя синхронизация с Remonline                         │
+│  Purpose: Two-way synchronization with Remonline                            │
 │                                                                              │
 │  API: https://api.remonline.app/                                            │
 │  Docs: https://remonline.app/docs/api/                                      │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  НАПРАВЛЕНИЕ: ELO → Remonline                                               │
+│  DIRECTION: ELO → Remonline                                                 │
 │                                                                              │
-│  Триггер: dialog.stage = SCHEDULED или RECEIVED                             │
+│  Trigger: dialog.stage = SCHEDULED or RECEIVED                              │
 │                                                                              │
-│  Действия:                                                                   │
-│  1. POST /orders/ — создать заявку                                          │
+│  Actions:                                                                    │
+│  1. POST /orders/ — create order                                            │
 │     {                                                                        │
 │       "client": {                                                            │
-│         "name": "Иван Петров",                                              │
+│         "name": "Ivan Petrov",                                              │
 │         "phone": "+79991234567"                                             │
 │       },                                                                     │
 │       "order_type": "repair",                                               │
 │       "device_type": "iPhone 14",                                           │
-│       "malfunction": "Разбит экран",                                        │
+│       "malfunction": "Broken screen",                                       │
 │       "estimated_cost": 5000,                                               │
 │       "scheduled_for": "2025-12-11T15:00:00"                                │
 │     }                                                                        │
 │                                                                              │
-│  2. Сохранить external_id в elo_dialogs.external_ids.remonline             │
+│  2. Save external_id to elo_dialogs.external_ids.remonline                 │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  НАПРАВЛЕНИЕ: Remonline → ELO (webhook)                                     │
+│  DIRECTION: Remonline → ELO (webhook)                                       │
 │                                                                              │
 │  Endpoint: POST /webhook/remonline                                          │
 │                                                                              │
-│  События:                                                                    │
-│  ├── order.status_changed → обновить dialog.stage                          │
-│  ├── order.completed → получить фактические данные                          │
-│  └── order.part_used → обновить learning data                              │
+│  Events:                                                                     │
+│  ├── order.status_changed → update dialog.stage                            │
+│  ├── order.completed → get actual data                                     │
+│  └── order.part_used → update learning data                                │
 │                                                                              │
-│  Пример payload (order.completed):                                          │
+│  Example payload (order.completed):                                         │
 │  {                                                                           │
 │    "event": "order.completed",                                              │
 │    "order_id": "123456",                                                    │
 │    "actual_repairs": [                                                       │
-│      {"type": "Замена дисплея", "price": 5000}                              │
+│      {"type": "Display replacement", "price": 5000}                         │
 │    ],                                                                        │
 │    "parts_used": [                                                           │
-│      {"name": "Дисплей iPhone 14 OLED", "price": 3500, "qty": 1}           │
+│      {"name": "Display iPhone 14 OLED", "price": 3500, "qty": 1}           │
 │    ],                                                                        │
 │    "total": 5000,                                                            │
 │    "completed_at": "2025-12-11T18:30:00"                                    │
 │  }                                                                           │
 │                                                                              │
-│  Действия:                                                                   │
-│  1. Обновить elo_dialogs.context.actual_repair                             │
-│  2. Обновить Neo4j: Problem.resolved = true                                │
-│  3. Сохранить в elo_learning_examples для обучения AI                      │
-│  4. Отправить клиенту: "Ваш iPhone 14 готов! Стоимость: 5000₽"             │
+│  Actions:                                                                    │
+│  1. Update elo_dialogs.context.actual_repair                               │
+│  2. Update Neo4j: Problem.resolved = true                                  │
+│  3. Save to elo_learning_examples for AI training                          │
+│  4. Send to client: "Your iPhone 14 is ready! Cost: 5000₽"                 │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 6. API LiveSklad
+### 6. LiveSklad API
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │  TOOL: livesklad_sync                                                        │
-│  Назначение: Двусторонняя синхронизация с LiveSklad                         │
+│  Purpose: Two-way synchronization with LiveSklad                            │
 │                                                                              │
 │  API: https://livesklad.com/api/                                            │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  НАПРАВЛЕНИЕ: ELO → LiveSklad                                               │
+│  DIRECTION: ELO → LiveSklad                                                 │
 │                                                                              │
-│  Триггер: dialog.stage = SCHEDULED или RECEIVED                             │
+│  Trigger: dialog.stage = SCHEDULED or RECEIVED                              │
 │                                                                              │
-│  Действия:                                                                   │
-│  1. POST /api/orders — создать заказ                                        │
+│  Actions:                                                                    │
+│  1. POST /api/orders — create order                                         │
 │     {                                                                        │
-│       "client_name": "Иван Петров",                                         │
+│       "client_name": "Ivan Petrov",                                         │
 │       "client_phone": "+79991234567",                                       │
 │       "device": "Apple iPhone 14",                                          │
-│       "defect": "Разбит экран",                                             │
+│       "defect": "Broken screen",                                            │
 │       "preliminary_price": 5000,                                            │
 │       "reception_date": "2025-12-11"                                        │
 │     }                                                                        │
 │                                                                              │
-│  2. POST /api/clients — создать/найти клиента (если не существует)         │
+│  2. POST /api/clients — create/find client (if doesn't exist)              │
 │                                                                              │
-│  3. Сохранить external_id в elo_dialogs.external_ids.livesklad             │
+│  3. Save external_id to elo_dialogs.external_ids.livesklad                 │
 │                                                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  НАПРАВЛЕНИЕ: LiveSklad → ELO (webhook)                                     │
+│  DIRECTION: LiveSklad → ELO (webhook)                                       │
 │                                                                              │
 │  Endpoint: POST /webhook/livesklad                                          │
 │                                                                              │
-│  События:                                                                    │
-│  ├── order.status → обновить dialog.stage                                  │
-│  │   - "В работе" → IN_PROGRESS                                            │
-│  │   - "Готов" → READY                                                      │
-│  │   - "Выдан" → DELIVERED                                                  │
+│  Events:                                                                     │
+│  ├── order.status → update dialog.stage                                    │
+│  │   - "In progress" → IN_PROGRESS                                          │
+│  │   - "Ready" → READY                                                      │
+│  │   - "Delivered" → DELIVERED                                              │
 │  │                                                                           │
-│  ├── order.completed → получить итоговые данные                            │
+│  ├── order.completed → get final data                                      │
 │  │   {                                                                       │
 │  │     "order_id": "LS-12345",                                              │
-│  │     "works": [{"name": "Замена дисплея", "price": 5000}],               │
-│  │     "parts": [{"name": "Дисплей OLED", "price": 3500}],                 │
+│  │     "works": [{"name": "Display replacement", "price": 5000}],          │
+│  │     "parts": [{"name": "Display OLED", "price": 3500}],                 │
 │  │     "total": 5000                                                        │
 │  │   }                                                                       │
 │  │                                                                           │
-│  └── stock.updated → обновить остатки запчастей                            │
+│  └── stock.updated → update parts stock                                    │
 │      {                                                                       │
 │        "part_id": "P-123",                                                  │
-│        "name": "Дисплей iPhone 14 OLED",                                   │
+│        "name": "Display iPhone 14 OLED",                                    │
 │        "quantity": 5,                                                        │
 │        "price": 3500                                                         │
 │      }                                                                       │
 │                                                                              │
-│  Действия на stock.updated:                                                 │
-│  1. Обновить elo_price_catalog (in_stock, local_price)                     │
-│  2. Помечать запчасти как "в наличии" для parts_search                     │
+│  Actions on stock.updated:                                                  │
+│  1. Update elo_price_catalog (in_stock, local_price)                       │
+│  2. Mark parts as "in stock" for parts_search                               │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Общая таблица интеграций
+### Common integrations table
 
 ```sql
 CREATE TABLE elo_external_integrations (
@@ -916,17 +916,17 @@ CREATE TABLE elo_external_integrations (
 
   -- Webhook
   webhook_secret VARCHAR,
-  webhook_url VARCHAR,             -- наш endpoint для приёма
+  webhook_url VARCHAR,             -- our endpoint for receiving
 
-  -- Настройки
+  -- Settings
   sync_on_stages VARCHAR[],        -- {SCHEDULED, RECEIVED}
   sync_back_enabled BOOLEAN DEFAULT true,
   sync_stock_enabled BOOLEAN DEFAULT false,
 
-  -- Маппинг полей (кастомизация)
+  -- Field mapping (customization)
   field_mapping JSONB,             -- {"elo_field": "external_field"}
 
-  -- Статус
+  -- Status
   is_active BOOLEAN DEFAULT true,
   last_sync_at TIMESTAMPTZ,
   last_error TEXT,
@@ -934,7 +934,7 @@ CREATE TABLE elo_external_integrations (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Лог синхронизации
+-- Sync log
 CREATE TABLE elo_integration_logs (
   id UUID PRIMARY KEY,
   integration_id UUID REFERENCES elo_external_integrations(id),
@@ -956,77 +956,77 @@ CREATE TABLE elo_integration_logs (
 
 ---
 
-### Матрица Tools по фазам
+### Tool Matrix by Phases
 
-| Tool | Фаза | Приоритет | Зависимости |
-|------|------|-----------|-------------|
+| Tool | Phase | Priority | Dependencies |
+|------|-------|----------|-------------|
 | device_extract | MVP | ⭐⭐⭐⭐⭐ | — |
 | issue_extract | MVP | ⭐⭐⭐⭐⭐ | — |
 | intent_classify | MVP | ⭐⭐⭐⭐ | — |
 | response_generate | MVP | ⭐⭐⭐⭐⭐ | — |
 | appointment_extract | MVP | ⭐⭐⭐⭐ | — |
 | appointment_create | MVP | ⭐⭐⭐⭐ | appointment_extract |
-| qr_resolve | Фаза 2 | ⭐⭐⭐ | — |
-| qr_generate | Фаза 2 | ⭐⭐⭐ | — |
-| parts_search | Фаза 2 | ⭐⭐⭐⭐ | Price Engine |
-| knowledge_lookup | Фаза 2 | ⭐⭐⭐ | Knowledge Base |
-| voice_transcribe | Фаза 2 | ⭐⭐⭐⭐⭐ | Whisper API |
-| remonline_sync | Фаза 3 | ⭐⭐⭐ | Remonline API key |
-| livesklad_sync | Фаза 3 | ⭐⭐⭐ | LiveSklad API key |
-| price_lookup | Фаза 2 | ⭐⭐⭐⭐ | Price Engine |
+| qr_resolve | Phase 2 | ⭐⭐⭐ | — |
+| qr_generate | Phase 2 | ⭐⭐⭐ | — |
+| parts_search | Phase 2 | ⭐⭐⭐⭐ | Price Engine |
+| knowledge_lookup | Phase 2 | ⭐⭐⭐ | Knowledge Base |
+| voice_transcribe | Phase 2 | ⭐⭐⭐⭐⭐ | Whisper API |
+| remonline_sync | Phase 3 | ⭐⭐⭐ | Remonline API key |
+| livesklad_sync | Phase 3 | ⭐⭐⭐ | LiveSklad API key |
+| price_lookup | Phase 2 | ⭐⭐⭐⭐ | Price Engine |
 
 ---
 
-## Roadmap по фазам
+## Roadmap by Phases
 
-### Фаза 1: MVP (текущая)
+### Phase 1: MVP (current)
 
-| Компонент | Статус | Описание |
-|-----------|--------|----------|
-| Омниканальность | 80% | 7 каналов (TG, WA, Avito, VK, MAX, Form, Phone) |
-| AI auto-ответ 24/7 | 70% | Debounce 10s, понимание контекста |
-| AI assist | 70% | Подсказки оператору |
-| История клиента | 60% | Neo4j граф |
-| Определение устройства/проблемы | 70% | AI extraction |
-| Android App | 60% | Уведомления, ответы |
-| Web App оператора | 0% | **BLOCKER** |
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Omnichannel | 80% | 7 channels (TG, WA, Avito, VK, MAX, Form, Phone) |
+| AI auto-reply 24/7 | 70% | Debounce 10s, context understanding |
+| AI assist | 70% | Operator suggestions |
+| Client history | 60% | Neo4j graph |
+| Device/problem identification | 70% | AI extraction |
+| Android App | 60% | Notifications, replies |
+| Operator Web App | 0% | **BLOCKER** |
 
-### Фаза 2: +1-2 месяца после MVP
+### Phase 2: +1-2 months after MVP
 
-| Компонент | Приоритет | Описание |
-|-----------|-----------|----------|
-| Голос → Граф → Мессенджер | ⭐⭐⭐⭐⭐ | Запись, транскрибация, продолжение в чате |
-| QR идентификация | ⭐⭐⭐ | На стойке, визитке, устройстве |
-| Прайс-парсер | ⭐⭐⭐⭐ | Парсинг магазинов, нормализация |
-| Автоподстановка цен | ⭐⭐⭐⭐ | AI называет актуальные цены |
-| Предписанные ответы | ⭐⭐⭐ | Тенант задаёт свои шаблоны |
+| Component | Priority | Description |
+|-----------|----------|-------------|
+| Voice → Graph → Messenger | ⭐⭐⭐⭐⭐ | Recording, transcription, chat continuation |
+| QR identification | ⭐⭐⭐ | On counter, card, device |
+| Price parser | ⭐⭐⭐⭐ | Store parsing, normalization |
+| Auto price insertion | ⭐⭐⭐⭐ | AI names current prices |
+| Prescribed responses | ⭐⭐⭐ | Tenant sets own templates |
 
-### Фаза 3: +3-4 месяца после MVP
+### Phase 3: +3-4 months after MVP
 
-| Компонент | Приоритет | Описание |
-|-----------|-----------|----------|
-| Смартфон-сервер | ⭐⭐⭐⭐⭐ | Бесплатные WhatsApp/Avito/MAX |
-| Интеграция LiveSklad | ⭐⭐⭐ | Двусторонняя синхронизация |
-| Интеграция Remonline | ⭐⭐⭐ | Двусторонняя синхронизация |
-| Голосовые ответы | ⭐⭐⭐ | Оператор диктует, AI отправляет текст |
-| Самообучение | ⭐⭐⭐⭐ | На реальных ремонтах и ответах |
+| Component | Priority | Description |
+|-----------|----------|-------------|
+| Smartphone-server | ⭐⭐⭐⭐⭐ | Free WhatsApp/Avito/MAX |
+| LiveSklad integration | ⭐⭐⭐ | Two-way synchronization |
+| Remonline integration | ⭐⭐⭐ | Two-way synchronization |
+| Voice responses | ⭐⭐⭐ | Operator dictates, AI sends text |
+| Self-learning | ⭐⭐⭐⭐ | From real repairs and responses |
 
-### Фаза 4: 100+ тенантов (НЕ СТРОИМ СЕЙЧАС)
+### Phase 4: 100+ tenants (NOT BUILDING NOW)
 
-| Компонент | Почему отложено |
-|-----------|-----------------|
-| Аналитика по рынку | Нужна статистика от 100+ сервисов |
-| Бенчмарки | Сравнение требует данных |
-| Рекомендации цен | На основе других сервисов |
-| Рейтинги тенантов | Нужны отзывы клиентов |
-| Догрев/рассылки | После накопления базы |
-| Обмен между тенантами | Сеть сервисов |
+| Component | Why postponed |
+|-----------|---------------|
+| Market analytics | Need statistics from 100+ services |
+| Benchmarks | Comparison requires data |
+| Price recommendations | Based on other services |
+| Tenant ratings | Need client reviews |
+| Warming/newsletters | After accumulating base |
+| Exchange between tenants | Service network |
 
 ---
 
-## Технические требования
+## Technical Requirements
 
-### Android App (одно приложение — два режима)
+### Android App (one app — two modes)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -1034,167 +1034,167 @@ CREATE TABLE elo_integration_logs (
 │              (Google Play / RuStore)                    │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  РЕЖИМ 1: ОПЕРАТОР (всегда активен)                     │
-│  ├── Push-уведомления о новых сообщениях                │
-│  ├── Ответы клиентам (текст, голос)                     │
-│  ├── История диалогов                                   │
-│  ├── AI подсказки                                       │
-│  ├── Информация о клиенте из графа                      │
-│  └── QR-сканер для идентификации                        │
+│  MODE 1: OPERATOR (always active)                       │
+│  ├── Push notifications for new messages                │
+│  ├── Reply to clients (text, voice)                     │
+│  ├── Dialog history                                     │
+│  ├── AI suggestions                                     │
+│  ├── Client info from graph                             │
+│  └── QR scanner for identification                      │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  РЕЖИМ 2: СЕРВЕР (скрытый, активируется по флагу)       │
-│  ├── Foreground Service (не убивается системой)         │
-│  ├── Local HTTP Server (для API запросов)               │
-│  ├── WebSocket Client (связь с backend)                 │
+│  MODE 2: SERVER (hidden, activated by flag)             │
+│  ├── Foreground Service (not killed by system)          │
+│  ├── Local HTTP Server (for API requests)               │
+│  ├── WebSocket Client (connection to backend)           │
 │  ├── WhatsApp Module (reverse-engineered)               │
 │  ├── Avito Module (reverse-engineered)                  │
 │  └── MAX Module (reverse-engineered)                    │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 
-Требования для режима СЕРВЕР:
+Requirements for SERVER mode:
   • Android 8.0+
-  • Постоянный интернет (WiFi/4G)
-  • Телефон на зарядке 24/7
-  • Реальный IP (или NAT traversal через backend)
+  • Permanent internet (WiFi/4G)
+  • Phone on charger 24/7
+  • Real IP (or NAT traversal through backend)
 
-Авторизация и активация:
+Authorization and activation:
   ┌─────────────────────────────────────────────────────┐
-  │  1. Пользователь вводит логин/пароль                │
-  │  2. Backend возвращает tenant_config:               │
+  │  1. User enters login/password                       │
+  │  2. Backend returns tenant_config:                  │
   │     {                                               │
-  │       "operator_mode": true,      // всегда        │
-  │       "server_mode": true/false,  // по тарифу     │
+  │       "operator_mode": true,      // always        │
+  │       "server_mode": true/false,  // by tariff     │
   │       "channels": ["whatsapp", "avito", "max"]     │
   │     }                                               │
-  │  3. Приложение включает нужные режимы               │
+  │  3. Application enables required modes              │
   └─────────────────────────────────────────────────────┘
 
-Безопасность (для маркетов):
-  • Режим СЕРВЕР скрыт в UI
-  • Активируется только через backend флаг
-  • Нет явных признаков автоматизации в коде
-  • Шифрование всего трафика
+Security (for app stores):
+  • SERVER mode hidden in UI
+  • Activated only through backend flag
+  • No obvious signs of automation in code
+  • All traffic encrypted
 
-Backend логика маршрутизации:
+Backend routing logic:
   IF tenant.server_mode AND device.is_online:
       route_via_smartphone(tenant.device_id)
   ELSE:
       route_via_paid_api(tenant.api_keys)
 ```
 
-### Прайс-парсер
+### Price Parser
 
 ```
-Источники (примеры):
+Sources (examples):
   • mobileboost.ru
   • all-spares.ru
   • gsm-komplekt.ru
   • opt-mobile.ru
 
-Частота парсинга:
-  • Ежедневно (ночью)
-  • По запросу тенанта
+Parsing frequency:
+  • Daily (at night)
+  • On tenant request
 
-Нормализация:
-  • Справочник моделей (iPhone 12, iPhone 12 Pro, ...)
-  • Справочник типов (Original, OEM, Copy, OLED, LCD)
-  • Справочник цветов
-  • Fuzzy matching для названий
+Normalization:
+  • Model directory (iPhone 12, iPhone 12 Pro, ...)
+  • Type directory (Original, OEM, Copy, OLED, LCD)
+  • Color directory
+  • Fuzzy matching for names
 ```
 
-### Голос → Граф
+### Voice → Graph
 
 ```
-Компоненты:
-  ├── Запись звонка (Asterisk/FreePBX или облако)
-  ├── Транскрибация (Whisper API)
-  ├── AI Extraction (устройство, проблема, договорённости)
-  ├── Neo4j Sync (новые узлы и связи)
+Components:
+  ├── Call recording (Asterisk/FreePBX or cloud)
+  ├── Transcription (Whisper API)
+  ├── AI Extraction (device, problem, agreements)
+  ├── Neo4j Sync (new nodes and relationships)
   └── Messenger Continuation (Telegram/WhatsApp)
 
-Телефония:
-  Вариант A: Своя АТС (Asterisk)
-  Вариант B: Облачная АТС (Mango, Zadarma)
-  Вариант C: Приложение на смартфон (запись через mic)
+Telephony:
+  Option A: Own PBX (Asterisk)
+  Option B: Cloud PBX (Mango, Zadarma)
+  Option C: Smartphone app (mic recording)
 ```
 
 ---
 
-## Монетизация
+## Monetization
 
-### Тарифы (черновик)
+### Pricing (draft)
 
-| Тариф | Цена | Что включено |
-|-------|------|--------------|
-| **Free** | 0₽ | 1 канал, 100 сообщений/мес, история 7 дней |
-| **Minimal** | 300-500₽ | 3 канала, 1000 сообщений, AI assist |
-| **Basic** | 1500-2000₽ | 7 каналов, безлимит, AI auto, прайс-парсер |
-| **Business** | 4000+₽ | + смартфон-сервер, интеграции, голос |
+| Plan | Price | What's included |
+|------|-------|-----------------|
+| **Free** | 0₽ | 1 channel, 100 messages/month, 7 day history |
+| **Minimal** | 300-500₽ | 3 channels, 1000 messages, AI assist |
+| **Basic** | 1500-2000₽ | 7 channels, unlimited, AI auto, price parser |
+| **Business** | 4000+₽ | + smartphone-server, integrations, voice |
 
 ### Unit economics
 
 ```
-Расходы на 1 тенанта (Basic):
-  • WhatsApp API: 600₽ (или 0₽ со смартфон-сервером)
-  • AI (OpenAI): ~200-500₽/мес
-  • Инфра: ~100₽/мес
-  • Итого: 400-1200₽/мес
+Costs per 1 tenant (Basic):
+  • WhatsApp API: 600₽ (or 0₽ with smartphone-server)
+  • AI (OpenAI): ~200-500₽/month
+  • Infrastructure: ~100₽/month
+  • Total: 400-1200₽/month
 
-Маржа:
+Margin:
   • Basic (1500₽): 300-1100₽ (20-70%)
   • Business (4000₽): 2800-3600₽ (70-90%)
 ```
 
 ---
 
-## WOW-демо сценарий
+## WOW Demo Scenario
 
 ```
-Для первого клиента (владелец сервиса):
+For first client (service owner):
 
-1. "Напиши мне в Telegram как клиент — 'привет, разбил экран на айфоне'"
-   → AI отвечает через 10 сек, спрашивает модель, называет цены
+1. "Text me in Telegram as a client — 'hi, broke iPhone screen'"
+   → AI responds in 10 sec, asks model, names prices
 
-2. "Теперь позвони на этот номер и скажи то же самое"
-   → После звонка показать: запись, транскрипт, данные в графе
-   → "Теперь напиши в мессенджер"
-   → AI продолжает с контекстом звонка
+2. "Now call this number and say the same"
+   → After call show: recording, transcript, data in graph
+   → "Now text in messenger"
+   → AI continues with call context
 
-3. "Вот QR — отсканируй"
-   → Открылся чат, система тебя узнала как того кто звонил
+3. "Here's QR — scan it"
+   → Chat opened, system recognized you as the caller
 
-4. "Смотри — вот изменились цены в магазине"
-   → Через 5 минут AI называет новую цену
+4. "Look — prices changed in the store"
+   → In 5 minutes AI names new price
 
-5. "И всё это — твои каналы бесплатно. WhatsApp, Avito — 0₽"
-   → Показать смартфон-сервер
+5. "And all this — your channels are free. WhatsApp, Avito — 0₽"
+   → Show smartphone-server
 ```
 
 ---
 
-## Связь с архитектурой CORE_NEW
+## Link to CORE_NEW Architecture
 
-См. `CORE_NEW/docs/` для технической документации:
+See `CORE_NEW/docs/` for technical documentation:
 
-| Фича | Блоки архитектуры |
-|------|-------------------|
-| Омниканальность | Channel Layer (7 MCP) |
+| Feature | Architecture Blocks |
+|---------|-------------------|
+| Omnichannel | Channel Layer (7 MCP) |
 | AI auto/assist | Core (Dialog Engine + AI Pipeline) |
-| История клиента | Graph (Neo4j) |
-| Голос → Граф | Input Contour + Graph + Core |
-| Прайс-парсер | Новый блок: Price Engine |
-| Смартфон-сервер | Новый блок: Device Gateway |
-| Интеграции | Новый блок: External Integrations |
+| Client history | Graph (Neo4j) |
+| Voice → Graph | Input Contour + Graph + Core |
+| Price parser | New block: Price Engine |
+| Smartphone-server | New block: Device Gateway |
+| Integrations | New block: External Integrations |
 
 ---
 
-## Следующие шаги
+## Next Steps
 
-1. **Graph вопросы** — разобрать 4 открытых вопроса (Register vs Tracker, direction, enrichment)
-2. **Core блок** — документация и адаптация
-3. **Web App оператора** — начать разработку (blocker для MVP)
-4. **Прайс-парсер** — прототип нормализации
-5. **Голос** — выбор телефонии (Asterisk vs облако vs смартфон)
+1. **Graph questions** — resolve 4 open questions (Register vs Tracker, direction, enrichment)
+2. **Core block** — documentation and adaptation
+3. **Operator Web App** — start development (blocker for MVP)
+4. **Price parser** — normalization prototype
+5. **Voice** — choose telephony (Asterisk vs cloud vs smartphone)

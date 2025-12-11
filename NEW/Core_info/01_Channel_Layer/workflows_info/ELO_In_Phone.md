@@ -1,30 +1,30 @@
 # ELO_In_Phone
 
-> Входящий workflow для телефонных звонков
+> Incoming workflow for phone calls
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
-| **Файл** | `NEW/workflows/ELO_In/ELO_In_Phone.json` |
-| **Триггер** | Webhook POST `/phone` |
-| **Вызывается из** | АТС, CallTracking системы |
-| **Вызывает** | Execute Tenant Resolver, Execute Client Resolver |
-| **Выход** | HTTP Response (без Redis очереди!) |
+| **File** | `NEW/workflows/ELO_In/ELO_In_Phone.json` |
+| **Trigger** | Webhook POST `/phone` |
+| **Called from** | PBX, call-tracking systems |
+| **Calls** | Execute Tenant Resolver, Execute Client Resolver |
+| **Output** | HTTP Response (NO Redis queue!) |
 
 ---
 
-## Назначение
+## Purpose
 
-Принимает данные о входящих звонках (с записью разговора), транскрибирует запись и создаёт заявку.
+Accepts incoming call data (with recording), transcribes the audio, and creates a request.
 
-**Особенность:** Всегда есть голос (запись разговора), нет Redis очереди.
+**Feature:** Always has voice (call recording), no Redis queue.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -40,7 +40,7 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
 ```json
 {
@@ -65,11 +65,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Phone Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `f2cbc9a1-30aa-4d68-b772-04fd96724158` |
 | **Path** | `/phone` |
@@ -79,12 +79,12 @@
 
 ### 2. Extract Phone Data
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `5a690131-0e0e-4b0e-afb9-0ce80a4df2e7` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const call = $input.first().json;
 
@@ -117,7 +117,7 @@ return {
 
 ### 3. Download Recording
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `eda103e3-7cee-40cd-b524-3788897811c6` |
 | **URL** | `{{ $json.voice_url }}` |
@@ -127,7 +127,7 @@ return {
 
 ### 4. Transcribe Recording
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `84c1057d-73cc-48f5-b503-508a78fcc3e7` |
 | **Тип** | OpenAI Whisper |
@@ -137,12 +137,12 @@ return {
 
 ### 5. Normalize Phone
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `b101d59e-3ee4-4e73-a529-d5fd34927a1e` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const data = $('Extract Phone Data').first().json;
 const transcription = $input.first().json.text;
@@ -187,7 +187,7 @@ return {
 
 ### 6. Execute Tenant Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `1d4c2b12-34d8-4bca-a3d4-002cacda8ef5` |
 | **Вызывает** | ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz) |
@@ -196,7 +196,7 @@ return {
 
 ### 7. Execute Client Resolver
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `74485659-c973-48fd-b7bc-53134a2fda84` |
 | **Вызывает** | `$env.CLIENT_RESOLVER_WORKFLOW_ID` |
@@ -211,7 +211,7 @@ return {
 
 ---
 
-## Схема потока
+## Flow Diagram
 
 ```
 Phone Trigger → Extract Data → Download Recording → Transcribe → Normalize
@@ -219,13 +219,13 @@ Phone Trigger → Extract Data → Download Recording → Transcribe → Normali
                                             Tenant Resolver → Client Resolver → Respond
 ```
 
-**Без Redis!** Синхронная обработка звонка.
+**No Redis!** Synchronous call handling.
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
 | **Всегда voice** | `has_voice: true` — запись разговора |
 | **Без очереди** | Синхронная обработка |
@@ -235,9 +235,9 @@ Phone Trigger → Extract Data → Download Recording → Transcribe → Normali
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | ID | Назначение |
+| Type | ID | Purpose |
 |-----|-----|------------|
 | Workflow | rRO6sxLqiCdgvLZz | Tenant Resolver |
 | Env | CLIENT_RESOLVER_WORKFLOW_ID | Client Resolver |

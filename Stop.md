@@ -1,220 +1,220 @@
-# STOP - Чеклист завершения сессии
+# STOP - Session Completion Checklist
 
-> **ВАЖНО:** При обновлении этого файла ВСЕГДА указывай дату И время в формате: `DD месяц YYYY, HH:MM (UTC+4)`
+> **IMPORTANT:** When updating this file ALWAYS specify date AND time in format: `DD Month YYYY, HH:MM (UTC+4)`
 
 ---
 
-## ОБЯЗАТЕЛЬНО перед закрытием сессии:
+## MANDATORY before closing session:
 
-### 1. Обновить Start.md
+### 1. Update Start.md
 
-**ВАЖНО:** В начало Start.md ВСЕГДА добавляй блок синхронизации:
+**IMPORTANT:** ALWAYS add sync block at the beginning of Start.md:
 
 ```markdown
-## ПЕРВЫМ ДЕЛОМ — Синхронизация
+## FIRST — Sync
 
-**Если читаешь этот файл ВТОРОЙ раз после git pull — ПРОПУСТИ этот блок и переходи к следующей секции!**
+**If reading this file SECOND time after git pull — SKIP this block and go to next section!**
 
 \`\`\`bash
 cd "C:/Users/User/Documents/Eldoleado"
 git pull
 \`\`\`
 
-После git pull — ПЕРЕЧИТАЙ этот файл заново (Start.md), начиная со следующей секции (пропустив этот блок синхронизации, чтобы не зациклиться).
+After git pull — REREAD this file from the beginning (Start.md), starting from the next section (skipping this sync block to avoid loops).
 
 ---
 ```
 
-Затем обнови секцию "Что готово" — добавь всё что сделано в этой сессии.
+Then update "What's done" section — add everything done in this session.
 
-### 2. Почистить проект
-Удалить временные файлы из корня проекта:
+### 2. Clean project
+Delete temporary files from project root:
 ```bash
-# Проверить что лежит в корне
+# Check what's in root
 ls -la *.py *.tmp *.log *.bak 2>/dev/null
 
-# Типичный мусор для удаления:
-# - Одноразовые скрипты (check_*.py, test_*.py, deploy_*.py)
-# - Архивы (*.tar.gz, *.zip)
-# - Логи (*.log)
-# - Бэкапы (*.bak, *~)
+# Typical garbage to delete:
+# - One-time scripts (check_*.py, test_*.py, deploy_*.py)
+# - Archives (*.tar.gz, *.zip)
+# - Logs (*.log)
+# - Backups (*.bak, *~)
 ```
 
-Временные скрипты переносить в `Old/scripts/` или удалять.
+Move temporary scripts to `Old/scripts/` or delete.
 
-### 3. Обновить CORE_NEW контекст
+### 3. Update CORE_NEW context
 ```bash
 python scripts/update_core_context.py
 ```
-Скрипт автоматически обновит `CORE_NEW/CONTEXT.md` с актуальными данными:
-- Количество таблиц PostgreSQL
-- Количество лейблов Neo4j
-- Количество API эндпоинтов
-- Количество workflows
-- Статус документации
+Script automatically updates `CORE_NEW/CONTEXT.md` with current data:
+- PostgreSQL table count
+- Neo4j label count
+- API endpoint count
+- Workflow count
+- Documentation status
 
 ### 4. Git sync
 ```bash
-git add -A && git commit -m "Session update: краткое описание" && git push
+git add -A && git commit -m "Session update: brief description" && git push
 ```
 
 ---
 
-## Последняя сессия: 11 декабря 2025, 03:00 (UTC+4)
+## Last session: December 11, 2025, 03:00 (UTC+4)
 
 ---
 
-## Что сделано в этой сессии
+## What's done in this session
 
-### КОММЕРЧЕСКАЯ СТРАТЕГИЯ — ОПРЕДЕЛЕНА ✅
+### COMMERCIAL STRATEGY — DEFINED ✅
 
-**Проанализировано:**
-- Конкуренты: amoCRM, Bitrix24, Yclients, специализированные CRM
-- УТП: AI понимает клиента, омниканальность (7 каналов), простота
-- Ключевой инсайт: B2C сервис = 15 минут до решения, ответ за 1-2 минуты
+**Analyzed:**
+- Competitors: amoCRM, Bitrix24, Yclients, specialized CRMs
+- USP: AI understands client, omnichannel (7 channels), simplicity
+- Key insight: B2C service = 15 minutes to decision, response in 1-2 minutes
 
-**Выбрано:**
-- **Вертикаль:** Ремонт + Покупка/Продажа телефонов
-- **WOW-эффект:** "Не теряются клиенты" (AI отвечает в 23:00)
-- **Монетизация:** Freemium (минималка 300-500₽)
-- **Стратегия:** НЕ MVP, а полноценный вертикальный продукт
+**Chosen:**
+- **Vertical:** Phone Repair + Buy/Sell
+- **WOW-effect:** "No lost customers" (AI responds at 11 PM)
+- **Monetization:** Freemium (minimal 300-500₽)
+- **Strategy:** NOT MVP, but full vertical product
 
 ---
 
-### ROADMAP.md — СОЗДАН ✅ (~1200 строк)
+### ROADMAP.md — CREATED ✅ (~1200 lines)
 
-Файл: `NEW/ROADMAP.md`
+File: `NEW/ROADMAP.md`
 
-**Содержимое:**
-1. **Killer Features** (с диаграммами):
-   - Смартфон-сервер (одно приложение — два режима)
-   - Прайс-парсер с workflow нормализации (4 шага)
-   - Голос → Граф → Мессенджер (6 этапов)
-   - QR идентификация (4 типа: tenant, device, repair, promo)
-   - Интеграции Remonline/LiveSklad (API + webhooks)
-   - Самообучение + Knowledge Base
+**Content:**
+1. **Killer Features** (with diagrams):
+   - Smartphone-server (one app — two modes)
+   - Price parser with normalization workflow (4 steps)
+   - Voice → Graph → Messenger (6 stages)
+   - QR identification (4 types: tenant, device, repair, promo)
+   - Remonline/LiveSklad integrations (API + webhooks)
+   - Self-learning + Knowledge Base
 
-2. **AI Tools** (полный каталог):
+2. **AI Tools** (full catalog):
    - appointment_extract, appointment_create, appointment_reschedule
-   - parts_search (с примерами)
-   - Parts Catalog (workflow создания файла запчастей)
+   - parts_search (with examples)
+   - Parts Catalog (parts file creation workflow)
    - qr_resolve, qr_generate
    - remonline_sync (API + webhooks)
    - livesklad_sync (API + webhooks)
 
-3. **SQL Schemas** для новых таблиц:
+3. **SQL Schemas** for new tables:
    - elo_appointments
    - elo_price_raw, elo_price_catalog, elo_price_market_avg
    - elo_tenant_pricing
    - elo_qr_codes, elo_qr_scans
    - elo_external_integrations, elo_integration_logs
 
-4. **Матрица Tools по фазам:**
+4. **Tools Matrix by phases:**
    - MVP: device/issue_extract, appointment_*, response_generate
-   - Фаза 2: qr_*, parts_search, voice_transcribe
-   - Фаза 3: remonline_sync, livesklad_sync
+   - Phase 2: qr_*, parts_search, voice_transcribe
+   - Phase 3: remonline_sync, livesklad_sync
 
-5. **Тарифы** (черновик):
-   - Free: 0₽, 1 канал, 100 сообщений
-   - Minimal: 300-500₽, 3 канала, AI assist
-   - Basic: 1500-2000₽, 7 каналов, AI auto
-   - Business: 4000+₽, смартфон-сервер, интеграции
+5. **Pricing** (draft):
+   - Free: 0₽, 1 channel, 100 messages
+   - Minimal: 300-500₽, 3 channels, AI assist
+   - Basic: 1500-2000₽, 7 channels, AI auto
+   - Business: 4000+₽, smartphone-server, integrations
 
-6. **WOW-демо сценарий** для первого клиента
+6. **WOW-demo scenario** for first client
 
 ---
 
-### ARCHITECTURE_SYNC.md — СОЗДАН ✅ (~550 строк)
+### ARCHITECTURE_SYNC.md — CREATED ✅ (~550 lines)
 
-Файл: `NEW/ARCHITECTURE_SYNC.md`
+File: `NEW/ARCHITECTURE_SYNC.md`
 
-**Содержимое:**
-1. **Маппинг Killer Features на 7 уровней:**
-   - Смартфон-сервер → Уровень 7 (MCP Каналы) + Device Gateway
-   - Прайс-парсер → Уровень 0 (Данные) + Уровень 4 (Tools) + Price Engine
-   - Голос→Граф → Уровни 7→4→1→5→7
-   - QR → Уровни 7, 1
-   - Интеграции → Уровень 5 (Dialog Engine) + External Integrations
-   - Самообучение → Уровни 0, 4, 5 + Learning Engine
+**Content:**
+1. **Killer Features mapping to 7 levels:**
+   - Smartphone-server → Level 7 (MCP Channels) + Device Gateway
+   - Price parser → Level 0 (Data) + Level 4 (Tools) + Price Engine
+   - Voice→Graph → Levels 7→4→1→5→7
+   - QR → Levels 7, 1
+   - Integrations → Level 5 (Dialog Engine) + External Integrations
+   - Self-learning → Levels 0, 4, 5 + Learning Engine
 
-2. **Новые блоки:**
-   - Device Gateway (смартфон-сервер)
-   - Price Engine (парсер + нормализация)
-   - Learning Engine (фидбек + самообучение)
+2. **New blocks:**
+   - Device Gateway (smartphone-server)
+   - Price Engine (parser + normalization)
+   - Learning Engine (feedback + self-learning)
    - External Integrations (Remonline, LiveSklad)
 
-3. **Порядок реализации** (14 шагов от простого к сложному)
+3. **Implementation order** (14 steps from simple to complex)
 
 ---
 
 ### GIT COMMITS
 
-| Hash | Описание | Изменений |
-|------|----------|-----------|
-| `890c6ef` | Docs: Product Roadmap + Architecture Sync + AI Tools | +2037 строк |
+| Hash | Description | Changes |
+|------|-------------|---------|
+| `890c6ef` | Docs: Product Roadmap + Architecture Sync + AI Tools | +2037 lines |
 
 ---
 
-## Что НЕ сделано (на следующую сессию)
+## What's NOT done (for next session)
 
-### 1. Graph — 4 технических вопроса (ПРИОРИТЕТ!)
-- Register vs Tracker — когда какой?
-- Direction — кто определяет?
-- enrichment_paths — что это?
-- Когда какой touchpoint вызывать?
+### 1. Graph — 4 technical questions (PRIORITY!)
+- Register vs Tracker — when which?
+- Direction — who determines?
+- enrichment_paths — what is this?
+- When to call which touchpoint?
 
-### 2. Core блок — документирование
+### 2. Core block — documentation
 - Appeal_Manager, AI_Router, Task_Dispatcher
 - AI_Universal_Worker, Client_Creator
 
-### 3. Web App оператора
-- **BLOCKER для MVP**
-- Нужен интерфейс для операторов
+### 3. Operator Web App
+- **BLOCKER for MVP**
+- Need operator interface
 
-### 4. Прайс-парсер (прототип)
-- Нормализация названий запчастей
-- Справочники моделей/типов/качества
+### 4. Price parser (prototype)
+- Part name normalization
+- Model/type/quality directories
 
 ---
 
-## Ключевые файлы (созданы в этой сессии)
+## Key files (created in this session)
 
-| Файл | Описание | Строк |
-|------|----------|-------|
+| File | Description | Lines |
+|------|-------------|-------|
 | `NEW/ROADMAP.md` | Product roadmap, killer features, AI tools, SQL schemas | ~1200 |
-| `NEW/ARCHITECTURE_SYNC.md` | Маппинг features на 7 уровней архитектуры | ~550 |
+| `NEW/ARCHITECTURE_SYNC.md` | Features mapping to 7 architecture levels | ~550 |
 
 ---
 
-## Ключевые файлы (общий проект)
+## Key files (overall project)
 
-### Архитектура:
-| Файл | Описание |
-|------|----------|
-| `CORE_NEW/docs/00_VISION.md` | Видение продукта |
-| `CORE_NEW/docs/01_CORE_DESIGN.md` | Архитектура ядра, глоссарий |
-| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* таблиц |
+### Architecture:
+| File | Description |
+|------|-------------|
+| `CORE_NEW/docs/00_VISION.md` | Product vision |
+| `CORE_NEW/docs/01_CORE_DESIGN.md` | Core architecture, glossary |
+| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* tables |
 | `CORE_NEW/docs/03_NEO4J_SCHEMA.md` | Neo4j: Client, Device, Problem |
-| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 контракты |
-| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 уровней, Prompt-in-Request |
-| `CORE_NEW/docs/06_DATA_CONTRACT.md` | Пакет данных между workflows |
+| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 contracts |
+| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 levels, Prompt-in-Request |
+| `CORE_NEW/docs/06_DATA_CONTRACT.md` | Data package between workflows |
 
-### Workflows документация:
-| Папка | Статус |
-|-------|--------|
+### Workflows documentation:
+| Folder | Status |
+|--------|--------|
 | `NEW/Core_info/01_Channel_Layer/` | ✅ 12/12 |
 | `NEW/Core_info/02_Input_Contour/` | ✅ 5/5 |
-| `NEW/Core_info/03_Core/` | ⏳ пусто |
-| `NEW/Core_info/04_Graph/` | 🔄 вопросы |
-| `NEW/Core_info/05_Diagnostic_Engine/` | ⏳ пусто |
+| `NEW/Core_info/03_Core/` | ⏳ empty |
+| `NEW/Core_info/04_Graph/` | 🔄 questions |
+| `NEW/Core_info/05_Diagnostic_Engine/` | ⏳ empty |
 | `NEW/Core_info/06_API/` | 🔄 2 docs |
 
 ---
 
-## Серверы
+## Servers
 
-| Сервер | IP/URL | Порт | Назначение |
-|--------|--------|------|------------|
+| Server | IP/URL | Port | Purpose |
+|--------|--------|------|---------|
 | n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
 | Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
 | PostgreSQL | 185.221.214.83 | 6544 | Main database |
@@ -227,14 +227,14 @@ git add -A && git commit -m "Session update: краткое описание" &&
 
 ## GitHub
 
-- Репозиторий: https://github.com/n8nRemacs/Eldoleado
+- Repository: https://github.com/n8nRemacs/Eldoleado
 
 ---
 
-## Для продолжения
+## To continue
 
-1. Прочитать `Start.md`
-2. Прочитать `NEW/ROADMAP.md` — killer features и AI tools
-3. Прочитать `NEW/ARCHITECTURE_SYNC.md` — маппинг на архитектуру
-4. Разобрать 4 вопроса по Graph
-5. Документировать Core блок
+1. Read `Start.md`
+2. Read `NEW/ROADMAP.md` — killer features and AI tools
+3. Read `NEW/ARCHITECTURE_SYNC.md` — architecture mapping
+4. Resolve 4 Graph questions
+5. Document Core block

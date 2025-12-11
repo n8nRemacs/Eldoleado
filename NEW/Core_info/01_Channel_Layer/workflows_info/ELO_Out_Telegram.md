@@ -1,28 +1,28 @@
 # ELO_Out_Telegram
 
-> Исходящий workflow для Telegram
+> Outgoing workflow for Telegram
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/ELO_Out/ELO_Out_Telegram.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Dialog Engine, AI Router, API |
 | **Вызывает** | MCP Telegram API, Neo4j Touchpoint Register |
-| **Выход** | Сохранение в messages_history + touchpoint |
+| **Выход** | Save to messages_history + touchpoint |
 
 ---
 
-## Назначение
+## Purpose
 
-Отправляет сообщение клиенту в Telegram через MCP, сохраняет в историю и регистрирует touchpoint в Neo4j.
+Sends a message to the client in Telegram via MCP, saves it to history, and registers a touchpoint in Neo4j.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -35,37 +35,37 @@
 }
 ```
 
-**action_source варианты:**
-- `response` — ответ на сообщение клиента
-- `promo` — промо-рассылка
-- `greeting` — автоприветствие
-- `broadcast` — массовая рассылка
+**action_source options:**
+- `response` — reply to client message
+- `promo` — promo mailing
+- `greeting` — auto greeting
+- `broadcast` — mass mailing
 
 ---
 
-## Выходные данные
+## Output Data
 
-**PostgreSQL:** INSERT в `messages_history`
-**Neo4j:** Touchpoint через webhook
+**PostgreSQL:** INSERT into `messages_history`
+**Neo4j:** Touchpoint via webhook
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `4211abe2-d2b2-43b8-9806-4a6babb831cd` |
 | **Тип** | n8n-nodes-base.executeWorkflowTrigger |
 
-Получает данные от вызывающего workflow.
+Receives data from the calling workflow.
 
 ---
 
 ### 2. Prepare Message
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `14e83200-cea1-4390-b6d9-da0b0d245c05` |
 | **Тип** | n8n-nodes-base.code |
@@ -99,12 +99,12 @@ return {
 
 ### 3. Get Bot Token
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `5f1960df-ae7c-4f8f-b7d0-80ab9fdfa287` |
 | **Тип** | n8n-nodes-base.postgres |
 
-**SQL запрос:**
+**SQL query:**
 ```sql
 SELECT value->>'token' as bot_token
 FROM tenant_configs
@@ -113,7 +113,7 @@ WHERE tenant_id = '{{ $json.tenant_id }}'::uuid
 LIMIT 1;
 ```
 
-**Что ищем:** Bot token для tenant из `tenant_configs`
+**What we look for:** Bot token for tenant from `tenant_configs`
 
 ---
 
@@ -134,7 +134,7 @@ return {
 
 ### 5. Send via MCP Telegram
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `8f4177f5-b3d2-4bb5-8e2d-af0eda0977c4` |
 | **Тип** | n8n-nodes-base.httpRequest |
@@ -187,19 +187,19 @@ return {
 ```
 
 **touchpoint_direction:**
-- `outbound` — ответ оператора
-- `promo` — промо, greeting, broadcast
+- `outbound` — operator reply
+- `promo` — promo, greeting, broadcast
 
 ---
 
 ### 7. Save Message History
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `9c9201e1-d985-43df-9eb5-716d75cf84fa` |
 | **Тип** | n8n-nodes-base.postgres |
 
-**SQL запрос:**
+**SQL query:**
 ```sql
 INSERT INTO messages_history (
   tenant_id,
@@ -223,14 +223,14 @@ SELECT
 RETURNING *;
 ```
 
-**Таблица:** `messages_history`
-**message_type:** `agent` (исходящее от оператора/бота)
+**Table:** `messages_history`
+**message_type:** `agent` (outgoing from operator/bot)
 
 ---
 
 ### 8. Register Touchpoint
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `e7d3ab39-affc-4d05-a9f3-52d0717d7247` |
 | **Тип** | n8n-nodes-base.httpRequest |
@@ -249,11 +249,11 @@ RETURNING *;
 }
 ```
 
-**Neo4j:** Регистрирует touchpoint для графа взаимодействий.
+**Neo4j:** Registers a touchpoint for the interaction graph.
 
 ---
 
-## Схема потока
+## Flow Diagram
 
 ```
 Execute Trigger → Prepare Message → Get Bot Token → Merge Token
@@ -269,9 +269,9 @@ Execute Trigger → Prepare Message → Get Bot Token → Merge Token
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | ID | Назначение |
+| Type | ID | Purpose |
 |-----|-----|------------|
 | Postgres | n2SyhP9QhMnp1ryk | БД |
 | External | tg.eldoleado.ru | MCP Telegram |
@@ -279,9 +279,9 @@ Execute Trigger → Prepare Message → Get Bot Token → Merge Token
 
 ---
 
-## Особенности
+## Features
 
-| Особенность | Описание |
+| Feature | Description |
 |-------------|----------|
 | **Bot token из БД** | Мультитенант — токен по tenant_id |
 | **parse_mode** | Markdown |

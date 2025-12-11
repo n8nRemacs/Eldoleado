@@ -1,75 +1,75 @@
-# Как документировать Workflows
+# How to Document Workflows
 
-> Инструкция по созданию документации для n8n workflows
+> Instructions for creating n8n workflow documentation
 
 ---
 
-## Процесс документирования
+## Documentation Process
 
-### 1. Прочитать JSON workflow
+### 1. Read the JSON workflow
 
 ```bash
-# Найти файл
+# Find the file
 NEW/workflows/ELO_In/ELO_In_Telegram.json
 NEW/workflows/ELO_Out/ELO_Out_Telegram.json
 NEW/workflows/n8n_old/API/API_Android_Auth.json
 ```
 
-### 2. Извлечь ключевую информацию
+### 2. Extract key information
 
-Из JSON нужно получить:
+From JSON you need to get:
 
-| Что | Где в JSON |
-|-----|------------|
-| Название | `name` |
-| Ноды | `nodes[]` |
-| Связи | `connections` |
-| Триггер | Первая нода (webhook/executeWorkflowTrigger) |
+| What | Where in JSON |
+|------|---------------|
+| Name | `name` |
+| Nodes | `nodes[]` |
+| Connections | `connections` |
+| Trigger | First node (webhook/executeWorkflowTrigger) |
 
-### 3. Создать markdown файл
+### 3. Create markdown file
 
-**Путь:** `Core_info/{BLOCK}/workflows_info/{WORKFLOW_NAME}.md`
+**Path:** `Core_info/{BLOCK}/workflows_info/{WORKFLOW_NAME}.md`
 
-**Блоки:**
+**Blocks:**
 - `01_Channel_Layer` — ELO_In_*, ELO_Out_*
 - `02_Input_Contour` — Tenant/Client/Dialog Resolver, Batcher
 - `03_Core` — Dialog Engine, AI Router
-- `04_Graph` — Neo4j операции
-- `05_Diagnostic_Engine` — Симптомы, диагнозы
+- `04_Graph` — Neo4j operations
+- `05_Diagnostic_Engine` — Symptoms, diagnoses
 - `06_API` — API_Android_*
 
 ---
 
-## Шаблон документации
+## Documentation Template
 
 ```markdown
 # {Workflow Name}
 
-> Краткое описание (1 строка)
+> Brief description (1 line)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
-|----------|----------|
-| **Файл** | `путь/к/файлу.json` |
-| **Триггер** | Webhook POST `/path` или Execute Workflow Trigger |
-| **Вызывается из** | Откуда вызывается |
-| **Вызывает** | Какие другие workflows вызывает |
-| **Выход** | Куда отправляет результат |
-
----
-
-## Назначение
-
-2-3 предложения о том, что делает workflow.
+| Parameter | Value |
+|-----------|-------|
+| **File** | `path/to/file.json` |
+| **Trigger** | Webhook POST `/path` or Execute Workflow Trigger |
+| **Called from** | Where it's called from |
+| **Calls** | What other workflows it calls |
+| **Output** | Where it sends results |
 
 ---
 
-## Входные данные
+## Purpose
 
-**Источник:** откуда приходят данные
+2-3 sentences about what the workflow does.
+
+---
+
+## Input Data
+
+**Source:** where data comes from
 
 \```json
 {
@@ -79,9 +79,9 @@ NEW/workflows/n8n_old/API/API_Android_Auth.json
 
 ---
 
-## Выходные данные
+## Output Data
 
-**Куда:** куда отправляются
+**Destination:** where data is sent
 
 \```json
 {
@@ -91,20 +91,20 @@ NEW/workflows/n8n_old/API/API_Android_Auth.json
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. {Node Name}
 
-| Параметр | Значение |
-|----------|----------|
-| **ID** | `uuid из json` |
-| **Тип** | n8n-nodes-base.xxx |
+| Parameter | Value |
+|-----------|-------|
+| **ID** | `uuid from json` |
+| **Type** | n8n-nodes-base.xxx |
 
-**Описание:** что делает нода
+**Description:** what the node does
 
 ---
 
-## Схема потока
+## Flow Diagram
 
 \```
 Node1 → Node2 → Node3
@@ -114,87 +114,87 @@ Node1 → Node2 → Node3
 
 ---
 
-## Особенности
+## Specifics
 
-| Особенность | Описание |
-|-------------|----------|
-| **Ключевая особенность** | Объяснение |
+| Feature | Description |
+|---------|-------------|
+| **Key feature** | Explanation |
 
 ---
 
-## Зависимости
+## Dependencies
 
-| Тип | ID | Назначение |
-|-----|-----|------------|
-| Workflow | uuid | Название |
-| Redis | uuid | Для чего |
-| Postgres | uuid | БД |
+| Type | ID | Purpose |
+|------|-----|---------|
+| Workflow | uuid | Name |
+| Redis | uuid | What for |
+| Postgres | uuid | Database |
 ```
 
 ---
 
-## Что документировать в нодах
+## What to Document in Nodes
 
 ### Code Node
 
-**Обязательно включить:**
-- Полный код (или ключевые части если очень длинный)
-- Что делает логика
-- Какие поля извлекает/преобразует
+**Must include:**
+- Full code (or key parts if very long)
+- What the logic does
+- What fields it extracts/transforms
 
 ```markdown
-**Код:**
+**Code:**
 \```javascript
 const data = $input.first().json;
-// ... код
+// ... code
 return { field: value };
 \```
 ```
 
 ### PostgreSQL Node
 
-**Обязательно включить:**
-- Полный SQL запрос
-- Какие таблицы использует
-- Что возвращает
+**Must include:**
+- Full SQL query
+- What tables it uses
+- What it returns
 
 ```markdown
-**SQL запрос:**
+**SQL query:**
 \```sql
 SELECT * FROM table WHERE id = '{{ $json.id }}'
 \```
 
-**Таблица:** `table_name`
+**Table:** `table_name`
 ```
 
 ### Redis Node
 
-**Обязательно включить:**
-- Операция (GET/SET/PUSH/POP)
-- Ключ
-- TTL (если SET)
-- Кто кладёт / кто забирает
+**Must include:**
+- Operation (GET/SET/PUSH/POP)
+- Key
+- TTL (if SET)
+- Who writes / who reads
 
 ```markdown
 **Redis:**
-| Операция | Key | TTL | Назначение |
-|----------|-----|-----|------------|
-| SET | `avito_access_token` | 86400s | Кэш OAuth токена |
-| RPUSH | `queue:incoming` | — | Очередь сообщений |
+| Operation | Key | TTL | Purpose |
+|-----------|-----|-----|---------|
+| SET | `avito_access_token` | 86400s | OAuth token cache |
+| RPUSH | `queue:incoming` | — | Message queue |
 ```
 
 ### HTTP Request Node
 
-**Обязательно включить:**
+**Must include:**
 - URL
 - Method
-- Headers (важные)
-- Body формат
+- Headers (important ones)
+- Body format
 
 ```markdown
 **HTTP Request:**
-| Параметр | Значение |
-|----------|----------|
+| Parameter | Value |
+|-----------|-------|
 | **URL** | `https://api.example.com/endpoint` |
 | **Method** | POST |
 | **Headers** | `Authorization: Bearer {{token}}` |
@@ -202,31 +202,31 @@ SELECT * FROM table WHERE id = '{{ $json.id }}'
 
 ### IF Node
 
-**Обязательно включить:**
-- Условие
-- Что происходит при TRUE/FALSE
+**Must include:**
+- Condition
+- What happens on TRUE/FALSE
 
 ```markdown
-**Условие:** `$json.field === true`
+**Condition:** `$json.field === true`
 - TRUE → Node A
 - FALSE → Node B
 ```
 
 ### Execute Workflow Node
 
-**Обязательно включить:**
-- ID вызываемого workflow
-- Название workflow
+**Must include:**
+- Called workflow ID
+- Workflow name
 
 ```markdown
-**Вызывает:** ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz)
+**Calls:** ELO_Core_Tenant_Resolver (rRO6sxLqiCdgvLZz)
 ```
 
 ---
 
-## Паттерны для разных типов workflows
+## Patterns for Different Workflow Types
 
-### ELO_In (входящие)
+### ELO_In (incoming)
 
 ```
 Webhook → Extract Data → Has Voice?
@@ -235,18 +235,18 @@ Webhook → Extract Data → Has Voice?
                                           ↓
                             Execute Tenant Resolver
                                           ↓
-                            [Redis PUSH или Client Resolver]
+                            [Redis PUSH or Client Resolver]
                                           ↓
                             Respond
 ```
 
-**Ключевые секции:**
-- Как извлекаются данные из webhook
-- Нормализация телефона
-- Формат ELO Core Contract
-- Куда отправляется (Redis или напрямую)
+**Key sections:**
+- How data is extracted from webhook
+- Phone normalization
+- ELO Core Contract format
+- Where it sends (Redis or directly)
 
-### ELO_Out (исходящие)
+### ELO_Out (outgoing)
 
 ```
 Execute Trigger → [Get Credentials] → Send Message → Process Response
@@ -256,10 +256,10 @@ Execute Trigger → [Get Credentials] → Send Message → Process Response
                                             Register Touchpoint (Neo4j webhook)
 ```
 
-**Ключевые секции:**
-- Откуда берутся credentials
-- Формат отправки в канал
-- Определение touchpoint_direction
+**Key sections:**
+- Where credentials come from
+- Channel send format
+- Determining touchpoint_direction
 
 ### API (Android)
 
@@ -267,26 +267,26 @@ Execute Trigger → [Get Credentials] → Send Message → Process Response
 Webhook → Parse/Validate → [Auth Check] → Business Logic → Format Response → Respond
 ```
 
-**Ключевые секции:**
+**Key sections:**
 - Endpoint (path, method)
-- Авторизация (x-session-token)
-- SQL запросы
-- Формат ответа
+- Authorization (x-session-token)
+- SQL queries
+- Response format
 
 ---
 
-## Обновление INDEX.md
+## Updating INDEX.md
 
-После создания документации обновить `Core_info/INDEX.md`:
+After creating documentation, update `Core_info/INDEX.md`:
 
-1. Добавить файл в структуру (с ✅)
-2. Добавить в таблицу workflows
-3. Обновить счётчик блока
+1. Add file to structure (with ✅)
+2. Add to workflows table
+3. Update block counter
 
 ---
 
-## Примеры хороших документаций
+## Examples of Good Documentation
 
-- `01_Channel_Layer/workflows_info/ELO_In_Avito.md` — фильтрация, особенности
+- `01_Channel_Layer/workflows_info/ELO_In_Avito.md` — filtering, specifics
 - `01_Channel_Layer/workflows_info/ELO_Out_Avito.md` — OAuth refresh, Redis cache
-- `06_API/workflows_info/API_Android_Auth.md` — полный auth flow
+- `06_API/workflows_info/API_Android_Auth.md` — full auth flow

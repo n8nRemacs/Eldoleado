@@ -1,47 +1,47 @@
 # ELO_Core_Queue_Processor
 
-> Забирает сообщения из общей очереди, группирует по chat_id, запускает Debouncer
+> Retrieves messages from the global queue, groups by chat_id, starts Debouncer
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | — (Schedule Trigger) |
 | **Файл** | `NEW/workflows/n8n_old/Core/ELO_Core_Queue_Processor.json` |
-| **Триггер** | Schedule Trigger (каждые 5 сек) |
+| **Триггер** | Schedule Trigger (every 5s) |
 | **Выход** | Trigger ELO_Core_Batch_Debouncer |
 
 ---
 
-## Назначение
+## Purpose
 
-1. Забирает сообщения из `queue:incoming`
-2. Группирует по `batch_key` (channel:chat_id)
-3. Для каждого чата:
-   - Если уже обрабатывается → добавляет в очередь батча
-   - Если новый → создаёт lock и запускает Debouncer
+1. Pull messages from `queue:incoming`
+2. Group by `batch_key` (channel:chat_id)
+3. For each chat:
+   - If already processing → append to batch queue
+   - If new → create lock and start Debouncer
 
 ---
 
-## Redis ключи
+## Redis keys
 
-| Ключ | Операция | Назначение |
+| Key | Operation | Purpose |
 |------|----------|------------|
-| `queue:processor:lock` | GET/SET/DELETE | Mutex процессора (только один экземпляр) |
-| `queue:incoming` | LPOP ×10 | Глобальная входящая очередь |
-| `lock:batch:{batch_key}` | GET/SET | Lock на обработку конкретного чата |
-| `queue:batch:{batch_key}` | RPUSH | Per-chat очередь сообщений |
-| `last_seen:{batch_key}` | SET | Timestamp последнего сообщения |
+| `queue:processor:lock` | GET/SET/DELETE | Processor mutex (single instance) |
+| `queue:incoming` | LPOP ×10 | Global incoming queue |
+| `lock:batch:{batch_key}` | GET/SET | Lock for specific chat |
+| `queue:batch:{batch_key}` | RPUSH | Per-chat message queue |
+| `last_seen:{batch_key}` | SET | Timestamp of last message |
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Every 5 Seconds
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `129fe377-4cfd-43d1-84ba-08a6c85fcae2` |
 | **Тип** | scheduleTrigger |
@@ -51,18 +51,18 @@
 
 ### 2. Check Processor Lock
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Тип** | Redis GET |
 | **Key** | `queue:processor:lock` |
 
-Проверяем: не работает ли уже другой экземпляр?
+Check: is another instance already running?
 
 ---
 
 ### 3. Is Processor Free?
 
-| Условие | Результат |
+| Condition | Result |
 |---------|-----------|
 | `value` is empty | → Acquire Lock |
 | `value` exists | → Stop (уже обрабатывается) |
@@ -71,7 +71,7 @@
 
 ### 4. Acquire Processor Lock
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Тип** | Redis SET |
 | **Key** | `queue:processor:lock` |

@@ -1,28 +1,28 @@
 # ELO_Out_WhatsApp
 
-> Исходящий workflow для WhatsApp (Wappi.pro)
+> Outgoing workflow for WhatsApp (Wappi.pro)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/ELO_Out/ELO_Out_WhatsApp.json` |
 | **Триггер** | Execute Workflow Trigger |
 | **Вызывается из** | Dialog Engine, AI Router, API |
 | **Вызывает** | Wappi.pro API, Neo4j Touchpoint Register |
-| **Выход** | Сохранение в messages_history + touchpoint |
+| **Выход** | Save to messages_history + touchpoint |
 
 ---
 
-## Назначение
+## Purpose
 
-Отправляет сообщение клиенту в WhatsApp через Wappi.pro API.
+Sends a message to the client in WhatsApp via Wappi.pro API.
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -39,11 +39,11 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `51e468de-1b4f-4803-8b11-35ce03dfc607` |
 
@@ -51,7 +51,7 @@
 
 ### 2. Send WhatsApp Message
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `d1f26b25-bd03-4887-9b29-c0381527e403` |
 | **Тип** | n8n-nodes-base.httpRequest |
@@ -75,7 +75,7 @@
 | **ID** | `c7623091-c36b-4843-b74c-868f80d77a11` |
 | **Тип** | n8n-nodes-base.code |
 
-**Код:**
+**Code:**
 ```javascript
 const response = $input.first().json;
 const inMessage = $('Execute Workflow Trigger').first().json;

@@ -1,12 +1,12 @@
 # ELO_Core_Client_Resolver
 
-> Находит или создаёт клиента, передаёт в Core (Appeal Manager)
+> Finds or creates a client, passes to Core (Appeal Manager)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `OUjTFzd7k4tdoAjh` |
 | **Файл** | `NEW/workflows/n8n_old/Core/ELO_Core_Client_Resolver.json` |
@@ -16,20 +16,20 @@
 
 ---
 
-## Назначение
+## Purpose
 
-1. Ищет клиента по идентификаторам канала
-2. Если найден — использует существующего
-3. Если не найден — создаёт нового
-4. Передаёт в Appeal Manager (Core)
+1. Looks up client by channel identifiers
+2. If found — reuse existing
+3. If not found — create new
+4. Pass to Appeal Manager (Core)
 
 ---
 
-## Поиск клиента
+## Client lookup
 
-Клиент ищется по **любому** из идентификаторов:
+Client is searched by **any** of the identifiers:
 
-| Канал | Поле в clients | Поле в данных |
+| Channel | Field in clients | Field in data |
 |-------|---------------|---------------|
 | Phone | `phone` | `client_phone` |
 | Telegram | `telegram_id` | `external_user_id` (если channel=telegram) |
@@ -39,7 +39,7 @@
 
 ---
 
-## Входные данные
+## Input Data
 
 ```json
 {
@@ -58,7 +58,7 @@
 
 ---
 
-## Выходные данные (в Appeal Manager)
+## Output Data (to Appeal Manager)
 
 ```json
 {
@@ -86,21 +86,21 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Execute Workflow Trigger
 
-Входная точка — вызывается из Debouncer или напрямую из Form/Phone.
+Entry point — called from Debouncer or directly from Form/Phone.
 
 ---
 
 ### 2. Find Client
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Тип** | Postgres |
 
-**SQL запрос:**
+**SQL query:**
 ```sql
 WITH potential_clients AS (
   SELECT * FROM clients
@@ -135,7 +135,7 @@ resolved_client AS (
 SELECT * FROM resolved_client;
 ```
 
-**Особенность:** Учитывает merge клиентов через `client_merges`.
+**Note:** Accounts for client merges via `client_merges`.
 
 ---
 

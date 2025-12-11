@@ -1,45 +1,45 @@
-# Следующие шаги проектирования ELO
+# Next Steps for ELO Design
 
-> **Последнее обновление:** 10 декабря 2025, 01:45 (UTC+4)
-> **Статус:** Документирование OLD архитектуры
+> **Last updated:** December 10, 2025, 01:45 (UTC+4)
+> **Status:** Documenting OLD architecture
 
 ---
 
-## Согласованный подход к разработке
+## Agreed Development Approach
 
 ```
-1. Проработать все блоки (понять что ЕСТЬ в OLD архитектуре)
+1. Work through all blocks (understand what EXISTS in OLD architecture)
    ├── Channel Layer ✅ DONE (12/12)
    ├── Input Contour ✅ DONE (5/5)
-   ├── Core 🔄 РАЗОБРАН (не документирован)
-   ├── Graph 🔄 НАЧАТ (4 открытых вопроса)
+   ├── Core 🔄 ANALYZED (not documented)
+   ├── Graph 🔄 STARTED (4 open questions)
    └── API ⏳ TODO (25+ endpoints)
 
-2. Создать подробную структуру NEW архитектуры (как ДОЛЖНО быть)
+2. Create detailed structure for NEW architecture (how it SHOULD be)
 
-3. Спроектировать структуру БД (elo_* таблицы)
+3. Design database structure (elo_* tables)
 
-4. Создать новые воркеры
+4. Create new workers
 
-5. Дебаг и тестирование
+5. Debug and testing
 ```
 
-**Важно:** Документирование OLD архитектуры (BAT_*) — это НЕ план для NEW архитектуры (ELO_*). Это этап понимания существующей логики перед проектированием новой.
+**Important:** Documenting OLD architecture (BAT_*) is NOT a plan for NEW architecture (ELO_*). This is a phase of understanding existing logic before designing new.
 
 ---
 
-## Сессия 10.12.2025 (ночь) — Подробный отчёт
+## Session 10.12.2025 (night) — Detailed Report
 
-### Что было сделано
+### What Was Done
 
-#### 1. Создана структура документации
+#### 1. Created Documentation Structure
 
-**Папка:** `NEW/Core_info/`
+**Folder:** `NEW/Core_info/`
 
 ```
 NEW/Core_info/
-├── INDEX.md                          # Навигация по всем блокам
-├── HOW_TO_DOCUMENT.md                # Инструкция документирования
+├── INDEX.md                          # Navigation through all blocks
+├── HOW_TO_DOCUMENT.md                # Documentation instructions
 ├── 01_Channel_Layer/
 │   └── workflows_info/
 │       ├── ELO_In_Telegram.md        ✅
@@ -67,19 +67,19 @@ NEW/Core_info/
 │   └── workflows_info/
 │       └── GRAPH_OVERVIEW.md         ✅
 ├── 05_Diagnostic_Engine/
-│   └── workflows_info/               # Нет workflows
+│   └── workflows_info/               # No workflows
 └── 06_API/
     └── workflows_info/
         ├── API_Android_Auth.md       ✅
         └── API_Android_Appeals_List.md ✅
 ```
 
-#### 2. Channel Layer — полностью документирован (12/12)
+#### 2. Channel Layer — Fully Documented (12/12)
 
-**ELO_In workflows (7 шт):**
+**ELO_In workflows (7 pcs):**
 
-| Workflow | Nodes | Паттерн | Особенности |
-|----------|-------|---------|-------------|
+| Workflow | Nodes | Pattern | Features |
+|----------|-------|---------|----------|
 | ELO_In_Telegram | 12 | Standard | MCP payload, tg_ prefix, Redis queue |
 | ELO_In_WhatsApp | 10 | Standard | Wappi.pro, phone from chatId (79991234567@c.us) |
 | ELO_In_Avito | 13 | Standard | System filter (author_id===user_id), item_id |
@@ -88,32 +88,32 @@ NEW/Core_info/
 | ELO_In_Form | 5 | **Direct** | NO Redis, prefilled_data.model |
 | ELO_In_Phone | 7 | **Direct** | NO Redis, ALWAYS voice |
 
-**Паттерны ELO_In:**
+**ELO_In Patterns:**
 - **Standard (5):** Telegram, WhatsApp, VK, MAX, Avito → Redis queue (async)
-- **Direct (2):** Form, Phone → NO Redis (редкие, синхронно)
+- **Direct (2):** Form, Phone → NO Redis (rare, synchronous)
 
-**ELO_Out workflows (5 шт):**
+**ELO_Out workflows (5 pcs):**
 
-| Workflow | Nodes | Credentials | Особенности |
-|----------|-------|-------------|-------------|
+| Workflow | Nodes | Credentials | Features |
+|----------|-------|-------------|----------|
 | ELO_Out_Telegram | 8 | SQL tenant_configs | MCP API tg.eldoleado.ru |
 | ELO_Out_WhatsApp | 5 | Direct | wappi.pro/api/sync |
 | ELO_Out_Avito | 11 | Redis cache (TTL 86400) | OAuth refresh, text escape |
 | ELO_Out_VK | 5 | N/A | random_id required |
 | ELO_Out_MAX | 5 | N/A | MAX_API_URL env |
 
-**Общий паттерн ELO_Out:**
+**Common ELO_Out Pattern:**
 ```
 Execute Trigger → [Get Credentials?] → Send → Process → Save History → Register Touchpoint
 ```
 
-#### 3. Input Contour — полностью документирован (5/5)
+#### 3. Input Contour — Fully Documented (5/5)
 
-**Архитектура потока:**
+**Flow Architecture:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  IN Workflows (быстрые, ~100ms)                                             │
+│  IN Workflows (fast, ~100ms)                                                │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐               │
 │  │Telegram │ │WhatsApp │ │  Avito  │ │   VK    │ │   MAX   │               │
 │  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘               │
@@ -121,30 +121,30 @@ Execute Trigger → [Get Credentials?] → Send → Process → Save History →
 │       └───────────┴─────┬─────┴───────────┴───────────┘                    │
 │                         ↓                                                   │
 │         ┌───────────────────────────────┐                                  │
-│         │  1. ELO_Core_Tenant_Resolver  │  ← определяет tenant             │
+│         │  1. ELO_Core_Tenant_Resolver  │  ← determines tenant             │
 │         └───────────────┬───────────────┘                                  │
 │                         ↓                                                   │
 │         ┌───────────────────────────────┐                                  │
-│         │  Redis RPUSH queue:incoming   │  ← быстро и уходят               │
+│         │  Redis RPUSH queue:incoming   │  ← quick and exit                │
 │         └───────────────┬───────────────┘                                  │
 └─────────────────────────│──────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  Batcher (медленный, 10s debounce)                                          │
+│  Batcher (slow, 10s debounce)                                               │
 │         ┌───────────────────────────────┐                                   │
-│         │  2. ELO_Core_Queue_Processor  │  ← каждые 5 сек                   │
-│         │     POP из queue:incoming     │                                   │
-│         │     Группировка по chat_id    │                                   │
+│         │  2. ELO_Core_Queue_Processor  │  ← every 5 sec                    │
+│         │     POP from queue:incoming   │                                   │
+│         │     Group by chat_id          │                                   │
 │         └───────────────┬───────────────┘                                   │
 │                         ↓                                                    │
 │         ┌───────────────────────────────┐                                   │
-│         │  3. ELO_Core_Batch_Debouncer  │  ← ждёт 10s тишины                │
-│         │     ×10 копий (параллельно)   │                                   │
-│         │     Склеивает сообщения       │                                   │
+│         │  3. ELO_Core_Batch_Debouncer  │  ← waits 10s silence              │
+│         │     ×10 copies (parallel)     │                                   │
+│         │     Combines messages         │                                   │
 │         └───────────────┬───────────────┘                                   │
 │                         ↓                                                    │
 │         ┌───────────────────────────────┐                                   │
-│         │  4. ELO_Core_Client_Resolver  │  ← находит/создаёт клиента       │
+│         │  4. ELO_Core_Client_Resolver  │  ← finds/creates client           │
 │         └───────────────┬───────────────┘                                   │
 └─────────────────────────│───────────────────────────────────────────────────┘
                           ↓
@@ -153,67 +153,67 @@ Execute Trigger → [Get Credentials?] → Send → Process → Save History →
                     └───────────┘
 ```
 
-**Redis ключи Input Contour:**
+**Redis Keys Input Contour:**
 
-| Ключ | Тип | TTL | Назначение |
-|------|-----|-----|------------|
-| `queue:incoming` | List | — | Глобальная входящая очередь |
-| `queue:processor:lock` | String | short | Mutex для Queue Processor |
-| `queue:batch:{channel}:{chat_id}` | List | — | Per-chat очередь сообщений |
-| `lock:batch:{channel}:{chat_id}` | String | 300s | Per-chat lock на обработку |
-| `last_seen:{channel}:{chat_id}` | String | — | Timestamp последнего сообщения |
+| Key | Type | TTL | Purpose |
+|-----|------|-----|---------|
+| `queue:incoming` | List | — | Global incoming queue |
+| `queue:processor:lock` | String | short | Mutex for Queue Processor |
+| `queue:batch:{channel}:{chat_id}` | List | — | Per-chat message queue |
+| `lock:batch:{channel}:{chat_id}` | String | 300s | Per-chat processing lock |
+| `last_seen:{channel}:{chat_id}` | String | — | Last message timestamp |
 
-**Debounce логика:**
-- Ждём **10 секунд тишины** (user confirmed: 20s слишком долго)
-- Максимум **300 секунд** ожидания (защита от chatty users)
-- После debounce — склеиваем все сообщения в один текст
-- Голосовые помечаются `[Голосовое]: {transcription}`
+**Debounce Logic:**
+- Wait **10 seconds silence** (user confirmed: 20s too long)
+- Maximum **300 seconds** waiting (protection from chatty users)
+- After debounce — combine all messages into one text
+- Voice messages marked `[Voice]: {transcription}`
 
-**Документированные workflows:**
+**Documented Workflows:**
 
 1. **ELO_Core_Tenant_Resolver** (rRO6sxLqiCdgvLZz)
    - 7 nodes
-   - Маппинг channel → lookup_key (telegram→telegram_bot_token, vk→vk_app_id, etc.)
+   - Mapping channel → lookup_key (telegram→telegram_bot_token, vk→vk_app_id, etc.)
    - Default tenant UUID: `a0000000-0000-0000-0000-000000000001`
 
-2. **ELO_Core_Queue_Processor** (без ID, Schedule Trigger)
+2. **ELO_Core_Queue_Processor** (no ID, Schedule Trigger)
    - Schedule: every 5 seconds
-   - 10× параллельный POP (workaround для n8n)
-   - Группировка по batch_key = `{channel}:{external_chat_id}`
-   - Двухуровневая блокировка (processor + per-chat)
+   - 10× parallel POP (workaround for n8n)
+   - Grouping by batch_key = `{channel}:{external_chat_id}`
+   - Two-level locking (processor + per-chat)
 
-3. **ELO_Core_Batch_Debouncer** (hwYfaLAKCwaWpoQk) ×10 копий
+3. **ELO_Core_Batch_Debouncer** (hwYfaLAKCwaWpoQk) ×10 copies
    - Debounce loop: Wait → Check Silence → Ready?
    - Combine Messages: sort by timestamp, join with `\n\n`
-   - TODO: per-tenant debounce setting в elo_tenants
+   - TODO: per-tenant debounce setting in elo_tenants
 
-4. **ELO_Core_Client_Resolver** (без ID)
-   - Find Client SQL с JOIN client_merges
-   - Поиск по phone/telegram_id/vk_id/whatsapp_id/avito_id
+4. **ELO_Core_Client_Resolver** (no ID)
+   - Find Client SQL with JOIN client_merges
+   - Search by phone/telegram_id/vk_id/whatsapp_id/avito_id
    - Client Exists? → Merge / Execute Client Creator
-   - → Execute Appeal Manager (граница с Core)
+   - → Execute Appeal Manager (boundary with Core)
 
-#### 4. Core — разобран, НЕ документирован
+#### 4. Core — Analyzed, NOT Documented
 
-**Прочитанные workflows:**
+**Read Workflows:**
 
-| Workflow | ID | Назначение |
-|----------|-----|------------|
-| BAT_Appeal_Manager | L2pYPcv7r8j5XFU3 | Точка входа в Core |
-| BAT_AI_Appeal_Router | Flhmu33l0ZhZhr90 | AI мозг, маршрутизация |
-| BAT_AI_Task_Dispatcher | aEzuOXgpLBTNZ4ie | Диспетчер AI задач |
-| BAT_AI_Universal_Worker | CDHwzDiXqh3t0Iam | AI воркер (×7 копий) |
-| BAT_Client_Creator | vkQwat1iZhJJj7C9 | Создание клиента |
+| Workflow | ID | Purpose |
+|----------|-----|---------|
+| BAT_Appeal_Manager | L2pYPcv7r8j5XFU3 | Core entry point |
+| BAT_AI_Appeal_Router | Flhmu33l0ZhZhr90 | AI brain, routing |
+| BAT_AI_Task_Dispatcher | aEzuOXgpLBTNZ4ie | AI task dispatcher |
+| BAT_AI_Universal_Worker | CDHwzDiXqh3t0Iam | AI worker (×7 copies) |
+| BAT_Client_Creator | vkQwat1iZhJJj7C9 | Client creation |
 
-**Структура Core (понята, не документирована):**
+**Core Structure (understood, not documented):**
 
 ```
 Client Resolver
       ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  ELO_Core_Appeal_Manager (L2pYPcv7r8j5XFU3)                     │
-│    • Find Active Appeal (7 дней, не завершён)                   │
-│    • Create New Appeal (если нет)                               │
+│    • Find Active Appeal (7 days, not finished)                  │
+│    • Create New Appeal (if none)                                │
 │    • Save Message History                                       │
 │    • Register Touchpoint (Neo4j webhook)                        │
 │    → Execute AI Router                                          │
@@ -236,14 +236,14 @@ Client Resolver
 ```
 
 **operation_mode:**
-- **auto** — AI отвечает клиенту напрямую
-- **assist** — AI готовит ответ, оператор подтверждает
+- **auto** — AI responds to client directly
+- **assist** — AI prepares response, operator confirms
 
-**Решено:** Core отложен до проработки остальных блоков. Это центральный блок, его нужно адаптировать под все остальные.
+**Decision:** Core postponed until other blocks are worked through. This is the central block, needs to be adapted to everything else.
 
-#### 5. Graph — начат, есть открытые вопросы
+#### 5. Graph — Started, Has Open Questions
 
-**Прочитанные workflows (5 шт):**
+**Read Workflows (5 pcs):**
 
 | Workflow | ID | Webhook |
 |----------|-----|---------|
@@ -253,7 +253,7 @@ Client Resolver
 | BAT_Neo4j_Touchpoint_Register | TrCjdgREvPAB2yyL | /neo4j/touchpoint/register |
 | BAT_Neo4j_Touchpoint_Tracker | tKHYEwn1AR18UrDS | /neo4j/touchpoint |
 
-**Neo4j Schema (из анализа):**
+**Neo4j Schema (from analysis):**
 
 ```
 Node Types:
@@ -278,17 +278,17 @@ Edge Types:
 - Touchpoint -[:IN_VERTICAL]-> Vertical
 ```
 
-**Создан:** `04_Graph/workflows_info/GRAPH_OVERVIEW.md`
+**Created:** `04_Graph/workflows_info/GRAPH_OVERVIEW.md`
 
 ---
 
-## ОТКРЫТЫЕ ВОПРОСЫ ПО GRAPH (на утро!)
+## OPEN GRAPH QUESTIONS (for morning!)
 
-### 1. Register vs Tracker — дублирование или разные сценарии?
+### 1. Register vs Tracker — Duplication or Different Scenarios?
 
 **Touchpoint Register** (`/webhook/neo4j/touchpoint/register`):
 ```
-Входные данные:
+Input data:
 - client_id (required)
 - appeal_id
 - channel
@@ -298,75 +298,75 @@ Edge Types:
 - vertical_id
 - tenant_id
 
-Что делает:
-1. Создаёт Touchpoint node в Neo4j
-2. Связь с Client: FROM (inbound), TO (outbound), или ОБЕ (mutual)
-3. Связь с Vertical если указан
-4. Сохраняет в PostgreSQL таблицу touchpoints
+What it does:
+1. Creates Touchpoint node in Neo4j
+2. Link with Client: FROM (inbound), TO (outbound), or BOTH (mutual)
+3. Link with Vertical if specified
+4. Saves to PostgreSQL touchpoints table
 ```
 
 **Touchpoint Tracker** (`/webhook/neo4j/touchpoint`):
 ```
-Входные данные:
+Input data:
 - client_id (required)
 - message_id
 - channel
-- direction: inbound | outbound (БЕЗ mutual!)
+- direction: inbound | outbound (NO mutual!)
 - type
-- mentioned_device_id    ← дополнительно
-- mentioned_problem_id   ← дополнительно
-- confidence (0-1)       ← дополнительно
-- explicit (bool)        ← дополнительно
+- mentioned_device_id    ← additional
+- mentioned_problem_id   ← additional
+- confidence (0-1)       ← additional
+- explicit (bool)        ← additional
 
-Что делает:
-1. Создаёт Touchpoint node в Neo4j
-2. Связь с Client: FROM или TO
-3. Связь ABOUT_DEVICE (если упомянуто устройство)
-4. Связь ABOUT_PROBLEM (если упомянута проблема)
-5. НЕ сохраняет в PostgreSQL!
+What it does:
+1. Creates Touchpoint node in Neo4j
+2. Link with Client: FROM or TO
+3. Link ABOUT_DEVICE (if device mentioned)
+4. Link ABOUT_PROBLEM (if problem mentioned)
+5. Does NOT save to PostgreSQL!
 ```
 
-**Сравнение:**
+**Comparison:**
 
-| Аспект | Register | Tracker |
+| Aspect | Register | Tracker |
 |--------|----------|---------|
-| PostgreSQL | ✅ Да | ❌ Нет |
-| mutual direction | ✅ Да | ❌ Нет |
-| ABOUT_DEVICE | ❌ Нет | ✅ Да |
-| ABOUT_PROBLEM | ❌ Нет | ✅ Да |
-| confidence | ❌ Нет | ✅ Да |
+| PostgreSQL | ✅ Yes | ❌ No |
+| mutual direction | ✅ Yes | ❌ No |
+| ABOUT_DEVICE | ❌ No | ✅ Yes |
+| ABOUT_PROBLEM | ❌ No | ✅ Yes |
+| confidence | ❌ No | ✅ Yes |
 
-**Гипотеза:**
-- Register = регистрация факта контакта (для воронки, аналитики)
-- Tracker = трекинг что обсуждали (для AI контекста)
+**Hypothesis:**
+- Register = registering contact fact (for funnel, analytics)
+- Tracker = tracking what was discussed (for AI context)
 
-**Вопрос:** Это верно? Или они должны работать вместе? Или это дублирование которое нужно объединить?
+**Question:** Is this correct? Or should they work together? Or is this duplication that needs to be merged?
 
-### 2. Direction — кто определяет inbound/outbound/mutual?
+### 2. Direction — Who Determines inbound/outbound/mutual?
 
-В коде Touchpoint Register есть комментарий:
+In Touchpoint Register code there's a comment:
 ```javascript
-// Логика определения direction:
-// - is_new_client && нет телефона в базе → inbound
-// - is_new_client && есть телефон в базе → mutual
-// - промо/рассылка → outbound
-// - диалог (есть inbound + был ответ + клиент написал) → mutual
+// Direction determination logic:
+// - is_new_client && no phone in DB → inbound
+// - is_new_client && phone in DB → mutual
+// - promo/newsletter → outbound
+// - dialog (has inbound + was reply + client wrote) → mutual
 ```
 
-Но это только комментарий, не код!
+But this is just a comment, not code!
 
-**Вопрос:** Кто реально определяет direction?
-- Вызывающий workflow передаёт готовое значение?
-- Или Graph должен сам определять по логике?
+**Question:** Who actually determines direction?
+- Does calling workflow pass ready value?
+- Or should Graph determine it by logic?
 
-### 3. enrichment_paths — что это за таблица?
+### 3. enrichment_paths — What Is This Table?
 
-В Context Builder есть action `enrichment_suggestion`:
+In Context Builder there's action `enrichment_suggestion`:
 ```javascript
-// Запрос к PostgreSQL
+// PostgreSQL query
 SELECT * FROM enrichment_paths WHERE enabled = true ORDER BY priority DESC, conversion_rate DESC
 
-// Логика
+// Logic
 const suggestions = enrichmentPaths
   .filter(path => {
     const hasFrom = existingTypes.has(path.from_channel_type);
@@ -376,90 +376,90 @@ const suggestions = enrichmentPaths
   .slice(0, 3);
 ```
 
-**Вопрос:** Что это за таблица? Структура? Пути конверсии типа "telegram → собрать phone"?
+**Question:** What is this table? Structure? Conversion paths like "telegram → collect phone"?
 
-### 4. Когда какой touchpoint вызывать?
+### 4. When to Call Which Touchpoint?
 
-**Вопрос:**
-- Register → для всех входящих/исходящих сообщений?
-- Tracker → только когда AI определил упоминание устройства в тексте?
+**Question:**
+- Register → for all incoming/outgoing messages?
+- Tracker → only when AI identified device mention in text?
 
 ---
 
-## Предыдущий контекст (из прошлых сессий)
+## Previous Context (from past sessions)
 
-### Глобальная схема (`GLOBAL_SCHEMA.md`)
+### Global Schema (`GLOBAL_SCHEMA.md`)
 
-- **Принципы:**
-  - Все таблицы реляционные (никакого хардкода, только FK)
-  - Гибридные ID: INT для справочников, UUID для сущностей
-  - Минимальный пакет между блоками: `{tenant_id, dialog_id}`
+- **Principles:**
+  - All tables relational (no hardcode, only FK)
+  - Hybrid IDs: INT for directories, UUID for entities
+  - Minimal packet between blocks: `{tenant_id, dialog_id}`
 
-- **Иерархия:** Домен → Вертикаль (один домен на тенанта для MVP)
+- **Hierarchy:** Domain → Vertical (one domain per tenant for MVP)
 
-- **Справочники (7):**
+- **Directories (7):**
   - elo_domains, elo_verticals, elo_channels
   - elo_dialog_statuses, elo_message_types, elo_directions
   - elo_operator_types
 
-- **Основные сущности (5):**
+- **Main Entities (5):**
   - elo_tenants, elo_operators, elo_clients
   - elo_dialogs, elo_messages
 
-- **Связующие:**
+- **Linking:**
   - elo_tenant_verticals, elo_dialog_verticals
   - elo_channel_accounts, elo_client_channels
 
-- **Контракты данных:**
+- **Data Contracts:**
   - Internal: `{tenant_id, dialog_id}`
-  - External (API → App): развёрнутый объект
+  - External (API → App): expanded object
 
-### 6 блоков системы
+### 6 System Blocks
 
-| # | Блок | Статус | Документов |
-|---|------|--------|------------|
+| # | Block | Status | Documents |
+|---|-------|--------|-----------|
 | 1 | Channel Layer (IN/OUT) | ✅ DONE | 12/12 |
 | 2 | Billing | ⏳ TODO | — |
 | 3 | Input Contour | ✅ DONE | 5/5 |
-| 4 | Core | 🔄 Разобран | 0 |
-| 5 | Graph (Neo4j) | 🔄 Начат | 1 + вопросы |
-| 6 | Diagnostic Engine | ❓ Нет workflows | 0 |
-| — | API | 🔄 Начат | 2/27 |
+| 4 | Core | 🔄 Analyzed | 0 |
+| 5 | Graph (Neo4j) | 🔄 Started | 1 + questions |
+| 6 | Diagnostic Engine | ❓ No workflows | 0 |
+| — | API | 🔄 Started | 2/27 |
 
 ---
 
-## Naming convention
+## Naming Convention
 
-- **BAT** prefix = BattCRM (старое название проекта)
-- **ELO** prefix = Eldoleado (новое название)
-- Channel Layer (ELO_In_*, ELO_Out_*) уже переименован
-- Input Contour документация использует ELO_Core_* (хотя JSON ещё BAT_*)
-- Core workflows (BAT_Appeal_Manager, etc.) ещё не переименованы
-- `n8n_old/` — папка со всеми OLD BAT_* workflows
-- `ELO_Core/` — папка для NEW ELO_Core_* workflows (пока пустая)
+- **BAT** prefix = BattCRM (old project name)
+- **ELO** prefix = Eldoleado (new name)
+- Channel Layer (ELO_In_*, ELO_Out_*) already renamed
+- Input Contour documentation uses ELO_Core_* (though JSON still BAT_*)
+- Core workflows (BAT_Appeal_Manager, etc.) not renamed yet
+- `n8n_old/` — folder with all OLD BAT_* workflows
+- `ELO_Core/` — folder for NEW ELO_Core_* workflows (empty for now)
 
 ---
 
-## Структура папок (актуальная)
+## Folder Structure (current)
 
 ```
 NEW/
-├── GLOBAL_SCHEMA.md              # Общая схема (таблицы, контракты)
-├── NEXT_STEPS.md                 # Этот файл
-├── Core_info/                    # Документация по блокам
-│   ├── INDEX.md                  # Навигация
-│   ├── HOW_TO_DOCUMENT.md        # Инструкция
+├── GLOBAL_SCHEMA.md              # General schema (tables, contracts)
+├── NEXT_STEPS.md                 # This file
+├── Core_info/                    # Block documentation
+│   ├── INDEX.md                  # Navigation
+│   ├── HOW_TO_DOCUMENT.md        # Instructions
 │   ├── 01_Channel_Layer/         # ✅ 12/12
 │   ├── 02_Input_Contour/         # ✅ 5/5
 │   ├── 03_Core/                  # TODO
-│   ├── 04_Graph/                 # 🔄 1 + вопросы
-│   ├── 05_Diagnostic_Engine/     # Нет workflows
+│   ├── 04_Graph/                 # 🔄 1 + questions
+│   ├── 05_Diagnostic_Engine/     # No workflows
 │   └── 06_API/                   # 🔄 2/27
 └── workflows/
-    ├── ELO_InOut/                # Новые ELO_In/Out
+    ├── ELO_InOut/                # New ELO_In/Out
     │   ├── ELO_In/               # 7 workflows
     │   └── ELO_Out/              # 5 workflows
-    └── n8n_old/                  # Старые BAT_* workflows
+    └── n8n_old/                  # Old BAT_* workflows
         ├── API/                  # 27 workflows
         ├── Core/                 # ~20 workflows
         ├── In/                   # 7 workflows
@@ -470,64 +470,64 @@ NEW/
 
 ---
 
-## План следующей сессии (утро 10.12.2025)
+## Next Session Plan (morning 10.12.2025)
 
-### 1. Разобрать вопросы по Graph
+### 1. Resolve Graph Questions
 
-По порядку:
+In order:
 1. Register vs Tracker
-2. Direction логика
-3. enrichment_paths таблица
-4. Когда какой touchpoint
+2. Direction logic
+3. enrichment_paths table
+4. When which touchpoint
 
-### 2. Документировать Graph (5 workflows)
+### 2. Document Graph (5 workflows)
 
-После ответов на вопросы:
+After answering questions:
 - ELO_Graph_Context_Builder.md
 - ELO_Graph_CRUD.md
 - ELO_Graph_Sync.md
 - ELO_Graph_Touchpoint_Register.md
 - ELO_Graph_Touchpoint_Tracker.md
 
-### 3. Документировать API (25+ workflows)
+### 3. Document API (25+ workflows)
 
-После Graph — документировать Android API и Operator API.
+After Graph — document Android API and Operator API.
 
-### 4. Вернуться к Core
+### 4. Return to Core
 
-После понимания всех блоков — документировать Core как центральный элемент.
+After understanding all blocks — document Core as central element.
 
 ---
 
 ## Quick Reference
 
-### Redis ключи (все блоки)
+### Redis Keys (all blocks)
 
 **Input Contour:**
-- `queue:incoming` — глобальная входящая очередь
-- `queue:processor:lock` — mutex для Queue Processor
-- `queue:batch:{key}` — per-chat очередь
+- `queue:incoming` — global incoming queue
+- `queue:processor:lock` — mutex for Queue Processor
+- `queue:batch:{key}` — per-chat queue
 - `lock:batch:{key}` — per-chat lock (TTL 300s)
 - `last_seen:{key}` — timestamp
 
 **Core:**
-- `ai_extraction_queue` — очередь задач для AI Workers
-- `batch:{id}:status` — статус батча извлечения (TTL 300s)
+- `ai_extraction_queue` — AI Worker task queue
+- `batch:{id}:status` — extraction batch status (TTL 300s)
 
 **Channel Layer (Avito):**
 - `avito_access_token` — OAuth token (TTL 86400s)
 
 ### Webhooks (Neo4j)
 
-| Webhook | Назначение |
-|---------|------------|
-| POST /webhook/neo4j/context | AI контекст (get_context, disambiguation, match_entities, enrichment) |
-| POST /webhook/neo4j/crud | CRUD операции |
-| POST /webhook/neo4j/sync | PostgreSQL → Neo4j синхронизация |
-| POST /webhook/neo4j/touchpoint/register | Регистрация касания |
-| POST /webhook/neo4j/touchpoint | Трекинг упоминаний |
+| Webhook | Purpose |
+|---------|---------|
+| POST /webhook/neo4j/context | AI context (get_context, disambiguation, match_entities, enrichment) |
+| POST /webhook/neo4j/crud | CRUD operations |
+| POST /webhook/neo4j/sync | PostgreSQL → Neo4j synchronization |
+| POST /webhook/neo4j/touchpoint/register | Touch registration |
+| POST /webhook/neo4j/touchpoint | Mention tracking |
 
-### Ключевые ID workflows
+### Key Workflow IDs
 
 | Workflow | ID |
 |----------|-----|

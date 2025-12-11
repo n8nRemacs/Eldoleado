@@ -1,31 +1,31 @@
 # Eldoleado Project — CORE_NEW
 
-> Единый файл контекста проекта для Claude и разработчиков
+> Unified project context file for Claude and developers
 
-**Последнее обновление:** 2025-12-09
+**Last updated:** 2025-12-11
 
 ---
 
 ## Quick Commands
 
 When user says:
-- **"обнови контекст"** → `python scripts/update_core_context.py`
-- **"stop" / "стоп"** → Kill all background tasks
+- **"update context"** → `python scripts/update_core_context.py`
+- **"stop"** → Kill all background tasks
 
 ---
 
-## CORE_NEW — Новая архитектура
+## CORE_NEW — New Architecture
 
-### Философия: "Люди общаются. Машина ведёт учёт."
+### Philosophy: "People talk. Machine keeps records."
 
 ```
-Старый подход:  Клиент → Заявки → Устройства → Проблемы (50 таблиц)
-Новый подход:   Клиент → Диалоги (с контекстом внутри) (13 таблиц)
+Old approach:  Client → Appeals → Devices → Problems (50 tables)
+New approach:  Client → Dialogs (with context inside) (13 tables)
 ```
 
-- Человеку — естественное общение в мессенджерах
-- Машине — рутина, учёт, таблицы (AI под капотом)
-- БЕЗ канбанов, БЕЗ заполнения форм
+- For humans — natural messaging communication
+- For machines — routine, accounting, tables (AI under the hood)
+- NO kanban boards, NO form filling
 
 ---
 
@@ -33,35 +33,35 @@ When user says:
 
 | Category | Path | Description |
 |----------|------|-------------|
-| **CORE_NEW** | `CORE_NEW/docs/` | Документация новой архитектуры |
-| **Context** | `CORE_NEW/CONTEXT.md` | Быстрый обзор состояния проекта |
-| **Old** | `Old/docs/` | Старая документация (архив) |
-| **Plans** | `Plans/` | Бизнес-планы и требования |
+| **CORE_NEW** | `CORE_NEW/docs/` | New architecture documentation |
+| **Context** | `CORE_NEW/CONTEXT.md` | Quick project status overview |
+| **Old** | `Old/docs/` | Old documentation (archive) |
+| **Plans** | `Plans/` | Business plans and requirements |
 
 ### Key Documents (CORE_NEW)
 
 | Document | Description |
 |----------|-------------|
-| `CORE_NEW/CONTEXT.md` | Quick Stats + состояние проекта |
-| `CORE_NEW/docs/00_VISION.md` | Видение продукта |
-| `CORE_NEW/docs/01_CORE_DESIGN.md` | Архитектура ядра, глоссарий |
-| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* таблиц |
+| `CORE_NEW/CONTEXT.md` | Quick Stats + project status |
+| `CORE_NEW/docs/00_VISION.md` | Product vision |
+| `CORE_NEW/docs/01_CORE_DESIGN.md` | Core architecture, glossary |
+| `CORE_NEW/docs/02_DATABASE_SCHEMA.md` | PostgreSQL: 13 elo_* tables |
 | `CORE_NEW/docs/03_NEO4J_SCHEMA.md` | Neo4j: Client, Device, Problem |
-| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 контракты |
-| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 уровней, Prompt-in-Request |
+| `CORE_NEW/docs/04_API_CONTRACTS.md` | API v2 contracts |
+| `CORE_NEW/docs/05_AI_ARCHITECTURE.md` | AI: 7 levels, Prompt-in-Request |
 
 ---
 
 ## Project Structure
 
 ```
-CORE_NEW/               # Новая архитектура (АКТИВНАЯ)
-  ├── docs/             # Документация
-  ├── CONTEXT.md        # Состояние проекта
-  └── migrations/       # SQL миграции (TODO)
+CORE_NEW/               # New architecture (ACTIVE)
+  ├── docs/             # Documentation
+  ├── CONTEXT.md        # Project status
+  └── migrations/       # SQL migrations (TODO)
 
-app/                    # Android приложение (Kotlin)
-MCP/                    # MCP серверы (Python FastAPI)
+app/                    # Android app (Kotlin)
+MCP/                    # MCP servers (Python FastAPI)
   ├── mcp-telegram/
   ├── mcp-whatsapp/
   ├── mcp-avito/
@@ -71,15 +71,15 @@ MCP/                    # MCP серверы (Python FastAPI)
   ├── api-android/
   └── shared/
 
-scripts/                # Скрипты автоматизации
-Plans/                  # Документы планирования
+scripts/                # Automation scripts
+Plans/                  # Planning documents
 
-Old/                    # Старая архитектура (АРХИВ)
-  ├── docs/             # Старая документация
-  ├── database/         # Старые миграции
-  ├── n8n_workflows/    # Старые workflows
-  ├── scripts/          # Старые скрипты синхронизации
-  └── KNOWLEDGE_BASE.md # Старая база знаний
+Old/                    # Old architecture (ARCHIVE)
+  ├── docs/             # Old documentation
+  ├── database/         # Old migrations
+  ├── n8n_workflows/    # Old workflows
+  ├── scripts/          # Old sync scripts
+  └── KNOWLEDGE_BASE.md # Old knowledge base
 ```
 
 ---
@@ -115,9 +115,9 @@ Old/                    # Старая архитектура (АРХИВ)
 
 ---
 
-## Database Access (без паролей)
+## Database Access (no passwords in code)
 
-SSH ключи настроены. Пароли зашиты в команды.
+SSH keys configured. Passwords embedded in commands.
 
 ### PostgreSQL (185.221.214.83)
 ```bash
@@ -129,19 +129,19 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'QUERY'"
 ssh root@45.144.177.128 "docker exec neo4j cypher-shell -a 'bolt+ssc://localhost:7687' -u neo4j -p 'Mi31415926pS' 'QUERY'"
 ```
 
-### n8n API (ТОЛЬКО ЧТЕНИЕ — изменения через UI)
+### n8n API (READ ONLY — changes via UI)
 ```bash
-# Список workflows
+# List workflows
 curl -s "https://n8n.n8nsrv.ru/api/v1/workflows" -H "X-N8N-API-KEY: n8n_api_key_below"
 
-# Конкретный workflow
+# Specific workflow
 curl -s "https://n8n.n8nsrv.ru/api/v1/workflows/{id}" -H "X-N8N-API-KEY: n8n_api_key_below"
 
 # API Key (expires 2026-01-01):
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZDUyMjJhMS04ZjUzLTQ5NDAtYjdkZS05M2RhZWFlMDQzOTMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY0NzY4NzE0LCJleHAiOjE3NzI0ODE2MDB9.JzC21XpXh7188Qlx2xWpZPHQysksg_Jj0hWuTgy6PmQ
 ```
 
-### Локальные скрипты (Windows)
+### Local scripts (Windows)
 ```cmd
 scripts\db\pg.cmd "SELECT * FROM elo_tenants;"
 scripts\db\neo4j.cmd "MATCH (n) RETURN count(n);"
@@ -153,49 +153,49 @@ scripts\db\neo4j.cmd "MATCH (n) RETURN count(n);"
 
 **Connection:** `postgresql://supabase_admin:***@185.221.214.83:6544/postgres`
 
-### CORE_NEW Tables (elo_*) — 26 таблиц
+### CORE_NEW Tables (elo_*) — 26 tables
 
 | Category | Tables |
 |----------|--------|
-| Ядро (5) | elo_tenants, elo_clients, elo_dialogs, elo_events, elo_operators |
-| Справочники (3) | elo_verticals, elo_tenant_verticals, elo_price_list |
+| Core (5) | elo_tenants, elo_clients, elo_dialogs, elo_events, elo_operators |
+| Directories (3) | elo_verticals, elo_tenant_verticals, elo_price_list |
 | AI (2) | elo_ai_extractions, elo_ai_suggestions |
-| Каналы (1) | elo_channel_accounts |
-| Задачи (2) | elo_tasks, elo_task_updates |
-| Граф-зеркала (7) | elo_messages, elo_issues, elo_symptoms, elo_diagnoses, elo_repairs, elo_facts, elo_settings |
-| Справочники типов (4) | elo_symptom_types, elo_diagnosis_types, elo_repair_actions, elo_problem_categories |
-| Микроворонка (2) | elo_funnel_stages, elo_dialog_stage_history |
+| Channels (1) | elo_channel_accounts |
+| Tasks (2) | elo_tasks, elo_task_updates |
+| Graph mirrors (7) | elo_messages, elo_issues, elo_symptoms, elo_diagnoses, elo_repairs, elo_facts, elo_settings |
+| Type directories (4) | elo_symptom_types, elo_diagnosis_types, elo_repair_actions, elo_problem_categories |
+| Micro-funnel (2) | elo_funnel_stages, elo_dialog_stage_history |
 
 ---
 
-## AI Architecture (7 уровней)
+## AI Architecture (7 levels)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  7. MCP Channels (Telegram, WhatsApp, Avito, VK, MAX)   │
 ├─────────────────────────────────────────────────────────┤
-│  6. Response Builder (форматирование под канал)         │
+│  6. Response Builder (channel-specific formatting)      │
 ├─────────────────────────────────────────────────────────┤
-│  5. Dialog Engine (обработка сообщений, граф)           │
+│  5. Dialog Engine (message processing, graph)           │
 ├─────────────────────────────────────────────────────────┤
-│  4. Universal Tools (воркеры с промптами)               │
+│  4. Universal Tools (workers with prompts)              │
 ├─────────────────────────────────────────────────────────┤
-│  3. Universal Orchestrator (слепой исполнитель)         │
+│  3. Universal Orchestrator (blind executor)             │
 ├─────────────────────────────────────────────────────────┤
-│  2. Request Builder (правила → AI → правила)            │
+│  2. Request Builder (rules → AI → rules)                │
 ├─────────────────────────────────────────────────────────┤
 │  1. Context Builder (PostgreSQL + Neo4j)                │
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Ключевые концепции
+### Key Concepts
 
-| Концепция | Описание |
-|-----------|----------|
-| **Prompt-in-Request** | Промпты передаются в запросе, не хардкодятся |
-| **Кнут-Пряник-Кнут** | Правила → AI-свобода → Валидация |
-| **ai_freedom_level** | 0-100, регулятор жёсткости AI |
-| **Dialog-centric** | Диалог — центральная сущность, не заявка |
+| Concept | Description |
+|---------|-------------|
+| **Prompt-in-Request** | Prompts passed in request, not hardcoded |
+| **Stick-Carrot-Stick** | Rules → AI freedom → Validation |
+| **ai_freedom_level** | 0-100, AI strictness regulator |
+| **Dialog-centric** | Dialog is the central entity, not appeal |
 
 ---
 
@@ -203,40 +203,40 @@ scripts\db\neo4j.cmd "MATCH (n) RETURN count(n);"
 
 | Script | Purpose |
 |--------|---------|
-| `update_core_context.py` | Обновить CORE_NEW/CONTEXT.md |
-| `test_connections.py` | Проверить подключения к серверам |
-| `n8n_manager.py` | Управление n8n workflows |
+| `update_core_context.py` | Update CORE_NEW/CONTEXT.md |
+| `test_connections.py` | Test server connections |
+| `n8n_manager.py` | Manage n8n workflows |
 
 ---
 
 ## Conventions
 
-- **Таблицы CORE_NEW:** префикс `elo_`
-- **Neo4j лейблы:** без префикса (Client, Device, Problem)
-- **Workflows CORE_NEW:** префикс `ELO_` (TODO)
-- Документация на русском
+- **CORE_NEW tables:** prefix `elo_`
+- **Neo4j labels:** no prefix (Client, Device, Problem)
+- **CORE_NEW workflows:** prefix `ELO_` (TODO)
+- Documentation in English
 
 ---
 
 ## n8n Rules
 
-**ВАЖНО: n8n только для ЧТЕНИЯ. Запрещено изменять workflows через API.**
+**IMPORTANT: n8n is READ ONLY. Modifying workflows via API is PROHIBITED.**
 
-- Читать workflows через API — OK
-- Создавать/изменять workflows через API — ЗАПРЕЩЕНО
-- Для изменений: пользователь импортирует вручную через UI
+- Reading workflows via API — OK
+- Creating/modifying workflows via API — PROHIBITED
+- For changes: user imports manually via UI
 
 ---
 
 ## Session Workflow
 
-**При старте:**
+**On start:**
 1. `git pull`
-2. Прочитать `Start.md`
-3. Прочитать `CORE_NEW/CONTEXT.md`
+2. Read `Start.md`
+3. Read `CORE_NEW/CONTEXT.md`
 
-**При завершении:**
-1. Обновить `Start.md`
+**On finish:**
+1. Update `Start.md`
 2. `python scripts/update_core_context.py`
 3. `git add -A && git commit && git push`
 
@@ -244,12 +244,15 @@ scripts\db\neo4j.cmd "MATCH (n) RETURN count(n);"
 
 ## History
 
+### 2025-12-11
+- Translated all docs to English (token optimization)
+
 ### 2025-12-09
-- Создана система CORE_NEW (13 таблиц вместо 50)
-- Создана AI архитектура (7 уровней)
-- Перенесена старая архитектура в Old/
-- Создан CORE_NEW/CONTEXT.md
-- Создан scripts/update_core_context.py
+- Created CORE_NEW system (13 tables instead of 50)
+- Created AI architecture (7 levels)
+- Moved old architecture to Old/
+- Created CORE_NEW/CONTEXT.md
+- Created scripts/update_core_context.py
 
 ### 2025-12-07
 - Fixed BAT Batch Debouncer

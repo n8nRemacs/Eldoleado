@@ -1,12 +1,12 @@
 # API_Android_Auth
 
-> Авторизация оператора (Android приложение)
+> Operator authentication (Android app)
 
 ---
 
-## Общая информация
+## General Information
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **Файл** | `NEW/workflows/n8n_old/API/API_Android_Auth.json` |
 | **ID в n8n** | U7Zak2jQ0rVG0fmp |
@@ -17,15 +17,15 @@
 
 ---
 
-## Назначение
+## Purpose
 
-Авторизация оператора по email/username и паролю. Создаёт сессию в `operator_devices`, возвращает `session_token` для последующих запросов.
+Authenticate operator by email/username and password. Creates a session in `operator_devices`, returns `session_token` for subsequent requests.
 
 ---
 
-## Входные данные
+## Input Data
 
-**Источник:** HTTP POST от Android App
+**Source:** HTTP POST from Android App
 
 ```json
 {
@@ -41,9 +41,9 @@
 
 ---
 
-## Выходные данные
+## Output Data
 
-**Успех (200):**
+**Success (200):**
 ```json
 {
   "success": true,
@@ -56,7 +56,7 @@
 }
 ```
 
-**Ошибка (401) — оператор не найден:**
+**Error (401) — operator not found:**
 ```json
 {
   "success": false,
@@ -64,7 +64,7 @@
 }
 ```
 
-**Ошибка (401) — неверный пароль:**
+**Error (401) — invalid password:**
 ```json
 {
   "success": false,
@@ -74,18 +74,18 @@
 
 ---
 
-## Входная нода
+## Input node
 
 **Webhook - Auth Login**
-- Тип: `n8n-nodes-base.webhook`
-- Метод: POST
+- Type: `n8n-nodes-base.webhook`
+- Method: POST
 - Path: `/android/auth/login`
 - Response Mode: responseNode
 - CORS: `*`
 
 ---
 
-## Выходные ноды
+## Output nodes
 
 1. **Response - Success** (200 OK)
 2. **Response - Not Found** (401)
@@ -93,27 +93,27 @@
 
 ---
 
-## Ноды
+## Nodes
 
 ### 1. Webhook - Auth Login
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `06ca83d7-ee4f-43cc-a834-b2fa2fcf8f35` |
 | **Тип** | n8n-nodes-base.webhook |
-| **Назначение** | Приём POST запроса авторизации |
+| **Назначение** | Handle auth POST request |
 
 ---
 
 ### 2. Postgres - Find Operator
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `b0bd0db4-ddd1-4b8c-9e8d-056d068dbeef` |
 | **Тип** | n8n-nodes-base.postgres |
-| **Назначение** | Поиск оператора по email или username |
+| **Назначение** | Find operator by email or username |
 
-**SQL запрос:**
+**SQL query:**
 ```sql
 SELECT id, tenant_id, name, email, username, password_hash, is_active, location_id
 FROM operators
@@ -122,19 +122,19 @@ AND is_active = true
 LIMIT 1;
 ```
 
-**Таблица:** `operators`
+**Table:** `operators`
 
-**Что ищем:** Оператора по email или username, только активных
+**What we look for:** Operator by email or username, active only
 
 ---
 
 ### 3. IF - Operator Exists & Active
 
-| Параметр | Значение |
+| Parameter | Value |
 |----------|----------|
 | **ID** | `a892a92f-e6f1-4565-9434-d3b21ae7f379` |
 | **Тип** | n8n-nodes-base.if |
-| **Назначение** | Проверка что оператор найден |
+| **Назначение** | Check operator found |
 
 **Условия:**
 - `$json.id` exists (не пустой)

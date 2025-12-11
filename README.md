@@ -47,7 +47,7 @@ Replace MainActivity declaration with:
 <activity
     android:name=".MainActivity"
     android:exported="false" />
-    
+
 <activity
     android:name=".ui.AppealDetailActivity"
     android:exported="false" />
