@@ -1,0 +1,103 @@
+{
+  "name": "ELO_Graph_Query",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-graph-query",
+        "responseMode": "responseNode"
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.query_code) {\n  return [{json: {error: 'query_code_required', success: false}}];\n}\nreturn items;"
+      },
+      "id": "Validate",
+      "name": "Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://45.144.177.128:8773/query",
+        "options": {},
+        "jsonParameters": true,
+        "body": "={{ { query_code: $json.query_code, params: $json.params || {}, trace_id: $json.trace_id } }}",
+        "responseFormat": "json"
+      },
+      "id": "Call Graph Tool",
+      "name": "Call Graph Tool",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "lastNode",
+        "responseBody": "={{ Object.assign($json, {trace_id: $json.trace_id || $prevNode.output.item.json.trace_id}) }}"
+      },
+      "id": "Respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        950,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Call Graph Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Graph Tool": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
+

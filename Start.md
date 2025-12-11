@@ -14,7 +14,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**December 11, 2025, 03:00 (UTC+4)**
+**December 11, 2025, 16:00 (UTC+4)**
 
 ---
 
@@ -141,6 +141,69 @@ Kanban for 3 days                     15 minutes to deal
 ---
 
 ## WHAT'S DONE — FULL HISTORY
+
+### Session 12.11.2025 (day) — MCP Contours Architecture + AI Tool
+
+**Участники:** Senior (Claude Opus) + Junior (Claude Cursor)
+
+**АРХИТЕКТУРНОЕ РЕШЕНИЕ:**
+Создана новая 4-контурная архитектура с MCP "слепыми исполнителями":
+
+```
+MCP Channels → Input (8771) → Client (8772) → Core (n8n) → Graph (8773)
+                                                    ↓
+                                              AI Tool (8774)
+```
+
+**Работа Senior (Claude Opus):**
+
+| # | Задача | Файлы | Статус |
+|---|--------|-------|--------|
+| 1 | AI Tool MCP (8774) | `MCP/ai-tool/main.py, config.py, Dockerfile, requirements.txt` | ✅ |
+| 2 | AI Tool документация | `NEW/Core_info/06_AI_Tool/AI_TOOL_OVERVIEW.md` | ✅ |
+| 3 | ELO_AI_Extract.md | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md` | ✅ |
+| 4 | ELO_AI_Chat.md | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md` | ✅ |
+| 5 | n8n JSON workflows | `NEW/workflows/ELO_AI/ELO_AI_Extract.json, ELO_AI_Chat.json` | ✅ |
+| 6 | API_CONTRACTS.md | Добавлен AI Tool (8774) | ✅ |
+| 7 | Junior task | `.claude/inbox.md` — задание на n8n workflows | ✅ |
+| 8 | Junior review | `.claude/outbox.md` — ответы на вопросы | ✅ |
+
+**Работа Junior (Claude Cursor):**
+
+| # | Задача | Файлы | Статус |
+|---|--------|-------|--------|
+| 1 | ELO_Input_Ingest.json | `workflows_to_import/` | ✅ |
+| 2 | ELO_Input_Worker.json | `workflows_to_import/` | ✅ |
+| 3 | ELO_Client_Resolve.json | `workflows_to_import/` | ✅ |
+| 4 | ELO_Graph_Query.json | `workflows_to_import/` | ✅ |
+| 5 | ELO_Core_Ingest.json | `workflows_to_import/` | ✅ |
+| 6 | Channel IN (6 шт) | Telegram, WhatsApp, Avito, VK, MAX, Form | ✅ |
+| 7 | Channel OUT (5 шт) | Telegram, WhatsApp, Avito, VK, MAX | ✅ |
+
+**Новые MCP сервисы:**
+
+| Service | Port | Purpose | Status |
+|---------|------|---------|--------|
+| AI Tool | 8774 | /extract + /chat (OpenRouter) | ✅ Created |
+| Graph Tool | 8773 | /query (Neo4j proxy) | ✅ Documented |
+| Input Contour | 8771 | /ingest (Redis queue) | 📝 Documented |
+| Client Contour | 8772 | /resolve (PostgreSQL) | 📝 Documented |
+
+**n8n v2.0 Compliance:**
+- Webhook typeVersion: 2
+- Code typeVersion: 2
+- HTTP Request typeVersion: 4.2
+- respondToWebhook typeVersion: 1.1
+- No Python Code Node
+- No process.env in Code
+
+**Git commits:**
+- `0b32d20` — Add AI Tool MCP (8774) + n8n polygon documentation
+- `3c1b8e7` — Add ELO_AI n8n polygon workflows (JSON)
+- `cafd516` — Update Junior task: add AI Tool workflows + answer questions
+- `cb0c105` — Answer Junior's questions: mocks sufficient
+
+---
 
 ### Session 12.11.2025 (night) — Commercial Strategy + ROADMAP
 
@@ -294,11 +357,19 @@ last_seen:{channel}:{id}    — timestamp of last message
 | Folder | Content | Status |
 |--------|---------|--------|
 | `NEW/Core_info/01_Channel_Layer/` | 7 ELO_In + 5 ELO_Out | ✅ 12/12 |
-| `NEW/Core_info/02_Input_Contour/` | Overview + 4 workflows | ✅ 5/5 |
-| `NEW/Core_info/03_Core/` | Empty | ⏳ |
-| `NEW/Core_info/04_Graph/` | GRAPH_OVERVIEW.md | 🔄 questions |
-| `NEW/Core_info/05_Diagnostic_Engine/` | Empty | ⏳ |
-| `NEW/Core_info/06_API/` | 2 docs | 🔄 |
+| `NEW/Core_info/02_Input_Contour/` | Overview + workflows | ✅ |
+| `NEW/Core_info/03_Client_Contour/` | Overview + ELO_Client_Resolve | ✅ |
+| `NEW/Core_info/04_Graph/` | Overview + ELO_Graph_Query | ✅ |
+| `NEW/Core_info/05_Core_Contour/` | Overview + workflows | ✅ |
+| `NEW/Core_info/06_AI_Tool/` | Overview + ELO_AI_Extract + ELO_AI_Chat | ✅ NEW |
+| `NEW/Core_info/API_CONTRACTS.md` | All webhooks and APIs | ✅ |
+
+### n8n Workflows to Import:
+
+| Folder | Files | Status |
+|--------|-------|--------|
+| `NEW/workflows/ELO_AI/` | ELO_AI_Extract.json, ELO_AI_Chat.json | ✅ Ready |
+| `workflows_to_import/` | 15+ mock workflows (by Junior) | ✅ Ready |
 
 ### Product documentation:
 
@@ -321,24 +392,37 @@ Eldoleado/
 │
 ├── NEW/                    # Workflows and roadmap
 │   ├── Core_info/          # Block documentation
-│   │   ├── 01_Channel_Layer/
-│   │   ├── 02_Input_Contour/
-│   │   ├── 03_Core/
-│   │   ├── 04_Graph/
-│   │   ├── 05_Diagnostic_Engine/
-│   │   └── 06_API/
+│   │   ├── 01_Channel_Layer/       # MCP channels (IN/OUT)
+│   │   ├── 02_Input_Contour/       # Input processing (8771)
+│   │   ├── 03_Client_Contour/      # Client resolution (8772)
+│   │   ├── 04_Graph/               # Neo4j Graph Tool (8773)
+│   │   ├── 05_Core_Contour/        # Business logic (n8n)
+│   │   ├── 06_AI_Tool/             # AI operations (8774) ← NEW
+│   │   └── API_CONTRACTS.md        # All APIs
 │   ├── workflows/          # JSON workflow files
-│   │   ├── ELO_In/
-│   │   ├── ELO_Out/
-│   │   └── ELO_Core/       # EMPTY
+│   │   ├── ELO_InOut/      # Channel workflows
+│   │   └── ELO_AI/         # AI Tool workflows ← NEW
 │   ├── ROADMAP.md          # Product roadmap
 │   ├── ARCHITECTURE_SYNC.md
 │   └── NEXT_STEPS.md
 │
-├── app/                    # Android app (Kotlin)
 ├── MCP/                    # MCP servers (Python FastAPI)
+│   ├── ai-tool/            # AI Tool (8774) ← NEW
+│   ├── graph-tool/         # Graph Tool (8773)
+│   ├── input-contour/      # Input Contour (8771)
+│   ├── client-contour/     # Client Contour (8772)
+│   ├── mcp-telegram/       # Telegram adapter
+│   ├── mcp-whatsapp/       # WhatsApp adapter
+│   └── ...                 # Other MCP adapters
+│
+├── workflows_to_import/    # n8n workflows for import ← NEW (by Junior)
+│
+├── .claude/                # AI collaboration ← NEW
+│   ├── inbox.md            # Tasks for Junior
+│   └── outbox.md           # Feedback to Junior
+│
+├── app/                    # Android app (Kotlin)
 ├── Old/                    # Old architecture (archive)
-│   └── n8n_workflows/      # BAT_* workflows
 ├── scripts/                # Utilities
 ├── Plans/                  # Business plans
 ├── CLAUDE.md               # AI instructions
@@ -350,15 +434,36 @@ Eldoleado/
 
 ## SERVERS
 
+### Infrastructure:
+
 | Server | IP/URL | Port | Purpose |
 |--------|--------|------|---------|
 | n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
 | Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
 | PostgreSQL | 185.221.214.83 | 6544 | Main database |
-| Android API | 45.144.177.128 | 8780 | API Gateway (FastAPI) |
 | Redis (RU) | 45.144.177.128 | 6379 | ai_extraction_queue |
 | Redis (n8n) | 185.221.214.83 | 6379 | n8n cache |
-| MCP Telegram | 217.145.79.27 | 443 | tg.eldoleado.ru |
+
+### MCP Contours (NEW Architecture):
+
+| Service | IP | Port | Purpose | Status |
+|---------|----|----- |---------|--------|
+| Input Contour | 45.144.177.128 | 8771 | Ingest + Redis queue | 📝 Documented |
+| Client Contour | 45.144.177.128 | 8772 | Tenant/Client/Dialog | 📝 Documented |
+| Graph Tool | 45.144.177.128 | 8773 | Neo4j proxy | 📝 Documented |
+| AI Tool | 45.144.177.128 | 8774 | Extract + Chat (OpenRouter) | ✅ Created |
+
+### MCP Channel Adapters:
+
+| Service | IP | Port | Purpose |
+|---------|----|----- |---------|
+| MCP Telegram | 217.145.79.27 | 8767 | Telegram Bot API |
+| MCP WhatsApp | 217.145.79.27 | 8766 | WhatsApp (Wappi.pro) |
+| MCP Avito | 45.144.177.128 | 8765 | Avito Messenger |
+| MCP VK | 45.144.177.128 | 8767 | VK Community |
+| MCP MAX | 45.144.177.128 | 8768 | MAX (VK Teams) |
+| MCP Form | 45.144.177.128 | 8770 | Web forms |
+| Android API | 45.144.177.128 | 8780 | API Gateway |
 
 ---
 

@@ -1,0 +1,67 @@
+{
+  "name": "ELO_In_VK",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-in-vk",
+        "responseMode": "responseNode"
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = items[0].json || {};\nconst now = Date.now();\nconst rand = Math.random().toString(36).slice(2, 10);\nconst message_id = body.message_id || `msg_${now}_${rand}`;\nconst trace_id = body.trace_id || `trace_${now}_${rand}`;\nconst obj = body.object?.message || body.message || body;\nreturn [{\n  json: {\n    channel: \"vk\",\n    bot_token: body.group_id,\n    external_user_id: obj.from_id?.toString(),\n    external_chat_id: obj.peer_id?.toString(),\n    text: obj.text || \"\",\n    timestamp: obj.date ? new Date(obj.date * 1000).toISOString() : new Date().toISOString(),\n    media: obj.attachments || {},\n    meta: body.meta || {},\n    message_id,\n    trace_id\n  }\n}];"
+      },
+      "id": "Normalize",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://input-contour:8771/ingest",
+        "jsonParameters": true,
+        "options": {},
+        "body": "={{$json}}",
+        "responseFormat": "json"
+      },
+      "id": "Post Input Contour",
+      "name": "Post Input Contour",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "lastNode",
+        "responseBody": "={{$json}}"
+      },
+      "id": "Respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [950, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Normalize", "type": "main", "index": 0}]]
+    },
+    "Normalize": {
+      "main": [[{"node": "Post Input Contour", "type": "main", "index": 0}]]
+    },
+    "Post Input Contour": {
+      "main": [[{"node": "Respond", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
+

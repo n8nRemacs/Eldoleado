@@ -1,0 +1,175 @@
+{
+  "name": "ELO_Client_Resolve",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-client-resolve",
+        "responseMode": "responseNode"
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.channel || !$json.external_chat_id) {\n  return [{json: {error: 'invalid_input', accepted: false}}];\n}\nreturn items;"
+      },
+      "id": "Validate",
+      "name": "Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock tenant resolver\nreturn [{\n  json: {\n    ...$json,\n    tenant_id: $json.tenant_id || 'test-tenant-uuid',\n    domain_id: 1,\n    channel_id: 1\n  }\n}];"
+      },
+      "id": "Tenant Resolver",
+      "name": "Tenant Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock client resolver\nreturn [{\n  json: {\n    ...$json,\n    client_id: 'test-client-uuid',\n    is_new_client: false\n  }\n}];"
+      },
+      "id": "Client Resolver",
+      "name": "Client Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        950,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock dialog resolver\nreturn [{\n  json: {\n    ...$json,\n    dialog_id: 'test-dialog-uuid',\n    is_new_dialog: false\n  }\n}];"
+      },
+      "id": "Dialog Resolver",
+      "name": "Dialog Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-ingest",
+        "options": {},
+        "jsonParameters": true,
+        "body": "={{ {\n  tenant_id: $json.tenant_id,\n  domain_id: $json.domain_id,\n  client_id: $json.client_id,\n  dialog_id: $json.dialog_id,\n  channel_id: $json.channel_id,\n  external_chat_id: $json.external_chat_id,\n  text: $json.text,\n  timestamp: $json.timestamp,\n  message_ids: $json.message_ids,\n  trace_id: $json.trace_id,\n  media: $json.media || {},\n  meta: {\n    ...( $json.meta || {}),\n    is_new_client: $json.is_new_client,\n    is_new_dialog: $json.is_new_dialog\n  }\n} }}",
+        "responseFormat": "json"
+      },
+      "id": "Forward to Core",
+      "name": "Forward to Core",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "lastNode",
+        "responseBody": "={{ {accepted: true, tenant_id: $json.tenant_id, client_id: $json.client_id, dialog_id: $json.dialog_id, trace_id: $json.trace_id} }}"
+      },
+      "id": "Respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1700,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Resolver": {
+      "main": [
+        [
+          {
+            "node": "Dialog Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dialog Resolver": {
+      "main": [
+        [
+          {
+            "node": "Forward to Core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward to Core": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
+
