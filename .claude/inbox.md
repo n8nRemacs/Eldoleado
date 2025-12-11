@@ -404,6 +404,60 @@ Respond to Webhook
 
 ---
 
+## Deliverable 3.5: AI Tool Proxy (PRIORITY: MEDIUM) — УЖЕ СОЗДАНО!
+
+**ГОТОВО!** JSON файлы уже созданы Senior'ом:
+
+### 3.5.1 ELO_AI_Extract.json ✅
+
+**Путь:** `NEW/workflows/ELO_AI/ELO_AI_Extract.json`
+**Документация:** `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md`
+
+**Назначение:** Прокси к AI Tool MCP для извлечения данных.
+
+```
+Webhook (POST /webhook/elo-ai-extract)
+    │
+    ▼
+Code: Validate Input (message, extraction_schema required)
+    │
+    ▼
+HTTP Request: POST http://45.144.177.128:8774/extract
+    │
+    ▼
+Code: Add trace_id to response
+    │
+    ▼
+Respond to Webhook
+```
+
+### 3.5.2 ELO_AI_Chat.json ✅
+
+**Путь:** `NEW/workflows/ELO_AI/ELO_AI_Chat.json`
+**Документация:** `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md`
+
+**Назначение:** Прокси к AI Tool MCP для AI чата с tools.
+
+```
+Webhook (POST /webhook/elo-ai-chat)
+    │
+    ▼
+Code: Validate Input (messages array required)
+    │
+    ▼
+HTTP Request: POST http://45.144.177.128:8774/chat
+    │
+    ▼
+Code: Add trace_id to response
+    │
+    ▼
+Respond to Webhook
+```
+
+**Импорт:** Можно сразу импортировать в n8n UI!
+
+---
+
 ## Deliverable 4: Channel Layer IN (PRIORITY: MEDIUM)
 
 **Общая структура для всех каналов:**
