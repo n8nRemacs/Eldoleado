@@ -1,0 +1,919 @@
+
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        192,
+        1200
+      ],
+      "id": "9fa617ab-bcd2-4acc-b35e-b67bd249992c",
+      "name": "Embeddings OpenAI3"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1-mini",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "623573e8-aa90-4573-8e90-44717119aba3",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "277478969",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -832,
+        1056
+      ],
+      "id": "87670d25-17bd-45d1-a9db-5ba16da83b62",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.queru }}",
+        "options": {
+          "systemMessage": "=# AI Agent - личный помощник\nCRITICAL RULE — INSTRUKCIA\n1. First action for every message: call prompt with the raw user text (semantic search, top-5).  \n2. Apply returned instructions verbatim.  \n3. If instrukcia is skipped or errors → reply \n\n## TOOLS:\nText- databasa\nPRICE- price list with equipment\nprompt- a database of instructions - required to be searched with each user request\nPerplexity- internet search\n\n## Agents\nBUSINESS TRAINER\nPROMPTMASTER\n\nCurrent date/time: {{ $now }}\n\n\n",
+          "enableStreaming": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -112,
+        576
+      ],
+      "id": "fef820b9-1c27-4da6-8268-0d31d1ce7662",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ typeof $json[\"text\"] === \"string\" && /(?:^|[\\s,!.?])запомни(?:[\\s,!.?]|$)/i.test($json[\"text\"]) ? 0 : 1 }}\n\n"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -416,
+        224
+      ],
+      "id": "bd90c996-b0dd-41e0-ae17-f0127005b716",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "5dcdf23e-0dd3-44ff-94a2-7fbe5e3ae495",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "2f3560f1-7e54-441f-b75e-fba735cf8f91",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1536,
+        208
+      ],
+      "webhookId": "99eab1a0-569d-4f0f-a49e-578a02abfe63"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "abe37514-ef01-44fe-884c-132088234192",
+                    "leftValue": "={{ $json.message.document.file_name.endsWith('.pdf') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b30bdf47-11af-48f8-94ad-3304ba93a38b",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "90190b29-3d24-492f-9516-77f9448f7e0c",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            }
+          ]
+        },
+        "looseTypeValidation": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1376,
+        192
+      ],
+      "id": "2b737117-af44-4a1b-b846-e7503485ab4b",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1072,
+        336
+      ],
+      "id": "250dd190-903f-4c5b-bf98-f3dad85398a2",
+      "name": "Transcribe a recording"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "Text",
+        "toolDescription": "This database ",
+        "tableName": {
+          "__rl": true,
+          "value": "text",
+          "mode": "list",
+          "cachedResultName": "text"
+        },
+        "topK": 20,
+        "includeDocumentMetadata": false,
+        "options": {
+          "queryName": "match_text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        928
+      ],
+      "id": "3e13ee0d-ea43-45b4-abcf-2e6135bf8c67",
+      "name": "text"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Telegram HTML-safe Chunker v2.1\n * • Работает с parse_mode = HTML\n * • Экранирует любые теги, кроме whitelisted\n * • Опционально конвертирует Markdown-таблицы\n * • Делит сообщение на куски ≤ CHUNK_SIZE\n */\n\n/* ───── Параметры ───── */\nconst RAW_TEXT     = typeof $json.output === 'string' ? $json.output : '';\nconst CHUNK_SIZE   = +($env.CHUNK_SIZE ?? 4000);\nconst ENABLE_TABLE = ($env.ENABLE_TABLE ?? 'true') === 'true';\nconst ALLOWED_TAGS = ['b','i','u','s','code','pre','a'];   // whitelist\n\n/* ───── Helpers ───── */\n\n// базовое экранирование\nconst escapeHTML = s => s\n  .replace(/&/g,'&amp;')\n  .replace(/</g,'&lt;')\n  .replace(/>/g,'&gt;')\n  .replace(/\"/g,'&quot;')\n  .replace(/'/g,'&#39;');\n\n// разрешаем только whitelisted-теги\nfunction whitelistTags(str){\n  const placeholders = [];\n  // 1) временно прячем разрешённые теги\n  const masked = str.replace(/<\\/?([a-z0-9]+)(\\b[^>]*)?>/gi,(m,tag)=>{\n    if(ALLOWED_TAGS.includes(tag.toLowerCase())){\n      const id = placeholders.push(m) - 1;\n      return `§§${id}§§`;\n    }\n    return m;          // остальные теги будут экранированы\n  });\n  // 2) глобально экранируем\n  let safe = escapeHTML(masked);\n  // 3) возвращаем whitelisted-теги\n  placeholders.forEach((tag,i)=>{\n    safe = safe.replace(`§§${i}§§`, tag);\n  });\n  return safe;\n}\n\n// Markdown-таблица → HTML-список\nfunction pipeTableToList(md){\n  const lines = md.split('\\n').filter(l=>/^\\|.*\\|$/.test(l));\n  if (lines.length < 2) return md;\n  const hdr  = lines[0].split('|').map(t=>t.trim()).filter(Boolean);\n  const rows = lines.slice(2).map(r=>r.split('|').map(c=>c.trim()).filter(Boolean));\n  return rows.map(r =>\n    r.map((c,i)=>`<b>${escapeHTML(hdr[i])}</b>: ${escapeHTML(c)}`).join('\\n')\n  ).join('\\n\\n');\n}\n\n// делим текст и «переносим» открытые теги\nfunction splitSmartHTML(src){\n  const out = [];\n  let openTags = [];\n  for(let s=0; s<src.length; ){\n    let e = s + CHUNK_SIZE;\n    if(e < src.length){\n      const br = Math.max(src.lastIndexOf('\\n',e), src.lastIndexOf('. ',e), src.lastIndexOf(' ',e));\n      if(br > s + 200) e = br;\n    }\n    let chunk = src.slice(s,e);\n\n    // какие теги открылись / закрылись в куске\n    const open  = [...chunk.matchAll(/<([a-z]+)(?: [^>]*?)?>/gi)].map(m=>m[1]);\n    const close = [...chunk.matchAll(/<\\/([a-z]+)>/gi)].map(m=>m[1]);\n\n    // добавляем недозакрытые теги с прошлого куска\n    if(openTags.length){\n      chunk = openTags.map(t=>`<${t}>`).join('') + chunk;\n    }\n\n    // обновляем стек\n    open.forEach(t => openTags.push(t));\n    close.forEach(t => {\n      const idx = openTags.lastIndexOf(t);\n      if(idx > -1) openTags.splice(idx,1);\n    });\n\n    // закрываем теги в конце куска\n    if(openTags.length){\n      chunk += openTags.slice().reverse().map(t=>`</${t}>`).join('');\n    }\n\n    out.push(chunk.trim());\n    s = e;\n  }\n  return out;\n}\n\n/* ───── Pipeline ───── */\nlet txt = RAW_TEXT;\n\n// 1) конвертируем таблицы (если нужно)\nif(ENABLE_TABLE && /\\|.*\\|/.test(txt)){\n  txt = txt.replace(/((?:\\|.+\\n?)+)/g, m => pipeTableToList(m));\n}\n\n// 2) убираем zero-width и control-символы\ntxt = txt.replace(/[\\u200B-\\u200D\\uFEFF]/g,'')\n         .replace(/[\\x00-\\x09\\x0B-\\x1F]/g,'');\n\n// 3) NFC-нормализация\ntxt = txt.normalize('NFC');\n\n// 4) экранируем + whitelist\ntxt = whitelistTags(txt);\n\n// 5) делим и отдаём\nreturn splitSmartHTML(txt).map(chunk => ({ json: { message: chunk } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        576
+      ],
+      "id": "64d5ca71-970c-4881-9462-8731ab756965",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "prompt",
+        "toolDescription": "Please refer to this database if you need to obtain correct or additional instructions on how to operate",
+        "tableName": {
+          "__rl": true,
+          "value": "prompt",
+          "mode": "list",
+          "cachedResultName": "prompt"
+        },
+        "topK": 20,
+        "includeDocumentMetadata": false,
+        "options": {
+          "queryName": "match_prompt"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        928
+      ],
+      "id": "dbbbc1ac-7882-455c-9f26-66c3a9490e1d",
+      "name": "Prompt"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "prompt",
+          "mode": "list",
+          "cachedResultName": "prompt"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        -320
+      ],
+      "id": "c69392ab-8884-4e08-843c-d0ab60dc6116",
+      "name": "запись в prompt"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1216,
+        336
+      ],
+      "id": "be749810-7120-42b4-9eea-e603a3d54004",
+      "name": "Get a file",
+      "webhookId": "5ea8d262-c37f-4a89-be8b-75b5b569a447"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DY1CiYBNKFcaLDND8r1oN7mXKBoGvSH9IrHc5dg9V0E",
+          "mode": "list",
+          "cachedResultName": "note",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DY1CiYBNKFcaLDND8r1oN7mXKBoGvSH9IrHc5dg9V0E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1620706853,
+          "mode": "list",
+          "cachedResultName": "Kerui Price",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DY1CiYBNKFcaLDND8r1oN7mXKBoGvSH9IrHc5dg9V0E/edit#gid=1620706853"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        -384,
+        1056
+      ],
+      "id": "7436d0a7-6f64-4893-82e1-bb913b61e28e",
+      "name": "PRICE"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        80
+      ],
+      "id": "9890d595-0721-4afb-999e-bc33a4262f33",
+      "name": "Telegram Get File1",
+      "webhookId": "a92ae0b2-a4fe-4398-9b43-c08ba0087869"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Записал PDF в базу",
+        "additionalFields": {}
+      },
+      "id": "396a0179-10af-4c6a-873e-105c7412897f",
+      "name": "Обрабатываю запись",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -128
+      ],
+      "webhookId": "2b63c8cd-dab4-44f2-947b-ec085102d28e"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "text",
+          "mode": "list",
+          "cachedResultName": "text"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        -320
+      ],
+      "id": "73d1d043-0639-40fe-8069-5823d166064c",
+      "name": "запись в text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c336b882-8b44-497b-8221-ba734ba6224a",
+              "name": "queru",
+              "value": "=Сначала зайди в \"prompt\" и найди как и с каким инструментом или агентом тебе нуджно ответить на запрос. \nЗапрос пользователя:\n{{ $json.message.text }}{{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        576
+      ],
+      "id": "2c271118-d147-4457-91cb-7c3b4e950cc5",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "006c5e6d-ccb7-4e8e-814a-d05962631bd2",
+      "name": "ОТВЕТ",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        400,
+        576
+      ],
+      "webhookId": "2b63c8cd-dab4-44f2-947b-ec085102d28e"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Записал инструкцию в базу",
+        "additionalFields": {}
+      },
+      "id": "a1f2297a-996b-4dfe-b916-ea870439b14f",
+      "name": "Обрабатываю запись1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -64
+      ],
+      "webhookId": "2b63c8cd-dab4-44f2-947b-ec085102d28e"
+    },
+    {
+      "parameters": {
+        "separator": "\\n\\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        352,
+        160
+      ],
+      "id": "b069e00f-c2b9-4e54-aff7-0118a1a6ada4",
+      "name": "Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "965e812b-9cfa-4583-97b9-58d026bb493a",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e592b01-25d7-493d-9f96-c054e228f2bd",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        208
+      ],
+      "id": "ebe69ccf-75ce-473f-962f-ef3ba7283c4b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0baedba5-3642-4cc4-9911-272e9e2cfa0e",
+              "name": "text",
+              "value": "={{ $json.message.text }}{{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        224
+      ],
+      "id": "386a513d-2de6-42fb-9f4c-f874fd05c574",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "model": "sonar-reasoning-pro",
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        1056
+      ],
+      "id": "c9f70170-94b8-4d76-b835-6a9fcca425eb",
+      "name": "Perplexity"
+    },
+    {
+      "parameters": {
+        "name": "PROMPTMASTER",
+        "description": "use this tool to create prompts on demand",
+        "workflowId": {
+          "__rl": true,
+          "value": "Gx19sSGPFGZQDbpa",
+          "mode": "list",
+          "cachedResultName": "PROMPTMASTER"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        -512,
+        1056
+      ],
+      "id": "e038c2ef-88a0-401e-9251-2c79809079df",
+      "name": "PROMPTMASTER"
+    },
+    {
+      "parameters": {
+        "name": "BUSINESS_TRAINER",
+        "description": "Contact this agent when it comes to sales. This is the head of the sales department and business coach",
+        "workflowId": {
+          "__rl": true,
+          "value": "Ft8hCXKca0H4h22d",
+          "mode": "list",
+          "cachedResultName": "BUSINESS TRAINER"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        1056
+      ],
+      "id": "0f4c4200-0007-4d4a-8054-538b71609374",
+      "name": "BUSINESS TRAINER"
+    }
+  ],
+  "connections": {
+    "Embeddings OpenAI3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "text",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Prompt",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "запись в prompt",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "запись в text",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Telegram Get File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "text": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "ОТВЕТ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "запись в prompt": {
+      "main": [
+        [
+          {
+            "node": "Обрабатываю запись1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PRICE": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Get File1": {
+      "main": [
+        [
+          {
+            "node": "Обрабатываю запись",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "запись в text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "запись в text",
+            "type": "ai_document",
+            "index": 0
+          },
+          {
+            "node": "запись в prompt",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "запись в prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perplexity": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PROMPTMASTER": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BUSINESS TRAINER": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

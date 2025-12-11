@@ -1,0 +1,243 @@
+{
+  "name": "ELO_Input_Ingest",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-input-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "elo-input-ingest-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate and normalize input\nconst input = $input.first().json;\nconst now = Date.now();\nconst rand = Math.random().toString(36).slice(2, 10);\n\n// Required fields validation\nconst errors = [];\nif (!input.channel) errors.push('channel is required');\nif (!input.external_chat_id && !input.external_user_id) {\n  errors.push('external_chat_id or external_user_id is required');\n}\n\nif (errors.length > 0) {\n  return [{\n    json: {\n      valid: false,\n      error: errors.join('; '),\n      received_at: new Date().toISOString()\n    }\n  }];\n}\n\n// Generate IDs if not provided\nconst message_id = input.message_id || `msg_${now}_${rand}`;\nconst trace_id = input.trace_id || `trace_${now}_${rand}`;\n\n// Normalize data\nreturn [{\n  json: {\n    valid: true,\n    // Core fields\n    channel: input.channel,\n    bot_token: input.bot_token || null,\n    external_user_id: input.external_user_id || input.external_chat_id,\n    external_chat_id: input.external_chat_id || input.external_user_id,\n    // Client info\n    client_name: input.client_name || null,\n    client_phone: input.client_phone || null,\n    // Message content\n    text: input.text || '',\n    media: input.media || {},\n    meta: input.meta || {},\n    // Timestamps and IDs\n    timestamp: input.timestamp || new Date().toISOString(),\n    received_at: new Date().toISOString(),\n    message_id: message_id,\n    trace_id: trace_id\n  }\n}];"
+      },
+      "id": "Validate Input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "valid-check", "leftValue": "={{$json.valid}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Valid",
+      "name": "If Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: false, error: $json.error, trace_id: $json.trace_id || null } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "Respond Invalid",
+      "name": "Respond Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [860, 200]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=dedup:{{$json.message_id}}"
+      },
+      "id": "Check Duplicate",
+      "name": "Check Duplicate",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [860, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}},
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if duplicate or Redis error\nconst result = $json;\nconst prevData = $('Validate Input').first().json;\n\n// Redis returned value = duplicate exists\nif (result.value) {\n  return [{ json: { ...prevData, is_duplicate: true } }];\n}\n\n// No value = not duplicate\nreturn [{ json: { ...prevData, is_duplicate: false } }];"
+      },
+      "id": "Check Result",
+      "name": "Check Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "dup-check", "leftValue": "={{$json.is_duplicate}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Duplicate",
+      "name": "If Duplicate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, duplicate: true, message_id: $json.message_id, trace_id: $json.trace_id } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "Respond Duplicate",
+      "name": "Respond Duplicate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1520, 300]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=dedup:{{$json.message_id}}",
+        "value": "1",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "Mark Processed",
+      "name": "Mark Processed",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1520, 500],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "queue:incoming",
+        "tail": true,
+        "messageData": "={{ JSON.stringify($('Check Result').first().json) }}"
+      },
+      "id": "Enqueue",
+      "name": "Enqueue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1740, 500],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}},
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if enqueue succeeded\nconst input = $('Check Result').first().json;\n\n// If we got here without error, success\nif ($json.error) {\n  return [{ json: { success: false, error: $json.error, ...input } }];\n}\n\nreturn [{ json: { success: true, ...input } }];"
+      },
+      "id": "Check Enqueue",
+      "name": "Check Enqueue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1960, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "success-check", "leftValue": "={{$json.success}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Enqueued",
+      "name": "If Enqueued",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2180, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: false, error: 'queue_error', message_id: $json.message_id, trace_id: $json.trace_id } }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "Respond Error",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2400, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, message_id: $json.message_id, trace_id: $json.trace_id } }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "Respond Success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2400, 600]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Validate Input", "type": "main", "index": 0}]]
+    },
+    "Validate Input": {
+      "main": [[{"node": "If Valid", "type": "main", "index": 0}]]
+    },
+    "If Valid": {
+      "main": [
+        [{"node": "Respond Invalid", "type": "main", "index": 0}],
+        [{"node": "Check Duplicate", "type": "main", "index": 0}]
+      ]
+    },
+    "Check Duplicate": {
+      "main": [
+        [{"node": "Check Result", "type": "main", "index": 0}],
+        [{"node": "Check Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Check Result": {
+      "main": [[{"node": "If Duplicate", "type": "main", "index": 0}]]
+    },
+    "If Duplicate": {
+      "main": [
+        [{"node": "Respond Duplicate", "type": "main", "index": 0}],
+        [{"node": "Mark Processed", "type": "main", "index": 0}]
+      ]
+    },
+    "Mark Processed": {
+      "main": [[{"node": "Enqueue", "type": "main", "index": 0}]]
+    },
+    "Enqueue": {
+      "main": [
+        [{"node": "Check Enqueue", "type": "main", "index": 0}],
+        [{"node": "Check Enqueue", "type": "main", "index": 0}]
+      ]
+    },
+    "Check Enqueue": {
+      "main": [[{"node": "If Enqueued", "type": "main", "index": 0}]]
+    },
+    "If Enqueued": {
+      "main": [
+        [{"node": "Respond Error", "type": "main", "index": 0}],
+        [{"node": "Respond Success", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,536 @@
+{
+  "name": "ELO_Input_Worker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "seconds", "secondsInterval": 1}]
+        }
+      },
+      "id": "Schedule Trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300],
+      "notes": "POLL_INTERVAL: 1 sec"
+    },
+    {
+      "parameters": {
+        "jsCode": "// === CONFIG (можно вынести в ENV) ===\nconst BATCH_SIZE = 100;           // сколько сообщений за раз\nconst DEBOUNCE_MS = 10000;        // 10 сек тишины\nconst MAX_WAIT_MS = 40000;        // 40 сек максимум\n\nreturn [{\n  json: {\n    config: {\n      batch_size: BATCH_SIZE,\n      debounce_ms: DEBOUNCE_MS,\n      max_wait_ms: MAX_WAIT_MS\n    },\n    now: Date.now()\n  }\n}];"
+      },
+      "id": "Config",
+      "name": "Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "operation": "lrange",
+        "list": "queue:incoming",
+        "start": 0,
+        "stop": "={{ $json.config.batch_size - 1 }}"
+      },
+      "id": "Peek Messages",
+      "name": "Peek Messages",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [600, 300],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем сообщения и конфиг\nconst raw_messages = $json.value || [];\nconst config = $('Config').first().json.config;\nconst now = $('Config').first().json.now;\n\nif (raw_messages.length === 0) {\n  return [{ json: { phase: 'empty', messages: [] } }];\n}\n\n// Парсим сообщения\nconst messages = [];\nfor (const raw of raw_messages) {\n  try {\n    messages.push(JSON.parse(raw));\n  } catch (e) {\n    // skip invalid\n  }\n}\n\nreturn [{\n  json: {\n    phase: 'distribute',\n    messages: messages,\n    count: messages.length,\n    config: config,\n    now: now\n  }\n}];"
+      },
+      "id": "Parse Messages",
+      "name": "Parse Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "phase-check", "leftValue": "={{$json.phase}}", "rightValue": "empty", "operator": {"type": "string", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Empty",
+      "name": "If Empty",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Удаляем обработанные из очереди и раскладываем по батчам\nconst data = $json;\nconst messages = data.messages;\nconst config = data.config;\nconst now = data.now;\n\n// Группируем по batch_key\nconst batches = {};\nfor (const msg of messages) {\n  const key = `${msg.channel || 'unknown'}:${msg.external_chat_id || 'unknown'}`;\n  if (!batches[key]) {\n    batches[key] = [];\n  }\n  batches[key].push(msg);\n}\n\n// Формируем команды для Redis\nconst batch_commands = [];\nfor (const [key, msgs] of Object.entries(batches)) {\n  batch_commands.push({\n    key: key,\n    messages: msgs,\n    deadline: now + config.debounce_ms,\n    max_deadline: now + config.max_wait_ms\n  });\n}\n\nreturn [{\n  json: {\n    phase: 'batch',\n    batch_commands: batch_commands,\n    pop_count: messages.length,\n    config: config,\n    now: now\n  }\n}];"
+      },
+      "id": "Group By Batch",
+      "name": "Group By Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "queue:incoming",
+        "options": {
+          "count": "={{ $json.pop_count }}"
+        }
+      },
+      "id": "Pop Processed",
+      "name": "Pop Processed (LTRIM)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1400, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}},
+      "notes": "Удаляем обработанные сообщения"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Для каждого батча: push messages, set deadline\nconst data = $('Group By Batch').first().json;\nconst batch_commands = data.batch_commands;\nconst now = data.now;\n\n// Возвращаем команды для выполнения\nreturn batch_commands.map(cmd => ({\n  json: {\n    key: cmd.key,\n    messages_json: cmd.messages.map(m => JSON.stringify(m)),\n    deadline: cmd.deadline,\n    max_deadline: cmd.max_deadline,\n    now: now\n  }\n}));"
+      },
+      "id": "Split Batch Commands",
+      "name": "Split Batch Commands",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 400]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=first_seen:{{$json.key}}"
+      },
+      "id": "Get First Seen",
+      "name": "Get First Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1800, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Вычисляем правильный deadline с учётом first_seen и max_wait\nconst prev = $('Split Batch Commands').item.json;\nconst first_seen_raw = $json.value;\nconst now = prev.now;\n\nlet first_seen = first_seen_raw ? parseInt(first_seen_raw, 10) : null;\nlet is_new_batch = false;\n\nif (!first_seen) {\n  first_seen = now;\n  is_new_batch = true;\n}\n\n// deadline = min(first_seen + max_wait, now + debounce)\nconst max_deadline = first_seen + (prev.max_deadline - prev.now); // сохраняем относительное значение\nconst debounce_deadline = prev.deadline;\nconst final_deadline = Math.min(max_deadline, debounce_deadline);\n\nreturn [{\n  json: {\n    key: prev.key,\n    messages_json: prev.messages_json,\n    first_seen: first_seen,\n    is_new_batch: is_new_batch,\n    deadline: final_deadline,\n    now: now\n  }\n}];"
+      },
+      "id": "Calc Deadline",
+      "name": "Calc Deadline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "new-batch", "leftValue": "={{$json.is_new_batch}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If New Batch",
+      "name": "If New Batch",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2200, 400]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=first_seen:{{$json.key}}",
+        "value": "={{$json.first_seen}}",
+        "expire": true,
+        "ttl": 120
+      },
+      "id": "Set First Seen",
+      "name": "Set First Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2400, 300],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Пропускаем данные дальше (merge path)\nreturn [$('Calc Deadline').item];"
+      },
+      "id": "Pass Through",
+      "name": "Pass Through",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2600, 400]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=queue:batch:{{$json.key}}",
+        "tail": true,
+        "messageData": "={{ $json.messages_json.join('\\n__MSG_SEP__\\n') }}"
+      },
+      "id": "Push To Batch",
+      "name": "Push To Batch",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2800, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}},
+      "notes": "Добавляем сообщения в батч-очередь"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=deadline:{{$json.key}}",
+        "value": "={{$json.deadline}}",
+        "expire": true,
+        "ttl": 120
+      },
+      "id": "Set Deadline",
+      "name": "Set Deadline",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [3000, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "operation": "keys",
+        "keyPattern": "deadline:*"
+      },
+      "id": "Get All Deadlines",
+      "name": "Get All Deadlines",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [3200, 400],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем какие батчи созрели\nconst keys = $json.keys || [];\nconst now = Date.now();\n\nif (keys.length === 0) {\n  return [{ json: { has_due: false, due_keys: [] } }];\n}\n\nreturn [{\n  json: {\n    deadline_keys: keys,\n    now: now\n  }\n}];"
+      },
+      "id": "Prepare Deadline Check",
+      "name": "Prepare Deadline Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3400, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "has-keys", "leftValue": "={{$json.deadline_keys?.length > 0}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Has Deadlines",
+      "name": "If Has Deadlines",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3600, 400]
+    },
+    {
+      "parameters": {},
+      "id": "NoOp End",
+      "name": "NoOp End",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Разбиваем ключи для проверки\nconst deadline_keys = $json.deadline_keys || [];\nconst now = $json.now;\n\nreturn deadline_keys.map(k => ({\n  json: {\n    deadline_key: k,\n    batch_key: k.replace('deadline:', ''),\n    now: now\n  }\n}));"
+      },
+      "id": "Split Deadline Keys",
+      "name": "Split Deadline Keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3800, 500]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{$json.deadline_key}}"
+      },
+      "id": "Get Deadline Value",
+      "name": "Get Deadline Value",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [4000, 500],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем истёк ли deadline\nconst prev = $('Split Deadline Keys').item.json;\nconst deadline = parseInt($json.value || '0', 10);\nconst now = prev.now;\n\nconst is_due = deadline > 0 && deadline <= now;\n\nreturn [{\n  json: {\n    batch_key: prev.batch_key,\n    deadline: deadline,\n    now: now,\n    is_due: is_due,\n    reason: is_due ? (deadline <= now ? 'silence_timeout' : 'max_wait_reached') : 'waiting'\n  }\n}];"
+      },
+      "id": "Check If Due",
+      "name": "Check If Due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4200, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "is-due", "leftValue": "={{$json.is_due}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Due",
+      "name": "If Due",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [4400, 500]
+    },
+    {
+      "parameters": {
+        "operation": "lrange",
+        "list": "=queue:batch:{{$json.batch_key}}",
+        "start": 0,
+        "stop": -1
+      },
+      "id": "Get Batch Messages",
+      "name": "Get Batch Messages",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [4600, 600],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Мержим сообщения батча\nconst prev = $('Check If Due').item.json;\nconst raw_values = $json.value || [];\nconst batch_key = prev.batch_key;\nconst reason = prev.reason;\n\n// Парсим сообщения (могут быть склеены через __MSG_SEP__)\nconst messages = [];\nfor (const raw of raw_values) {\n  const parts = raw.split('\\n__MSG_SEP__\\n');\n  for (const part of parts) {\n    try {\n      messages.push(JSON.parse(part));\n    } catch (e) {\n      // skip\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return [{ json: { skip: true, batch_key: batch_key } }];\n}\n\n// Merge texts\nconst texts = messages.map(m => m.text || '').filter(Boolean);\nconst merged_text = texts.join('\\n\\n');\n\n// Merge media\nconst all_media = [];\nfor (const msg of messages) {\n  if (msg.media && Object.keys(msg.media).length > 0) {\n    all_media.push({\n      ...msg.media,\n      message_id: msg.message_id,\n      timestamp: msg.timestamp\n    });\n  }\n}\n\n// Message IDs\nconst message_ids = messages.map(m => m.message_id).filter(Boolean);\n\n// Sample = last message\nconst sample = messages[messages.length - 1];\n\nconst payload = {\n  channel: sample.channel,\n  bot_token: sample.bot_token,\n  external_user_id: sample.external_user_id,\n  external_chat_id: sample.external_chat_id,\n  client_name: sample.client_name,\n  client_phone: sample.client_phone,\n  text: merged_text,\n  timestamp: sample.timestamp,\n  message_ids: message_ids,\n  trace_id: sample.trace_id || `trace_${Date.now()}`,\n  media: all_media.length === 1 ? all_media[0] : (all_media.length > 1 ? all_media : {}),\n  meta: {\n    ...(sample.meta || {}),\n    batched: messages.length > 1,\n    batch_size: messages.length,\n    batch_reason: reason\n  }\n};\n\nreturn [{\n  json: {\n    skip: false,\n    batch_key: batch_key,\n    payload: payload\n  }\n}];"
+      },
+      "id": "Merge Batch",
+      "name": "Merge Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4800, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "skip", "leftValue": "={{$json.skip}}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}
+          ]
+        }
+      },
+      "id": "If Skip",
+      "name": "If Skip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [5000, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:8772/resolve",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json.payload)}}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxRetries": 3,
+            "retryInterval": 1000,
+            "retryIntervalMultiplier": 2
+          }
+        }
+      },
+      "id": "Post Client Contour",
+      "name": "Post Client Contour",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5200, 700],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [
+            {"id": "error", "leftValue": "={{$json.error}}", "rightValue": "", "operator": {"type": "string", "operation": "exists"}}
+          ]
+        }
+      },
+      "id": "If Error",
+      "name": "If Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [5400, 700]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "dlq:input_contour",
+        "tail": true,
+        "messageData": "={{ JSON.stringify({ batch_key: $('Merge Batch').item.json.batch_key, payload: $('Merge Batch').item.json.payload, error: $json.error || 'unknown', failed_at: new Date().toISOString() }) }}"
+      },
+      "id": "Push DLQ",
+      "name": "Push DLQ",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [5600, 600],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "operation": "del",
+        "key": "=queue:batch:{{$('Merge Batch').item.json.batch_key}}"
+      },
+      "id": "Cleanup Batch",
+      "name": "Cleanup Batch",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [5600, 800],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "operation": "del",
+        "key": "=deadline:{{$('Merge Batch').item.json.batch_key}}"
+      },
+      "id": "Cleanup Deadline",
+      "name": "Cleanup Deadline",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [5800, 800],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    },
+    {
+      "parameters": {
+        "operation": "del",
+        "key": "=first_seen:{{$('Merge Batch').item.json.batch_key}}"
+      },
+      "id": "Cleanup First Seen",
+      "name": "Cleanup First Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [6000, 800],
+      "credentials": {"redis": {"id": "1", "name": "ELO_Redis"}}
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{"node": "Config", "type": "main", "index": 0}]]
+    },
+    "Config": {
+      "main": [[{"node": "Peek Messages", "type": "main", "index": 0}]]
+    },
+    "Peek Messages": {
+      "main": [[{"node": "Parse Messages", "type": "main", "index": 0}]]
+    },
+    "Parse Messages": {
+      "main": [[{"node": "If Empty", "type": "main", "index": 0}]]
+    },
+    "If Empty": {
+      "main": [
+        [{"node": "Get All Deadlines", "type": "main", "index": 0}],
+        [{"node": "Group By Batch", "type": "main", "index": 0}]
+      ]
+    },
+    "Group By Batch": {
+      "main": [[{"node": "Pop Processed", "type": "main", "index": 0}]]
+    },
+    "Pop Processed": {
+      "main": [[{"node": "Split Batch Commands", "type": "main", "index": 0}]]
+    },
+    "Split Batch Commands": {
+      "main": [[{"node": "Get First Seen", "type": "main", "index": 0}]]
+    },
+    "Get First Seen": {
+      "main": [[{"node": "Calc Deadline", "type": "main", "index": 0}]]
+    },
+    "Calc Deadline": {
+      "main": [[{"node": "If New Batch", "type": "main", "index": 0}]]
+    },
+    "If New Batch": {
+      "main": [
+        [{"node": "Set First Seen", "type": "main", "index": 0}],
+        [{"node": "Pass Through", "type": "main", "index": 0}]
+      ]
+    },
+    "Set First Seen": {
+      "main": [[{"node": "Pass Through", "type": "main", "index": 0}]]
+    },
+    "Pass Through": {
+      "main": [[{"node": "Push To Batch", "type": "main", "index": 0}]]
+    },
+    "Push To Batch": {
+      "main": [[{"node": "Set Deadline", "type": "main", "index": 0}]]
+    },
+    "Set Deadline": {
+      "main": [[{"node": "Get All Deadlines", "type": "main", "index": 0}]]
+    },
+    "Get All Deadlines": {
+      "main": [[{"node": "Prepare Deadline Check", "type": "main", "index": 0}]]
+    },
+    "Prepare Deadline Check": {
+      "main": [[{"node": "If Has Deadlines", "type": "main", "index": 0}]]
+    },
+    "If Has Deadlines": {
+      "main": [
+        [{"node": "NoOp End", "type": "main", "index": 0}],
+        [{"node": "Split Deadline Keys", "type": "main", "index": 0}]
+      ]
+    },
+    "Split Deadline Keys": {
+      "main": [[{"node": "Get Deadline Value", "type": "main", "index": 0}]]
+    },
+    "Get Deadline Value": {
+      "main": [[{"node": "Check If Due", "type": "main", "index": 0}]]
+    },
+    "Check If Due": {
+      "main": [[{"node": "If Due", "type": "main", "index": 0}]]
+    },
+    "If Due": {
+      "main": [
+        [{"node": "NoOp End", "type": "main", "index": 0}],
+        [{"node": "Get Batch Messages", "type": "main", "index": 0}]
+      ]
+    },
+    "Get Batch Messages": {
+      "main": [[{"node": "Merge Batch", "type": "main", "index": 0}]]
+    },
+    "Merge Batch": {
+      "main": [[{"node": "If Skip", "type": "main", "index": 0}]]
+    },
+    "If Skip": {
+      "main": [
+        [{"node": "Cleanup Batch", "type": "main", "index": 0}],
+        [{"node": "Post Client Contour", "type": "main", "index": 0}]
+      ]
+    },
+    "Post Client Contour": {
+      "main": [
+        [{"node": "If Error", "type": "main", "index": 0}],
+        [{"node": "If Error", "type": "main", "index": 0}]
+      ]
+    },
+    "If Error": {
+      "main": [
+        [{"node": "Push DLQ", "type": "main", "index": 0}],
+        [{"node": "Cleanup Batch", "type": "main", "index": 0}]
+      ]
+    },
+    "Push DLQ": {
+      "main": [[{"node": "Cleanup Batch", "type": "main", "index": 0}]]
+    },
+    "Cleanup Batch": {
+      "main": [[{"node": "Cleanup Deadline", "type": "main", "index": 0}]]
+    },
+    "Cleanup Deadline": {
+      "main": [[{"node": "Cleanup First Seen", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
