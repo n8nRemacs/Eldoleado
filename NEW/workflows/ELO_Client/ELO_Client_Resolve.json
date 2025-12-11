@@ -1,0 +1,707 @@
+{
+  "name": "ELO_Client_Resolve",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-client-resolve",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 400],
+      "webhookId": "elo-client-resolve-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate Input - v2 compatible (no process.env)\nconst input = $input.first().json;\n\n// Required fields check\nconst required = ['channel', 'external_chat_id', 'text'];\nfor (const field of required) {\n  if (!input[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\n// Extract credential based on channel\nlet credential = null;\nswitch (input.channel) {\n  case 'telegram':\n    credential = input.bot_token;\n    break;\n  case 'whatsapp':\n    credential = input.profile_id;\n    break;\n  case 'vk':\n    credential = input.group_id;\n    break;\n  case 'avito':\n    credential = input.user_id;\n    break;\n  case 'max':\n    credential = input.bot_id;\n    break;\n}\n\n// Generate trace_id if not provided\nconst trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  ...input,\n  credential: credential,\n  trace_id: trace_id,\n  received_at: new Date().toISOString()\n};"
+      },
+      "id": "b1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  t.id as tenant_id,\n  t.domain_id,\n  ca.id as channel_account_id,\n  ca.channel_id\nFROM elo_tenants t\nJOIN elo_channel_accounts ca ON ca.tenant_id = t.id\nWHERE ca.credential = '{{ $json.credential }}'\n  AND ca.channel_code = '{{ $json.channel }}'\n  AND ca.is_active = true\n  AND t.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Tenant Resolver",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 400],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "tenant-check",
+              "leftValue": "={{ $json.tenant_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Tenant Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// DLQ for unknown tenant\nconst input = $('Validate Input').first().json;\n\nreturn {\n  error: 'unknown_tenant',\n  channel: input.channel,\n  credential: input.credential,\n  external_chat_id: input.external_chat_id,\n  trace_id: input.trace_id,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "b1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Prepare DLQ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 550]
+    },
+    {
+      "parameters": {
+        "operation": "rightPush",
+        "key": "dlq:unknown_tenant",
+        "value": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0006-4000-8000-000000000006",
+      "name": "Redis DLQ Push",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1350, 550],
+      "credentials": {
+        "redis": {
+          "id": "ELO_Redis",
+          "name": "ELO_Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: false, reason: 'unknown_tenant', trace_id: $('Validate Input').first().json.trace_id } }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "b1b2c3d4-0007-4000-8000-000000000007",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1570, 550]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge tenant data with input\nconst input = $('Validate Input').first().json;\nconst tenant = $('Tenant Resolver').first().json;\n\nreturn {\n  ...input,\n  tenant_id: tenant.tenant_id,\n  domain_id: tenant.domain_id,\n  channel_id: tenant.channel_id,\n  channel_account_id: tenant.channel_account_id\n};"
+      },
+      "id": "b1b2c3d4-0008-4000-8000-000000000008",
+      "name": "Merge Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.id as client_id, c.name, c.phone\nFROM elo_clients c\nJOIN elo_client_channels cc ON cc.client_id = c.id\nWHERE cc.channel_id = {{ $json.channel_id }}\n  AND cc.external_id = '{{ $json.external_chat_id }}'\n  AND c.tenant_id = '{{ $json.tenant_id }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0009-4000-8000-000000000009",
+      "name": "Client by External ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1350, 300],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "client-check",
+              "leftValue": "={{ $json.client_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0010-4000-8000-000000000010",
+      "name": "Client Found by ID?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1570, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.id as client_id, c.name, c.phone\nFROM elo_clients c\nWHERE c.tenant_id = '{{ $('Merge Tenant').first().json.tenant_id }}'\n  AND c.phone = '{{ $('Merge Tenant').first().json.client_phone }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0011-4000-8000-000000000011",
+      "name": "Client by Phone",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1790, 400],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "phone-check",
+              "leftValue": "={{ $json.client_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0012-4000-8000-000000000012",
+      "name": "Client Found by Phone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2010, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_client_channels (client_id, channel_id, external_id)\nVALUES ('{{ $json.client_id }}', {{ $('Merge Tenant').first().json.channel_id }}, '{{ $('Merge Tenant').first().json.external_chat_id }}');",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0013-4000-8000-000000000013",
+      "name": "Link Channel",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2230, 300],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_clients (tenant_id, name, phone)\nVALUES ('{{ $('Merge Tenant').first().json.tenant_id }}', '{{ $('Merge Tenant').first().json.client_name }}', '{{ $('Merge Tenant').first().json.client_phone }}')\nRETURNING id as client_id, name, phone;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0014-4000-8000-000000000014",
+      "name": "Create Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2230, 500],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_client_channels (client_id, channel_id, external_id)\nVALUES ('{{ $json.client_id }}', {{ $('Merge Tenant').first().json.channel_id }}, '{{ $('Merge Tenant').first().json.external_chat_id }}');",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0015-4000-8000-000000000015",
+      "name": "Link New Client Channel",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2450, 500],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://45.144.177.128:8773/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query_code: 'create_client', params: { client_id: $json.client_id, tenant_id: $('Merge Tenant').first().json.tenant_id, name: $json.name || '', phone: $json.phone || '' } }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "b1b2c3d4-0016-4000-8000-000000000016",
+      "name": "Neo4j Sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2670, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all client data\nconst mergeTenant = $('Merge Tenant').first().json;\nconst clientById = $('Client by External ID').first()?.json;\nconst clientByPhone = $('Client by Phone').first()?.json;\nconst createdClient = $('Create Client').first()?.json;\n\n// Determine client source\nlet client = null;\nlet is_new_client = false;\n\nif (clientById?.client_id) {\n  client = clientById;\n  is_new_client = false;\n} else if (clientByPhone?.client_id) {\n  client = clientByPhone;\n  is_new_client = false;\n} else if (createdClient?.client_id) {\n  client = createdClient;\n  is_new_client = true;\n}\n\nreturn {\n  ...mergeTenant,\n  client_id: client?.client_id,\n  client_name: client?.name || mergeTenant.client_name,\n  client_phone: client?.phone || mergeTenant.client_phone,\n  is_new_client: is_new_client\n};"
+      },
+      "id": "b1b2c3d4-0017-4000-8000-000000000017",
+      "name": "Merge Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2890, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id as dialog_id, vertical_id, status\nFROM elo_dialogs\nWHERE client_id = '{{ $json.client_id }}'\n  AND channel_id = {{ $json.channel_id }}\n  AND status IN ('active', 'waiting')\nORDER BY updated_at DESC\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0018-4000-8000-000000000018",
+      "name": "Find Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [3110, 400],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "dialog-check",
+              "leftValue": "={{ $json.dialog_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1b2c3d4-0019-4000-8000-000000000019",
+      "name": "Dialog Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3330, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_dialogs (tenant_id, client_id, channel_id, status)\nVALUES ('{{ $('Merge Client').first().json.tenant_id }}', '{{ $('Merge Client').first().json.client_id }}', {{ $('Merge Client').first().json.channel_id }}, 'active')\nRETURNING id as dialog_id;",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0020-4000-8000-000000000020",
+      "name": "Create Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [3550, 500],
+      "credentials": {
+        "postgres": {
+          "id": "ELO_PostgreSQL",
+          "name": "ELO_PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final output\nconst mergeClient = $('Merge Client').first().json;\nconst foundDialog = $('Find Dialog').first()?.json;\nconst createdDialog = $('Create Dialog').first()?.json;\n\nconst dialog = foundDialog?.dialog_id ? foundDialog : createdDialog;\nconst is_new_dialog = !foundDialog?.dialog_id;\n\nreturn {\n  tenant_id: mergeClient.tenant_id,\n  domain_id: mergeClient.domain_id,\n  client_id: mergeClient.client_id,\n  dialog_id: dialog?.dialog_id,\n  channel_id: mergeClient.channel_id,\n  external_chat_id: mergeClient.external_chat_id,\n  text: mergeClient.text,\n  timestamp: mergeClient.timestamp,\n  message_ids: mergeClient.message_ids || [],\n  trace_id: mergeClient.trace_id,\n  media: mergeClient.media || {},\n  meta: {\n    ...mergeClient.meta,\n    is_new_client: mergeClient.is_new_client,\n    is_new_dialog: is_new_dialog\n  },\n  client: {\n    id: mergeClient.client_id,\n    name: mergeClient.client_name,\n    phone: mergeClient.client_phone\n  }\n};"
+      },
+      "id": "b1b2c3d4-0021-4000-8000-000000000021",
+      "name": "Build Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3770, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "b1b2c3d4-0022-4000-8000-000000000022",
+      "name": "Forward to Core",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3990, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, tenant_id: $json.tenant_id, client_id: $json.client_id, dialog_id: $json.dialog_id, trace_id: $json.trace_id } }}",
+        "options": {}
+      },
+      "id": "b1b2c3d4-0023-4000-8000-000000000023",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [3990, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Tenant Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tenant Found?": {
+      "main": [
+        [
+          {
+            "node": "Merge Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare DLQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare DLQ": {
+      "main": [
+        [
+          {
+            "node": "Redis DLQ Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis DLQ Push": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Tenant": {
+      "main": [
+        [
+          {
+            "node": "Client by External ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client by External ID": {
+      "main": [
+        [
+          {
+            "node": "Client Found by ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Found by ID?": {
+      "main": [
+        [
+          {
+            "node": "Merge Client",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Client by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client by Phone": {
+      "main": [
+        [
+          {
+            "node": "Client Found by Phone?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Found by Phone?": {
+      "main": [
+        [
+          {
+            "node": "Link Channel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Channel": {
+      "main": [
+        [
+          {
+            "node": "Merge Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client": {
+      "main": [
+        [
+          {
+            "node": "Link New Client Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link New Client Channel": {
+      "main": [
+        [
+          {
+            "node": "Neo4j Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j Sync": {
+      "main": [
+        [
+          {
+            "node": "Merge Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Client": {
+      "main": [
+        [
+          {
+            "node": "Find Dialog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Dialog": {
+      "main": [
+        [
+          {
+            "node": "Dialog Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dialog Found?": {
+      "main": [
+        [
+          {
+            "node": "Build Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Dialog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Dialog": {
+      "main": [
+        [
+          {
+            "node": "Build Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Output": {
+      "main": [
+        [
+          {
+            "node": "Forward to Core",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "ELO",
+      "createdAt": "2025-12-11T00:00:00.000Z",
+      "updatedAt": "2025-12-11T00:00:00.000Z"
+    },
+    {
+      "name": "Client",
+      "createdAt": "2025-12-11T00:00:00.000Z",
+      "updatedAt": "2025-12-11T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-11T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -34,10 +34,11 @@ class ResolveRequest(BaseModel):
 
 class ResolveResponse(BaseModel):
     accepted: bool
-    tenant_id: str
-    client_id: str
-    dialog_id: str
+    tenant_id: Optional[str] = None
+    client_id: Optional[str] = None
+    dialog_id: Optional[str] = None
     trace_id: Optional[str] = None
+    reason: Optional[str] = None
 
 
 @app.get("/health")
@@ -94,7 +95,7 @@ async def resolve(req: ResolveRequest):
                 }
             ),
         )
-        return {"accepted": False, "reason": "unknown_tenant", "trace_id": req.trace_id}
+        return ResolveResponse(accepted=False, reason="unknown_tenant", trace_id=req.trace_id)
     if tenant is None:
         await redis_client.rpush(
             DLQ_UNKNOWN_TENANT,
@@ -107,7 +108,7 @@ async def resolve(req: ResolveRequest):
                 }
             ),
         )
-        return {"accepted": False, "reason": "unknown_tenant", "trace_id": req.trace_id}
+        return ResolveResponse(accepted=False, reason="unknown_tenant", trace_id=req.trace_id)
 
     # Client resolve (mock)
     client = await resolve_client_mock(
