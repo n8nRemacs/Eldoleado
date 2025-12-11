@@ -60,259 +60,180 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: 11 December 2025, 16:30 (UTC+4)
+## Last session: 11 December 2025, 23:30 (UTC+4)
 
 ---
 
 ## What's done in this session
 
-### АРХИТЕКТУРА: 4-контурная система ✅
+### CORE AI: Полная концепция разработана ✅
 
-**Спроектирована и задокументирована новая архитектура:**
-
+**Ключевое понимание:**
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DATA FLOW                                          │
-│                                                                              │
-│  MCP Channels → Input (8771) → Client (8772) → Core (n8n) → Graph (8773)    │
-│  (Telegram,       (Ingest,      (Tenant,        (Business     (Neo4j        │
-│   WhatsApp,        Redis         Client,         Logic)        Proxy)       │
-│   Avito...)        Queue)        Dialog)              ↓                      │
-│                                               AI Tool (8774)                 │
-│                                               (Extract, Chat)                │
-└─────────────────────────────────────────────────────────────────────────────┘
+ВСЯ ЛОГИКА = ГРАФ + ПРОМПТЫ
+Никакого хардкода цепочек воркеров
 ```
 
-**MCP Contours (слепые исполнители):**
+---
 
-| Contour | Port | Purpose | Code | Status |
-|---------|------|---------|------|--------|
-| Input | 8771 | Ingest + Redis queue | `MCP/input-contour/` | 📝 Documented |
-| Client | 8772 | Tenant/Client/Dialog | `MCP/client-contour/` | 📝 Documented |
-| Graph Tool | 8773 | Neo4j proxy | `MCP/graph-tool/` | 📝 Documented |
-| **AI Tool** | **8774** | Extract + Chat | `MCP/ai-tool/` | **✅ Created** |
+### 1. Модель "Context Lines" ✅
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      CONTEXT                            │
+│                                                         │
+│  Line 0: ●──●──●──○──○  (cursor=3, waiting)            │
+│  Line 1: ●──●──●──●──✓  (done)                         │
+│  Line 2: ●──○──○──○──○  (cursor=1, active) ← focus     │
+│                                                         │
+│  ● = filled, ○ = empty, ✓ = complete                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Структура:**
+- Line = intake с слотами (device, symptom, owner, price)
+- Cursor = где остановились на линии
+- Focus = активная линия
+- Waiting = линии с обрывами (вернуться позже)
+
+**Алгоритм:**
+1. AI Extract — вытащить ВСЕ параметры из сообщения
+2. Раскидать по линиям (новая? смена фокуса?)
+3. Derive зависимых (symptom → repair → price)
+4. Спросить что пусто на cursor
+5. Вернуться к waiting
 
 ---
 
-### РАБОТА SENIOR (Claude Opus) ✅
+### 2. Этапы воронки (Stages) ✅
 
-| # | Задача | Файлы | Статус |
-|---|--------|-------|--------|
-| 1 | **AI Tool MCP (8774)** | `MCP/ai-tool/main.py, config.py, Dockerfile, requirements.txt` | ✅ |
-| 2 | **AI Tool документация** | `NEW/Core_info/06_AI_Tool/AI_TOOL_OVERVIEW.md` | ✅ |
-| 3 | **ELO_AI_Extract.md** | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md` | ✅ |
-| 4 | **ELO_AI_Chat.md** | `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md` | ✅ |
-| 5 | **n8n JSON workflows** | `NEW/workflows/ELO_AI/ELO_AI_Extract.json, ELO_AI_Chat.json` | ✅ |
-| 6 | **API_CONTRACTS.md** | Добавлен AI Tool (8774) | ✅ |
-| 7 | **Junior task** | `.claude/inbox.md` — задание на n8n workflows | ✅ |
-| 8 | **Junior review** | `.claude/outbox.md` — ответы на вопросы | ✅ |
-| 9 | **Документация** | `Start.md`, `CONTEXT.md` — обновлено | ✅ |
+```
+ЭТАП 1: Сбор данных    → slots: [device, symptom, owner, price]
+ЭТАП 2: Презентация    → slots: [offer_shown] + triggers
+ЭТАП 3: Согласование   → slots: [conditions_ok, ready_to_book]
+ЭТАП 4: Запись         → slots: [date, time, name, phone]
+ЭТАП 5: Подтверждение  → slots: [confirmed]
+```
 
-**AI Tool endpoints:**
-- `POST /extract` — извлечение структурированных данных по schema
-- `POST /chat` — AI чат с поддержкой tools
-- `GET /health` — проверка состояния
+Та же модель Context Lines применяется к каждому этапу!
 
 ---
 
-### РАБОТА JUNIOR (Claude Cursor) ✅
+### 3. Триггеры и действия ✅
 
-| # | Задача | Файлы | Статус |
-|---|--------|-------|--------|
-| 1 | **ELO_Input_Ingest.json** | `workflows_to_import/` | ✅ |
-| 2 | **ELO_Input_Worker.json** | `workflows_to_import/` | ✅ |
-| 3 | **ELO_Client_Resolve.json** | `workflows_to_import/` | ✅ |
-| 4 | **ELO_Graph_Query.json** | `workflows_to_import/` | ✅ |
-| 5 | **ELO_Core_Ingest.json** | `workflows_to_import/new/` | ✅ |
-| 6 | **Channel IN (6 шт)** | Telegram, WhatsApp, Avito, VK, MAX, Form | ✅ |
-| 7 | **Channel OUT (5 шт)** | Telegram, WhatsApp, Avito, VK, MAX | ✅ |
+```cypher
+// В графе:
+(:Trigger {stage: "presentation", conditions: {device_brand: "Apple", repair: "battery_replace"}})
+  -[:EXECUTES]->
+(:Action {type: "send_file", file: "battery_care.pdf"})
+```
 
-**n8n v2.0 Compliance:**
-- Webhook typeVersion: 2
-- Code typeVersion: 2
-- HTTP Request typeVersion: 4.2
-- respondToWebhook typeVersion: 1.1
-- No Python Code Node
-- No process.env in Code
+Примеры:
+- iPhone + АКБ → отправить инструкцию
+- Цена > 10000 → предложить скидку
+- Этап согласования → спросить "Записать?"
 
 ---
 
-### GIT COMMITS (сегодня)
+### 4. Архитектура оркестратора ✅
 
-| Hash | Description | Changes |
-|------|-------------|---------|
-| `5c2d9da` | Docs: Session 12.11.2025 - 4-contour architecture + Junior workflows | +1790 lines |
-| `cb0c105` | Answer Junior's questions: mocks sufficient | +64 lines |
-| `cafd516` | Update Junior task: add AI Tool workflows + answer questions | +202 lines |
-| `3c1b8e7` | Add ELO_AI n8n polygon workflows (JSON) | +238 lines |
-| `0b32d20` | Add AI Tool MCP (8774) + n8n polygon documentation | +1401 lines |
+```
+ОРКЕСТРАТОР (один, универсальный)
+│
+├── Вертикаль A: + tools [гарантия, запчасти]
+├── Вертикаль B: + tools [календарь, CRM]
+│
+└── Логика ОДНА = Context Lines
+```
+
+**Отличие вертикалей = только tools.**
+**Всё остальное = граф + промпты.**
+
+---
+
+### 5. Масштабирование ✅
+
+```
+1000 tenants × 50 диалогов × 40 сообщений = 2M msg/день
+
+Python FastAPI async:
+- 1 под = 400 concurrent requests
+- 2-3 пода достаточно для 1000 tenants
+
+OpenRouter Qwen3-30B:
+- Paid tier: нет лимита
+- Latency: 1-3 сек
+```
+
+---
+
+### 6. Стоимость AI ✅
+
+```
+Qwen3-30B (умная, для ответов):
+  $0.06/1M input, $0.22/1M output
+
+Qwen3-4B (дешёвая, для extract):
+  ~$0.005/1M tokens
+
+Расчёт (1000 tenants):
+  Extract: 100% сообщений × дешёвая модель = ~$5/день
+  Response: 50% сообщений × умная модель = ~$74/день
+
+  Итого: ~$80/день = ~$2,400/месяц
+  = $2.40/tenant/месяц на AI
+```
+
+---
+
+### 7. Тестовые данные в Neo4j ✅
+
+```
+DeviceModel: iPhone 12 Pro, iPhone 14
+RepairType: display_replace, battery_replace, charging_replace
+Symptom → RepairType (с алиасами)
+Price: iPhone 12 Pro (8500, 2800, 2500)
+```
+
+---
+
+## Ключевые файлы сессии
+
+| Файл | Описание |
+|------|----------|
+| `.claude/plans/snazzy-prancing-piglet.md` | Полная концепция Core AI |
+| Neo4j | Тестовые данные (DeviceModel, RepairType, Symptom, Price) |
 
 ---
 
 ## НА ЧЁМ ОСТАНОВИЛИСЬ
 
-### Создано, но НЕ задеплоено/импортировано:
+### Концепция готова, реализация — завтра:
 
-**1. MCP AI Tool (8774)** — код готов в `MCP/ai-tool/`, но:
-- [ ] НЕ запущен docker контейнер на сервере
-- [ ] НЕ добавлен в `MCP/docker-compose.yml`
-- [ ] НЕ протестирован /extract и /chat
+**Фаза 1:** Context Lines для сбора данных
+- Структура Line, Context
+- AI Extract для всех параметров
+- Логика раскидывания по линиям
+- Focus / waiting / cursor
+- Derive зависимых слотов
 
-**2. n8n Workflows (17+ файлов)** — JSON готовы, но:
-- [ ] НЕ импортированы в n8n UI
-- [ ] НЕ активированы webhooks
-- [ ] НЕ протестирована цепочка
+**Фаза 2:** Этапы воронки
+- Stage schema в графе
+- Переходы между этапами
 
-**Файлы для импорта:**
-```
-NEW/workflows/ELO_AI/
-├── ELO_AI_Extract.json     ← Senior создал
-└── ELO_AI_Chat.json        ← Senior создал
+**Фаза 3:** Триггеры и действия
+- Trigger schema в графе
+- Проверка conditions → execute actions
 
-workflows_to_import/
-├── ELO_Input_Ingest.json   ← Junior создал
-├── ELO_Input_Worker.json   ← Junior создал
-├── ELO_Client_Resolve.json ← Junior создал
-├── ELO_Graph_Query.json    ← Junior создал
-└── new/
-    ├── ELO_Core_Ingest.json
-    ├── ELO_In_Telegram.json
-    ├── ELO_In_WhatsApp.json
-    ├── ELO_In_Avito.json
-    ├── ELO_In_VK.json
-    ├── ELO_In_MAX.json
-    ├── ELO_In_Form.json
-    ├── ELO_Out_Telegram.json
-    ├── ELO_Out_WhatsApp.json
-    ├── ELO_Out_Avito.json
-    ├── ELO_Out_VK.json
-    └── ELO_Out_MAX.json
-```
-
----
-
-## ЧТО ДЕЛАТЬ В СЛЕДУЮЩЕЙ СЕССИИ
-
-### ПРИОРИТЕТ 1: Импорт и тестирование n8n workflows
-
-**Шаг 1:** Импорт в n8n UI (https://n8n.n8nsrv.ru)
-```
-1. Открыть n8n UI
-2. File → Import from File
-3. Выбрать JSON файлы по одному
-4. Сохранить каждый workflow
-```
-
-**Шаг 2:** Активация webhooks
-```
-1. Открыть workflow
-2. Нажать "Active" toggle
-3. Проверить что webhook URL создался
-```
-
-**Шаг 3:** Тестирование curl
-```bash
-# Test ELO_AI_Extract (n8n polygon)
-curl -X POST https://n8n.n8nsrv.ru/webhook/elo-ai-extract \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "Разбил экран на iPhone 14 Pro",
-    "extraction_schema": {
-      "type": "object",
-      "properties": {
-        "device": {"type": "object"},
-        "symptoms": {"type": "array"}
-      }
-    }
-  }'
-
-# Test ELO_Input_Ingest
-curl -X POST https://n8n.n8nsrv.ru/webhook/elo-input-ingest \
-  -H "Content-Type: application/json" \
-  -d '{
-    "channel": "telegram",
-    "external_chat_id": "123456",
-    "text": "Привет, сколько стоит замена экрана?"
-  }'
-```
-
-### ПРИОРИТЕТ 2: Deploy AI Tool MCP на сервер
-
-```bash
-# 1. Подключиться к серверу
-ssh root@45.144.177.128
-
-# 2. Добавить AI Tool в docker-compose.yml
-cd /root/mcp
-# Добавить service ai-tool
-
-# 3. Собрать и запустить
-docker-compose up -d ai-tool
-
-# 4. Проверить health
-curl http://localhost:8774/health
-```
-
-### ПРИОРИТЕТ 3: E2E тест
-
-После импорта и деплоя — отправить тестовое сообщение через Telegram и проследить путь:
-```
-Telegram → MCP Telegram → n8n ELO_In_Telegram → ELO_Input_Ingest → ...
-```
-
----
-
-## Key files (created in this session)
-
-| File | Description |
-|------|-------------|
-| `MCP/ai-tool/main.py` | AI Tool MCP service |
-| `MCP/ai-tool/config.py` | Configuration |
-| `MCP/ai-tool/Dockerfile` | Docker build |
-| `NEW/Core_info/06_AI_Tool/AI_TOOL_OVERVIEW.md` | AI Tool overview |
-| `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Extract.md` | Extract doc |
-| `NEW/Core_info/06_AI_Tool/workflows_info/ELO_AI_Chat.md` | Chat doc |
-| `NEW/workflows/ELO_AI/ELO_AI_Extract.json` | n8n workflow |
-| `NEW/workflows/ELO_AI/ELO_AI_Chat.json` | n8n workflow |
-| `.claude/inbox.md` | Junior task |
-| `.claude/outbox.md` | Junior feedback |
-| `workflows_to_import/` | 16 n8n workflows |
-
----
-
-## Servers
-
-### MCP Contours (NEW):
-
-| Service | Port | IP | Status |
-|---------|------|----|--------|
-| Input Contour | 8771 | 45.144.177.128 | 📝 Documented |
-| Client Contour | 8772 | 45.144.177.128 | 📝 Documented |
-| Graph Tool | 8773 | 45.144.177.128 | 📝 Documented |
-| **AI Tool** | **8774** | 45.144.177.128 | **✅ Code ready, NOT deployed** |
-
-### Infrastructure:
-
-| Server | IP/URL | Port | Purpose |
-|--------|--------|------|---------|
-| n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
-| Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
-| PostgreSQL | 185.221.214.83 | 6544 | Main database |
-| Redis (RU) | 45.144.177.128 | 6379 | Queues |
-| Redis (n8n) | 185.221.214.83 | 6379 | n8n cache |
-
----
-
-## GitHub
-
-- Repository: https://github.com/n8nRemacs/Eldoleado
+**Фаза 4:** Воркеры и контекст
+- Правильно расставить воркеры
+- Описать контекст между этапами
 
 ---
 
 ## To continue
 
 1. **git pull** — sync latest changes
-2. **Read Start.md** — full session history
-3. **Import workflows to n8n** — priority!
-4. **Test webhooks** — curl commands above
-5. **Deploy AI Tool** — if testing n8n polygons works
+2. **Read Start.md** — full context
+3. **Read plan** — `.claude/plans/snazzy-prancing-piglet.md`
+4. **Implement Phase 1** — Context Lines
