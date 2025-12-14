@@ -1,0 +1,662 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "a910abde-74b6-4434-b906-82156fe49a27",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1104,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "keys",
+        "keyPattern": "deadline:*"
+      },
+      "id": "3e863806-ef40-4cc3-9ced-dc67e687fdcc",
+      "name": "Get All Deadlines",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        64
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Извлекаем ключи deadline:*\n// Redis KEYS возвращает ключи как свойства объекта\nconst now = Date.now();\nconst allKeys = Object.keys($json);\nconst deadlineKeys = allKeys.filter(k => k.startsWith('deadline:'));\n\nif (deadlineKeys.length === 0) {\n  return [{ json: { has_deadlines: false, items: [], now } }];\n}\n\n// Создаём items для проверки каждого deadline\nconst items = deadlineKeys.map(dk => {\n  const batch_key = dk.replace('deadline:', '');\n  return {\n    deadline_key: dk,\n    batch_key: batch_key,\n    batch_list_key: `batch:${batch_key}`,\n    first_seen_key: `first_seen:${batch_key}`,\n    deadline_value: $json[dk]  // значение deadline уже в ответе KEYS? нет, нужен GET\n  };\n});\n\nreturn [{ json: { has_deadlines: true, items, now } }];"
+      },
+      "id": "b6af8053-ce14-4be2-98b4-0f52add4d18f",
+      "name": "Parse Deadline Keys",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-deadlines",
+              "leftValue": "={{ $json.has_deadlines }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "e6a3521f-1dd9-4d80-b28a-b5013cf6c18a",
+      "name": "If Has Deadlines",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        64
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "369ef66c-07fd-46db-99ed-3944f4cc3256",
+      "name": "End (No Deadlines)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Разбиваем items для обработки каждого deadline\nconst data = $json;\nconst now = data.now;\n\nreturn data.items.map(item => ({\n  json: {\n    ...item,\n    now\n  }\n}));"
+      },
+      "id": "e5e00404-6915-42d0-80da-b11ef4c9b8eb",
+      "name": "Split Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.deadline_key }}",
+        "options": {}
+      },
+      "id": "25e2c7a8-ed0b-495a-b8da-aeb51e975299",
+      "name": "Get Deadline Value",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем is_due\nconst prev = $('Split Items').item.json;\nconst now = prev.now;\n\n// Получаем значение deadline\nlet deadline_value = $json.value;\nif (!deadline_value) {\n  const keys = Object.keys($json);\n  for (const k of keys) {\n    if (k.startsWith('deadline:')) {\n      deadline_value = $json[k];\n      break;\n    }\n  }\n}\n\nconst deadline = parseInt(deadline_value || '0', 10);\n\n// is_due если deadline истёк или не существует (orphan)\nconst is_orphan = deadline === 0;\nconst is_expired = deadline > 0 && deadline <= now;\nconst is_due = is_orphan || is_expired;\n\nreturn [{\n  json: {\n    batch_key: prev.batch_key,\n    batch_list_key: prev.batch_list_key,\n    deadline_key: prev.deadline_key,\n    first_seen_key: prev.first_seen_key,\n    deadline,\n    now,\n    is_due,\n    reason: is_orphan ? 'orphan' : (is_expired ? 'timeout' : 'waiting')\n  }\n}];"
+      },
+      "id": "4830c76c-c3a4-4f82-9f4e-f1cfb777f3b9",
+      "name": "Check If Due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "is-due",
+              "leftValue": "={{ $json.is_due }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "1f2d6051-cef4-4eaa-85ca-95c0268a7fe4",
+      "name": "If Due",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        -32
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "fe3ad1b2-95af-4cc6-963e-cd66362cf423",
+      "name": "Not Due Yet",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        576,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.batch_list_key }}",
+        "keyType": "list",
+        "options": {}
+      },
+      "id": "51fd9317-b2ad-45f6-96ec-85f462e33d3b",
+      "name": "Get Batch Messages",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -128
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Мержим все сообщения из батча\nconst prev = $('Check If Due').item.json;\nconst batch_key = prev.batch_key;\nconst reason = prev.reason;\n\n// Redis GET list возвращает массив в propertyName или напрямую\nlet messagesRaw = $json.propertyName || [];\nif (!Array.isArray(messagesRaw)) {\n  // Попробуем найти массив в других полях\n  const keys = Object.keys($json);\n  for (const k of keys) {\n    if (Array.isArray($json[k])) {\n      messagesRaw = $json[k];\n      break;\n    }\n  }\n}\n\n// Парсим JSON строки в объекты\nconst messages = [];\nfor (const raw of messagesRaw) {\n  try {\n    const msg = typeof raw === 'string' ? JSON.parse(raw) : raw;\n    messages.push(msg);\n  } catch (e) {\n    // skip invalid\n  }\n}\n\nif (messages.length === 0) {\n  return [{\n    json: {\n      skip: true,\n      batch_key,\n      reason: 'empty_batch',\n      batch_list_key: prev.batch_list_key,\n      deadline_key: prev.deadline_key,\n      first_seen_key: prev.first_seen_key\n    }\n  }];\n}\n\n// Merge texts\nconst texts = messages.map(m => m.text || '').filter(Boolean);\nconst merged_text = texts.join('\\n\\n');\n\n// Merge media\nconst all_media = [];\nfor (const msg of messages) {\n  if (msg.media && Object.keys(msg.media).length > 0) {\n    all_media.push(msg.media);\n  }\n}\n\n// Message IDs\nconst message_ids = messages.map(m => m.message_id || m.meta?.external_message_id).filter(Boolean);\n\n// Sample = last message (most recent data)\nconst sample = messages[messages.length - 1];\n\nconst payload = {\n  channel: sample.channel,\n  bot_token: sample.bot_token,\n  external_user_id: sample.external_user_id,\n  external_chat_id: sample.external_chat_id,\n  client_name: sample.client_name,\n  client_phone: sample.client_phone,\n  text: merged_text,\n  timestamp: sample.timestamp,\n  message_ids: message_ids,\n  trace_id: sample.trace_id || `trace_${Date.now()}`,\n  media: all_media.length === 1 ? all_media[0] : (all_media.length > 1 ? { items: all_media } : {}),\n  tenant_id: sample.tenant_id,\n  tenant_name: sample.tenant_name,\n  tenant_config: sample.tenant_config,\n  meta: {\n    ...(sample.meta || {}),\n    batched: messages.length > 1,\n    batch_size: messages.length,\n    batch_reason: reason\n  }\n};\n\nreturn [{\n  json: {\n    skip: false,\n    batch_key,\n    payload,\n    batch_list_key: prev.batch_list_key,\n    deadline_key: prev.deadline_key,\n    first_seen_key: prev.first_seen_key\n  }\n}];"
+      },
+      "id": "a5389ba1-9a16-42ad-996f-24e0a9e5a2d5",
+      "name": "Merge Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f23cb593-2800-464e-aadb-036a09628948",
+      "name": "If Skip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $json.batch_list_key }}"
+      },
+      "id": "88b8a985-3874-46fc-9625-38f262d37a4d",
+      "name": "Delete Batch (Skip)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OHjjTQDguN2G6xin",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OHjjTQDguN2G6xin",
+          "cachedResultName": "ELO_Client_Resolve"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b464d2f7-63da-4540-91ae-7ead28ae0932",
+      "name": "Call Client Resolve",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1184,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Merge Batch').item.json.batch_list_key }}"
+      },
+      "id": "76b5e49e-b82c-4bb3-b6ee-ffc3161be80f",
+      "name": "Delete Batch",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Merge Batch').item.json.deadline_key }}"
+      },
+      "id": "fd1e86a5-31ec-4336-be87-b799075ecc2e",
+      "name": "Delete Deadline",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Merge Batch').item.json.first_seen_key }}"
+      },
+      "id": "c907e97c-13d2-45cf-bb70-4be83f59befc",
+      "name": "Delete First Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        -32
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Merge Batch').item.json.deadline_key }}"
+      },
+      "id": "03e22124-c4ac-45c3-8fe8-aec8104ffe29",
+      "name": "Delete Deadline (Skip)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Merge Batch').item.json.first_seen_key }}"
+      },
+      "id": "9182d62b-1250-4bdd-a8b4-8e48048648d6",
+      "name": "Delete First Seen (Skip)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "42baa2e1-4735-4576-94b4-d7100e0f3d1d",
+      "name": "End (Done)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        -128
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get All Deadlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Deadlines": {
+      "main": [
+        [
+          {
+            "node": "Parse Deadline Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Deadline Keys": {
+      "main": [
+        [
+          {
+            "node": "If Has Deadlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Has Deadlines": {
+      "main": [
+        [
+          {
+            "node": "Split Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End (No Deadlines)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Items": {
+      "main": [
+        [
+          {
+            "node": "Get Deadline Value",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deadline Value": {
+      "main": [
+        [
+          {
+            "node": "Check If Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Due": {
+      "main": [
+        [
+          {
+            "node": "If Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Due": {
+      "main": [
+        [
+          {
+            "node": "Get Batch Messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Due Yet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Batch Messages": {
+      "main": [
+        [
+          {
+            "node": "Merge Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Batch": {
+      "main": [
+        [
+          {
+            "node": "If Skip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Skip": {
+      "main": [
+        [
+          {
+            "node": "Delete Batch (Skip)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Client Resolve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Batch (Skip)": {
+      "main": [
+        [
+          {
+            "node": "Delete Deadline (Skip)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Client Resolve": {
+      "main": [
+        [
+          {
+            "node": "Delete Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Batch": {
+      "main": [
+        [
+          {
+            "node": "Delete Deadline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Deadline": {
+      "main": [
+        [
+          {
+            "node": "Delete First Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete First Seen": {
+      "main": [
+        [
+          {
+            "node": "End (Done)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Deadline (Skip)": {
+      "main": [
+        [
+          {
+            "node": "Delete First Seen (Skip)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete First Seen (Skip)": {
+      "main": [
+        [
+          {
+            "node": "End (Done)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "timestamp": "2025-12-14T12:50:24.002+04:00",
+        "Readable date": "December 14th 2025, 12:50:24 pm",
+        "Readable time": "12:50:24 pm",
+        "Day of week": "Sunday",
+        "Year": "2025",
+        "Month": "December",
+        "Day of month": "14",
+        "Hour": "12",
+        "Minute": "50",
+        "Second": "24",
+        "Timezone": "Europe/Samara (UTC+04:00)"
+      }
+    ]
+  },
+  "meta": {
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

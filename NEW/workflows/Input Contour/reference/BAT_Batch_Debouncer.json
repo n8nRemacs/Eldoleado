@@ -1,0 +1,440 @@
+{
+  "id": "hwYfaLAKCwaWpoQk",
+  "name": "BAT Batch Debouncer",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "68e9fe5d-ecb8-4fe6-ad36-db17510d69ca",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные о батче из входа\nconst input = $input.first().json;\n\nreturn {\n  batch_key: input.batch_key,\n  channel: input.channel,\n  external_chat_id: input.external_chat_id,\n  queue_key: input.queue_key || `queue:batch:${input.batch_key}`,\n  lock_key: input.lock_key || `lock:batch:${input.batch_key}`,\n  last_seen_key: input.last_seen_key || `last_seen:${input.batch_key}`,\n  debounce_seconds: 20,\n  max_wait_seconds: 300,\n  start_time: new Date().toISOString()\n};"
+      },
+      "id": "280cbae9-510c-40c3-b2a9-2ccfa3687c6f",
+      "name": "Init Debouncer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "id": "5fe3a5a4-c79b-461d-84fc-6617f42b765d",
+      "name": "Wait 20s (Debounce)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        -16
+      ],
+      "webhookId": "batch-debouncer-wait"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $('Init Debouncer').item.json.last_seen_key }}",
+        "options": {}
+      },
+      "id": "5f424977-0390-46a6-b330-da8b455f5a2c",
+      "name": "Get Last Seen",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -16
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const lastSeenStr = $json.value;\nconst initData = $('Init Debouncer').first().json;\nconst debounceMs = initData.debounce_seconds * 1000;\nconst maxWaitMs = initData.max_wait_seconds * 1000;\nconst startTime = new Date(initData.start_time).getTime();\nconst now = Date.now();\n\n// Проверяем прошло ли достаточно времени с последнего сообщения\nlet lastSeenTime = 0;\nif (lastSeenStr) {\n  lastSeenTime = new Date(lastSeenStr).getTime();\n}\n\nconst silenceDuration = now - lastSeenTime;\nconst totalWaitDuration = now - startTime;\n\n// Условия для сбора батча:\n// 1. Тишина >= debounce_seconds\n// 2. ИЛИ общее время ожидания >= max_wait_seconds (защита от бесконечного ожидания)\nconst silenceReached = silenceDuration >= debounceMs;\nconst maxWaitReached = totalWaitDuration >= maxWaitMs;\nconst readyToProcess = silenceReached || maxWaitReached;\n\nreturn {\n  ...initData,\n  last_seen: lastSeenStr,\n  last_seen_time: lastSeenTime,\n  silence_duration_ms: silenceDuration,\n  total_wait_duration_ms: totalWaitDuration,\n  silence_reached: silenceReached,\n  max_wait_reached: maxWaitReached,\n  ready_to_process: readyToProcess,\n  reason: maxWaitReached ? 'max_wait_timeout' : (silenceReached ? 'silence_reached' : 'still_active')\n};"
+      },
+      "id": "e7a181b5-7906-411b-b59d-533e34384a79",
+      "name": "Check Silence Duration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ready-check",
+              "leftValue": "={{ $json.ready_to_process }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6504582c-1ee8-4efe-aae1-ee9a04588f35",
+      "name": "Ready to Process?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.queue_key }}",
+        "options": {}
+      },
+      "id": "feb0960c-8b6f-4e84-bfa0-43044d3cef98",
+      "name": "Get Batch Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -112
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Парсим сообщения из очереди\nconst queueData = $json.value;\nconst initData = $('Check Silence Duration').first().json;\n\nlet messages = [];\n\nif (queueData) {\n  // Может быть массив или строка с разделителем\n  if (Array.isArray(queueData)) {\n    for (const item of queueData) {\n      try {\n        const parsed = typeof item === 'string' ? JSON.parse(item) : item;\n        messages.push(parsed);\n      } catch (e) {\n        console.error('Failed to parse:', item);\n      }\n    }\n  } else if (typeof queueData === 'string') {\n    // Попробуем разные разделители\n    const parts = queueData.includes('|||SEPARATOR|||') \n      ? queueData.split('|||SEPARATOR|||')\n      : [queueData];\n    \n    for (const part of parts) {\n      if (part.trim()) {\n        try {\n          messages.push(JSON.parse(part));\n        } catch (e) {\n          console.error('Failed to parse part:', part);\n        }\n      }\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return {\n    empty: true,\n    batch_key: initData.batch_key\n  };\n}\n\n// Сортируем по timestamp\nconst toTs = (m) => {\n  const t = m.timestamp ? Date.parse(m.timestamp) : NaN;\n  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;\n};\nmessages.sort((a, b) => toTs(a) - toTs(b));\n\n// Собираем тексты\nconst texts = messages\n  .map(m => m.media?.voice_transcribed_text\n    ? `[Голосовое]: ${m.media.voice_transcribed_text}`\n    : (m.text || ''))\n  .filter(t => t.trim());\n\nconst combinedText = texts.join('\\n\\n');\n\n// Берём первое сообщение как базу\nconst base = messages[0];\n\n// Находим последнее с raw\nconst lastWithRaw = [...messages].reverse().find(m => m?.meta?.raw);\n\nreturn {\n  empty: false,\n  batch_key: initData.batch_key,\n  channel: base.channel,\n  external_user_id: base.external_user_id,\n  external_chat_id: base.external_chat_id,\n  text: combinedText,\n  timestamp: base.timestamp,\n  client_phone: base.client_phone,\n  client_name: base.client_name,\n  client_email: base.client_email,\n  tenant_id: base.tenant_id,\n  media: base.media,\n  meta: {\n    ...base.meta,\n    ...(lastWithRaw?.meta?.raw ? { raw: lastWithRaw.meta.raw } : {}),\n    batched: true,\n    batch_size: messages.length,\n    batch_wait_time: initData.debounce_seconds,\n    batch_reason: initData.reason,\n    original_messages: messages.map(m => ({\n      timestamp: m.timestamp,\n      type: m.meta?.original_media_type || 'text',\n      text_length: (m.text || '').length\n    })),\n    combined_at: new Date().toISOString()\n  },\n  prefilled_data: base.prefilled_data\n};"
+      },
+      "id": "5694e506-795b-4632-8083-59e7a13c7646",
+      "name": "Combine Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "empty-check",
+              "leftValue": "={{ $json.empty }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a2b308b-ba0a-48e0-b359-ec69c0ea1368",
+      "name": "Is Batch Empty?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Check Silence Duration').item.json.queue_key }}"
+      },
+      "id": "7d7e06e0-8282-4b7e-8273-3e8f0e3f1545",
+      "name": "Delete Queue (Empty)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Check Silence Duration').item.json.lock_key }}"
+      },
+      "id": "9105b47b-cd61-4262-ae3e-20fe73ceead0",
+      "name": "Release Lock (Empty)",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -224
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Check Silence Duration').item.json.queue_key }}"
+      },
+      "id": "156ad4d8-cf5e-4ddb-85fc-0c4e06a7427a",
+      "name": "Delete Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -16
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Check Silence Duration').item.json.lock_key }}"
+      },
+      "id": "90bc286c-2d0d-49b4-8413-4cb030eb4d1c",
+      "name": "Release Lock",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -16
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "OUjTFzd7k4tdoAjh",
+        "options": {}
+      },
+      "id": "df0bbd32-9328-4b66-8047-3058eade4e14",
+      "name": "→ Client Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        784,
+        -16
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Init Debouncer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Debouncer": {
+      "main": [
+        [
+          {
+            "node": "Wait 20s (Debounce)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s (Debounce)": {
+      "main": [
+        [
+          {
+            "node": "Get Last Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Seen": {
+      "main": [
+        [
+          {
+            "node": "Check Silence Duration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Silence Duration": {
+      "main": [
+        [
+          {
+            "node": "Ready to Process?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready to Process?": {
+      "main": [
+        [
+          {
+            "node": "Get Batch Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 20s (Debounce)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Batch Queue": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Messages": {
+      "main": [
+        [
+          {
+            "node": "Is Batch Empty?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Batch Empty?": {
+      "main": [
+        [
+          {
+            "node": "Delete Queue (Empty)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Queue (Empty)": {
+      "main": [
+        [
+          {
+            "node": "Release Lock (Empty)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Queue": {
+      "main": [
+        [
+          {
+            "node": "Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Release Lock": {
+      "main": [
+        [
+          {
+            "node": "→ Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    },
+    {
+      "updatedAt": "2025-11-25T13:52:16.776Z",
+      "createdAt": "2025-11-25T13:52:16.776Z",
+      "id": "KZWHB14qNi4HvGro",
+      "name": "TaskWork"
+    }
+  ],
+  "updatedAt": "2025-12-03T12:11:40.000Z",
+  "createdAt": "2025-10-14T06:52:57.937Z"
+}

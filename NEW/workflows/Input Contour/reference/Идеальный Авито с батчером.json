@@ -1,0 +1,2130 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        272
+      ],
+      "id": "a949e9c4-8f51-4ef2-882e-43184fe3131f",
+      "name": "Webhook",
+      "webhookId": "9f34e36a-6d26-49ff-a01a-59ca6ab2e646"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.combined_text }}",
+        "options": {
+          "systemMessage": "=Ты ии ассистент который хочет помочь "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        544,
+        272
+      ],
+      "id": "0c5a14cf-14c4-41cc-8eb6-3e9a90781789",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.avito.ru/messenger/v1/accounts/\n359501882/chats/{{ $('Code7').item.json.chat_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.avito_access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message[text]",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        816,
+        512
+      ],
+      "id": "3dd0683e-46b4-45ac-8bb3-fb3de08a43a1",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avito.ru/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "=client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $json['client id'] }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $json['client sescret'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        736
+      ],
+      "id": "26892f8a-af3d-49d5-95ba-0f0a9509839f",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ecea0a0-9eeb-413a-aa4b-e230da8b632a",
+              "name": "client id",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "6aacff23-a5e0-4bab-b2b6-80b040c82a8c",
+              "name": "client sescret",
+              "value": "=",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        976
+      ],
+      "id": "83941cb4-eb19-44ca-8ed9-7a592a0f4afc",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "content": "ИИ агент",
+        "height": 640,
+        "width": 900,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "16c6cee1-899a-42ee-95ec-064bba5747d8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Здесь используем бд чтоб получить актуальный ключ",
+        "height": 240,
+        "width": 210,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        480
+      ],
+      "typeVersion": 1,
+      "id": "cfd8f7dc-7d60-4c3e-bf74-b3ccc3899abc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.avito.ru/messenger/v1/accounts/\n359501882/chats/{{ $('Code7').item.json.chat_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message[text]",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        960
+      ],
+      "id": "6aa4dff0-4aef-4c18-9f00-c107453ffb02",
+      "name": "HTTP Request1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "content": "Сохроняем данные в бд/таблицы/файл",
+        "height": 200,
+        "width": 160,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "a481e688-9f17-4998-8962-614d91b179bc",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "keys",
+        "keyPattern": "avito_access_token"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        256,
+        560
+      ],
+      "id": "c00ccadc-562f-42b1-b2b9-a81ab5577476",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "avito_access_token",
+        "value": "={{ $json.avito_access_token }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        576,
+        960
+      ],
+      "id": "0174d6cc-fc43-43a4-a43f-7d60f176e2d3",
+      "name": "Redis2",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Наше сообщение1",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        704
+      ],
+      "id": "7f3e1c8a-f09d-4c96-9e80-6ff8afa26984"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 320,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        976,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "acf91c20-edb8-480f-bbd5-4685f351eb38",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Расширенная стандартизация для SaaS платформы - Авито\nfunction handleAvitoWebhook(webhookWrapper) {\n    const normalized = {\n        // Базовые поля\n        text: null,\n        event: null,\n        user_id: null,\n        author_id: null, // Добавлено\n        chat_id: null,\n        message_id: null,\n        file_id: null,\n        file_type: null,\n        \n        // SaaS специфичные поля\n        client_id: null,\n        chat_type: null, // u2i (по объявлению), u2u (личный чат)\n        is_system_message: false,\n        system_flow_id: null,\n        \n        // Метаданные\n        timestamp: new Date().toISOString(),\n        message_created_at: null,\n        \n        // Данные пользователя и чата\n        user_data: null,\n        chat_data: null,\n        item_data: null, // Данные объявления для u2i чатов\n        \n        // Для обработки ошибок и логирования\n        processing_notes: [],\n        requires_file_download: false,\n        \n        // Флаги для фильтрации\n        should_process: true,\n        skip_reason: null,\n        \n        // УНИВЕРСАЛЬНЫЙ ОБЪЕКТ ДЛЯ ВСЕХ ДАННЫХ\n        unified_data: null,\n        \n        // Оригинальные данные\n        raw_data: webhookWrapper\n    };\n\n    // Извлекаем актуальные данные сообщения из обёртки\n    let messageData;\n    \n    try {\n        if (webhookWrapper.body && webhookWrapper.body.payload && webhookWrapper.body.payload.value) {\n            messageData = webhookWrapper.body.payload.value;\n        } else {\n            // Fallback на случай если данные приходят напрямую\n            messageData = webhookWrapper;\n        }\n    } catch (e) {\n        normalized.should_process = false;\n        normalized.skip_reason = 'Failed to extract message data from webhook';\n        normalized.processing_notes.push(`Extraction error: ${e.message}`);\n        return normalized;\n    }\n\n    // Проверяем валидность данных сообщения\n    if (!messageData || !messageData.id || !messageData.type) {\n        normalized.should_process = false;\n        normalized.skip_reason = 'Invalid message data: missing required fields';\n        return normalized;\n    }\n\n    // Сохраняем метаданные webhook\n    if (webhookWrapper.body) {\n        normalized.webhook_metadata = {\n            webhook_id: webhookWrapper.body.id,\n            version: webhookWrapper.body.version,\n            webhook_timestamp: webhookWrapper.body.timestamp,\n            webhook_url: webhookWrapper.webhookUrl,\n            execution_mode: webhookWrapper.executionMode\n        };\n    }\n\n    // Базовые поля из сообщения\n    normalized.message_id = messageData.id;\n    normalized.chat_id = messageData.chat_id;\n    normalized.chat_type = messageData.chat_type; // u2i или u2u\n    normalized.user_id = messageData.user_id; // ID получателя (владелец аккаунта)\n    normalized.author_id = messageData.author_id; // ID отправителя - ДОБАВЛЕНО\n    normalized.message_created_at = messageData.created ? new Date(messageData.created * 1000).toISOString() : null;\n    \n    // Данные чата\n    normalized.chat_data = {\n        chat_id: messageData.chat_id,\n        chat_type: messageData.chat_type,\n        item_id: messageData.item_id || null,\n        is_read: messageData.read !== null,\n        published_at: messageData.published_at || null\n    };\n    \n    // Если есть item_id, добавляем информацию об объявлении\n    if (messageData.item_id) {\n        normalized.item_data = {\n            item_id: messageData.item_id,\n            published_at: messageData.published_at || null\n        };\n    }\n\n    // ИНИЦИАЛИЗАЦИЯ УНИВЕРСАЛЬНОГО ОБЪЕКТА\n    normalized.unified_data = {\n        // Основные идентификаторы (всегда присутствуют)\n        message_id: messageData.id,\n        chat_id: messageData.chat_id,\n        user_id: messageData.user_id,\n        author_id: messageData.author_id,\n        client_id: messageData.user_id, // Для SaaS\n        \n        // Тип и событие\n        message_type: messageData.type,\n        event_type: null, // Заполнится позже\n        chat_type: messageData.chat_type,\n        \n        // Временные метки\n        created_at: messageData.created,\n        created_at_iso: messageData.created ? new Date(messageData.created * 1000).toISOString() : null,\n        published_at: messageData.published_at || null,\n        processed_at: new Date().toISOString(),\n        \n        // Контент (заполняется в зависимости от типа)\n        text_content: null,\n        file_url: null,\n        file_id: null,\n        file_type: null,\n        file_metadata: {},\n        \n        // Специфичные данные\n        item_id: messageData.item_id || null,\n        system_flow_id: null,\n        \n        // Флаги\n        is_system_message: false,\n        should_process: true,\n        requires_file_download: false,\n        is_incoming: messageData.author_id !== messageData.user_id,\n        \n        // Дополнительные данные (зависят от типа сообщения)\n        extra_data: {}\n    };\n\n    // ОБРАБОТКА СИСТЕМНЫХ СООБЩЕНИЙ\n    if (messageData.type === 'system') {\n        normalized.event = 'system_message';\n        normalized.is_system_message = true;\n        normalized.should_process = false; // НЕ обрабатываем системные сообщения\n        normalized.skip_reason = 'System message from Avito';\n        \n        // Обновляем unified_data\n        normalized.unified_data.event_type = 'system_message';\n        normalized.unified_data.is_system_message = true;\n        normalized.unified_data.should_process = false;\n        \n        if (messageData.content && messageData.content.flow_id) {\n            normalized.system_flow_id = messageData.content.flow_id;\n            normalized.unified_data.system_flow_id = messageData.content.flow_id;\n            normalized.processing_notes.push(`System flow: ${messageData.content.flow_id}`);\n        }\n        \n        // Если есть текст в системном сообщении\n        if (messageData.content && messageData.content.text) {\n            normalized.text = messageData.content.text;\n            normalized.unified_data.text_content = messageData.content.text;\n        }\n        \n        return normalized;\n    }\n\n    // ОБРАБОТКА ОСТАЛЬНЫХ ТИПОВ СООБЩЕНИЙ\n    const content = messageData.content || {};\n    \n    switch (messageData.type) {\n        case 'text':\n            normalized.event = 'text_message';\n            normalized.text = content.text || null;\n            \n            // Unified data\n            normalized.unified_data.event_type = 'text_message';\n            normalized.unified_data.text_content = content.text || null;\n            break;\n            \n        case 'image':\n            normalized.event = 'image_message';\n            normalized.file_type = 'photo';\n            normalized.requires_file_download = true;\n            \n            // Unified data\n            normalized.unified_data.event_type = 'image_message';\n            normalized.unified_data.file_type = 'photo';\n            normalized.unified_data.requires_file_download = true;\n            \n            if (content.image && content.image.sizes) {\n                const sizes = Object.entries(content.image.sizes);\n                if (sizes.length > 0) {\n                    const largestSize = sizes.sort((a, b) => {\n                        const [w1, h1] = a[0].split('x').map(Number);\n                        const [w2, h2] = b[0].split('x').map(Number);\n                        return (w2 * h2) - (w1 * h1);\n                    })[0];\n                    \n                    normalized.file_data = {\n                        url: largestSize[1],\n                        size: largestSize[0],\n                        all_sizes: content.image.sizes\n                    };\n                    normalized.file_id = largestSize[1];\n                    \n                    // Unified data\n                    normalized.unified_data.file_url = largestSize[1];\n                    normalized.unified_data.file_id = largestSize[1];\n                    normalized.unified_data.file_metadata = {\n                        largest_size: largestSize[0],\n                        all_sizes: content.image.sizes\n                    };\n                }\n            }\n            \n            // Проверяем наличие подписи к изображению\n            if (content.text) {\n                normalized.text = content.text;\n                normalized.unified_data.text_content = content.text;\n                normalized.unified_data.extra_data.caption = content.text;\n            }\n            break;\n            \n        case 'voice':\n            normalized.event = 'voice_message';\n            normalized.file_type = 'voice';\n            normalized.requires_file_download = true;\n            \n            // Unified data\n            normalized.unified_data.event_type = 'voice_message';\n            normalized.unified_data.file_type = 'voice';\n            normalized.unified_data.requires_file_download = true;\n            \n            if (content.voice && content.voice.voice_id) {\n                normalized.file_id = content.voice.voice_id;\n                normalized.file_data = {\n                    voice_id: content.voice.voice_id,\n                    requires_api_call: true\n                };\n                \n                // Unified data\n                normalized.unified_data.file_id = content.voice.voice_id;\n                normalized.unified_data.file_metadata = {\n                    voice_id: content.voice.voice_id,\n                    requires_api_call: true,\n                    api_method: '/getVoiceFiles'\n                };\n            }\n            break;\n            \n        case 'link':\n            normalized.event = 'link_message';\n            normalized.text = content.link?.text || content.link?.url || null;\n            \n            // Unified data\n            normalized.unified_data.event_type = 'link_message';\n            normalized.unified_data.text_content = content.link?.text || content.link?.url || null;\n            \n            if (content.link) {\n                normalized.link_data = {\n                    url: content.link.url,\n                    text: content.link.text,\n                    preview: content.link.preview || null\n                };\n                \n                // Unified data\n                normalized.unified_data.extra_data = {\n                    link_url: content.link.url,\n                    link_text: content.link.text,\n                    link_preview: content.link.preview\n                };\n            }\n            break;\n            \n        case 'item':\n            normalized.event = 'item_share';\n            normalized.text = content.item?.title || 'Shared item';\n            \n            // Unified data\n            normalized.unified_data.event_type = 'item_share';\n            normalized.unified_data.text_content = content.item?.title || 'Shared item';\n            \n            if (content.item) {\n                normalized.shared_item = {\n                    title: content.item.title,\n                    price: content.item.price_string,\n                    url: content.item.item_url,\n                    image_url: content.item.image_url\n                };\n                \n                // Unified data\n                normalized.unified_data.extra_data = {\n                    item_title: content.item.title,\n                    item_price: content.item.price_string,\n                    item_url: content.item.item_url,\n                    item_image: content.item.image_url\n                };\n            }\n            break;\n            \n        case 'location':\n            normalized.event = 'location_message';\n            \n            // Unified data\n            normalized.unified_data.event_type = 'location_message';\n            \n            if (content.location) {\n                normalized.location_data = {\n                    latitude: content.location.lat,\n                    longitude: content.location.lon,\n                    title: content.location.title || content.location.text,\n                    kind: content.location.kind\n                };\n                normalized.text = content.location.text || \n                    `Location: ${content.location.lat}, ${content.location.lon}`;\n                \n                // Unified data\n                normalized.unified_data.text_content = normalized.text;\n                normalized.unified_data.extra_data = {\n                    latitude: content.location.lat,\n                    longitude: content.location.lon,\n                    location_title: content.location.title,\n                    location_kind: content.location.kind\n                };\n            }\n            break;\n            \n        case 'call':\n            normalized.event = 'call_notification';\n            \n            // Unified data\n            normalized.unified_data.event_type = 'call_notification';\n            \n            if (content.call) {\n                normalized.call_data = {\n                    status: content.call.status,\n                    target_user_id: content.call.target_user_id\n                };\n                normalized.text = content.call.status === 'missed' ? \n                    'Missed call' : 'Call notification';\n                \n                // Unified data\n                normalized.unified_data.text_content = normalized.text;\n                normalized.unified_data.extra_data = {\n                    call_status: content.call.status,\n                    call_target: content.call.target_user_id\n                };\n            }\n            break;\n            \n        case 'deleted':\n            normalized.event = 'deleted_message';\n            normalized.text = 'Message was deleted';\n            normalized.should_process = false;\n            normalized.skip_reason = 'Deleted message';\n            \n            // Unified data\n            normalized.unified_data.event_type = 'deleted_message';\n            normalized.unified_data.text_content = 'Message was deleted';\n            normalized.unified_data.should_process = false;\n            break;\n            \n        case 'appCall':\n        case 'file':\n        case 'video':\n            normalized.event = `unsupported_${messageData.type}`;\n            normalized.should_process = false;\n            normalized.skip_reason = `Unsupported message type: ${messageData.type}`;\n            \n            // Unified data\n            normalized.unified_data.event_type = `unsupported_${messageData.type}`;\n            normalized.unified_data.should_process = false;\n            normalized.unified_data.text_content = `Unsupported type: ${messageData.type}`;\n            break;\n            \n        default:\n            normalized.event = 'unknown_message';\n            normalized.processing_notes.push(`Unknown message type: ${messageData.type}`);\n            \n            // Unified data\n            normalized.unified_data.event_type = 'unknown_message';\n            normalized.unified_data.text_content = `Unknown type: ${messageData.type}`;\n    }\n\n    // Добавляем информацию о направлении сообщения\n    if (messageData.author_id === messageData.user_id) {\n        normalized.direction = 'out';\n    } else {\n        normalized.direction = 'in';\n    }\n\n    // Простая эвристика для определения клиента в SaaS\n    normalized.client_id = messageData.user_id;\n\n    return normalized;\n}\n\n// Основная обработка\nconst webhookInput = $input.first().json;\n\n// Проверяем, что это массив и берем первый элемент\nconst webhookData = Array.isArray(webhookInput) ? webhookInput[0] : webhookInput;\n\n// Проверяем наличие обязательных полей в структуре webhook\nif (!webhookData || !webhookData.body || !webhookData.body.payload || !webhookData.body.payload.value) {\n    throw new Error('Invalid Avito webhook structure: missing body.payload.value');\n}\n\nconst normalized = handleAvitoWebhook(webhookData);\n\n// Добавляем метаданные для SaaS\nnormalized.workflow_metadata = {\n    router_version: '1.0',\n    processed_at: new Date().toISOString(),\n    execution_id: $execution.id,\n    workflow_name: 'Avito_Main_Router',\n    platform: 'avito'\n};\n\n// Логирование для отладки\nif (normalized.is_system_message) {\n    console.log('System message detected:', {\n        flow_id: normalized.system_flow_id,\n        skip_reason: normalized.skip_reason,\n        has_text: !!normalized.text\n    });\n}\n\nif (!normalized.should_process) {\n    console.log('Message will be skipped:', normalized.skip_reason);\n}\n\nreturn normalized;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        272
+      ],
+      "id": "0b05cdd9-0541-49c2-873e-4de0a5933f76",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "publish",
+        "channel": "=avito_{{ $json.event }}",
+        "messageData": "={{ JSON.stringify($json.unified_data) }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        272
+      ],
+      "id": "37a74724-abbb-4a0a-b204-3793e08546f8",
+      "name": "Redis3",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channels": "avito_text_message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1488,
+        496
+      ],
+      "id": "ef41645b-05c8-4db3-9426-6cf3d251b6c3",
+      "name": "Redis Trigger text",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channels": "avito_image_message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        960
+      ],
+      "id": "55c81b21-9bc3-414c-8c93-82fedd993b67",
+      "name": "Redis_image_message",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channels": "avito_voice_message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        1136
+      ],
+      "id": "43d2c15a-bd7b-4fd3-a726-097e8e433f88",
+      "name": "Redis_voice_message",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Декодер для Redis данных Авито в n8n\nconst input = $input.first();\n\n// В n8n данные из Redis приходят в поле json\nconst redisData = input.json;\n\nconsole.log('Redis channel:', redisData.channel);\nconsole.log('Message type:', typeof redisData.message);\n\n// Проверяем наличие необходимых полей\nif (!redisData.channel || !redisData.message) {\n    throw new Error('Missing channel or message in Redis data');\n}\n\n// Парсим JSON из поля message\nlet parsedData;\ntry {\n    parsedData = JSON.parse(redisData.message);\n    console.log('Successfully parsed message');\n    console.log('Event type:', parsedData.event_type);\n    console.log('Chat ID:', parsedData.chat_id);\n} catch (e) {\n    throw new Error('Failed to parse message JSON: ' + e.message);\n}\n\n// Проверяем обязательные поля\nif (!parsedData.chat_id) {\n    throw new Error('Missing required field: chat_id');\n}\n\n// Возвращаем структурированные данные\nreturn {\n    // Все поля из unified_data\n    ...parsedData,\n    \n    // Метаданные\n    _redis: {\n        channel: redisData.channel,\n        decoded_at: new Date().toISOString()\n    },\n    \n    // Для удобства - основные поля\n    core: {\n        client_id: parsedData.client_id,\n        author_id: parsedData.author_id,\n        chat_id: parsedData.chat_id,\n        message_id: parsedData.message_id,\n        text: parsedData.text_content,\n        event_type: parsedData.event_type\n    },\n    \n    // Routing флаги\n    routing: {\n        should_process: parsedData.should_process !== false,\n        is_system: parsedData.is_system_message || false,\n        has_text: !!parsedData.text_content,\n        has_file: !!(parsedData.file_url || parsedData.file_id),\n        file_type: parsedData.file_type || null,\n        requires_voice_api: parsedData.file_metadata?.requires_api_call || false\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1312,
+        496
+      ],
+      "id": "a3acaa60-afed-4790-b407-222fa94da599",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Декодер для Redis данных Авито в n8n\nconst input = $input.first();\n\n// В n8n данные из Redis приходят в поле json\nconst redisData = input.json;\n\nconsole.log('Redis channel:', redisData.channel);\nconsole.log('Message type:', typeof redisData.message);\n\n// Проверяем наличие необходимых полей\nif (!redisData.channel || !redisData.message) {\n    throw new Error('Missing channel or message in Redis data');\n}\n\n// Парсим JSON из поля message\nlet parsedData;\ntry {\n    parsedData = JSON.parse(redisData.message);\n    console.log('Successfully parsed message');\n    console.log('Event type:', parsedData.event_type);\n    console.log('Chat ID:', parsedData.chat_id);\n} catch (e) {\n    throw new Error('Failed to parse message JSON: ' + e.message);\n}\n\n// Проверяем обязательные поля\nif (!parsedData.chat_id) {\n    throw new Error('Missing required field: chat_id');\n}\n\n// Возвращаем структурированные данные\nreturn {\n    // Все поля из unified_data\n    ...parsedData,\n    \n    // Метаданные\n    _redis: {\n        channel: redisData.channel,\n        decoded_at: new Date().toISOString()\n    },\n    \n    // Для удобства - основные поля\n    core: {\n        client_id: parsedData.client_id,\n        author_id: parsedData.author_id,\n        chat_id: parsedData.chat_id,\n        message_id: parsedData.message_id,\n        text: parsedData.text_content,\n        event_type: parsedData.event_type\n    },\n    \n    // Routing флаги\n    routing: {\n        should_process: parsedData.should_process !== false,\n        is_system: parsedData.is_system_message || false,\n        has_text: !!parsedData.text_content,\n        has_file: !!(parsedData.file_url || parsedData.file_id),\n        file_type: parsedData.file_type || null,\n        requires_voice_api: parsedData.file_metadata?.requires_api_call || false\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        960
+      ],
+      "id": "c8666d5c-1156-45fb-8cf5-be409090274f",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Декодер для Redis данных Авито в n8n\nconst input = $input.first();\n\n// В n8n данные из Redis приходят в поле json\nconst redisData = input.json;\n\nconsole.log('Redis channel:', redisData.channel);\nconsole.log('Message type:', typeof redisData.message);\n\n// Проверяем наличие необходимых полей\nif (!redisData.channel || !redisData.message) {\n    throw new Error('Missing channel or message in Redis data');\n}\n\n// Парсим JSON из поля message\nlet parsedData;\ntry {\n    parsedData = JSON.parse(redisData.message);\n    console.log('Successfully parsed message');\n    console.log('Event type:', parsedData.event_type);\n    console.log('Chat ID:', parsedData.chat_id);\n} catch (e) {\n    throw new Error('Failed to parse message JSON: ' + e.message);\n}\n\n// Проверяем обязательные поля\nif (!parsedData.chat_id) {\n    throw new Error('Missing required field: chat_id');\n}\n\n// Возвращаем структурированные данные\nreturn {\n    // Все поля из unified_data\n    ...parsedData,\n    \n    // Метаданные\n    _redis: {\n        channel: redisData.channel,\n        decoded_at: new Date().toISOString()\n    },\n    \n    // Для удобства - основные поля\n    core: {\n        client_id: parsedData.client_id,\n        author_id: parsedData.author_id,\n        chat_id: parsedData.chat_id,\n        message_id: parsedData.message_id,\n        text: parsedData.text_content,\n        event_type: parsedData.event_type\n    },\n    \n    // Routing флаги\n    routing: {\n        should_process: parsedData.should_process !== false,\n        is_system: parsedData.is_system_message || false,\n        has_text: !!parsedData.text_content,\n        has_file: !!(parsedData.file_url || parsedData.file_id),\n        file_type: parsedData.file_type || null,\n        requires_voice_api: parsedData.file_metadata?.requires_api_call || false\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        1136
+      ],
+      "id": "5eb5029a-d8e5-4e06-95c5-fd3ac5bde8ab",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Декодер для Redis данных Авито в n8n\nconst input = $input.first();\n\n// В n8n данные из Redis приходят в поле json\nconst redisData = input.json;\n\nconsole.log('Redis channel:', redisData.channel);\nconsole.log('Message type:', typeof redisData.message);\n\n// Проверяем наличие необходимых полей\nif (!redisData.channel || !redisData.message) {\n    throw new Error('Missing channel or message in Redis data');\n}\n\n// Парсим JSON из поля message\nlet parsedData;\ntry {\n    parsedData = JSON.parse(redisData.message);\n    console.log('Successfully parsed message');\n    console.log('Event type:', parsedData.event_type);\n    console.log('Chat ID:', parsedData.chat_id);\n} catch (e) {\n    throw new Error('Failed to parse message JSON: ' + e.message);\n}\n\n// Проверяем обязательные поля\nif (!parsedData.chat_id) {\n    throw new Error('Missing required field: chat_id');\n}\n\n// Возвращаем структурированные данные\nreturn {\n    // Все поля из unified_data\n    ...parsedData,\n    \n    // Метаданные\n    _redis: {\n        channel: redisData.channel,\n        decoded_at: new Date().toISOString()\n    },\n    \n    // Для удобства - основные поля\n    core: {\n        client_id: parsedData.client_id,\n        author_id: parsedData.author_id,\n        chat_id: parsedData.chat_id,\n        message_id: parsedData.message_id,\n        text: parsedData.text_content,\n        event_type: parsedData.event_type\n    },\n    \n    // Routing флаги\n    routing: {\n        should_process: parsedData.should_process !== false,\n        is_system: parsedData.is_system_message || false,\n        has_text: !!parsedData.text_content,\n        has_file: !!(parsedData.file_url || parsedData.file_id),\n        file_type: parsedData.file_type || null,\n        requires_voice_api: parsedData.file_metadata?.requires_api_call || false\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        1344
+      ],
+      "id": "d210e0f1-6acf-452a-99ea-eb24ff7b4d5f",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6afe864-a1ca-4896-ac17-d877475a3f51",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "={{ $json.author_id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1168,
+        496
+      ],
+      "id": "7fa93e1d-c24f-4260-bb5f-eb2fd8c7b0b0",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=avito:batch:{{ $json.chat_id }}",
+        "messageData": "={{ JSON.stringify({ text: $json.text_content, type: $json.event_type, id: $json.message_id, author_id: $json.author_id, timestamp: Date.now() }) }}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1424,
+        704
+      ],
+      "id": "c35a247b-4b52-49ec-8d11-8039576333c6",
+      "name": "Redis5",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем, нужно ли запустить таймер обработки\nconst chatId = $input.first().json.chat_id;\nconst timerKey = `avito:timer:${chatId}`;\n\nreturn {\n    timer_key: timerKey,\n    chat_id: chatId,\n    trigger_channel: `avito:trigger:${chatId}`,\n    ttl: 10\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        736
+      ],
+      "id": "2c81b78a-dfb5-40b3-a986-c5de21be5671",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.timer_key }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        736
+      ],
+      "id": "d054bfe7-b07b-4faa-9602-02eb834c9958",
+      "name": "Redis6",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "630dcedf-3b7e-4736-95ae-d7ccb7f9ac96",
+              "leftValue": "={{ $json.value === null }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1024,
+        704
+      ],
+      "id": "1808a785-1071-485d-a8b7-048f768a803a",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $('Code5').item.json.timer_key }}",
+        "value": "={{ Date.now() }}",
+        "keyType": "string",
+        "expire": true,
+        "ttl": 30000
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        480
+      ],
+      "id": "bb909801-83b1-4e5f-a584-eb5065b567f1",
+      "name": "Redis8",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=avito:delayed:{{ $('Code5').item.json.chat_id }}",
+        "value": "={{ JSON.stringify({chat_id: $json.chat_id, trigger_at: Date.now() + 10000}) }}",
+        "keyType": "string",
+        "expire": true,
+        "ttl": 30000
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        704
+      ],
+      "id": "d996dc85-48a5-46a5-a2a1-57371c6a1848",
+      "name": "Redis9",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channels": "messages:batch:*",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        272
+      ],
+      "id": "6b613643-3f16-4dc0-a646-64aeb8df41e1",
+      "name": "Redis Trigger text1",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 480,
+        "width": 1060,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1664,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "e56184a5-7014-43e7-9507-e14e8cf45a0d",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем все элементы из входа\nconst items = $input.all();\n\n// Группируем сообщения по chat_id\nconst messagesByChat = {};\n\nitems.forEach(item => {\n  // Парсим сообщение если оно в строке\n  const message = typeof item.json.message === 'string' \n    ? JSON.parse(item.json.message) \n    : item.json.message;\n  \n  const chatId = message.chat_id;\n  \n  // Инициализируем массив для чата если его нет\n  if (!messagesByChat[chatId]) {\n    messagesByChat[chatId] = {\n      chat_id: chatId,\n      user_id: message.user_id,\n      author_id: message.author_id,\n      item_id: message.item_id,\n      messages: [],\n      combined_text: '',\n      first_message_time: message.created_at_iso,\n      last_message_time: message.created_at_iso\n    };\n  }\n  \n  // Добавляем сообщение\n  messagesByChat[chatId].messages.push({\n    message_id: message.message_id,\n    text: message.text_content,\n    time: message.created_at_iso,\n    is_incoming: message.is_incoming\n  });\n  \n  // Обновляем последнее время\n  messagesByChat[chatId].last_message_time = message.created_at_iso;\n});\n\n// Формируем объединенный текст для каждого чата\nObject.values(messagesByChat).forEach(chat => {\n  // Сортируем сообщения по времени\n  chat.messages.sort((a, b) => new Date(a.time) - new Date(b.time));\n  \n  // Объединяем тексты\n  chat.combined_text = chat.messages\n    .map(msg => msg.text)\n    .filter(text => text && text.trim())\n    .join('\\n');\n  \n  // Добавляем количество сообщений\n  chat.message_count = chat.messages.length;\n});\n\n// Возвращаем как массив для дальнейшей обработки\nreturn Object.values(messagesByChat);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        272
+      ],
+      "id": "35c9b106-c479-4e61-bfbe-839fc35ab7a3",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 340,
+        "width": 680,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "566e37b7-1fce-44ba-aba0-a7a7efc1e114",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=batch:{{ $json.chat_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        272
+      ],
+      "id": "ab5f0c69-7f1b-407d-b910-eff5353c1e68",
+      "name": "Redis7",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем строку из propertyName\nconst jsonString = $input.first().json.propertyName;\n\n// Парсим JSON\nconst data = JSON.parse(jsonString);\n\n// Возвращаем извлеченные данные\nreturn {\n  chat_id: data.chat_id,\n  author_id: data.author_id,\n  combined_text: data.combined_text,\n  message_count: data.message_count,\n  // Разбиваем текст на отдельные сообщения если нужно\n  messages_array: data.combined_text.split('\\n')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        272
+      ],
+      "id": "fa704898-3583-428a-9aef-faee44e5ace9",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 340,
+        "width": 680,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -496,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "0c77f09b-1e97-426b-81bd-1bd9d1900389",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        672
+      ],
+      "id": "7cb7badb-46fe-428c-b80a-54ff2e63b1e8",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "content": "Ставим свой ключ",
+        "height": 180,
+        "width": 230,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "455185b3-2660-4701-b9e6-bae74c03ded8",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avito.ru/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "=client_credentials"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $json['client id'] }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $json['client sescret'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -624,
+        -160
+      ],
+      "id": "08e14901-e7b3-46d5-b79d-ddf24994ca0b",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8011817b-8a0d-41bc-befc-6162c15aabf4",
+              "leftValue": "={{ $json.access_token && $json.token_type === \"Bearer\" && !$json.error }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        -288
+      ],
+      "id": "2b07f6eb-40d1-4ff5-91d4-0c3b75d68b4f",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.avito.ru/core/v1/accounts/self",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.token_type }} {{ $json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -176,
+        -160
+      ],
+      "id": "d301a7ae-faaa-48ba-9923-b07c334123c3",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.avito.ru/messenger/v3/webhook",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('HTTP Request3').item.json.access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"https://8982-2a01-e5c0-5888-00-2.ngrok-free.app/webhook/test3\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        16,
+        -368
+      ],
+      "id": "c33678fc-6cb0-4e21-ada2-3f5fb85fb1a7",
+      "name": "Регистрация веб хука3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e1d95f5-7194-4183-aa1c-1978b912ba98",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -288
+      ],
+      "id": "8e5bfb3d-7164-4e70-9a4f-078e230e55b0",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "content": "Сохроняем данные в бд/таблицы/файл",
+        "height": 240,
+        "width": 560,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "44b03b14-c840-4c30-ba52-9586c3c9269f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "errorMessage": "1"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -32
+      ],
+      "id": "a95b2010-1cec-45e8-9859-885ef5ede411",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "errorMessage": "2"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "ca87e36d-6b07-40e3-aed7-309bef2fc5a7",
+      "name": "Stop and Error1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fbfad923-9a78-4b88-a53c-4baa5b906cc6",
+              "name": "id",
+              "value": "={{ $('HTTP Request5').item.json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "8e09611d-4ef9-445d-ac26-8ac6e6f7fb05",
+              "name": "access_token",
+              "value": "={{ $('HTTP Request3').item.json.access_token }}",
+              "type": "string"
+            },
+            {
+              "id": "a14c9fd5-9178-42e7-91d7-136f65896b70",
+              "name": "client id",
+              "value": "={{ $('Edit Fields').item.json['client id'] }}",
+              "type": "string"
+            },
+            {
+              "id": "0874ff77-2531-4511-a755-8a7a14ead6c8",
+              "name": "client sescret",
+              "value": "={{ $('Edit Fields').item.json['client sescret'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -160
+      ],
+      "id": "c31d7202-6334-408f-a8cf-0d28283a783f",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ecea0a0-9eeb-413a-aa4b-e230da8b632a",
+              "name": "client id",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "6aacff23-a5e0-4bab-b2b6-80b040c82a8c",
+              "name": "client sescret",
+              "value": "=",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -816,
+        -288
+      ],
+      "id": "0f7ec59d-cef0-449a-a19b-806290e27361",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 23
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1072,
+        -160
+      ],
+      "id": "322ddb25-b1c4-4bba-87de-2a5d19f32cbc",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "avito_access_token",
+        "value": "={{ $json.access_token }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -160
+      ],
+      "id": "f9c74c53-b23a-4a84-9c91-6347f7df383d",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 180,
+        "width": 220,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        784,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "8c0ba33f-7b69-4abb-8a8a-6bb0d5e82c53",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 220,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        784,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "8af19e69-6bb6-4014-a48b-280415d63176",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Обработка фото",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        960
+      ],
+      "id": "8c48e8c9-5c13-4a34-b114-6aad35d39fec"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Голосовые сообщение",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        1136
+      ],
+      "id": "42fdf06b-3690-4d8b-aae9-e094943e0fb2"
+    },
+    {
+      "parameters": {
+        "channels": "avito_system_message",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        1344
+      ],
+      "id": "4557c8df-5f66-4c0c-928a-c61ca38480b0",
+      "name": "Redis system_message",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Системные сообщении",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        1344
+      ],
+      "id": "2c36c5dd-3919-4198-bd43-70b3dba504b9"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 220,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -848,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "388983e3-1861-4d4e-8d92-403e7474bb93",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 220,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "3778da0b-8240-4e2f-ad55-906d2e70ad7c",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 1040,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1568,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "390147e7-2b9b-4165-92de-ff79805d88e1",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        672
+      ],
+      "id": "6548eaa5-5cf5-484e-a6ef-d69916b2a560",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.chat_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        672
+      ],
+      "id": "921e62c9-643d-4097-a078-123a586224d8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        1056
+      ],
+      "id": "3cc9bd7f-a74b-4ab1-a277-23477806f259",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "keys",
+        "keyPattern": "avito:delayed:*"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        1232
+      ],
+      "id": "fbb06379-45d7-4de0-be32-437ee9731460",
+      "name": "Redis Keys",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Полная отладка входных данных\nconst input = $input.first();\nconst now = Date.now();\n\nconsole.log('=== Debug Start ===');\nconsole.log('Input type:', typeof input);\nconsole.log('Input keys:', Object.keys(input || {}));\n\n// Проверяем разные варианты структуры\nconsole.log('input.json exists:', !!input.json);\nconsole.log('input.keys exists:', !!input.keys);\n\n// Если есть json\nif (input.json) {\n    console.log('input.json type:', typeof input.json);\n    console.log('input.json keys:', Object.keys(input.json || {}));\n    console.log('input.json content:', JSON.stringify(input.json, null, 2));\n}\n\n// Если есть keys\nif (input.keys) {\n    console.log('input.keys:', input.keys);\n}\n\n// Проверяем первый элемент\nconsole.log('Full input structure:', JSON.stringify(input, null, 2));\n\nconsole.log('=== Debug End ===');\n\n// Теперь попробуем найти данные\nlet keysToProcess = [];\n\n// Вариант 1: keys в массиве\nif (Array.isArray(input.keys)) {\n    keysToProcess = input.keys.filter(key => key.startsWith('avito:delayed:'));\n}\n// Вариант 2: keys в json объекте\nelse if (input.json && typeof input.json === 'object') {\n    keysToProcess = Object.keys(input.json).filter(key => key.startsWith('avito:delayed:'));\n}\n// Вариант 3: прямо в input\nelse if (typeof input === 'object') {\n    keysToProcess = Object.keys(input).filter(key => key.startsWith('avito:delayed:'));\n}\n\nconsole.log('Keys to process:', keysToProcess);\n\n// Если нет ключей\nif (keysToProcess.length === 0) {\n    console.log('No delayed keys found');\n    return [];\n}\n\n// Обрабатываем найденные ключи\nconst toProcess = keysToProcess.map(key => {\n    const chatId = key.replace('avito:delayed:', '');\n    return {\n        chat_id: chatId,\n        batch_key: `avito:batch:${chatId}`,\n        delayed_key: key,\n        timer_key: `avito:timer:${chatId}`\n    };\n});\n\nconsole.log(`Returning ${toProcess.length} items for processing`);\nreturn toProcess;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        1232
+      ],
+      "id": "e540e329-35ef-4dbf-8d84-e205e9206f0c",
+      "name": "Check Batches"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "id": "a7ec5472-dfca-463a-a285-53b1b8c9cd36"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        1232
+      ],
+      "id": "76c288c9-ee35-4988-9ce6-19ab44492f6c",
+      "name": "Has Batches?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        144,
+        1216
+      ],
+      "id": "6ff31b12-f58c-4cf5-9121-f94489922a9f",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.batch_key }}",
+        "keyType": "list",
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        1440
+      ],
+      "id": "7380aa45-cb36-4fba-af4e-f549681eee01",
+      "name": "Get Messages",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем сообщения из Redis List\nconst messagesArray = $json.propertyName || [];\nconst itemData = $('Loop Over Items').item.json;\n\nconsole.log(`Processing batch for chat: ${itemData.chat_id}`);\nconsole.log(`Found ${messagesArray.length} messages`);\n\n// Парсим каждое сообщение\nconst parsedMessages = messagesArray.map((msgString, index) => {\n    try {\n        return JSON.parse(msgString);\n    } catch (e) {\n        console.error(`Failed to parse message ${index}:`, e);\n        return null;\n    }\n}).filter(m => m !== null);\n\n// Сортируем по времени\nparsedMessages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));\n\n// Объединяем тексты\nconst combinedText = parsedMessages\n    .map(m => m.text || '')\n    .filter(text => text.trim() !== '')\n    .join('\\n');\n\nconsole.log(`Combined messages:`);\nconsole.log(`- Total: ${parsedMessages.length}`);\nconsole.log(`- Combined text length: ${combinedText.length}`);\nconsole.log(`- Text preview: ${combinedText.substring(0, 100)}...`);\n\n// Собираем статистику по типам сообщений\nconst messageTypes = {};\nparsedMessages.forEach(msg => {\n    messageTypes[msg.type || 'unknown'] = (messageTypes[msg.type || 'unknown'] || 0) + 1;\n});\n\nreturn {\n    // Основные данные\n    chat_id: itemData.chat_id,\n    author_id: parsedMessages[0]?.author_id,\n    message_count: parsedMessages.length,\n    combined_text: combinedText,\n    \n    // Детали\n    messages: parsedMessages,\n    message_types: messageTypes,\n    \n    // Временные метки\n    first_message_time: parsedMessages[0]?.timestamp,\n    last_message_time: parsedMessages[parsedMessages.length - 1]?.timestamp,\n    time_span_seconds: parsedMessages.length > 1 ? \n        Math.round((parsedMessages[parsedMessages.length - 1].timestamp - parsedMessages[0].timestamp) / 1000) : 0,\n    \n    // Для дальнейшей обработки\n    has_text: combinedText.length > 0,\n    has_files: parsedMessages.some(m => m.type === 'voice' || m.type === 'image'),\n    \n    // Ключи для удаления\n    batch_key: itemData.batch_key,\n    delayed_key: itemData.delayed_key,\n    timer_key: itemData.timer_key\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        1440
+      ],
+      "id": "9cd7c2c9-1077-475c-b005-22a2790f99fe",
+      "name": "Combine Messages"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Loop Over Items').item.json.batch_key }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        1440
+      ],
+      "id": "cd334a8e-018f-4f77-a0a9-95f2c3cdf498",
+      "name": "Delete Batch",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Loop Over Items').item.json.delayed_key }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        1440
+      ],
+      "id": "e4d55daf-2655-43ca-8612-59e9aaa61652",
+      "name": "Delete Delayed",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Loop Over Items').item.json.timer_key }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        1440
+      ],
+      "id": "05da589b-26d6-4d6c-9ce6-c0621cfe3a2b",
+      "name": "Delete Timer",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Здесь вы можете отправить объединенные сообщения в AI или другую систему\nconst data = $input.first().json;\n\nconsole.log('=== BATCH PROCESSED ===');\nconsole.log(`Chat ID: ${data.chat_id}`);\nconsole.log(`Author ID: ${data.author_id}`);\nconsole.log(`Messages count: ${data.message_count}`);\nconsole.log(`Time span: ${data.time_span_seconds} seconds`);\nconsole.log(`Combined text (${data.combined_text.length} chars):`);\nconsole.log(data.combined_text);\nconsole.log('======================');\n\n// Подготавливаем данные для следующего шага\nreturn {\n    chat_id: data.chat_id,\n    author_id: data.author_id,\n    combined_text: data.combined_text,\n    message_count: data.message_count,\n    has_text: data.has_text,\n    has_files: data.has_files,\n    ready_for_ai: true\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        1440
+      ],
+      "id": "bddf28e2-7189-4ac8-9d91-4ae0a89dda57",
+      "name": "Process Result"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1232
+      ],
+      "id": "3bc726a7-a226-414e-95b0-309324945acb",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "publish",
+        "channel": "=messages:batch:{{ $json.chat_id }}",
+        "messageData": "={{ JSON.stringify({ \n  key: \"batch:\" + $json.chat_id,\n  chat_id: $json.chat_id,\n  timestamp: new Date().toISOString()\n}) }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        496,
+        1200
+      ],
+      "id": "35bd307d-514a-4c43-b991-5ae3a9dc1704",
+      "name": "Redis10",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=batch:{{ $json.chat_id }}",
+        "value": "={{ JSON.stringify({\n  chat_id: $json.chat_id,\n  author_id: $json.author_id,\n  combined_text: $json.combined_text,\n  messages: $json.messages,\n  message_count: $json.message_count\n}) }}\n",
+        "expire": true,
+        "ttl": 300
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        352,
+        1200
+      ],
+      "id": "ceba66f7-c3df-4e36-9819-c9b1a8854a8a",
+      "name": "Redis11",
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Наше сообщение1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Redis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Наше сообщение1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Redis3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Trigger text": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis_image_message": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis_voice_message": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Обработка фото",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Голосовые сообщение",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Системные сообщении",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Redis5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis5": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Redis6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis6": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Redis8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis8": {
+      "main": [
+        [
+          {
+            "node": "Redis9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Trigger text1": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Redis7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis7": {
+      "main": [
+        [
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Регистрация веб хука3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Регистрация веб хука3": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis system_message": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Keys": {
+      "main": [
+        [
+          {
+            "node": "Check Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Batches": {
+      "main": [
+        [
+          {
+            "node": "Has Batches?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Batches?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Redis11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Messages": {
+      "main": [
+        [
+          {
+            "node": "Combine Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Messages": {
+      "main": [
+        [
+          {
+            "node": "Delete Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Batch": {
+      "main": [
+        [
+          {
+            "node": "Delete Delayed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Delayed": {
+      "main": [
+        [
+          {
+            "node": "Delete Timer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Timer": {
+      "main": [
+        [
+          {
+            "node": "Process Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Result": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Redis Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis11": {
+      "main": [
+        [
+          {
+            "node": "Redis10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Redis Trigger text": [
+      {
+        "channel": "avito_text_message",
+        "message": "{\"message_id\":\"9c35b4d625dbcf0952af3bbd8d5ff1e1\",\"chat_id\":\"u2i-8IpHELJB5DKcUCS1KB3d5Q\",\"user_id\":359501882,\"author_id\":392225537,\"client_id\":359501882,\"message_type\":\"text\",\"event_type\":\"text_message\",\"chat_type\":\"u2i\",\"created_at\":1749221662,\"created_at_iso\":\"2025-06-06T14:54:22.000Z\",\"published_at\":\"2025-06-06T14:54:22Z\",\"processed_at\":\"2025-06-06T14:54:23.203Z\",\"text_content\":\"Где и когда можно посмотреть?\",\"file_url\":null,\"file_id\":null,\"file_type\":null,\"file_metadata\":{},\"item_id\":3704347615,\"system_flow_id\":null,\"is_system_message\":false,\"should_process\":true,\"requires_file_download\":false,\"is_incoming\":true,\"extra_data\":{}}"
+      }
+    ],
+    "Redis_voice_message": [
+      {
+        "channel": "avito_voice_message",
+        "message": "{\"message_id\":\"34b1d25bac7c127739e424e74d5eaebf\",\"chat_id\":\"u2i-8IpHELJB5DKcUCS1KB3d5Q\",\"user_id\":359501882,\"author_id\":392225537,\"client_id\":359501882,\"message_type\":\"voice\",\"event_type\":\"voice_message\",\"chat_type\":\"u2i\",\"created_at\":1749212142,\"created_at_iso\":\"2025-06-06T12:15:42.000Z\",\"published_at\":\"2025-06-06T12:15:42Z\",\"processed_at\":\"2025-06-06T12:18:21.458Z\",\"text_content\":null,\"file_url\":null,\"file_id\":\"7ab907d3-29c8-4229-87d5-ce30a3bbc7ca\",\"file_type\":\"voice\",\"file_metadata\":{\"voice_id\":\"7ab907d3-29c8-4229-87d5-ce30a3bbc7ca\",\"requires_api_call\":true,\"api_method\":\"/getVoiceFiles\"},\"item_id\":3704347615,\"system_flow_id\":null,\"is_system_message\":false,\"should_process\":true,\"requires_file_download\":true,\"is_incoming\":true,\"extra_data\":{}}"
+      }
+    ],
+    "Redis Trigger text1": [
+      {
+        "channel": "messages:u2i-8IpHELJB5DKcUCS1KB3d5Q",
+        "message": "{\"key\":\"batch:u2i-8IpHELJB5DKcUCS1KB3d5Q\",\"chat_id\":\"u2i-8IpHELJB5DKcUCS1KB3d5Q\",\"timestamp\":\"2025-06-06T15:22:30.364Z\"}"
+      }
+    ],
+    "Schedule Trigger": [
+      {
+        "timestamp": "2025-06-06T11:20:20.001-04:00",
+        "Readable date": "June 6th 2025, 11:20:20 am",
+        "Readable time": "11:20:20 am",
+        "Day of week": "Friday",
+        "Year": "2025",
+        "Month": "June",
+        "Day of month": "06",
+        "Hour": "11",
+        "Minute": "20",
+        "Second": "20",
+        "Timezone": "America/New_York (UTC-04:00)"
+      }
+    ],
+    "When clicking ‘Test workflow’": [
+      {}
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

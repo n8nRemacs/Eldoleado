@@ -14,115 +14,67 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**December 13, 2025, 17:30 (UTC+4)**
+**December 14, 2025, 13:10 (UTC+4)**
 
 ---
 
-## ТЕКУЩАЯ ЗАДАЧА: ELO_Input_Worker → Разделить на 2 воркфлоу
+## COMPLETED: Input Contour — Batcher + Processor
 
-### Проблема
+### What was done
 
-ELO_Input_Worker пытается в одном цикле:
-1. Забрать сообщение из очереди
-2. Добавить в batch
-3. Проверить deadline
-4. Если due — собрать и отправить
+1. **ELO_Input_Batcher** — created and working
+   - Schedule 3 sec
+   - Pop Message → Parse → Push to Batch → Set Deadline
 
-**Но это не работает**, потому что:
-- Цикл 1: Pop msg1 → batch → deadline not due → end
-- Цикл 2: Pop msg2 → batch → deadline not due → end
-- Цикл 3: Pop msg3 → batch → deadline not due → end
-- Цикл 4: Queue empty → deadline DUE! → но Parse Message пустой!
+2. **ELO_Input_Processor** — created and working
+   - Schedule 3 sec
+   - Get All Deadlines → Check If Due → Get Batch → Merge → Call Client Resolve
 
-### Решение — 2 воркфлоу:
+3. **ELO_Client_Resolve** — fixed
+   - Fixed table names: elo_* → elo_t_*
+   - Fixed column names: credential → account_id, status → status_id
+   - Fixed cache parsing: $json.value → $json.propertyName || $json.value
+   - Fixed IF conditions: use is not empty operator
 
-**1. ELO_Input_Batcher (Schedule 3 sec)**
+4. **ELO_Core_AI_Test_Stub** — fixed
+   - Changed webhook to POST
+   - Fixed data reading: $json → $json.body || $json
+
+### Test Results
+
 ```
-Pop Message → Parse → Push to Batch → Set Deadline → END
+3 messages → ELO_Input_Batcher → batch:telegram:tg_test_001
+           → ELO_Input_Processor → merge → "Message 1\n\nMessage 2\n\nMessage 3"
+           → ELO_Client_Resolve → client + dialog created
+           → ELO_Core_AI_Test_Stub → received correctly
 ```
-Только батчит, не проверяет готовность.
-
-**2. ELO_Input_Processor (Schedule 3 sec)**
-```
-Get All Batches → Check Deadlines → If Due → Collect from Redis → Merge → Send
-```
-Только проверяет готовность и отправляет.
 
 ---
 
-## n8n Redis Node — ВАЖНЫЕ БАГИ
+## n8n Redis Node — IMPORTANT QUIRKS
 
-При работе с Redis в n8n учитывай:
+| Operation | Where data is | Example |
+|-----------|---------------|---------|
+| GET | $json.propertyName | Check for null |
+| POP | $json.propertyName or $json.value | Check both |
+| KEYS | Keys as object properties | Object.keys($json) |
+| SET | Needs String() | ={{String($json.value)}} |
 
-| Операция | Где данные | Пример |
-|----------|-----------|--------|
-| POP | `$json.propertyName` (объект) или `$json.value` (строка) | Проверяй оба |
-| KEYS | Ключи как свойства объекта | `Object.keys($json).filter(k => k.startsWith('batch:'))` |
-| GET | Значение в имени ключа | `$json['deadline:telegram:tg_123']` |
-| SET | Нужен `String()` | `={{String($json.value)}}` |
-
-**IF ноды:** всегда ставь `looseTypeValidation: true` (Convert types = ON)
+**IF nodes:** use is not empty operator, NOT exists
 
 ---
 
-## Архитектура (n8n only, MCP отключены)
+## Architecture (n8n only, MCP disabled)
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         n8n WORKFLOWS                                │
-├─────────────────────────────────────────────────────────────────────┤
-│  Channel IN (webhooks from MCP messengers)                          │
-│      ↓                                                               │
-│  ELO_In_Telegram/WhatsApp/Avito/VK/MAX                              │
-│      ↓                                                               │
-│  queue:incoming (Redis)                                              │
-│      ↓                                                               │
-│  ELO_Input_Batcher ←── TODO: создать                                │
-│      ↓                                                               │
-│  batch:* + deadline:* + first_seen:* (Redis)                        │
-│      ↓                                                               │
-│  ELO_Input_Processor ←── TODO: создать                              │
-│      ↓                                                               │
-│  ELO_Client_Resolve                                                  │
-│      ↓                                                               │
-│  [Core AI] ←── Test Stub пока                                       │
-│      ↓                                                               │
-│  ELO_Out_Router → ELO_Out_*                                         │
-└─────────────────────────────────────────────────────────────────────┘
+ELO_In_* → queue:incoming → ELO_Input_Batcher → batch:* 
+         → ELO_Input_Processor → ELO_Client_Resolve 
+         → ELO_Core_AI_Test_Stub → ELO_Out_Router
 ```
-
-**MCP Messengers (работают):**
-- mcp-telegram (217.145.79.27:8767)
-- mcp-whatsapp (217.145.79.27:8766)
-- mcp-avito (45.144.177.128:8765)
-- mcp-vk (45.144.177.128:8767)
-- mcp-max (45.144.177.128:8768)
-
-**MCP Contours (ОТКЛЮЧЕНЫ):**
-- input-contour, client-contour, graph-tool, ai-tool — disabled
-
----
-
-## Redis структура (debounce batching)
-
-```
-queue:incoming          — входящие сообщения (FIFO)
-batch:{channel}:{chat}  — накопленные сообщения для батча (LIST)
-deadline:{channel}:{chat} — timestamp когда обрабатывать (STRING, TTL 120s)
-first_seen:{channel}:{chat} — timestamp первого сообщения (STRING, TTL 120s)
-dlq:input_contour       — dead letter queue для ошибок
-```
-
-**Debounce логика:**
-- DEBOUNCE_MS = 10000 (10 сек тишины)
-- MAX_WAIT_MS = 40000 (40 сек максимум)
-- deadline = min(first_seen + max_wait, now + debounce)
 
 ---
 
 ## SERVERS
-
-### Infrastructure:
 
 | Server | IP/URL | Port | Purpose |
 |--------|--------|------|---------|
@@ -133,53 +85,27 @@ dlq:input_contour       — dead letter queue для ошибок
 
 ---
 
-## DATABASE CONNECTIONS
-
-```
-PostgreSQL: postgresql://supabase_admin:Mi31415926pS@185.221.214.83:6544/postgres
-Neo4j: bolt://neo4j:Mi31415926pS@45.144.177.128:7687
-Redis (RU): redis://:Mi31415926pSss!@45.144.177.128:6379
-```
-
----
-
 ## QUICK COMMANDS
 
 ```bash
-# Redis - проверить все ключи
+# Redis - check all keys
 ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! KEYS "*"'
 
-# Redis - очистить всё
+# Redis - clear all
 ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! FLUSHALL'
 
-# Redis - добавить тестовые сообщения
-ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! RPUSH "queue:incoming" "{\"channel\":\"telegram\",\"external_chat_id\":\"tg_123\",\"text\":\"Test 1\"}" "{\"channel\":\"telegram\",\"external_chat_id\":\"tg_123\",\"text\":\"Test 2\"}" "{\"channel\":\"telegram\",\"external_chat_id\":\"tg_123\",\"text\":\"Test 3\"}"'
-
-# Neo4j test
-ssh root@45.144.177.128 "docker exec neo4j cypher-shell -a 'bolt+ssc://localhost:7687' -u neo4j -p 'Mi31415926pS' 'MATCH (n) RETURN labels(n), count(n)'"
+# Redis - add test messages (with bot_token!)
+ssh root@45.144.177.128 'docker exec redis redis-cli --no-auth-warning -a Mi31415926pSss! RPUSH "queue:incoming" "{\"channel\":\"telegram\",\"bot_token\":\"TEST_BOT_TOKEN_12345\",\"external_chat_id\":\"tg_test_001\",\"text\":\"Test 1\"}"'
 ```
-
----
-
-## KEY DOCUMENTS
-
-**Input Contour:**
-- `NEW/workflows/Input Contour/ELO_Input_Worker.json` — текущая (нерабочая) версия
-- `NEW/workflows/Chanel Contour/ELO_In/ELO_In_Telegram.json` — Telegram input
-
-**Core AI:**
-- `NEW/Core_info/07_Core_AI/CORE_AI_OVERVIEW.md` — архитектура
-- `NEW/workflows/ELO_Core_AI/` — JSON для импорта
 
 ---
 
 ## NEXT STEPS
 
-1. **Создать ELO_Input_Batcher** — только батчинг
-2. **Создать ELO_Input_Processor** — только проверка deadline и отправка
-3. **Протестировать цепочку** — 3 сообщения → 1 merged
-4. **Подключить Core AI** — заменить Test Stub на Orchestrator
+1. **Replace Test Stub with real Core AI**
+2. **Test Output Contour** — ELO_Out_Router → ELO_Out_Telegram
+3. **End-to-end test** — real Telegram message → response
 
 ---
 
-**Before ending session:** update Start.md and Stop.md, git push
+**Before ending session:** update Start.md, git push
