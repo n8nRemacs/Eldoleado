@@ -2,12 +2,12 @@
 
 ## Overview
 
-AI Contour - набор из 11 n8n workflows для обработки диалогов с клиентами.
+AI Contour - набор из 10 n8n workflows для обработки диалогов с клиентами.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           ВНЕШНИЕ ВЫЗОВЫ                                     │
-│  Input Contour → ELO_Core_AI_Orchestrator → Output Contour                  │
+│  Input Contour → ELO_Core_AI_Pipeline → Output Contour                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┼───────────────┐
@@ -23,28 +23,27 @@ AI Contour - набор из 11 n8n workflows для обработки диал
 
 | # | Workflow | Webhook Path | Назначение |
 |---|----------|--------------|------------|
-| 1 | **ELO_Core_AI_Orchestrator** | `elo-core-ai-orchestrator` | Главный координатор, вызывает все остальные |
-| 2 | **ELO_AI_Extract** | `elo-ai-extract` | Извлечение сущностей из текста (AI) |
-| 3 | **ELO_AI_Chat** | `elo-ai-chat` | Генерация ответов (AI) |
-| 4 | **ELO_Core_Lines_Analyzer** | `elo-core-lines-analyzer` | Управление линиями (device+symptom) |
-| 5 | **ELO_Core_AI_Derive** | `elo-core-ai-derive` | Цепочка: symptom→diagnosis→repair→price |
-| 6 | **ELO_Core_Triggers_Checker** | `elo-core-triggers-checker` | Проверка триггеров (скидки, инфо) |
-| 7 | **ELO_Core_Stage_Manager** | `elo-core-stage-manager` | Управление стадиями воронки |
-| 8 | **ELO_Core_Response_Generator** | `elo-core-response-generator` | Генерация ответа клиенту |
-| 9 | **ELO_Core_Graph_Writer** | `elo-core-graph-writer` | Запись в Neo4j |
-| 10 | **ELO_Core_Context_Builder** | `elo-core-context-builder` | Загрузка контекста из Neo4j/Redis |
-| 11 | **ELO_Core_AI_Test_Stub** | - | Тестовая заглушка |
+| 1 | **ELO_Core_AI_Pipeline** | `elo-core-ai-pipeline` | Главный pipeline, вызывает все остальные последовательно |
+| 2 | **ELO_AI_Extract** | `elo-ai-extract` | Извлечение сущностей из текста (OpenRouter AI) |
+| 3 | **ELO_Core_Lines_Analyzer** | `elo-core-lines-analyzer` | Управление линиями (device+symptom) |
+| 4 | **ELO_Core_AI_Derive** | `elo-core-ai-derive` | Цепочка: symptom→diagnosis→repair→price |
+| 5 | **ELO_Core_Triggers_Checker** | `elo-core-triggers-checker` | Проверка триггеров (скидки, инфо) |
+| 6 | **ELO_Core_Stage_Manager** | `elo-core-stage-manager` | Управление стадиями воронки |
+| 7 | **ELO_Core_Response_Generator** | `elo-core-response-generator` | Генерация ответа клиенту |
+| 8 | **ELO_Core_Graph_Writer** | `elo-core-graph-writer` | Запись в Neo4j |
+| 9 | **ELO_Core_Context_Builder** | `elo-core-context-builder` | Загрузка контекста из Neo4j/Redis |
+| 10 | **ELO_Core_AI_Test_Stub** | - | Тестовая заглушка |
 
 ---
 
 ## Call Graph (Кто кого вызывает)
 
 ```
-ELO_Core_AI_Orchestrator
+ELO_Core_AI_Pipeline
     │
     ├──[HTTP]──► ELO_AI_Extract
     │                │
-    │                └──[HTTP]──► AI Tool MCP (45.144.177.128:8774/extract)
+    │                └──[HTTP]──► OpenRouter API (qwen/qwen3-30b-a3b:free)
     │
     ├──[HTTP]──► ELO_Core_Lines_Analyzer
     │
@@ -63,7 +62,7 @@ ELO_Core_AI_Orchestrator
     ├──[HTTP]──► ELO_Core_Response_Generator
     │                │
     │                ├──[PostgreSQL]──► elo_v_prompts
-    │                └──[HTTP]──► OpenRouter API (qwen/qwen3-30b)
+    │                └──[HTTP]──► OpenRouter API (qwen/qwen3-30b-a3b:free)
     │
     └──[HTTP]──► ELO_Core_Graph_Writer
                      │
@@ -74,11 +73,11 @@ ELO_Core_AI_Orchestrator
 
 ## Detailed Workflow Descriptions
 
-### 1. ELO_Core_AI_Orchestrator
+### 1. ELO_Core_AI_Pipeline
 
-**Webhook:** `POST /webhook/elo-core-ai-orchestrator`
+**Webhook:** `POST /webhook/elo-core-ai-pipeline`
 
-**Роль:** Главный координатор. Получает сообщение от Input Contour, вызывает все воркеры по цепочке, возвращает ответ.
+**Роль:** Главный pipeline. Получает сообщение от Input Contour, вызывает все воркеры последовательно по цепочке, возвращает ответ.
 
 **Input:**
 ```json
@@ -131,7 +130,7 @@ ELO_Core_AI_Orchestrator
 **Вызывает:**
 | Сервис | Метод | URL |
 |--------|-------|-----|
-| AI Tool MCP | HTTP POST | `http://45.144.177.128:8774/extract` |
+| OpenRouter | HTTP POST | `https://openrouter.ai/api/v1/chat/completions` |
 
 **Input:**
 ```json
@@ -156,31 +155,7 @@ ELO_Core_AI_Orchestrator
 
 ---
 
-### 3. ELO_AI_Chat
-
-**Webhook:** `POST /webhook/elo-ai-chat`
-
-**Роль:** Универсальный чат с AI (используется Response Generator).
-
-**Вызывает:**
-| Сервис | Метод | URL |
-|--------|-------|-----|
-| AI Tool MCP | HTTP POST | `http://45.144.177.128:8774/chat` |
-
-**Input:**
-```json
-{
-  "messages": [
-    {"role": "system", "content": "Ты оператор..."},
-    {"role": "user", "content": "Спроси про устройство"}
-  ],
-  "temperature": 0.7
-}
-```
-
----
-
-### 4. ELO_Core_Lines_Analyzer
+### 3. ELO_Core_Lines_Analyzer
 
 **Webhook:** `POST /webhook/elo-core-lines-analyzer`
 
@@ -224,7 +199,7 @@ ELO_Core_AI_Orchestrator
 
 ---
 
-### 5. ELO_Core_AI_Derive
+### 4. ELO_Core_AI_Derive
 
 **Webhook:** `POST /webhook/elo-core-ai-derive`
 
@@ -272,7 +247,7 @@ symptom_text → symptom_type (через aliases)
 
 ---
 
-### 6. ELO_Core_Triggers_Checker
+### 5. ELO_Core_Triggers_Checker
 
 **Webhook:** `POST /webhook/elo-core-triggers-checker`
 
@@ -316,7 +291,7 @@ symptom_text → symptom_type (через aliases)
 
 ---
 
-### 7. ELO_Core_Stage_Manager
+### 6. ELO_Core_Stage_Manager
 
 **Webhook:** `POST /webhook/elo-core-stage-manager`
 
@@ -359,7 +334,7 @@ data_collection → presentation → agreement → booking → confirmation
 
 ---
 
-### 8. ELO_Core_Response_Generator
+### 7. ELO_Core_Response_Generator
 
 **Webhook:** `POST /webhook/elo-core-response-generator`
 
@@ -405,7 +380,7 @@ data_collection → presentation → agreement → booking → confirmation
 
 ---
 
-### 9. ELO_Core_Graph_Writer
+### 8. ELO_Core_Graph_Writer
 
 **Webhook:** `POST /webhook/elo-core-graph-writer`
 
@@ -446,7 +421,7 @@ data_collection → presentation → agreement → booking → confirmation
 
 ---
 
-### 10. ELO_Core_Context_Builder
+### 9. ELO_Core_Context_Builder
 
 **Webhook:** `POST /webhook/elo-core-context-builder`
 
@@ -468,7 +443,7 @@ data_collection → presentation → agreement → booking → confirmation
 
 ---
 
-### 11. ELO_Core_AI_Test_Stub
+### 10. ELO_Core_AI_Test_Stub
 
 **Роль:** Тестовая заглушка для отладки без реального AI.
 
@@ -483,7 +458,7 @@ data_collection → presentation → agreement → booking → confirmation
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌──────────────────┐                                                      │
-│   │   Orchestrator   │                                                      │
+│   │     Pipeline     │                                                      │
 │   └────────┬─────────┘                                                      │
 │            │                                                                │
 │   ┌────────┼────────────────────────────────────────────────────┐          │
@@ -492,7 +467,7 @@ data_collection → presentation → agreement → booking → confirmation
 │   │   │ Extract  │────►│ Lines Analyzer │────►│  Derive  │      │          │
 │   │   └──────────┘     └────────────────┘     └────┬─────┘      │          │
 │   │        │                                        │            │          │
-│   │        │ AI Tool MCP                           │ PostgreSQL │          │
+│   │        │ OpenRouter                            │ PostgreSQL │          │
 │   │        │                                        │            │          │
 │   │        ▼                                        ▼            │          │
 │   │   ┌──────────────────────────────────────────────┐          │          │
@@ -532,11 +507,10 @@ data_collection → presentation → agreement → booking → confirmation
 
 | Service | Host | Port | Protocol | Used By |
 |---------|------|------|----------|---------|
-| AI Tool MCP | 45.144.177.128 | 8774 | HTTP | Extract, Chat |
+| OpenRouter | openrouter.ai | 443 | HTTPS | Extract, Response Generator |
 | Neo4j | 45.144.177.128 | 7474 | HTTP | Graph Writer, Context Builder |
 | PostgreSQL | 185.221.214.83 | 6544 | TCP | Derive, Triggers, Stage Manager, Response Generator |
-| OpenRouter | openrouter.ai | 443 | HTTPS | Response Generator |
-| Redis | - | 6379 | TCP | Context Builder |
+| Redis | 45.144.177.128 | 6379 | TCP | Context Builder |
 
 ---
 
@@ -555,7 +529,7 @@ data_collection → presentation → agreement → booking → confirmation
 
 | Method | Count | Used For |
 |--------|-------|----------|
-| **HTTP POST (webhook)** | 8 | Workflow-to-workflow calls |
-| **HTTP POST (external)** | 4 | AI Tool MCP, Neo4j, OpenRouter |
+| **HTTP POST (webhook)** | 7 | Workflow-to-workflow calls |
+| **HTTP POST (external)** | 3 | OpenRouter (x2), Neo4j |
 | **PostgreSQL Query** | 4 | Business logic data |
 | **Redis GET** | 1 | Context loading |

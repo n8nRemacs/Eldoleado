@@ -79,7 +79,7 @@ git add -A && git commit -m "Session update: brief description" && git push
 ### Current AI Contour (10 workflows)
 
 ```
-ELO_Core_AI_Orchestrator.json    # Coordinator
+ELO_Core_AI_Pipeline.json        # Main pipeline (sequential calls)
 ELO_AI_Extract.json              # Entity extraction (OpenRouter)
 ELO_Core_Lines_Analyzer.json     # Multi-intake lines management
 ELO_Core_AI_Derive.json          # symptom→diagnosis→repair→price
@@ -106,14 +106,14 @@ ELO_Core_AI_Test_Stub.json       # Test stub
 - All AI calls via OpenRouter
 
 **Not yet connected:**
-- Context_Builder not called by Orchestrator (inline code instead)
+- Context_Builder not called by Pipeline (inline code instead)
 - End-to-end test not done
 
 ---
 
 ## NEXT STEPS
 
-1. **Connect Context_Builder to Orchestrator** — load existing context instead of creating new
+1. **Connect Context_Builder to Pipeline** — load existing context instead of creating new
 2. **Import workflows to n8n** — all JSON files ready
 3. **Test derivation chain** — real message → extraction → derivation → price
 4. **End-to-end test** — Telegram → Core AI → response
