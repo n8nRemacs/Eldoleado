@@ -1,0 +1,182 @@
+{
+  "name": "ELO_Decision",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "path": "elo-decision",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "elo-decision"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\n\nconst context = input.context;\n\n// Prepare evaluation context with helper flags\nconst evalContext = {\n  // Stage\n  stage: context.current_stage || 'data_collection',\n  \n  // Device\n  has_device: !!(context.lines?.[0]?.slots?.device),\n  device: context.lines?.[0]?.slots?.device || null,\n  \n  // Symptom\n  has_symptom: !!(context.lines?.[0]?.slots?.symptom),\n  symptom: context.lines?.[0]?.slots?.symptom || null,\n  \n  // Derived data\n  has_diagnosis: !!(context.lines?.[0]?.slots?.diagnosis),\n  has_price: !!(context.lines?.[0]?.slots?.price),\n  price: context.lines?.[0]?.slots?.price || null,\n  repair: context.lines?.[0]?.slots?.repair_type || null,\n  \n  // Booking\n  has_booking_date: !!(context.booking?.date),\n  has_booking_time: !!(context.booking?.time),\n  has_booking_name: !!(context.booking?.name),\n  has_booking_phone: !!(context.booking?.phone),\n  booking: context.booking || {},\n  \n  // Intent (from last extraction)\n  intent: context.last_intent || context.entities?.find(e => e.type === 'intent')?.value || null,\n  \n  // Meta\n  is_first_message: !context.message_count || context.message_count <= 1,\n  \n  // Full context for template substitution\n  _full: context\n};\n\nreturn {\n  context: context,\n  eval_context: evalContext,\n  vertical_id: context.vertical_id || 1\n};"
+      },
+      "id": "prepare-context",
+      "name": "Prepare Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT rule_code, rule_name, priority, conditions, actions\nFROM elo_v_decision_rules\nWHERE vertical_id = $1 AND is_active = true\nORDER BY priority DESC;",
+        "options": {
+          "queryReplacement": "={{ [$json.vertical_id] }}"
+        }
+      },
+      "id": "load-rules",
+      "name": "Load Rules",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prepareData = $('Prepare Context').first().json;\nconst evalContext = prepareData.eval_context;\nconst rules = $input.all().map(item => item.json);\n\n// Helper: get nested value by path (e.g., 'device.brand')\nfunction getByPath(obj, path) {\n  return path.split('.').reduce((o, k) => o?.[k], obj);\n}\n\n// Helper: match single condition\nfunction matchCondition(actual, expected) {\n  if (expected === null) {\n    return actual === null || actual === undefined;\n  }\n  \n  if (typeof expected === 'object' && expected !== null) {\n    // Operators\n    if ('$exists' in expected) {\n      const exists = actual !== null && actual !== undefined;\n      return exists === expected.$exists;\n    }\n    if ('$gt' in expected) {\n      return actual > expected.$gt;\n    }\n    if ('$gte' in expected) {\n      return actual >= expected.$gte;\n    }\n    if ('$lt' in expected) {\n      return actual < expected.$lt;\n    }\n    if ('$lte' in expected) {\n      return actual <= expected.$lte;\n    }\n    if ('$in' in expected) {\n      return expected.$in.includes(actual);\n    }\n    if ('$ne' in expected) {\n      return actual !== expected.$ne;\n    }\n    // Object comparison\n    return JSON.stringify(actual) === JSON.stringify(expected);\n  }\n  \n  // Direct comparison\n  return actual === expected;\n}\n\n// Helper: match all conditions in a rule\nfunction matchAllConditions(context, conditions) {\n  for (const [path, expected] of Object.entries(conditions)) {\n    const actual = getByPath(context, path);\n    if (!matchCondition(actual, expected)) {\n      return false;\n    }\n  }\n  return true;\n}\n\n// Find first matching rule\nlet matchedRule = null;\nfor (const rule of rules) {\n  const conditions = typeof rule.conditions === 'string' \n    ? JSON.parse(rule.conditions) \n    : rule.conditions;\n    \n  if (matchAllConditions(evalContext, conditions)) {\n    matchedRule = rule;\n    break;\n  }\n}\n\n// Fallback if no rule matched\nif (!matchedRule) {\n  matchedRule = {\n    rule_code: 'fallback',\n    rule_name: 'Fallback',\n    actions: { goal: 'clarify', prompt_id: 'clarify' }\n  };\n}\n\nconst actions = typeof matchedRule.actions === 'string'\n  ? JSON.parse(matchedRule.actions)\n  : matchedRule.actions;\n\nreturn {\n  matched_rule: matchedRule.rule_code,\n  rule_name: matchedRule.rule_name,\n  actions: actions,\n  eval_context: evalContext,\n  context: prepareData.context,\n  vertical_id: prepareData.vertical_id\n};"
+      },
+      "id": "evaluate-rules",
+      "name": "Evaluate Rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT prompt_id, goal_type, template, config\nFROM elo_v_prompts\nWHERE vertical_id = $1 AND prompt_id = $2 AND is_active = true\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [$json.vertical_id, $json.actions.prompt_id] }}"
+        }
+      },
+      "id": "load-prompt",
+      "name": "Load Prompt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1130, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const evalData = $('Evaluate Rules').first().json;\nconst promptRow = $input.first()?.json || {};\nconst context = evalData.context;\nconst actions = evalData.actions;\n\n// Helper: substitute template variables\nfunction substituteTemplate(template, context) {\n  if (!template) return '';\n  \n  return template.replace(/\\{([^}]+)\\}/g, (match, path) => {\n    const parts = path.split('.');\n    let value = context;\n    \n    for (const part of parts) {\n      if (value === null || value === undefined) return match;\n      value = value[part];\n    }\n    \n    if (value === null || value === undefined) return match;\n    if (typeof value === 'object') return JSON.stringify(value);\n    return String(value);\n  });\n}\n\n// Build template context\nconst templateContext = {\n  device: context.lines?.[0]?.slots?.device || {},\n  symptom: context.lines?.[0]?.slots?.symptom || '',\n  diagnosis: context.lines?.[0]?.slots?.diagnosis || {},\n  repair: context.lines?.[0]?.slots?.repair_type || {},\n  price: context.lines?.[0]?.slots?.price || {},\n  booking: context.booking || {},\n  client: context.client || {}\n};\n\n// Substitute variables in template\nconst instruction = substituteTemplate(promptRow.template || 'Please clarify your request.', templateContext);\n\n// Build output for Executor\nconst output = {\n  instruction: instruction,\n  goal: actions.goal,\n  prompt_id: actions.prompt_id,\n  \n  // Optional elements from actions\n  buttons: actions.buttons || [],\n  side_effects: actions.side_effects || [],\n  next_stage: actions.next_stage || null,\n  \n  // Config\n  config: promptRow.config || {},\n  \n  // Pass through context\n  context: context,\n  \n  // Debug info\n  _debug: {\n    matched_rule: evalData.matched_rule,\n    rule_name: evalData.rule_name\n  }\n};\n\nreturn output;"
+      },
+      "id": "build-output",
+      "name": "Build Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1570, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Context": {
+      "main": [
+        [
+          {
+            "node": "Load Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Rules": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Rules": {
+      "main": [
+        [
+          {
+            "node": "Load Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Prompt": {
+      "main": [
+        [
+          {
+            "node": "Build Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "instanceId": ""
+  },
+  "tags": [
+    {
+      "name": "ELO_Core_AI"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI Contour — 3 контура с AI Agent + Tools архитектурой.
+AI Contour — 3 контура: Collector → Decision → Executor
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -19,13 +19,15 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
                         Context Object
                               ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Контур 2: DECISION (TODO)                                          │
+│  Контур 2: DECISION (Rules Engine)                                  │
+│  ELO_Decision                                                       │
 │                                                                     │
-│  • Stage Manager logic                                              │
-│  • Prompt Selection                                                 │
+│  • Load rules from elo_v_decision_rules                             │
+│  • Evaluate conditions against context                              │
+│  • Select prompt from elo_v_prompts                                 │
 └─────────────────────────────┬───────────────────────────────────────┘
                               ↓
-                     Prompt + Parameters
+                     Instruction + Context
                               ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │  Контур 3: EXECUTOR (AI Agent)                                      │
@@ -41,13 +43,14 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 
 ---
 
-## Workflows (10 files)
+## Workflows (11 files)
 
-### Main Agents
+### Main Contours
 
 | Workflow | Webhook | Роль |
 |----------|---------|------|
 | **ELO_Context_Collector** | `elo-context-collector` | AI Agent: сбор контекста |
+| **ELO_Decision** | `elo-decision` | Rules Engine: выбор промпта |
 | **ELO_Executor** | `elo-executor` | AI Agent: исполнение |
 
 ### Tools for Collector
@@ -66,16 +69,11 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 | **ELO_Core_Response_Generator** | `elo-core-response-generator` | Генерация текста (OpenRouter) |
 | **ELO_Core_Graph_Writer** | `elo-core-graph-writer` | Запись в Neo4j |
 
-### Decision (TODO)
-
-| Workflow | Webhook | Роль |
-|----------|---------|------|
-| **ELO_Core_Stage_Manager** | `elo-core-stage-manager` | Управление стадиями (будет частью Decision) |
-
 ### Other
 
 | Workflow | Роль |
 |----------|------|
+| **ELO_Core_Stage_Manager** | Управление стадиями (legacy, логика в Decision) |
 | **ELO_Core_AI_Test_Stub** | Тестовая заглушка |
 
 ---
@@ -123,14 +121,53 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 
 ---
 
-## Контур 2: Decision (TODO)
+## Контур 2: ELO_Decision
 
-**Пока не реализован.** Планируется:
-- Граф решений
-- Stage Manager logic
-- Prompt Selection из БД
+**Type:** Rules Engine (no AI, deterministic)
 
-**Временно:** прямой вызов Executor с hardcoded промптом
+**Input:**
+```json
+{
+  "context": { ... }
+}
+```
+
+**Logic:**
+1. Load rules from `elo_v_decision_rules` (sorted by priority DESC)
+2. Evaluate each rule's conditions against context
+3. First matching rule wins
+4. Load prompt template from `elo_v_prompts`
+5. Substitute variables in template
+6. Return instruction for Executor
+
+**Database Tables:**
+| Table | Purpose |
+|-------|---------|
+| `elo_v_decision_rules` | Rules: conditions → actions (JSONB) |
+| `elo_v_prompts` | Prompt templates with variables |
+
+**Condition Operators:**
+```json
+{
+  "field": "value",           // exact match
+  "field": null,              // field is null/missing
+  "field": {"$exists": true}, // field exists
+  "field": {"$gt": 100},      // greater than
+  "field": {"$in": ["a","b"]} // one of
+}
+```
+
+**Output:**
+```json
+{
+  "instruction": "Ask customer what device they have...",
+  "goal": "ask_device",
+  "prompt_id": "ask_device",
+  "buttons": [...],
+  "side_effects": [...],
+  "context": { ... }
+}
+```
 
 ---
 
@@ -141,12 +178,11 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 **Input:**
 ```json
 {
+  "instruction": "Ask customer what device...",
+  "goal": "ask_device",
   "context": { ... },
-  "prompt": {
-    "instruction": "Спроси какое устройство у клиента",
-    "goal": "ask_device",
-    "params": {}
-  }
+  "buttons": [...],
+  "side_effects": [...]
 }
 ```
 
@@ -174,14 +210,74 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 
 ---
 
+## Decision Rules (примеры)
+
+| Priority | Rule | Conditions | Action |
+|----------|------|------------|--------|
+| 200 | handle_cancel | intent=cancel | confirm_cancel |
+| 190 | handle_greeting | intent=greeting, is_first_message | greeting |
+| 100 | ask_device | stage=data_collection, device=null | ask_device |
+| 90 | ask_symptom | stage=data_collection, device≠null, symptom=null | ask_symptom |
+| 70 | present_offer | stage=presentation | present_offer |
+| 60 | ask_agreement | stage=agreement | ask_agreement |
+| 50 | booking_complete | stage=booking, all_slots_filled | confirmation |
+| 10 | fallback | {} (always) | clarify |
+
+---
+
 ## External Services
 
 | Service | URL | Used By |
 |---------|-----|---------|
-| OpenRouter | openrouter.ai | Context Collector, Executor, AI Extract, Response Generator |
+| OpenRouter | openrouter.ai | Collector, Executor, AI Extract, Response Generator |
 | Neo4j | 45.144.177.128:7474 | Context Builder, Graph Writer |
-| PostgreSQL | 185.221.214.83:6544 | Derive, Triggers, Stage Manager, Response Generator |
+| PostgreSQL | 185.221.214.83:6544 | Decision, Derive, Triggers, Response Generator |
 | Redis | 45.144.177.128:6379 | Context Builder |
+
+---
+
+## Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `elo_v_decision_rules` | Decision rules (conditions → actions) |
+| `elo_v_prompts` | Prompt templates |
+| `elo_v_funnel_stages` | Stage definitions |
+| `elo_v_triggers` | Trigger conditions |
+
+---
+
+## Full Flow Example
+
+```
+1. Message: "Разбил экран на айфоне"
+                    ↓
+2. Collector:
+   - extract_entities → {device: iPhone, symptom: разбит экран}
+   - derive_chain → {diagnosis: display_damaged, price: 5000}
+                    ↓
+3. Context:
+   {stage: "data_collection", device: {...}, symptom: "...", price: 5000}
+                    ↓
+4. Decision:
+   - Check rule [100] ask_device: device=null? NO
+   - Check rule [90] ask_symptom: symptom=null? NO
+   - Check rule [85] derive_chain: price=null? NO
+   - Check rule [80] ready_for_presentation: all data? YES ✓
+   → Action: transition to "presentation"
+                    ↓
+5. Decision (stage=presentation):
+   - Check rule [70] present_offer: stage=presentation? YES ✓
+   → prompt_id: "present_offer"
+                    ↓
+6. Executor:
+   - generate_text(instruction, context)
+   - format_response(channel=telegram)
+                    ↓
+7. Response:
+   "iPhone, разбитый экран. Замена дисплея — 5000₽. Записать?"
+   [Записаться] [Вопросы]
+```
 
 ---
 
@@ -191,11 +287,3 @@ AI Contour — 3 контура с AI Agent + Tools архитектурой.
 |----------|---------|
 | ELO_Core_AI_Pipeline | Заменён на Collector → Decision → Executor |
 | ELO_Core_Lines_Analyzer | Логика в Collector |
-
----
-
-## Next Steps
-
-1. **Decision контур** — граф решений, выбор промпта
-2. **Тестирование** — Collector → Decision → Executor
-3. **Оптимизация** — кэширование, параллельные вызовы где возможно
