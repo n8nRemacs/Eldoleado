@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:id="@+id/detailHeaderCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView android:id="@+id/detailChannelBadge" android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_channel_badge" android:gravity="center" android:text="TG" android:textColor="@color/white" android:textSize="10sp" android:textStyle="bold" />
+                <TextView android:id="@+id/detailClientName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:textColor="@android:color/black" android:textSize="16sp" android:textStyle="bold" />
+                <TextView android:id="@+id/detailStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="8dp" android:paddingVertical="3dp" android:textSize="12sp" />
+
+                <!-- Тумблер AUTO/ASSIST -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <TextView
+                        android:id="@+id/modeLabelText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="АВТО"
+                        android:textColor="@color/primary_blue"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/modeSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:minHeight="24dp"
+                        android:scaleX="0.8"
+                        android:scaleY="0.8"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+            <TextView android:id="@+id/detailDevice" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@android:color/black" android:textSize="14sp" />
+            <TextView android:id="@+id/detailRepairInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@android:color/black" android:textSize="14sp" />
+            <TextView android:id="@+id/detailAppealType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:background="@drawable/bg_chip_accent" android:paddingHorizontal="10dp" android:paddingVertical="4dp" android:textColor="@android:color/black" android:textSize="13sp" />
+            <LinearLayout android:id="@+id/detailPartsOwnerRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ЗАПЧАСТЬ" android:textColor="@color/text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                <TextView android:id="@+id/detailPartsOwnerValue" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:textColor="@android:color/black" android:textSize="14sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/detailLastMessageDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@color/text_secondary" android:textSize="12sp" android:visibility="gone" />
+            <LinearLayout android:id="@+id/detailStageRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:orientation="horizontal"><TextView android:id="@+id/detailStageValue" android:layout_width="wrap_content" android:layout_height="wrap_content" /></LinearLayout>
+            <LinearLayout android:id="@+id/detailCreatedRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:orientation="horizontal"><TextView android:id="@+id/detailCreatedValue" android:layout_width="wrap_content" android:layout_height="wrap_content" /></LinearLayout>
+            <LinearLayout android:id="@+id/detailClientRow" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:orientation="horizontal"><TextView android:id="@+id/detailClientValue" android:layout_width="wrap_content" android:layout_height="wrap_content" /></LinearLayout>
+        </LinearLayout>
+
+        <!-- Devices horizontal list -->
+        <LinearLayout
+            android:id="@+id/devicesSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/devicesSectionTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Устройства"
+                android:textSize="11sp"
+                android:textColor="#666666"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/devicesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingEnd="8dp" />
+
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2196F3" android:layout_marginTop="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/messagesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:orientation="horizontal" android:gravity="center_vertical">
+            <ImageButton android:id="@+id/normalizeButton" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:layout_marginEnd="4dp" android:background="@drawable/bg_button_normalize" android:src="@drawable/ic_edit" android:scaleType="centerInside" android:contentDescription="Normalize" />
+            <FrameLayout android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:layout_marginEnd="4dp">
+                <ImageButton android:id="@+id/voiceButton" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_button_voice" android:src="@drawable/ic_mic" android:scaleType="centerInside" android:contentDescription="Voice" />
+                <TextView android:id="@+id/recordingTimer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:visibility="gone" />
+            </FrameLayout>
+            <ImageButton android:id="@+id/sendButton" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:background="@drawable/bg_button_send_wide" android:src="@drawable/ic_send" android:scaleType="centerInside" android:contentDescription="Send" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/actionsContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:gravity="bottom" android:orientation="horizontal">
+            <EditText android:id="@+id/messageInput" android:layout_width="0dp" android:layout_height="80dp" android:layout_weight="1" android:background="@drawable/bg_input_field" android:gravity="top|start" android:hint="Message" android:textColorHint="#888888" android:inputType="textMultiLine|textNoSuggestions" android:maxLines="5" android:padding="8dp" android:scrollbars="vertical" android:textColor="#000000" android:textSize="14sp" android:focusable="true" android:focusableInTouchMode="true" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="80dp" android:layout_marginStart="4dp" android:orientation="vertical">
+                <ImageButton android:id="@+id/clearButton" android:layout_width="40dp" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="2dp" android:background="@drawable/bg_button_clear" android:src="@drawable/ic_clear" android:scaleType="centerInside" android:contentDescription="Clear" />
+                <ImageButton android:id="@+id/rejectButton" android:layout_width="40dp" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="2dp" android:background="@drawable/bg_button_reject" android:src="@drawable/ic_close" android:scaleType="centerInside" android:contentDescription="Reject" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button android:id="@+id/takeButton" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+    </LinearLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/white"
+        app:menu="@menu/bottom_navigation_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconSize="16dp"
+        app:itemPaddingTop="2dp"
+        app:itemPaddingBottom="2dp" />
+
+</LinearLayout>

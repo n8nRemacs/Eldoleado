@@ -1,0 +1,408 @@
+{
+  "id": "y3qaR8F2aywj3fIL",
+  "name": "API_Android_Update_Appeal_Mode",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android-update-appeal-mode",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2352,
+        368
+      ],
+      "id": "8f25877b-5a02-46b0-b5de-51f69c5e1d76",
+      "name": "Webhook",
+      "webhookId": "a74ef930-d29b-46ee-ba69-8d836df68570"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\n\nconst operator_id = (body.operator_id || '').trim();\nconst appeal_id = (body.appeal_id || '').trim();\nconst operation_mode = (body.operation_mode || '').trim().toLowerCase();\n\n// Validate UUID format\nconst uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n\nconst errors = [];\n\nif (!operator_id || !uuidRegex.test(operator_id)) {\n  errors.push('invalid_operator_id');\n}\n\nif (!appeal_id || !uuidRegex.test(appeal_id)) {\n  errors.push('invalid_appeal_id');\n}\n\nif (!['auto', 'assist'].includes(operation_mode)) {\n  errors.push('invalid_operation_mode (must be auto or assist)');\n}\n\nreturn {\n  operator_id,\n  appeal_id,\n  operation_mode,\n  is_valid: errors.length === 0,\n  errors\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2112,
+        368
+      ],
+      "id": "27bd4fa9-1cbc-4e1b-b319-5c8f2fd1b254",
+      "name": "Parse & Validate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_valid }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1872,
+        368
+      ],
+      "id": "32d04b01-03e9-4843-901b-25c0de626c27",
+      "name": "Is Valid?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'validation_failed', details: $json.errors } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        528
+      ],
+      "id": "56cb8e63-1cfe-47a1-9e03-bd3bebfbaa83",
+      "name": "Respond 400"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT o.id, o.tenant_id, o.is_active\nFROM operators o\nWHERE o.id = '{{ $json.operator_id }}'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1632,
+        208
+      ],
+      "id": "e2844125-c8ab-481b-8ffe-3de85d3b7592",
+      "name": "Check Operator",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Parse & Validate').first().json;\nconst operatorResult = $input.first()?.json;\n\nconst operator = Array.isArray(operatorResult) ? operatorResult[0] : operatorResult;\n\nif (!operator || !operator.tenant_id) {\n  return {\n    ...prev,\n    tenant_id: null,\n    operator_found: false\n  };\n}\n\nreturn {\n  ...prev,\n  tenant_id: operator.tenant_id,\n  operator_found: true\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        208
+      ],
+      "id": "4a09a509-7d91-43e7-be9c-c8de844d8e93",
+      "name": "Normalize Operator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.operator_found }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1152,
+        208
+      ],
+      "id": "a1435619-bfa6-454c-9ff9-5b3bcc049026",
+      "name": "Operator Found?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'operator_not_found_or_inactive' } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        368
+      ],
+      "id": "7c8f915f-0e03-45ab-a1cb-e7e6cb52e90d",
+      "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appeals\nSET operation_mode = '{{ $json.operation_mode }}',\n    updated_at = NOW()\nWHERE id = '{{ $json.appeal_id }}'\n  AND tenant_id = '{{ $json.tenant_id }}'\nRETURNING id, operation_mode;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -912,
+        48
+      ],
+      "id": "ba586937-1aa4-4b8e-98d3-e2b888ed0bf4",
+      "name": "Update Appeal",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first()?.json;\nconst row = Array.isArray(result) ? result[0] : result;\n\nif (!row || !row.id) {\n  return {\n    success: false,\n    error: 'appeal_not_found_or_access_denied'\n  };\n}\n\nreturn {\n  success: true,\n  appeal_id: row.id,\n  operation_mode: row.operation_mode\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        48
+      ],
+      "id": "44368700-2728-438e-b381-e6166a5059b9",
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        48
+      ],
+      "id": "dc8c7868-fd3a-4ca6-ac75-6388636e1351",
+      "name": "Success?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -32
+      ],
+      "id": "2834cb5c-1ded-4eef-a9cb-37acb94bb838",
+      "name": "Respond 200"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 404,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "87939af5-48b7-4239-8b46-7df067f01aa0",
+      "name": "Respond 404"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Validate": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Check Operator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Operator": {
+      "main": [
+        [
+          {
+            "node": "Normalize Operator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Operator": {
+      "main": [
+        [
+          {
+            "node": "Operator Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Operator Found?": {
+      "main": [
+        [
+          {
+            "node": "Update Appeal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Appeal": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 404",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-12-02T07:53:20.000Z",
+  "createdAt": "2025-11-29T09:39:01.583Z"
+}

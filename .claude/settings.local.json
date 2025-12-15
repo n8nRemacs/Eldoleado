@@ -35,7 +35,10 @@
       "Bash(ssh-keygen:*)",
       "WebSearch",
       "Read(//c/Users/User/.ssh/**)",
-      "WebFetch(domain:openrouter.ai)"
+      "WebFetch(domain:openrouter.ai)",
+      "Bash(node --version)",
+      "Bash(npx --version:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

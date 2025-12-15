@@ -1,0 +1,283 @@
+{
+  "id": "HFw4ZUMtpFDyHKQL",
+  "name": "API_Android_Repair_Delete",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "android/appeal-repairs/:id",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -752,
+        48
+      ],
+      "id": "bc990d7d-bd0c-4047-a31c-a287002ca548",
+      "name": "Webhook",
+      "webhookId": "android-repair-delete"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst params = $json.params || {};\n\nlet token = headers['x-session-token'] || headers['X-Session-Token'] || '';\nif (!token) {\n  const authHeader = headers.authorization || headers.Authorization || '';\n  if (authHeader.startsWith('Bearer ')) token = authHeader.substring(7);\n}\n\nreturn {\n  session_token: token,\n  repair_id: params.id || ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        48
+      ],
+      "id": "fdb38fc9-a9be-4407-8d84-c010f7802e7e",
+      "name": "Parse Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.operator_id, od.tenant_id\nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "f8b90bd0-4829-49bf-bc8b-4d3c16e63411",
+      "name": "Get Tenant",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row?.tenant_id || null;\n\nconst prev = $('Parse Request').first()?.json || {};\n\nreturn {\n  ...prev,\n  tenant_id,\n  authorized: !!tenant_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        48
+      ],
+      "id": "369f1f70-3a0a-43cd-8553-95f5d7574da9",
+      "name": "Check Auth"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.authorized }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        208,
+        48
+      ],
+      "id": "107e8721-a1c9-4538-b392-84e09c002c1a",
+      "name": "Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        448,
+        208
+      ],
+      "id": "267a50df-b77f-4594-a4e7-57a9f3408c6a",
+      "name": "Respond 401"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM appeal_repairs\nWHERE id = '{{ $json.repair_id }}'::uuid\n  AND tenant_id = '{{ $json.tenant_id }}'::uuid\nRETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        -112
+      ],
+      "id": "691061bd-c702-46f4-b365-0bf70e8a44f4",
+      "name": "SQL Delete",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first()?.json;\nconst row = Array.isArray(result) ? result[0] : result;\n\nif (!row || !row.id) {\n  return { success: false, error: 'delete_failed' };\n}\n\nreturn {\n  success: true,\n  deleted_id: row.id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -112
+      ],
+      "id": "5b2666a7-b794-4c46-99b2-5c397cf5828b",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.success ? 200 : 400 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -112
+      ],
+      "id": "a476fa2f-64c6-4be2-bc05-8933c6b876e4",
+      "name": "Respond Result"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Get Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tenant": {
+      "main": [
+        [
+          {
+            "node": "Check Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Auth": {
+      "main": [
+        [
+          {
+            "node": "Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorized?": {
+      "main": [
+        [
+          {
+            "node": "SQL Delete",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL Delete": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Respond Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-12-02T07:53:56.000Z",
+  "createdAt": "2025-11-29T12:31:10.726Z"
+}

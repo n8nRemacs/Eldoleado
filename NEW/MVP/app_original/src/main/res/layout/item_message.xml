@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@color/gray_light"
+    android:layout_marginBottom="4dp">
+
+    <TextView
+        android:id="@+id/senderType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Клиент"
+        android:textStyle="bold"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/messageText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Текст сообщения"
+        android:textSize="12sp"
+        android:layout_marginTop="3dp" />
+
+    <TextView
+        android:id="@+id/timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2024-11-12 10:00"
+        android:textSize="9sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="3dp" />
+
+</LinearLayout>

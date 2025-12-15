@@ -1,0 +1,199 @@
+{
+  "id": "BdPCy8zr432gZHCK",
+  "name": "Api_Voice_Uploader",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/voice/upload",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "55e09bb0-1e39-4d12-b085-759f4af8d9eb",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        -80
+      ],
+      "webhookId": "unique-upload-voice"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\nconst file = $input.item.binary?.file;\n\nif (!file) {\n  throw new Error('No file uploaded');\n}\n\nreturn {\n  tenant_id: body.tenant_id,\n  operator_id: body.operator_id,\n  appeal_id: body.appeal_id,\n  file_path: body.path,\n  file_data: file.data,\n  file_size: file.fileSize,\n  mime_type: file.mimeType\n};"
+      },
+      "id": "9cd5fb74-63dd-4c5b-89f4-2570e1cc5643",
+      "name": "Parse Upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://supabase.n8nsrv.ru/storage/v1/object/voice-messages/{{ $json.file_path }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "audio/webm"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "=={{ $binary.file.data }}",
+        "options": {}
+      },
+      "id": "38fac3b0-fa87-4b68-b203-04c04933b759",
+      "name": "Upload to Storage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        -80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOrr3Wx04DgrXsPL",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO voice_messages (tenant_id, source_type, source_id, appeal_id, file_path, file_url, file_size, mime_type)\nVALUES (\n  '{{ $('Parse Upload').item.json.tenant_id }}'::uuid,\n  'operator',\n  '{{ $('Parse Upload').item.json.operator_id }}'::uuid,\n  '{{ $('Parse Upload').item.json.appeal_id }}'::uuid,\n  '{{ $('Parse Upload').item.json.file_path }}',\n  'https://supabase.n8nsrv.ru/storage/v1/object/voice-messages/{{ $('Parse Upload').item.json.file_path }}',\n  {{ $('Parse Upload').item.json.file_size }},\n  '{{ $('Parse Upload').item.json.mime_type }}'\n)\nRETURNING id, file_url;",
+        "options": {}
+      },
+      "id": "e06f30d2-61e6-4f08-82a1-22d93f811f3e",
+      "name": "Save to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\n\nreturn {\n  success: true,\n  voice_id: result.id,\n  file_url: result.file_url\n};"
+      },
+      "id": "4c2bc762-b74a-440c-aa90-7ab99a6d071d",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "3721ccc2-c48f-4f09-a616-1a2cd9de4cc6",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Upload": {
+      "main": [
+        [
+          {
+            "node": "Upload to Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Storage": {
+      "main": [
+        [
+          {
+            "node": "Save to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to DB": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-11-23T04:00:19.000Z",
+  "createdAt": "2025-11-10T08:14:25.425Z"
+}

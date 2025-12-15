@@ -1,0 +1,368 @@
+{
+  "id": "xDl5aDMBvnQH9UUx",
+  "name": "API_Android_Take_Appeal",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/android/appeals/:id/take",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "1b88abad-ab86-4160-913b-b42bbdea1cb5",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -912,
+        0
+      ],
+      "webhookId": "unique-take-appeal"
+    },
+    {
+      "parameters": {
+        "jsCode": "const params = $json.params || {};\nconst headers = $json.headers || {};\n\n// Получить operator_id из session_token\nconst sessionToken = headers['x-session-token'] || headers['X-Session-Token'] || null;\n\nreturn {\n  appeal_id: params.id || null,\n  session_token: sessionToken\n};"
+      },
+      "id": "1c7bfd3c-55b4-47fa-a740-471516b20b75",
+      "name": "Parse Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.tenant_id, od.operator_id \nFROM operator_devices od\nJOIN operators o ON o.id = od.operator_id\nWHERE od.session_token = '{{ $json.session_token }}'\n  AND od.device_type = 'mobile'\n  AND o.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "bf497b07-9af8-45b1-b3ea-77c94c652cd6",
+      "name": "Get Operator",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -464,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first()?.json;\nconst row = Array.isArray(input) ? (input[0] || null) : input;\nconst tenant_id = row?.tenant_id || null;\nconst operator_id = row?.operator_id || null;\n\nconst previous = $('Parse Params').first().json;\n\nreturn {\n  ...previous,\n  tenant_id,\n  operator_id\n};"
+      },
+      "id": "fcff0d80-57fa-4662-8373-6dd2b25c691f",
+      "name": "Normalize Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.tenant_id }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.operator_id }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $('Webhook').item.json.body.session_token }}",
+              "operation": "notEqual",
+              "value2": "invalid"
+            }
+          ]
+        }
+      },
+      "id": "b0dc40c1-27b2-44cd-8ba1-1dbe499a8712",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_appeal_status (tenant_id, appeal_id, operator_id, status, taken_at)\nVALUES ('{{ $json.tenant_id }}'::uuid, '{{ $json.appeal_id }}'::uuid, '{{ $json.operator_id }}'::uuid, 'in_progress', NOW())\nON CONFLICT (tenant_id, appeal_id, operator_id) DO UPDATE SET status = 'in_progress', taken_at = NOW()\nRETURNING id;",
+        "options": {}
+      },
+      "id": "04bc3b05-6c21-4a12-8666-37c71ca2513c",
+      "name": "Update Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        224,
+        -176
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO operator_actions (tenant_id, operator_id, action_type, action_source, details)\nVALUES (\n  '{{ $json.tenant_id }}'::uuid, \n  '{{ $json.operator_id }}'::uuid, \n  'take_appeal', \n  'android_app', \n  jsonb_build_object('appeal_id', '{{ $json.appeal_id }}')\n);",
+        "options": {}
+      },
+      "id": "e108ee2c-7b3a-48c9-81ac-1111f391f6d0",
+      "name": "Log Action",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        800,
+        -112
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { success: true, message: 'Appeal taken' };"
+      },
+      "id": "a42dfaff-d1e7-4141-926a-be9bb3cf14e1",
+      "name": "Format Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { success: false, error: 'unauthorized' };"
+      },
+      "id": "8d94cb2c-8edd-4062-b2a0-935cf84b2cf1",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "d06d441f-74ff-432a-a484-882d36483480",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "9853c533-07ce-44ab-bf42-449ffd0a7d38",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        400,
+        96
+      ],
+      "id": "51f2f559-bb00-4cc5-8ea4-a67fee1ee5c0",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Params": {
+      "main": [
+        [
+          {
+            "node": "Get Operator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Operator": {
+      "main": [
+        [
+          {
+            "node": "Normalize Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Tenant": {
+      "main": [
+        [
+          {
+            "node": "Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid?": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Action": {
+      "main": [
+        [
+          {
+            "node": "Format Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Log Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T03:58:34.844Z",
+      "createdAt": "2025-11-23T03:58:34.844Z",
+      "id": "0yzk30hhaSzkl8bF",
+      "name": "API"
+    },
+    {
+      "updatedAt": "2025-11-23T03:59:12.594Z",
+      "createdAt": "2025-11-23T03:59:12.594Z",
+      "id": "8zD9sDD78ytgu5T2",
+      "name": "BattCRM"
+    }
+  ],
+  "updatedAt": "2025-12-01T08:47:54.000Z",
+  "createdAt": "2025-11-05T17:11:36.136Z"
+}
