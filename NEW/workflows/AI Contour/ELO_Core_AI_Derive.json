@@ -3,27 +3,26 @@
   "nodes": [
     {
       "parameters": {
-        "method": "POST",
-        "path": "elo-core-ai-derive",
+        "httpMethod": "POST",
+        "path": "derive",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-trigger",
+      "id": "webhook",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
-      "webhookId": "elo-core-ai-derive"
+      "position": [260, 300]
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst linesToDerive = input.lines_to_derive || [];\n\n// Get lines that need derivation\nconst lines = context.lines.filter(line => {\n  // Include if specified in lines_to_derive\n  if (linesToDerive.length > 0) {\n    return linesToDerive.includes(line.id);\n  }\n  // Or if has symptom but no diagnosis\n  return line.slots?.symptom && !line.slots?.diagnosis;\n});\n\nreturn {\n  context: context,\n  lines: lines,\n  has_lines_to_derive: lines.length > 0\n};"
+        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst linesToDerive = input.lines_to_derive || [];\n\n// Get lines that need derivation\nconst lines = context.lines.filter(line => {\n  if (linesToDerive.length > 0) {\n    return linesToDerive.includes(line.id);\n  }\n  return line.slots?.symptom && !line.slots?.diagnosis;\n});\n\nreturn {\n  context: context,\n  lines: lines,\n  has_lines_to_derive: lines.length > 0\n};"
       },
-      "id": "filter-lines",
+      "id": "filter_lines",
       "name": "Filter Lines",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [470, 300]
+      "position": [480, 300]
     },
     {
       "parameters": {
@@ -35,7 +34,7 @@
           },
           "conditions": [
             {
-              "id": "check-has-lines",
+              "id": "condition1",
               "leftValue": "={{ $json.has_lines_to_derive }}",
               "rightValue": true,
               "operator": {
@@ -48,45 +47,94 @@
         },
         "options": {}
       },
-      "id": "if-has-lines",
+      "id": "has_lines",
       "name": "Has Lines?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [690, 300]
+      "typeVersion": 2.2,
+      "position": [700, 300]
     },
     {
       "parameters": {
-        "jsCode": "const context = $('Filter Lines').first().json.context;\nconst lines = $('Filter Lines').first().json.lines;\n\n// Process each line for derivation\nconst derivations = [];\n\nfor (const line of lines) {\n  const symptomText = line.slots?.symptom?.text;\n  const device = line.slots?.device;\n  \n  if (!symptomText) continue;\n  \n  // Simple derivation logic (will be replaced with Graph queries)\n  const derivation = {\n    line_id: line.id,\n    derived: {}\n  };\n  \n  // Symptom text to diagnosis mapping (simple rules for MVP)\n  const symptomMappings = {\n    'разбит экран': { code: 'display_replacement', text: 'Замена дисплея' },\n    'не работает экран': { code: 'display_replacement', text: 'Замена дисплея' },\n    'треснул экран': { code: 'display_replacement', text: 'Замена дисплея' },\n    'замена экрана': { code: 'display_replacement', text: 'Замена дисплея' },\n    'замена дисплея': { code: 'display_replacement', text: 'Замена дисплея' },\n    'батарея': { code: 'battery_replacement', text: 'Замена батареи' },\n    'аккумулятор': { code: 'battery_replacement', text: 'Замена батареи' },\n    'не заряжается': { code: 'charging_repair', text: 'Ремонт разъема зарядки' },\n    'зарядка': { code: 'charging_repair', text: 'Ремонт разъема зарядки' }\n  };\n  \n  // Find matching diagnosis\n  const symptomLower = symptomText.toLowerCase();\n  for (const [key, value] of Object.entries(symptomMappings)) {\n    if (symptomLower.includes(key)) {\n      derivation.derived.diagnosis = {\n        code: value.code,\n        text: value.text,\n        confidence: 0.8\n      };\n      derivation.derived.repair_type = {\n        code: value.code,\n        text: value.text\n      };\n      break;\n    }\n  }\n  \n  // Price lookup (simple rules for MVP)\n  if (derivation.derived.repair_type && device) {\n    const priceMap = {\n      'Apple': {\n        'display_replacement': 8500,\n        'battery_replacement': 2800,\n        'charging_repair': 2500\n      },\n      'Samsung': {\n        'display_replacement': 6500,\n        'battery_replacement': 2200,\n        'charging_repair': 2000\n      }\n    };\n    \n    const brandPrices = priceMap[device.brand] || priceMap['Samsung'];\n    const price = brandPrices[derivation.derived.repair_type.code];\n    \n    if (price) {\n      derivation.derived.price = {\n        amount: price,\n        currency: 'RUB',\n        is_estimate: false\n      };\n    }\n  }\n  \n  if (Object.keys(derivation.derived).length > 0) {\n    derivations.push(derivation);\n  }\n}\n\nreturn {\n  derivations: derivations,\n  context: context\n};"
+        "batchSize": 1,
+        "options": {}
       },
-      "id": "derive-values",
-      "name": "Derive Values",
+      "id": "split_lines",
+      "name": "Split Lines",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $('Filter Lines').first().json.context;\nconst lines = $('Filter Lines').first().json.lines;\nconst currentIndex = $itemIndex;\nconst line = lines[currentIndex];\n\nconst symptomText = line?.slots?.symptom?.text || '';\nconst deviceBrand = line?.slots?.device?.brand || '';\nconst deviceModel = line?.slots?.device?.model || '';\nconst tenantId = context.tenant_id;\nconst verticalId = context.vertical_id || 1;\n\nreturn {\n  line_id: line.id,\n  symptom_text: symptomText.toLowerCase(),\n  device_brand: deviceBrand,\n  device_model: deviceModel,\n  tenant_id: tenantId,\n  vertical_id: verticalId\n};"
+      },
+      "id": "prepare_query",
+      "name": "Prepare Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [910, 200]
+      "position": [1140, 200]
     },
     {
       "parameters": {
-        "jsCode": "// No lines to derive - return empty derivations\nreturn {\n  derivations: [],\n  context: $('Filter Lines').first().json.context\n};"
+        "operation": "executeQuery",
+        "query": "WITH symptom_match AS (\n  SELECT \n    st.id as symptom_type_id,\n    st.uuid as symptom_type_uuid,\n    st.code as symptom_code,\n    st.name_ru as symptom_name,\n    sm.aliases,\n    1 as match_rank\n  FROM elo_symptom_types st\n  JOIN elo_v_symptom_mappings sm ON sm.symptom_type_id = st.id\n  WHERE sm.vertical_id = {{ $json.vertical_id }}\n    AND sm.is_active = true\n    AND EXISTS (\n      SELECT 1 FROM jsonb_array_elements_text(sm.aliases) alias\n      WHERE $1 LIKE '%' || lower(alias) || '%'\n         OR lower(alias) LIKE '%' || $1 || '%'\n    )\n  ORDER BY \n    CASE WHEN $1 = ANY(SELECT lower(x) FROM jsonb_array_elements_text(sm.aliases) x) THEN 0 ELSE 1 END\n  LIMIT 1\n),\ndiagnosis_match AS (\n  SELECT \n    dt.id as diagnosis_type_id,\n    dt.uuid as diagnosis_type_uuid,\n    dt.code as diagnosis_code,\n    dt.name_ru as diagnosis_name,\n    sdl.confidence\n  FROM symptom_match sm\n  JOIN elo_symptom_diagnosis_links sdl ON sdl.symptom_type_id = sm.symptom_type_id\n  JOIN elo_diagnosis_types dt ON dt.id = sdl.diagnosis_type_id\n  WHERE sdl.is_primary = true AND sdl.is_active = true\n  LIMIT 1\n),\nrepair_match AS (\n  SELECT \n    ra.id as repair_action_id,\n    ra.uuid as repair_action_uuid,\n    ra.code as repair_code,\n    ra.name_ru as repair_name\n  FROM diagnosis_match dm\n  JOIN elo_diagnosis_repair_links drl ON drl.diagnosis_type_id = dm.diagnosis_type_id\n  JOIN elo_repair_actions ra ON ra.id = drl.repair_action_id\n  WHERE drl.is_primary = true AND drl.is_active = true\n  LIMIT 1\n),\nprice_match AS (\n  SELECT \n    p.id as price_id,\n    p.price_min,\n    p.price_max,\n    p.currency,\n    CASE WHEN p.price_min = p.price_max THEN false ELSE true END as is_estimate\n  FROM elo_t_price_list p\n  JOIN repair_match rm ON p.repair_action_id = rm.repair_action_id\n  WHERE p.is_active = true\n    AND (p.tenant_id = $2::uuid OR p.tenant_id IS NULL)\n    AND (\n      (lower(p.brand) = lower($3) AND lower(p.model) LIKE '%' || lower($4) || '%')\n      OR (lower(p.brand) = lower($3) AND p.model IS NULL)\n      OR p.brand IS NULL\n    )\n  ORDER BY \n    CASE WHEN p.tenant_id = $2::uuid THEN 0 ELSE 1 END,\n    CASE WHEN p.model IS NOT NULL THEN 0 ELSE 1 END\n  LIMIT 1\n)\nSELECT \n  sm.symptom_type_uuid,\n  sm.symptom_code,\n  sm.symptom_name,\n  dm.diagnosis_type_uuid,\n  dm.diagnosis_code,\n  dm.diagnosis_name,\n  dm.confidence,\n  rm.repair_action_uuid,\n  rm.repair_code,\n  rm.repair_name,\n  pm.price_id,\n  pm.price_min,\n  pm.price_max,\n  pm.currency,\n  pm.is_estimate\nFROM symptom_match sm\nLEFT JOIN diagnosis_match dm ON true\nLEFT JOIN repair_match rm ON true\nLEFT JOIN price_match pm ON true;",
+        "options": {
+          "queryReplacement": "={{ [$json.symptom_text, $json.tenant_id, $json.device_brand, $json.device_model] }}"
+        }
       },
-      "id": "empty-derivations",
+      "id": "postgres_derive",
+      "name": "PostgreSQL Derive",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1360, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const queryResult = $input.first().json;\nconst prepareData = $('Prepare Query').first().json;\n\nconst derivation = {\n  line_id: prepareData.line_id,\n  derived: {}\n};\n\nif (queryResult.symptom_type_uuid) {\n  derivation.derived.symptom_type = {\n    uuid: queryResult.symptom_type_uuid,\n    code: queryResult.symptom_code,\n    name: queryResult.symptom_name\n  };\n}\n\nif (queryResult.diagnosis_type_uuid) {\n  derivation.derived.diagnosis = {\n    uuid: queryResult.diagnosis_type_uuid,\n    code: queryResult.diagnosis_code,\n    text: queryResult.diagnosis_name,\n    confidence: parseFloat(queryResult.confidence) || 0.8\n  };\n}\n\nif (queryResult.repair_action_uuid) {\n  derivation.derived.repair_type = {\n    uuid: queryResult.repair_action_uuid,\n    code: queryResult.repair_code,\n    text: queryResult.repair_name\n  };\n}\n\nif (queryResult.price_min) {\n  derivation.derived.price = {\n    amount: queryResult.price_min === queryResult.price_max \n      ? parseFloat(queryResult.price_min)\n      : (parseFloat(queryResult.price_min) + parseFloat(queryResult.price_max)) / 2,\n    min: parseFloat(queryResult.price_min),\n    max: parseFloat(queryResult.price_max),\n    currency: queryResult.currency || 'RUB',\n    is_estimate: queryResult.is_estimate || false\n  };\n}\n\nreturn derivation;"
+      },
+      "id": "format_derivation",
+      "name": "Format Derivation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1580, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst context = $('Filter Lines').first().json.context;\n\nconst derivations = items.map(item => item.json);\n\nreturn {\n  derivations: derivations,\n  context: context\n};"
+      },
+      "id": "aggregate",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  derivations: [],\n  context: $('Filter Lines').first().json.context\n};"
+      },
+      "id": "empty_derivations",
       "name": "Empty Derivations",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [910, 400]
+      "position": [920, 400]
     },
     {
       "parameters": {
         "mode": "combine",
-        "mergeByFields": {
-          "values": []
-        },
+        "combineBy": "combineAll",
         "options": {}
       },
-      "id": "merge-results",
-      "name": "Merge Results",
+      "id": "merge",
+      "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [1130, 300]
+      "position": [2020, 300]
     },
     {
       "parameters": {
@@ -94,99 +142,73 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "respond-webhook",
-      "name": "Respond to Webhook",
+      "id": "respond",
+      "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1350, 300]
+      "position": [2240, 300]
     }
   ],
   "connections": {
     "Webhook": {
       "main": [
-        [
-          {
-            "node": "Filter Lines",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Filter Lines", "type": "main", "index": 0}]
       ]
     },
     "Filter Lines": {
       "main": [
-        [
-          {
-            "node": "Has Lines?",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Has Lines?", "type": "main", "index": 0}]
       ]
     },
     "Has Lines?": {
       "main": [
-        [
-          {
-            "node": "Derive Values",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Empty Derivations",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Split Lines", "type": "main", "index": 0}],
+        [{"node": "Empty Derivations", "type": "main", "index": 0}]
       ]
     },
-    "Derive Values": {
+    "Split Lines": {
       "main": [
-        [
-          {
-            "node": "Merge Results",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Prepare Query", "type": "main", "index": 0}]
+      ]
+    },
+    "Prepare Query": {
+      "main": [
+        [{"node": "PostgreSQL Derive", "type": "main", "index": 0}]
+      ]
+    },
+    "PostgreSQL Derive": {
+      "main": [
+        [{"node": "Format Derivation", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Derivation": {
+      "main": [
+        [{"node": "Split Lines", "type": "main", "index": 0}]
+      ]
+    },
+    "Split Lines": {
+      "main": [
+        null,
+        [{"node": "Aggregate", "type": "main", "index": 0}]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [{"node": "Merge", "type": "main", "index": 0}]
       ]
     },
     "Empty Derivations": {
       "main": [
-        [
-          {
-            "node": "Merge Results",
-            "type": "main",
-            "index": 1
-          }
-        ]
+        [{"node": "Merge", "type": "main", "index": 1}]
       ]
     },
-    "Merge Results": {
+    "Merge": {
       "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Respond", "type": "main", "index": 0}]
       ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1"
-  },
-  "versionId": "",
-  "meta": {
-    "instanceId": ""
-  },
-  "tags": [
-    {
-      "name": "ELO_Core_AI"
-    }
-  ]
+  }
 }

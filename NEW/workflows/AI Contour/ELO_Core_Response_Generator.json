@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst triggersFired = input.triggers_fired || [];\n\nconst stage = context.current_stage;\nconst focusLine = context.lines.find(l => l.id === context.focus_line_id) || context.lines[0];\n\nlet responseGoal = {\n  type: 'ask_slot',\n  slot: null,\n  stage: stage\n};\n\n// Determine what to ask for based on stage\nswitch (stage) {\n  case 'data_collection':\n    if (focusLine) {\n      // Find first empty required slot\n      const requiredSlots = ['device', 'symptom'];\n      for (const slot of requiredSlots) {\n        if (!focusLine.slots[slot]) {\n          responseGoal.slot = slot;\n          break;\n        }\n      }\n      \n      // If all required filled, confirm data\n      if (!responseGoal.slot) {\n        responseGoal.type = 'confirm_data';\n      }\n    }\n    break;\n  \n  case 'presentation':\n    responseGoal.type = 'present_offer';\n    responseGoal.include_price = true;\n    break;\n  \n  case 'agreement':\n    responseGoal.type = 'ask_confirmation';\n    break;\n  \n  case 'booking':\n    const bookingSlots = ['date', 'time', 'name', 'phone'];\n    const booking = context.booking || {};\n    for (const slot of bookingSlots) {\n      if (!booking[slot]) {\n        responseGoal.type = 'ask_booking_slot';\n        responseGoal.slot = slot;\n        break;\n      }\n    }\n    break;\n  \n  case 'confirmation':\n    responseGoal.type = 'ask_final_confirmation';\n    break;\n}\n\n// Add trigger messages to include\nresponseGoal.trigger_messages = triggersFired\n  .filter(t => t.action?.type === 'send_message')\n  .map(t => t.action.message);\n\nreturn {\n  context: context,\n  response_goal: responseGoal,\n  focus_line: focusLine\n};"
+        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst triggersFired = input.triggers_fired || [];\n\nconst stage = context.current_stage;\nconst focusLine = context.lines?.find(l => l.id === context.focus_line_id) || context.lines?.[0];\n\nlet responseGoal = {\n  type: 'ask_slot',\n  slot: null,\n  stage: stage\n};\n\n// Determine what to ask for based on stage\nswitch (stage) {\n  case 'data_collection':\n    if (focusLine) {\n      // Find first empty required slot\n      const requiredSlots = ['device', 'symptom'];\n      for (const slot of requiredSlots) {\n        if (!focusLine.slots?.[slot]) {\n          responseGoal.slot = slot;\n          break;\n        }\n      }\n      \n      // If all required filled, confirm data\n      if (!responseGoal.slot) {\n        responseGoal.type = 'confirm_data';\n      }\n    }\n    break;\n  \n  case 'presentation':\n    responseGoal.type = 'present_offer';\n    responseGoal.include_price = true;\n    break;\n  \n  case 'agreement':\n    responseGoal.type = 'ask_confirmation';\n    break;\n  \n  case 'booking':\n    const bookingSlots = ['date', 'time', 'name', 'phone'];\n    const booking = context.booking || {};\n    for (const slot of bookingSlots) {\n      if (!booking[slot]) {\n        responseGoal.type = 'ask_slot';\n        responseGoal.slot = slot;\n        break;\n      }\n    }\n    break;\n  \n  case 'confirmation':\n    responseGoal.type = 'ask_final_confirmation';\n    break;\n}\n\n// Add trigger messages to include\nresponseGoal.trigger_messages = triggersFired\n  .filter(t => t.action?.type === 'send_message')\n  .map(t => t.action.message);\n\nreturn {\n  context: context,\n  response_goal: responseGoal,\n  focus_line: focusLine,\n  vertical_id: context.vertical_id || 1\n};"
       },
       "id": "determine-goal",
       "name": "Determine Goal",
@@ -27,13 +27,33 @@
     },
     {
       "parameters": {
-        "jsCode": "const context = $json.context;\nconst goal = $json.response_goal;\nconst focusLine = $json.focus_line;\n\n// Build device string\nconst deviceStr = focusLine?.slots?.device\n  ? `${focusLine.slots.device.brand} ${focusLine.slots.device.model}`\n  : 'устройство';\n\nconst symptomStr = focusLine?.slots?.symptom?.text || 'проблема';\nconst diagnosisStr = focusLine?.slots?.diagnosis?.text || 'диагностика';\nconst priceStr = focusLine?.slots?.price?.amount || '???';\n\n// Prompt templates\nconst PROMPTS = {\n  ask_device: `Спроси у клиента какое устройство нужно отремонтировать.\nБудь дружелюбным, используй имя клиента если известно.\nПримеры: \"Какое устройство нужно починить?\", \"Что за телефон?\"`,\n\n  ask_symptom: `Спроси у клиента что случилось с устройством.\nУстройство уже известно: ${deviceStr}.\nПримеры: \"Что произошло с ${deviceStr}?\", \"Какая проблема?\"`,\n\n  confirm_data: `Подтверди собранные данные.\nУстройство: ${deviceStr}\nПроблема: ${symptomStr}\n\nПример: \"Понял, ${deviceStr}, ${symptomStr}. Сейчас посмотрю цену.\"`,\n\n  present_offer: `Представь клиенту предложение по ремонту.\nВключи:\n- Стоимость: ${priceStr}₽\n- Гарантия: 6 месяцев\n\nУстройство: ${deviceStr}\nПроблема: ${symptomStr}\n\nБудь уверенным. Предложи записаться.`,\n\n  ask_confirmation: `Спроси готов ли клиент записаться.\nПримеры: \"Записываем?\", \"Готовы прийти?\"`,\n\n  ask_date: `Спроси удобную дату для визита.\nПримеры: \"На какой день записать?\", \"Когда удобно?\"`,\n\n  ask_time: `Спроси удобное время.\nПримеры: \"Во сколько удобно?\", \"Какое время?\"`,\n\n  ask_name: `Спроси имя для записи.\nПример: \"Как вас записать?\"`,\n\n  ask_phone: `Спроси телефон для связи.\nПример: \"Оставьте номер для подтверждения записи\"`,\n\n  ask_final_confirmation: `Попроси подтвердить запись.\nУстройство: ${deviceStr}\nРемонт: ${diagnosisStr}\nЦена: ${priceStr}₽\n\nПример: \"Подтверждаете запись?\"`\n};\n\n// Get prompt template\nlet promptTemplate = '';\nif (goal.type === 'ask_slot') {\n  promptTemplate = PROMPTS[`ask_${goal.slot}`] || PROMPTS.ask_device;\n} else if (goal.type === 'ask_booking_slot') {\n  promptTemplate = PROMPTS[`ask_${goal.slot}`] || PROMPTS.ask_date;\n} else {\n  promptTemplate = PROMPTS[goal.type] || PROMPTS.ask_device;\n}\n\n// Build system prompt\nconst systemPrompt = `Ты — AI-ассистент сервисного центра по ремонту телефонов.\n\nПРАВИЛА:\n1. Отвечай на русском языке\n2. Будь кратким (1-3 предложения)\n3. Используй имя клиента: ${context.client?.name || 'клиент'}\n4. Не задавай несколько вопросов сразу\n5. Будь дружелюбным и профессиональным\n\n${goal.trigger_messages?.length > 0 ? `\nТАКЖЕ ВКЛЮЧИ В ОТВЕТ:\n${goal.trigger_messages.join('\\n')}\n` : ''}`;\n\nconst userMessage = `Контекст диалога:\n- Этап: ${goal.stage}\n- Задача: ${goal.type}\n${goal.slot ? `- Спросить: ${goal.slot}` : ''}\n\n${promptTemplate}\n\nСгенерируй ТОЛЬКО ответ клиенту.`;\n\nreturn {\n  system_prompt: systemPrompt,\n  user_message: userMessage,\n  goal: goal,\n  context: context,\n  focus_line: focusLine\n};"
+        "operation": "executeQuery",
+        "query": "SELECT\n    system_prompt,\n    user_prompt_template\nFROM elo_v_prompts\nWHERE vertical_id = $1\n  AND prompt_type = 'response'\n  AND goal_type = $2\n  AND (slot_name = $3 OR (slot_name IS NULL AND $3 IS NULL))\n  AND is_active = true\nORDER BY version DESC\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [$json.vertical_id, $json.response_goal.type, $json.response_goal.slot || null] }}"
+        }
+      },
+      "id": "load-prompt-sql",
+      "name": "PostgreSQL Load Prompt",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const determineData = $('Determine Goal').first().json;\nconst context = determineData.context;\nconst goal = determineData.response_goal;\nconst focusLine = determineData.focus_line;\nconst promptData = $input.first().json || {};\n\n// Build device string\nconst deviceStr = focusLine?.slots?.device\n  ? `${focusLine.slots.device.brand} ${focusLine.slots.device.model}`\n  : 'device';\n\nconst symptomStr = focusLine?.slots?.symptom?.text || 'problem';\nconst diagnosisStr = focusLine?.slots?.diagnosis?.text || 'diagnostics';\nconst repairStr = focusLine?.slots?.repair_type?.text || 'repair';\nconst priceStr = focusLine?.slots?.price?.amount || '???';\nconst dateStr = context.booking?.date || '';\nconst timeStr = context.booking?.time || '';\n\n// Template variables\nconst vars = {\n  device: deviceStr,\n  symptom: symptomStr,\n  diagnosis: diagnosisStr,\n  repair: repairStr,\n  price: priceStr,\n  date: dateStr,\n  time: timeStr,\n  client_name: context.client?.name || 'client'\n};\n\n// Replace {{var}} placeholders in template\nlet userPrompt = promptData.user_prompt_template || `Ask about ${goal.slot || goal.type}`;\nfor (const [key, value] of Object.entries(vars)) {\n  userPrompt = userPrompt.replace(new RegExp(`{{${key}}}`, 'g'), String(value));\n}\n\n// Add trigger messages\nif (goal.trigger_messages?.length > 0) {\n  userPrompt += '\\n\\nAlso include: ' + goal.trigger_messages.join('; ');\n}\n\n// Build system prompt\nlet systemPrompt = promptData.system_prompt || 'You are a helpful service center assistant.';\n\n// Add context to system prompt\nsystemPrompt += `\\n\\nRULES:\\n1. Respond in Russian\\n2. Be brief (1-3 sentences)\\n3. Use client name: ${context.client?.name || 'client'}\\n4. Don't ask multiple questions at once\\n5. Be friendly and professional`;\n\nif (goal.trigger_messages?.length > 0) {\n  systemPrompt += `\\n\\nALSO INCLUDE IN RESPONSE:\\n${goal.trigger_messages.join('\\n')}`;\n}\n\nreturn {\n  system_prompt: systemPrompt,\n  user_message: userPrompt,\n  goal: goal,\n  context: context,\n  focus_line: focusLine\n};"
       },
       "id": "build-prompt",
       "name": "Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [690, 300]
+      "position": [910, 300]
     },
     {
       "parameters": {
@@ -43,7 +63,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b',\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_message }\n  ],\n  temperature: 0.7,\n  max_tokens: 300\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_message }\n  ],\n  temperature: 0.7,\n  max_tokens: 300\n}) }}",
         "options": {
           "timeout": 60000
         }
@@ -52,7 +72,7 @@
       "name": "Call OpenRouter",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [910, 300],
+      "position": [1130, 300],
       "credentials": {
         "httpHeaderAuth": {
           "id": "openrouter-api",
@@ -62,13 +82,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $json;\nconst goal = $('Build Prompt').first().json.goal;\nconst context = $('Build Prompt').first().json.context;\nconst focusLine = $('Build Prompt').first().json.focus_line;\n\nlet responseText = '';\ntry {\n  responseText = response.choices?.[0]?.message?.content || '';\n  // Clean up\n  responseText = responseText.trim();\n  // Remove thinking tags if present (Qwen3)\n  responseText = responseText.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n} catch (e) {\n  responseText = 'Спасибо за сообщение! Чем могу помочь?';\n}\n\n// Build buttons based on stage/goal\nlet buttons = [];\n\nswitch (goal.stage) {\n  case 'presentation':\n    buttons = [\n      { text: 'Записаться', callback_data: 'book' },\n      { text: 'Уточнить', callback_data: 'clarify' }\n    ];\n    break;\n  \n  case 'agreement':\n    buttons = [\n      { text: 'Да, записать', callback_data: 'confirm_book' },\n      { text: 'Нет, спасибо', callback_data: 'decline' }\n    ];\n    break;\n  \n  case 'booking':\n    if (goal.slot === 'date') {\n      const today = new Date();\n      buttons = [0, 1, 2].map(offset => {\n        const date = new Date(today);\n        date.setDate(date.getDate() + offset);\n        const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });\n        return {\n          text: offset === 0 ? 'Сегодня' : offset === 1 ? 'Завтра' : dateStr,\n          callback_data: `date_${date.toISOString().split('T')[0]}`\n        };\n      });\n    } else if (goal.slot === 'time') {\n      buttons = [\n        { text: '10:00', callback_data: 'time_10:00' },\n        { text: '14:00', callback_data: 'time_14:00' },\n        { text: '18:00', callback_data: 'time_18:00' }\n      ];\n    }\n    break;\n  \n  case 'confirmation':\n    buttons = [\n      { text: 'Подтверждаю', callback_data: 'confirm' },\n      { text: 'Изменить', callback_data: 'change' }\n    ];\n    break;\n}\n\nreturn {\n  response: {\n    text: responseText,\n    buttons: buttons,\n    attachments: [],\n    metadata: {\n      stage: goal.stage,\n      asking_for: goal.slot || goal.type,\n      ai_model: response.model,\n      tokens_used: response.usage?.total_tokens\n    }\n  }\n};"
+        "jsCode": "const response = $json;\nconst goal = $('Build Prompt').first().json.goal;\nconst context = $('Build Prompt').first().json.context;\nconst focusLine = $('Build Prompt').first().json.focus_line;\n\nlet responseText = '';\ntry {\n  responseText = response.choices?.[0]?.message?.content || '';\n  // Clean up\n  responseText = responseText.trim();\n  // Remove thinking tags if present (Qwen3)\n  responseText = responseText.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n} catch (e) {\n  responseText = 'Thanks for your message! How can I help?';\n}\n\n// Build buttons based on stage/goal\nlet buttons = [];\n\nswitch (goal.stage) {\n  case 'presentation':\n    buttons = [\n      { text: 'Book', callback_data: 'book' },\n      { text: 'Questions', callback_data: 'clarify' }\n    ];\n    break;\n  \n  case 'agreement':\n    buttons = [\n      { text: 'Yes, book', callback_data: 'confirm_book' },\n      { text: 'No, thanks', callback_data: 'decline' }\n    ];\n    break;\n  \n  case 'booking':\n    if (goal.slot === 'date') {\n      const today = new Date();\n      buttons = [0, 1, 2].map(offset => {\n        const date = new Date(today);\n        date.setDate(date.getDate() + offset);\n        const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });\n        return {\n          text: offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : dateStr,\n          callback_data: `date_${date.toISOString().split('T')[0]}`\n        };\n      });\n    } else if (goal.slot === 'time') {\n      buttons = [\n        { text: '10:00', callback_data: 'time_10:00' },\n        { text: '14:00', callback_data: 'time_14:00' },\n        { text: '18:00', callback_data: 'time_18:00' }\n      ];\n    }\n    break;\n  \n  case 'confirmation':\n    buttons = [\n      { text: 'Confirm', callback_data: 'confirm' },\n      { text: 'Change', callback_data: 'change' }\n    ];\n    break;\n}\n\nreturn {\n  response: {\n    text: responseText,\n    buttons: buttons,\n    attachments: [],\n    metadata: {\n      stage: goal.stage,\n      asking_for: goal.slot || goal.type,\n      ai_model: response.model,\n      tokens_used: response.usage?.total_tokens\n    }\n  }\n};"
       },
       "id": "parse-response",
       "name": "Parse Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1130, 300]
+      "position": [1350, 300]
     },
     {
       "parameters": {
@@ -80,7 +100,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1350, 300]
+      "position": [1570, 300]
     }
   ],
   "connections": {
@@ -96,6 +116,17 @@
       ]
     },
     "Determine Goal": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL Load Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL Load Prompt": {
       "main": [
         [
           {

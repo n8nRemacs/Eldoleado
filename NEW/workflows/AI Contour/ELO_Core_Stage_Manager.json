@@ -17,23 +17,53 @@
     },
     {
       "parameters": {
-        "jsCode": "// Stage configuration\nconst STAGE_CONFIG = {\n  data_collection: {\n    code: 'data_collection',\n    name: 'Сбор данных',\n    order: 1,\n    required_slots: ['device', 'symptom'],\n    exit_conditions: {\n      type: 'all_lines_complete',\n      required_slots: ['device', 'symptom']\n    },\n    next_stage: 'presentation'\n  },\n  \n  presentation: {\n    code: 'presentation',\n    name: 'Презентация',\n    order: 2,\n    required_slots: ['offer_shown'],\n    exit_conditions: {\n      type: 'slot_filled',\n      slot: 'offer_acknowledged'\n    },\n    next_stage: 'agreement'\n  },\n  \n  agreement: {\n    code: 'agreement',\n    name: 'Согласование',\n    order: 3,\n    required_slots: ['ready_to_book'],\n    exit_conditions: {\n      type: 'intent_detected',\n      intent: 'agree_to_book'\n    },\n    next_stage: 'booking'\n  },\n  \n  booking: {\n    code: 'booking',\n    name: 'Запись',\n    order: 4,\n    required_slots: ['date', 'time', 'name', 'phone'],\n    exit_conditions: {\n      type: 'all_slots_filled',\n      slots: ['date', 'time', 'name', 'phone']\n    },\n    next_stage: 'confirmation'\n  },\n  \n  confirmation: {\n    code: 'confirmation',\n    name: 'Подтверждение',\n    order: 5,\n    required_slots: ['confirmed'],\n    exit_conditions: {\n      type: 'intent_detected',\n      intent: 'confirm'\n    },\n    next_stage: null,\n    on_complete: 'create_intake'\n  }\n};\n\nconst input = $input.first().json;\nconst context = input.context;\nconst currentStage = context.current_stage || 'data_collection';\nconst stageConfig = STAGE_CONFIG[currentStage];\n\nreturn {\n  context: context,\n  current_stage_config: stageConfig,\n  all_stages: STAGE_CONFIG\n};"
+        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst currentStage = context.current_stage || 'data_collection';\n\nreturn {\n  context: context,\n  current_stage_code: currentStage,\n  vertical_id: context.vertical_id || 1\n};"
       },
-      "id": "load-stage-config",
-      "name": "Load Stage Config",
+      "id": "prepare-query",
+      "name": "Prepare Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [470, 300]
     },
     {
       "parameters": {
-        "jsCode": "const context = $json.context;\nconst stageConfig = $json.current_stage_config;\n\nlet shouldTransition = false;\nlet transitionReason = null;\n\n// Check exit conditions based on type\nconst exitCond = stageConfig?.exit_conditions;\n\nif (exitCond) {\n  switch (exitCond.type) {\n    \n    case 'all_lines_complete':\n      // All lines must have required slots filled\n      const requiredSlots = exitCond.required_slots || ['device', 'symptom'];\n      const allComplete = context.lines.length > 0 && context.lines.every(line => {\n        return requiredSlots.every(slot => {\n          return line.slots[slot] !== null && line.slots[slot] !== undefined;\n        });\n      });\n      shouldTransition = allComplete;\n      if (shouldTransition) {\n        transitionReason = 'all_lines_complete';\n      }\n      break;\n    \n    case 'slot_filled':\n      // Specific slot must be filled\n      const slotName = exitCond.slot;\n      shouldTransition = context[slotName] !== null && context[slotName] !== undefined;\n      if (shouldTransition) {\n        transitionReason = `slot_filled:${slotName}`;\n      }\n      break;\n    \n    case 'all_slots_filled':\n      // All specified slots must be filled\n      const slots = exitCond.slots || [];\n      const booking = context.booking || {};\n      const allFilled = slots.every(slot => {\n        return booking[slot] !== null && booking[slot] !== undefined;\n      });\n      shouldTransition = allFilled;\n      if (shouldTransition) {\n        transitionReason = 'all_booking_slots_filled';\n      }\n      break;\n    \n    case 'intent_detected':\n      // Check last AI extraction for intent\n      const lastIntent = context.last_intent;\n      shouldTransition = lastIntent === exitCond.intent;\n      if (shouldTransition) {\n        transitionReason = `intent:${exitCond.intent}`;\n      }\n      break;\n  }\n}\n\nreturn {\n  context: context,\n  current_stage_config: stageConfig,\n  all_stages: $json.all_stages,\n  should_transition: shouldTransition,\n  transition_reason: transitionReason\n};"
+        "operation": "executeQuery",
+        "query": "SELECT\n    id,\n    code,\n    name,\n    name_ru,\n    sort_order,\n    exit_conditions,\n    config\nFROM elo_v_funnel_stages\nWHERE vertical_id = $1\n  AND is_active = true\nORDER BY sort_order;",
+        "options": {
+          "queryReplacement": "={{ [$json.vertical_id] }}"
+        }
+      },
+      "id": "load-stages-sql",
+      "name": "PostgreSQL Load Stages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prepareData = $('Prepare Query').first().json;\nconst context = prepareData.context;\nconst currentStageCode = prepareData.current_stage_code;\n\n// Build stage config from SQL results\nconst stages = $input.all().map(item => item.json);\nconst STAGE_CONFIG = {};\n\nfor (const stage of stages) {\n  STAGE_CONFIG[stage.code] = {\n    code: stage.code,\n    name: stage.name_ru || stage.name,\n    order: stage.sort_order,\n    exit_conditions: stage.exit_conditions || {},\n    required_slots: stage.config?.required_slots || [],\n    next_stage: stage.config?.next_stage || null,\n    on_complete: stage.config?.on_complete || null\n  };\n}\n\nconst stageConfig = STAGE_CONFIG[currentStageCode] || STAGE_CONFIG['data_collection'];\n\nreturn {\n  context: context,\n  current_stage_config: stageConfig,\n  all_stages: STAGE_CONFIG\n};"
+      },
+      "id": "build-config",
+      "name": "Build Stage Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const context = $json.context;\nconst stageConfig = $json.current_stage_config;\n\nlet shouldTransition = false;\nlet transitionReason = null;\n\n// Check exit conditions based on type\nconst exitCond = stageConfig?.exit_conditions;\n\nif (exitCond && Object.keys(exitCond).length > 0) {\n  switch (exitCond.type) {\n    \n    case 'all_lines_complete':\n      // All lines must have required slots filled\n      const requiredSlots = exitCond.required_slots || ['device', 'symptom'];\n      const allComplete = context.lines?.length > 0 && context.lines.every(line => {\n        return requiredSlots.every(slot => {\n          return line.slots?.[slot] !== null && line.slots?.[slot] !== undefined;\n        });\n      });\n      shouldTransition = allComplete;\n      if (shouldTransition) {\n        transitionReason = 'all_lines_complete';\n      }\n      break;\n    \n    case 'slot_filled':\n      // Specific slot must be filled\n      const slotName = exitCond.slot;\n      shouldTransition = context[slotName] !== null && context[slotName] !== undefined;\n      if (shouldTransition) {\n        transitionReason = `slot_filled:${slotName}`;\n      }\n      break;\n    \n    case 'all_slots_filled':\n      // All specified slots must be filled\n      const slots = exitCond.slots || [];\n      const booking = context.booking || {};\n      const allFilled = slots.every(slot => {\n        return booking[slot] !== null && booking[slot] !== undefined;\n      });\n      shouldTransition = allFilled;\n      if (shouldTransition) {\n        transitionReason = 'all_booking_slots_filled';\n      }\n      break;\n    \n    case 'intent_detected':\n      // Check last AI extraction for intent\n      const lastIntent = context.last_intent;\n      shouldTransition = lastIntent === exitCond.intent;\n      if (shouldTransition) {\n        transitionReason = `intent:${exitCond.intent}`;\n      }\n      break;\n  }\n}\n\nreturn {\n  context: context,\n  current_stage_config: stageConfig,\n  all_stages: $json.all_stages,\n  should_transition: shouldTransition,\n  transition_reason: transitionReason\n};"
       },
       "id": "check-exit-conditions",
       "name": "Check Exit Conditions",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [690, 300]
+      "position": [1130, 300]
     },
     {
       "parameters": {
@@ -62,7 +92,7 @@
       "name": "Should Transition?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [910, 300]
+      "position": [1350, 300]
     },
     {
       "parameters": {
@@ -72,17 +102,17 @@
       "name": "Update Stage",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1130, 200]
+      "position": [1570, 200]
     },
     {
       "parameters": {
-        "jsCode": "const context = $json.context;\n\n// Check if focus needs to switch\nlet focusChanged = false;\nlet newFocusLine = null;\n\n// Get current focus line\nconst focusLine = context.lines.find(l => l.id === context.focus_line_id);\n\n// If focus line is done, switch to next waiting\nif (focusLine && focusLine.status === 'done') {\n  const waitingLine = context.lines.find(l => l.status === 'waiting');\n  if (waitingLine) {\n    // Switch focus\n    waitingLine.status = 'active';\n    context.focus_line_id = waitingLine.id;\n    focusChanged = true;\n    newFocusLine = waitingLine.id;\n  }\n}\n\n// If no focus set, set to first non-done line\nif (!context.focus_line_id && context.lines.length > 0) {\n  const firstActive = context.lines.find(l => l.status !== 'done');\n  if (firstActive) {\n    firstActive.status = 'active';\n    context.focus_line_id = firstActive.id;\n    focusChanged = true;\n    newFocusLine = firstActive.id;\n  }\n}\n\nreturn {\n  context: context,\n  stage_changed: false,\n  focus_changed: focusChanged,\n  new_focus_line: newFocusLine\n};"
+        "jsCode": "const context = $json.context;\n\n// Check if focus needs to switch\nlet focusChanged = false;\nlet newFocusLine = null;\n\n// Get current focus line\nconst focusLine = context.lines?.find(l => l.id === context.focus_line_id);\n\n// If focus line is done, switch to next waiting\nif (focusLine && focusLine.status === 'done') {\n  const waitingLine = context.lines.find(l => l.status === 'waiting');\n  if (waitingLine) {\n    // Switch focus\n    waitingLine.status = 'active';\n    context.focus_line_id = waitingLine.id;\n    focusChanged = true;\n    newFocusLine = waitingLine.id;\n  }\n}\n\n// If no focus set, set to first non-done line\nif (!context.focus_line_id && context.lines?.length > 0) {\n  const firstActive = context.lines.find(l => l.status !== 'done');\n  if (firstActive) {\n    firstActive.status = 'active';\n    context.focus_line_id = firstActive.id;\n    focusChanged = true;\n    newFocusLine = firstActive.id;\n  }\n}\n\nreturn {\n  context: context,\n  stage_changed: false,\n  focus_changed: focusChanged,\n  new_focus_line: newFocusLine\n};"
       },
       "id": "check-focus",
       "name": "Check Focus",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1130, 400]
+      "position": [1570, 400]
     },
     {
       "parameters": {
@@ -96,7 +126,7 @@
       "name": "Merge Results",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [1350, 300]
+      "position": [1790, 300]
     },
     {
       "parameters": {
@@ -108,7 +138,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1570, 300]
+      "position": [2010, 300]
     }
   ],
   "connections": {
@@ -116,14 +146,36 @@
       "main": [
         [
           {
-            "node": "Load Stage Config",
+            "node": "Prepare Query",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Load Stage Config": {
+    "Prepare Query": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL Load Stages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL Load Stages": {
+      "main": [
+        [
+          {
+            "node": "Build Stage Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Stage Config": {
       "main": [
         [
           {

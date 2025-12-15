@@ -17,23 +17,43 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst stage = input.stage || context.current_stage;\n\n// Define triggers (will be loaded from Neo4j in production)\nconst TRIGGERS = [\n  {\n    trigger_id: 'trig_apple_display_warranty',\n    trigger_name: 'Apple display warranty info',\n    stage: 'presentation',\n    conditions: {\n      'device.brand': 'Apple',\n      'repair_type.code': 'display_replacement'\n    },\n    once_per_dialog: true,\n    action: {\n      type: 'send_message',\n      message: 'На замену дисплея Apple предоставляется гарантия 6 месяцев. Используем оригинальные комплектующие.'\n    }\n  },\n  {\n    trigger_id: 'trig_high_price_discount',\n    trigger_name: 'High price discount offer',\n    stage: 'presentation',\n    conditions: {\n      'price.amount': { '$gt': 7000 }\n    },\n    once_per_dialog: true,\n    action: {\n      type: 'send_message',\n      message: 'При записи сегодня - скидка 5%!'\n    }\n  },\n  {\n    trigger_id: 'trig_battery_care',\n    trigger_name: 'Battery care info',\n    stage: 'presentation',\n    conditions: {\n      'repair_type.code': 'battery_replacement'\n    },\n    once_per_dialog: true,\n    action: {\n      type: 'send_message',\n      message: 'После замены батареи рекомендуем выполнить 2-3 полных цикла зарядки для калибровки.'\n    }\n  }\n];\n\n// Filter triggers for current stage\nconst stageTriggers = TRIGGERS.filter(t => t.stage === stage);\n\nreturn {\n  context: context,\n  triggers: stageTriggers,\n  executed_trigger_ids: context.executed_triggers || []\n};"
+        "jsCode": "const input = $input.first().json;\nconst context = input.context;\nconst stage = input.stage || context.current_stage;\n\nreturn {\n  context: context,\n  stage: stage,\n  vertical_id: context.vertical_id || 1,\n  executed_trigger_ids: context.executed_triggers || []\n};"
       },
-      "id": "load-triggers",
-      "name": "Load Triggers",
+      "id": "prepare-query",
+      "name": "Prepare Query",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [470, 300]
     },
     {
       "parameters": {
-        "jsCode": "const context = $json.context;\nconst triggers = $json.triggers;\nconst executedIds = $json.executed_trigger_ids;\n\nconst triggersToFire = [];\nconst triggersSkipped = [];\n\n// Build flat context for condition checking\nfunction buildFlatContext(ctx) {\n  const flat = {\n    stage: ctx.current_stage,\n    vertical_id: ctx.vertical_id,\n    tenant_id: ctx.tenant_id,\n    client_name: ctx.client?.name,\n    client_phone: ctx.client?.phone\n  };\n  \n  // Add line data (focus line)\n  const focusLine = ctx.lines.find(l => l.id === ctx.focus_line_id) || ctx.lines[0];\n  if (focusLine?.slots) {\n    flat['device.brand'] = focusLine.slots.device?.brand;\n    flat['device.model'] = focusLine.slots.device?.model;\n    flat['symptom.text'] = focusLine.slots.symptom?.text;\n    flat['diagnosis.code'] = focusLine.slots.diagnosis?.code;\n    flat['repair_type.code'] = focusLine.slots.repair_type?.code;\n    flat['price.amount'] = focusLine.slots.price?.amount;\n  }\n  \n  return flat;\n}\n\n// Check if conditions match\nfunction matchConditions(conditions, flatContext) {\n  if (!conditions) return true;\n  \n  for (const [key, expectedValue] of Object.entries(conditions)) {\n    const actualValue = flatContext[key];\n    \n    // Handle different comparison types\n    if (expectedValue === null) {\n      if (actualValue !== null && actualValue !== undefined) return false;\n    } else if (typeof expectedValue === 'object') {\n      // Advanced conditions\n      if (expectedValue.$gt && !(actualValue > expectedValue.$gt)) return false;\n      if (expectedValue.$lt && !(actualValue < expectedValue.$lt)) return false;\n      if (expectedValue.$in && !expectedValue.$in.includes(actualValue)) return false;\n    } else {\n      // Simple equality (case-insensitive for strings)\n      const actual = typeof actualValue === 'string' ? actualValue.toLowerCase() : actualValue;\n      const expected = typeof expectedValue === 'string' ? expectedValue.toLowerCase() : expectedValue;\n      if (actual !== expected) return false;\n    }\n  }\n  \n  return true;\n}\n\nconst flatContext = buildFlatContext(context);\n\nfor (const trigger of triggers) {\n  // Check if already executed\n  if (trigger.once_per_dialog && executedIds.includes(trigger.trigger_id)) {\n    triggersSkipped.push({\n      trigger_id: trigger.trigger_id,\n      reason: 'already_executed'\n    });\n    continue;\n  }\n  \n  // Check conditions\n  if (matchConditions(trigger.conditions, flatContext)) {\n    triggersToFire.push({\n      trigger_id: trigger.trigger_id,\n      trigger_name: trigger.trigger_name,\n      action: trigger.action,\n      once_per_dialog: trigger.once_per_dialog,\n      executed: true\n    });\n  }\n}\n\n// Mark executed triggers in context\ncontext.executed_triggers = [\n  ...(context.executed_triggers || []),\n  ...triggersToFire.filter(t => t.once_per_dialog).map(t => t.trigger_id)\n];\n\nreturn {\n  triggers_fired: triggersToFire,\n  triggers_skipped: triggersSkipped,\n  context: context\n};"
+        "operation": "executeQuery",
+        "query": "SELECT\n    id,\n    code as trigger_id,\n    name as trigger_name,\n    funnel_stage as stage,\n    conditions,\n    action_type,\n    action_data as action,\n    once_per_dialog,\n    priority\nFROM elo_v_triggers\nWHERE funnel_stage = $1\n  AND (vertical_id = $2 OR vertical_id IS NULL)\n  AND is_active = true\nORDER BY priority DESC;",
+        "options": {
+          "queryReplacement": "={{ [$json.stage, $json.vertical_id] }}"
+        }
+      },
+      "id": "load-triggers-sql",
+      "name": "PostgreSQL Load Triggers",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prepareData = $('Prepare Query').first().json;\nconst context = prepareData.context;\nconst executedIds = prepareData.executed_trigger_ids;\n\n// Get triggers from SQL\nconst triggers = $input.all().map(item => {\n  const t = item.json;\n  return {\n    trigger_id: t.trigger_id,\n    trigger_name: t.trigger_name,\n    stage: t.stage,\n    conditions: t.conditions,\n    once_per_dialog: t.once_per_dialog,\n    action: {\n      type: t.action_type,\n      ...t.action\n    }\n  };\n});\n\nconst triggersToFire = [];\nconst triggersSkipped = [];\n\n// Build flat context for condition checking\nfunction buildFlatContext(ctx) {\n  const flat = {\n    stage: ctx.current_stage,\n    vertical_id: ctx.vertical_id,\n    tenant_id: ctx.tenant_id,\n    client_name: ctx.client?.name,\n    client_phone: ctx.client?.phone\n  };\n  \n  // Add line data (focus line)\n  const focusLine = ctx.lines?.find(l => l.id === ctx.focus_line_id) || ctx.lines?.[0];\n  if (focusLine?.slots) {\n    flat['device.brand'] = focusLine.slots.device?.brand;\n    flat['device.model'] = focusLine.slots.device?.model;\n    flat['symptom.text'] = focusLine.slots.symptom?.text;\n    flat['diagnosis.code'] = focusLine.slots.diagnosis?.code;\n    flat['repair_type.code'] = focusLine.slots.repair_type?.code;\n    flat['price.amount'] = focusLine.slots.price?.amount;\n  }\n  \n  return flat;\n}\n\n// Check if conditions match\nfunction matchConditions(conditions, flatContext) {\n  if (!conditions || Object.keys(conditions).length === 0) return true;\n  \n  for (const [key, expectedValue] of Object.entries(conditions)) {\n    const actualValue = flatContext[key];\n    \n    // Handle different comparison types\n    if (expectedValue === null) {\n      if (actualValue !== null && actualValue !== undefined) return false;\n    } else if (typeof expectedValue === 'object' && expectedValue !== null) {\n      // Advanced conditions ($gt, $lt, $in)\n      if (expectedValue.$gt !== undefined && !(actualValue > expectedValue.$gt)) return false;\n      if (expectedValue.$gte !== undefined && !(actualValue >= expectedValue.$gte)) return false;\n      if (expectedValue.$lt !== undefined && !(actualValue < expectedValue.$lt)) return false;\n      if (expectedValue.$lte !== undefined && !(actualValue <= expectedValue.$lte)) return false;\n      if (expectedValue.$in && !expectedValue.$in.includes(actualValue)) return false;\n      if (expectedValue.$ne !== undefined && actualValue === expectedValue.$ne) return false;\n    } else {\n      // Simple equality (case-insensitive for strings)\n      const actual = typeof actualValue === 'string' ? actualValue.toLowerCase() : actualValue;\n      const expected = typeof expectedValue === 'string' ? expectedValue.toLowerCase() : expectedValue;\n      if (actual !== expected) return false;\n    }\n  }\n  \n  return true;\n}\n\nconst flatContext = buildFlatContext(context);\n\nfor (const trigger of triggers) {\n  // Check if already executed\n  if (trigger.once_per_dialog && executedIds.includes(trigger.trigger_id)) {\n    triggersSkipped.push({\n      trigger_id: trigger.trigger_id,\n      reason: 'already_executed'\n    });\n    continue;\n  }\n  \n  // Check conditions\n  if (matchConditions(trigger.conditions, flatContext)) {\n    triggersToFire.push({\n      trigger_id: trigger.trigger_id,\n      trigger_name: trigger.trigger_name,\n      action: trigger.action,\n      once_per_dialog: trigger.once_per_dialog,\n      executed: true\n    });\n  }\n}\n\n// Mark executed triggers in context\nconst updatedContext = { ...context };\nupdatedContext.executed_triggers = [\n  ...(context.executed_triggers || []),\n  ...triggersToFire.filter(t => t.once_per_dialog).map(t => t.trigger_id)\n];\n\nreturn {\n  triggers_fired: triggersToFire,\n  triggers_skipped: triggersSkipped,\n  context: updatedContext\n};"
       },
       "id": "evaluate-triggers",
       "name": "Evaluate Triggers",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [690, 300]
+      "position": [910, 300]
     },
     {
       "parameters": {
@@ -45,7 +65,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [910, 300]
+      "position": [1130, 300]
     }
   ],
   "connections": {
@@ -53,14 +73,25 @@
       "main": [
         [
           {
-            "node": "Load Triggers",
+            "node": "Prepare Query",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Load Triggers": {
+    "Prepare Query": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL Load Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL Load Triggers": {
       "main": [
         [
           {

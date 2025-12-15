@@ -1,6 +1,5 @@
 {
   "name": "ELO_AI_Extract",
-  "active": true,
   "nodes": [
     {
       "parameters": {
@@ -9,60 +8,69 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "a1b2c3d4-e5f6-4a5b-9c8d-1e2f3a4b5c6d",
+      "id": "webhook-trigger",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [250, 300],
       "webhookId": "elo-ai-extract"
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\n// Required fields\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\n\nif (!input.extraction_schema) {\n  throw new Error('Missing required field: extraction_schema');\n}\n\nreturn {\n  message: input.message,\n  extraction_schema: input.extraction_schema,\n  model: input.model || null,\n  system_prompt: input.system_prompt || null,\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\n\nconst schema = input.extraction_schema || {\n  entities: ['device', 'symptom', 'owner', 'intent'],\n  multi_entity: true\n};\n\n// Build extraction prompt\nconst systemPrompt = `You are an entity extraction system for a phone repair service.\nExtract entities from user messages and return ONLY valid JSON.\n\nEntity types to extract:\n- device: {type: \"device\", brand: string, model: string, color?: string}\n- symptom: {type: \"symptom\", text: string, for_device?: string}\n- owner: {type: \"owner\", label: string} (e.g., \"my\", \"wife's\", \"kid's\")\n- intent: {type: \"intent\", value: string} (e.g., \"repair\", \"price_check\", \"book\", \"cancel\")\n\nRULES:\n1. Return ONLY JSON array, no explanations\n2. Extract ALL mentioned devices if multi_entity is true\n3. Brand normalization: \"айфон/iphone\" → \"Apple\", \"самсунг/samsung\" → \"Samsung\", \"сяоми/xiaomi\" → \"Xiaomi\"\n4. If device model unclear, extract what you can\n5. Empty array [] if nothing to extract`;\n\nconst userPrompt = `Extract entities from: \"${input.message}\"\n\nSchema: ${JSON.stringify(schema)}\n\nReturn JSON array:`;\n\nreturn {\n  message: input.message,\n  system_prompt: systemPrompt,\n  user_prompt: userPrompt,\n  schema: schema,\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
       },
-      "id": "b2c3d4e5-f6a7-5b6c-ad9e-2f3a4b5c6d7e",
-      "name": "Validate Input",
+      "id": "build-prompt",
+      "name": "Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [220, 0]
+      "position": [470, 300]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://45.144.177.128:8774/extract",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ message: $json.message, extraction_schema: $json.extraction_schema, model: $json.model, system_prompt: $json.system_prompt }) }}",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_prompt }\n  ],\n  temperature: 0.1,\n  max_tokens: 500\n}) }}",
         "options": {
           "timeout": 60000
         }
       },
-      "id": "c3d4e5f6-a7b8-6c7d-be0f-3a4b5c6d7e8f",
-      "name": "Call AI Tool MCP",
+      "id": "call-openrouter",
+      "name": "Call OpenRouter",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 0]
+      "position": [690, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openrouter-api",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "const input = $('Validate Input').first().json;\nconst response = $input.first().json;\n\nreturn {\n  ...response,\n  trace_id: input.trace_id\n};"
+        "jsCode": "const response = $json;\nconst buildData = $('Build Prompt').first().json;\n\nlet entities = [];\nlet rawContent = '';\n\ntry {\n  rawContent = response.choices?.[0]?.message?.content || '[]';\n  \n  // Clean up response\n  rawContent = rawContent.trim();\n  \n  // Remove thinking tags if present (Qwen3)\n  rawContent = rawContent.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  // Extract JSON from response (may have markdown code blocks)\n  const jsonMatch = rawContent.match(/\\[\\s*[\\s\\S]*?\\]/)\n  if (jsonMatch) {\n    rawContent = jsonMatch[0];\n  }\n  \n  entities = JSON.parse(rawContent);\n  \n  // Ensure it's an array\n  if (!Array.isArray(entities)) {\n    entities = [entities];\n  }\n  \n} catch (e) {\n  // If parsing fails, return empty\n  entities = [];\n}\n\nreturn {\n  entities: entities,\n  raw_response: rawContent,\n  message: buildData.message,\n  trace_id: buildData.trace_id,\n  model: response.model,\n  tokens_used: response.usage?.total_tokens\n};"
       },
-      "id": "d4e5f6a7-b8c9-7d8e-cf1a-4b5c6d7e8f9a",
-      "name": "Add trace_id",
+      "id": "parse-response",
+      "name": "Parse Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, 0]
+      "position": [910, 300]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ $json }}"
+        "responseBody": "={{ $json }}",
+        "options": {}
       },
-      "id": "e5f6a7b8-c9d0-8e9f-d02b-5c6d7e8f9a0b",
+      "id": "respond-webhook",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [880, 0]
+      "position": [1130, 300]
     }
   ],
   "connections": {
@@ -70,36 +78,36 @@
       "main": [
         [
           {
-            "node": "Validate Input",
+            "node": "Build Prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Validate Input": {
+    "Build Prompt": {
       "main": [
         [
           {
-            "node": "Call AI Tool MCP",
+            "node": "Call OpenRouter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Call AI Tool MCP": {
+    "Call OpenRouter": {
       "main": [
         [
           {
-            "node": "Add trace_id",
+            "node": "Parse Response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Add trace_id": {
+    "Parse Response": {
       "main": [
         [
           {
@@ -111,9 +119,17 @@
       ]
     }
   },
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "tags": ["ELO", "AI", "polygon"]
+  "versionId": "",
+  "meta": {
+    "instanceId": ""
+  },
+  "tags": [
+    {
+      "name": "ELO_Core_AI"
+    }
+  ]
 }
