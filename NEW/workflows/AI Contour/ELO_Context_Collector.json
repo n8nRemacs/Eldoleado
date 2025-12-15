@@ -1,0 +1,261 @@
+{
+  "name": "ELO_Context_Collector",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "path": "elo-context-collector",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "elo-context-collector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\n// Validate required fields\nconst required = ['tenant_id', 'client_id', 'dialog_id', 'text'];\nfor (const field of required) {\n  if (!input[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\n// Prepare input for AI Agent\nreturn {\n  input: input,\n  agent_input: `Collect context for this message:\n\nMessage: \"${input.text}\"\nClient ID: ${input.client_id}\nDialog ID: ${input.dialog_id}\nTenant ID: ${input.tenant_id}\nVertical ID: ${input.vertical_id || 1}\nChannel: ${input.channel_id || 'unknown'}\n\nTasks:\n1. Extract entities (device, symptom, intent, owner) from the message\n2. Load existing client context if available\n3. If symptom found - derive diagnosis, repair type and price\n4. Check for applicable triggers\n\nReturn complete context object.`\n};"
+      },
+      "id": "prepare-input",
+      "name": "Prepare Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a context collector for a phone repair service chatbot.\n\nYour job is to gather all relevant information about the customer's request using the available tools.\n\nAvailable tools:\n- extract_entities: Extract device, symptom, intent from customer message\n- load_client_context: Load client history from Neo4j\n- derive_chain: Get diagnosis, repair type and price for a symptom\n- check_triggers: Check for applicable triggers (discounts, info)\n\nAlways:\n1. First extract entities from the message\n2. Load client context if client_id provided\n3. If symptom extracted - run derive_chain\n4. Check triggers at the end\n\nReturn a complete context object with all collected data."
+        }
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-30b-a3b:free",
+        "options": {
+          "temperature": 0.1,
+          "maxTokens": 2000
+        }
+      },
+      "id": "openrouter-llm",
+      "name": "OpenRouter LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [690, 500],
+      "credentials": {
+        "openRouterApi": {
+          "id": "openrouter-api",
+          "name": "OpenRouter API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "extract_entities",
+        "description": "Extract entities (device, symptom, intent, owner) from customer message. Input: {message: string}. Returns: {entities: [{type, ...data}]}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-ai-extract",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $fromAI('message', 'The customer message to analyze') }) }}"
+      },
+      "id": "tool-extract",
+      "name": "Extract Entities Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [470, 500]
+    },
+    {
+      "parameters": {
+        "name": "derive_chain",
+        "description": "Derive diagnosis, repair type and price from symptom. Input: {symptom: string, device_brand: string, device_model: string}. Returns: {diagnosis, repair_type, price}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-ai-derive",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ symptom: $fromAI('symptom', 'The symptom text'), device_brand: $fromAI('device_brand', 'Device brand like Apple, Samsung'), device_model: $fromAI('device_model', 'Device model like iPhone 14') }) }}"
+      },
+      "id": "tool-derive",
+      "name": "Derive Chain Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [580, 500]
+    },
+    {
+      "parameters": {
+        "name": "check_triggers",
+        "description": "Check for applicable triggers like discounts or additional info. Input: {context: object with device, symptom, stage}. Returns: {triggers_fired: []}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-triggers-checker",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ context: $fromAI('context', 'Current context object') }) }}"
+      },
+      "id": "tool-triggers",
+      "name": "Check Triggers Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [800, 500]
+    },
+    {
+      "parameters": {
+        "name": "load_client_context",
+        "description": "Load client history and devices from Neo4j. Input: {client_id: string}. Returns: {devices: [], history: [], channels: []}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-context-builder",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'get_context', client_id: $fromAI('client_id', 'The client UUID') }) }}"
+      },
+      "id": "tool-context",
+      "name": "Load Client Context Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [910, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agentOutput = $input.first().json;\nconst inputData = $('Prepare Input').first().json.input;\n\n// Parse agent output and build final context\nlet context = {\n  tenant_id: inputData.tenant_id,\n  client_id: inputData.client_id,\n  dialog_id: inputData.dialog_id,\n  vertical_id: inputData.vertical_id || 1,\n  channel_id: inputData.channel_id,\n  external_chat_id: inputData.external_chat_id,\n  \n  message: {\n    text: inputData.text,\n    timestamp: inputData.timestamp || new Date().toISOString()\n  },\n  \n  // From agent\n  entities: agentOutput.entities || [],\n  client: agentOutput.client || {},\n  derived: agentOutput.derived || {},\n  triggers_fired: agentOutput.triggers_fired || [],\n  \n  // Lines structure\n  lines: [],\n  focus_line_id: null,\n  \n  // Stage (default)\n  current_stage: 'data_collection',\n  \n  trace_id: inputData.trace_id || `trace_${Date.now()}`\n};\n\n// Build lines from entities\nconst devices = context.entities.filter(e => e.type === 'device');\nconst symptoms = context.entities.filter(e => e.type === 'symptom');\n\ndevices.forEach((device, i) => {\n  const symptom = symptoms[i] || symptoms[0];\n  context.lines.push({\n    id: `line_${i}`,\n    status: i === 0 ? 'active' : 'waiting',\n    cursor: symptom ? 2 : 1,\n    slots: {\n      device: device,\n      symptom: symptom?.text || null,\n      diagnosis: context.derived?.diagnosis || null,\n      repair_type: context.derived?.repair_type || null,\n      price: context.derived?.price || null\n    }\n  });\n});\n\nif (context.lines.length > 0) {\n  context.focus_line_id = 'line_0';\n}\n\nreturn { context };"
+      },
+      "id": "build-context",
+      "name": "Build Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Entities Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derive Chain Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Triggers Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Client Context Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Context": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "instanceId": ""
+  },
+  "tags": [
+    {
+      "name": "ELO_Core_AI"
+    }
+  ]
+}

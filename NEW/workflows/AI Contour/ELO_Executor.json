@@ -1,0 +1,253 @@
+{
+  "name": "ELO_Executor",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "path": "elo-executor",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "elo-executor"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\n// Validate required fields\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\nif (!input.prompt) {\n  throw new Error('Missing required field: prompt');\n}\n\n// Build agent instruction from prompt\nconst context = input.context;\nconst prompt = input.prompt;\n\nreturn {\n  context: context,\n  prompt: prompt,\n  agent_input: `${prompt.instruction}\n\nContext:\n- Client: ${context.client?.name || 'Unknown'}\n- Device: ${context.lines?.[0]?.slots?.device?.brand || ''} ${context.lines?.[0]?.slots?.device?.model || ''}\n- Symptom: ${context.lines?.[0]?.slots?.symptom || 'Not specified'}\n- Diagnosis: ${context.lines?.[0]?.slots?.diagnosis?.code || 'Pending'}\n- Price: ${context.lines?.[0]?.slots?.price?.amount || 'TBD'}\n- Stage: ${context.current_stage}\n- Triggers: ${context.triggers_fired?.map(t => t.trigger_id).join(', ') || 'None'}\n\nUse the available tools to:\n1. Generate response text based on the instruction\n2. Write context to graph (Neo4j)\n3. Format the response for the channel\n\nReturn the final response object.`\n};"
+      },
+      "id": "prepare-input",
+      "name": "Prepare Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an executor for a phone repair service chatbot.\n\nYour job is to execute the instructions from the decision layer using the available tools.\n\nAvailable tools:\n- generate_text: Generate response text using AI based on prompt and context\n- write_graph: Write/update data in Neo4j graph database\n- get_price: Get price for a specific repair from database\n- format_response: Format response for specific channel (telegram, whatsapp, etc)\n\nFollow the instructions exactly. Use tools as needed to complete the task.\n\nReturn a response object with: {text, buttons (optional), metadata}"
+        }
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-30b-a3b:free",
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 1500
+        }
+      },
+      "id": "openrouter-llm",
+      "name": "OpenRouter LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [690, 500],
+      "credentials": {
+        "openRouterApi": {
+          "id": "openrouter-api",
+          "name": "OpenRouter API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "generate_text",
+        "description": "Generate response text using AI. Input: {prompt: string, context: object}. Returns: {text: string}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-response-generator",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ context: $fromAI('context', 'The context object'), goal: $fromAI('goal', 'Response goal like ask_device, present_offer') }) }}"
+      },
+      "id": "tool-generate",
+      "name": "Generate Text Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [470, 500]
+    },
+    {
+      "parameters": {
+        "name": "write_graph",
+        "description": "Write context data to Neo4j graph. Input: {context: object, write_mode: 'full' or 'incremental'}. Returns: {success: boolean, writes: object}",
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-graph-writer",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ context: $fromAI('context', 'The context object to write'), write_mode: $fromAI('write_mode', 'Write mode: full or incremental', 'incremental') }) }}"
+      },
+      "id": "tool-graph",
+      "name": "Write Graph Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [580, 500]
+    },
+    {
+      "parameters": {
+        "name": "get_price",
+        "description": "Get price for repair from database. Input: {brand: string, model: string, repair_action: string}. Returns: {price_min, price_max, currency}",
+        "jsCode": "// Direct PostgreSQL query for price\nconst brand = $fromAI('brand', 'Device brand');\nconst model = $fromAI('model', 'Device model');\nconst repair = $fromAI('repair_action', 'Repair action code');\n\n// This would be a SQL query in real implementation\nreturn {\n  price_min: 3000,\n  price_max: 5000,\n  currency: 'RUB',\n  note: 'Price lookup - implement with PostgreSQL node'\n};"
+      },
+      "id": "tool-price",
+      "name": "Get Price Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [800, 500]
+    },
+    {
+      "parameters": {
+        "name": "format_response",
+        "description": "Format response for specific channel. Input: {text: string, buttons: array, channel: string}. Returns formatted response",
+        "jsCode": "const text = $fromAI('text', 'Response text');\nconst buttons = $fromAI('buttons', 'Array of button objects', []);\nconst channel = $fromAI('channel', 'Channel type: telegram, whatsapp, etc', 'telegram');\n\nlet formatted = { text };\n\nif (buttons && buttons.length > 0) {\n  switch(channel) {\n    case 'telegram':\n      formatted.reply_markup = {\n        inline_keyboard: buttons.map(b => [{ text: b.text, callback_data: b.callback_data || b.text }])\n      };\n      break;\n    case 'whatsapp':\n      formatted.buttons = buttons.map(b => ({ type: 'reply', reply: { id: b.callback_data, title: b.text } }));\n      break;\n    default:\n      formatted.buttons = buttons;\n  }\n}\n\nreturn formatted;"
+      },
+      "id": "tool-format",
+      "name": "Format Response Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [910, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agentOutput = $input.first().json;\nconst inputData = $('Prepare Input').first().json;\nconst context = inputData.context;\n\n// Build final response\nconst response = {\n  tenant_id: context.tenant_id,\n  dialog_id: context.dialog_id,\n  channel_id: context.channel_id,\n  external_chat_id: context.external_chat_id,\n  \n  message: {\n    text: agentOutput.text || agentOutput.response?.text || 'No response generated',\n    buttons: agentOutput.buttons || agentOutput.response?.buttons || [],\n    metadata: {\n      stage: context.current_stage,\n      trace_id: context.trace_id\n    }\n  },\n  \n  context_updated: true,\n  trace_id: context.trace_id\n};\n\nreturn response;"
+      },
+      "id": "build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Text Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Graph Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Price Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "instanceId": ""
+  },
+  "tags": [
+    {
+      "name": "ELO_Core_AI"
+    }
+  ]
+}
