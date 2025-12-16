@@ -14,70 +14,68 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**15 December 2025, 23:30 (UTC+4)**
+**16 December 2025, 17:45 (UTC+4)**
 
 ---
 
-## MVP Messenger - План на 16 декабря
+## Текущая задача: Миграция серверов + MVP Messenger
 
 ### Контекст
 
-Создаём омниканальный мессенджер для сервисных центров.
-Архитектура: Android туннель → Server → n8n backend.
+Омниканальный мессенджер для сервисных центров.
+- Android приложение готово (APK собран)
+- Нужно активировать API и перенести серверы
 
-### Каналы для MVP
+### Серверы
 
-| Канал | Статус | Что делать |
-|-------|--------|------------|
-| Telegram Bot | ✅ Ready | - |
-| Telegram User | 🔨 TODO | Pyrogram wrapper |
-| WhatsApp Baileys | ✅ Ready | - |
-| Авито User | ⚠️ Partial | Найти sendMessage |
-| MAX User | 🔨 TODO | Реверс через DevTools |
-| VK Community | ✅ Ready | - |
-| VK User | 🔨 TODO | User API wrapper |
+| Server | IP | Что там | Что делать |
+|--------|-----|---------|------------|
+| **RU** | 45.144.177.128 | neo4j, redis, MCP | Оставить только neo4j + redis |
+| **NEW** | 155.212.221.189 | пусто | Развернуть MCP + android-api |
+| **n8n** | 185.221.214.83 | n8n | Активировать API воркфлоу |
+| **FI** | 217.145.79.27 | telegram, whatsapp | Оставить как есть |
 
-### НЕ используем
-- Wappi.pro (платный)
-- MAX Bot API (только боты)
-- Авито Business API (только бизнес)
+### MCP SSH Server
+
+**ВАЖНО:** При старте Claude Code автоматически запускается MCP SSH сервер.
+
+Доступные команды через MCP:
+- `ssh_exec(server, command)` — выполнить команду
+- `ssh_list_servers()` — список серверов
+- `ssh_add_server(alias, host, ...)` — добавить сервер
+
+Алиасы серверов:
+- `ru` — 45.144.177.128
+- `fi` — 217.145.79.27
+- `n8n` — 185.221.214.83
+- `new` — 155.212.221.189
 
 ---
 
-## Задачи на День 1 (16 декабря)
+## Задачи (TODO)
 
-### 1. Telegram User - Pyrogram wrapper
-```python
-# mcp-telegram-user/telegram_user_client.py
-from pyrogram import Client
+### 1. Миграция серверов
 
-# Методы:
-# - get_dialogs()
-# - get_chat_history()
-# - send_message()
-# - send_photo/video/document/voice()
-# - on_message handler
+```bash
+# На 45.144.177.128 остановить всё кроме neo4j и redis:
+docker stop avito-messenger-api vk-community-api max-bot-api android-api whatsapp-api-wappi instagram-graph-api form-submission-api bull-board
+
+# На 155.212.221.189 установить Docker и развернуть:
+# - android-api
+# - MCP серверы (avito, vk, max, etc.)
 ```
 
-### 2. Авито User - найти sendMessage
-- Открыть m.avito.ru в браузере
-- DevTools → Network
-- Отправить сообщение
-- Записать endpoint и payload
+### 2. Активировать n8n воркфлоу
 
-### 3. Tunnel Server skeleton
-```
-NEW/MVP/tunnel-server/
-├── app.py          # FastAPI + WebSocket
-├── config.py
-├── requirements.txt
-└── Dockerfile
-```
+В n8n.n8nsrv.ru включить:
+- API_Android_Auth
+- API_Android_Appeals_List
+- API_Android_Appeal_Detail
+- И остальные API_Android_*
 
-Endpoints:
-- `WS /tunnel/{client_id}` — WebSocket с туннелем
-- `POST /tunnel/{client_id}/send` — отправить через туннель
-- `GET /tunnel/{client_id}/status` — статус туннеля
+### 3. Обновить DNS
+
+`android-api.eldoleado.ru` → 155.212.221.189
 
 ---
 
@@ -85,71 +83,45 @@ Endpoints:
 
 | Файл | Описание |
 |------|----------|
-| `NEW/MVP/INVENTORY.md` | Инвентарь каналов и API |
-| `NEW/MVP/PLAN_DAY1.md` | План первого дня |
-| `NEW/MVP/REVERSE_API_REQUIREMENTS.md` | Список endpoints для реверса |
-| `NEW/MVP/MCP/mcp-avito-user/` | Авито reverse client (partial) |
-| `NEW/MVP/MCP/mcp-whatsapp-baileys/` | WhatsApp Baileys (ready) |
-| `NEW/MVP/MCP/mcp-telegram/` | Telegram Bot (ready) |
-| `NEW/MVP/MCP/mcp-vk/` | VK Community (ready) |
+| `app/build/outputs/apk/debug/app-debug.apk` | Android APK |
+| `MCP/mcp-ssh/server.py` | MCP SSH сервер |
+| `MCP/mcp-ssh/servers.json` | Конфиг серверов |
+| `NEW/MVP/n8n_api/` | n8n воркфлоу для импорта |
+| `~/.claude/claude_desktop_config.json` | MCP конфиг |
 
 ---
 
-## Архитектура туннеля
+## Android App
 
+**Готово:**
+- ✅ Главный экран — список диалогов
+- ✅ Жирный шрифт для непрочитанных
+- ✅ Бейджи каналов (TG, WA, AV, VK, MX)
+- ✅ AI режим отключен (серый)
+- ✅ TunnelService для server mode
+
+**APK:** `app/build/outputs/apk/debug/app-debug.apk`
+
+**Сборка:**
+```bash
+cd C:/Users/User/Documents/Eldoleado
+export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
+./gradlew.bat :app:assembleDebug
 ```
-┌─────────────────────────────────────────────────────────┐
-│                       SERVER                             │
-│  ┌─────────────┐     ┌─────────────────────────────┐   │
-│  │ Tunnel      │────►│           n8n               │   │
-│  │ Server      │     │    (Message Hub Backend)    │   │
-│  │ FastAPI+WS  │     └─────────────────────────────┘   │
-│  └──────┬──────┘                                        │
-└─────────┼───────────────────────────────────────────────┘
-          │ WebSocket (WSS)
-┌─────────┼───────────────────────────────────────────────┐
-│         │          ANDROID (Tunnel Client)              │
-│  ┌──────┴──────┐                                        │
-│  │ Tunnel      │  ← Foreground Service                  │
-│  │ Service     │  ← WebSocket to Server                 │
-│  └──────┬──────┘                                        │
-│         │ HTTP localhost                                │
-│  ┌──────┴──────────────────────────────────────────┐   │
-│  │  Local services (Termux):                        │   │
-│  │  - Baileys (WhatsApp) :3001                      │   │
-│  │  - Pyrogram (Telegram User) :3002                │   │
-│  │  - Avito Reverse :3003                           │   │
-│  │  - MAX Reverse :3004                             │   │
-│  │  - VK User :3005                                 │   │
-│  └──────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## SERVERS
-
-| Server | IP/URL | Port | Purpose |
-|--------|--------|------|---------|
-| n8n | n8n.n8nsrv.ru | 443 | Workflow automation |
-| Neo4j | 45.144.177.128 | 7474/7687 | Graph database |
-| PostgreSQL | 185.221.214.83 | 6544 | Main database |
-| Redis (RU) | 45.144.177.128 | 6379 | Queues |
-| **Tunnel** | TBD | TBD | New dedicated server |
 
 ---
 
 ## QUICK START
 
 ```bash
-# 1. Sync
-git pull
+# 1. Проверить MCP SSH работает
+# (после перезапуска Claude Code)
 
-# 2. Read inventory
-cat NEW/MVP/INVENTORY.md
+# 2. Миграция серверов через MCP SSH:
+# ssh_exec("ru", "docker stop ...")
+# ssh_exec("new", "docker run ...")
 
-# 3. Start with Telegram User wrapper
-# Create: NEW/MVP/MCP/mcp-telegram-user/
+# 3. Активировать n8n воркфлоу через UI
 ```
 
 ---

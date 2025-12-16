@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical">
+
+    <!-- Channel badge (circle) -->
+    <TextView
+        android:id="@+id/tvChannelBadge"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:background="@drawable/circle_background"
+        tools:text="TG" />
+
+    <!-- Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:orientation="vertical">
+
+        <!-- Name + Time row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvClientName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Иван Петров" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginStart="8dp"
+                tools:text="12:30" />
+
+        </LinearLayout>
+
+        <!-- Last message + Unread row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/ivVoiceIndicator"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_mic"
+                android:visibility="gone"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="Voice" />
+
+            <TextView
+                android:id="@+id/tvLastMessage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Здравствуйте, у меня проблема..." />
+
+            <TextView
+                android:id="@+id/tvUnreadCount"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:gravity="center"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="@color/blue_primary"
+                android:textColor="@android:color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:layout_marginStart="8dp"
+                tools:text="3"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

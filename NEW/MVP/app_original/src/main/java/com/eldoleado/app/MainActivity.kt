@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -14,36 +15,32 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.eldoleado.app.adapters.AppealsAdapter
+import com.eldoleado.app.adapters.DialogsAdapter
+import com.eldoleado.app.data.database.entities.DialogEntity
 import com.eldoleado.app.api.ApiResponse
 import com.eldoleado.app.api.RetrofitClient
 import com.eldoleado.app.api.UpdateSettingsRequest
 import com.eldoleado.app.callrecording.CallRecordingPreferences
 import com.eldoleado.app.callrecording.CallRecordingService
-import com.eldoleado.app.viewmodel.AppealsViewModel
+import com.eldoleado.app.tunnel.TunnelService
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.switchmaterial.SwitchMaterial
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appealsAdapter: AppealsAdapter
+    private lateinit var dialogsAdapter: DialogsAdapter
     private lateinit var sessionManager: SessionManager
     private lateinit var logoutButton: Button
     private lateinit var bottomNavigation: BottomNavigationView
-    private lateinit var appealsRecyclerView: RecyclerView
+    private lateinit var dialogsRecyclerView: RecyclerView
     private lateinit var settingsContainer: ScrollView
     private lateinit var headerTitle: TextView
     private lateinit var aiModeRadioGroup: RadioGroup
@@ -61,10 +58,6 @@ class MainActivity : AppCompatActivity() {
         const val PREF_AI_MODE = "ai_mode"
         const val AI_MODE_AUTOMATIC = "automatic"
         const val AI_MODE_SEMI_AUTOMATIC = "semi_automatic"
-    }
-
-    private val viewModel: AppealsViewModel by viewModels {
-        AppealsViewModel.Factory(EldoleadoApplication.instance.repository)
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -93,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
         sessionManager = SessionManager(this)
 
-        appealsRecyclerView = findViewById(R.id.appealsRecyclerView)
+        dialogsRecyclerView = findViewById(R.id.appealsRecyclerView)
         settingsContainer = findViewById(R.id.settingsContainer)
         headerTitle = findViewById(R.id.headerTitle)
         bottomNavigation = findViewById(R.id.bottomNavigation)
@@ -108,12 +101,12 @@ class MainActivity : AppCompatActivity() {
         callRecordingStatusText = findViewById(R.id.callRecordingStatusText)
         callRecordingDescription = findViewById(R.id.callRecordingDescription)
 
-        appealsAdapter = AppealsAdapter { appeal ->
-            openAppealDetail(appeal.id)
+        dialogsAdapter = DialogsAdapter { dialog ->
+            openChat(dialog)
         }
 
-        appealsRecyclerView.layoutManager = LinearLayoutManager(this)
-        appealsRecyclerView.adapter = appealsAdapter
+        dialogsRecyclerView.layoutManager = LinearLayoutManager(this)
+        dialogsRecyclerView.adapter = dialogsAdapter
 
         logoutButton = findViewById(R.id.logoutButton)
         logoutButton.setOnClickListener { handleLogout() }
@@ -126,8 +119,11 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
         handleNotificationIntent(intent)
 
-        // Начальная загрузка данных с сервера
-        refreshAppeals()
+        // Setup based on app mode
+        setupAppMode()
+
+        // Load dialogs (mock for now)
+        loadDialogs()
 
         // Проверяем, нужно ли открыть настройки
         if (intent.getBooleanExtra("open_settings", false)) {
@@ -136,11 +132,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupAppMode() {
+        val appMode = sessionManager.getAppMode()
+        Log.i("MainActivity", "App mode: $appMode")
+
+        // Start TunnelService if server mode enabled
+        if (sessionManager.isServerEnabled()) {
+            TunnelService.start(this)
+        }
+
+        // Adjust UI based on mode
+        when (appMode) {
+            SessionManager.MODE_SERVER -> {
+                // Server only - hide messenger UI, show tunnel status
+                dialogsRecyclerView.visibility = View.GONE
+                bottomNavigation.visibility = View.GONE
+                headerTitle.text = "Tunnel Server"
+                showTunnelStatus()
+            }
+            SessionManager.MODE_BOTH -> {
+                // Both - show everything
+                dialogsRecyclerView.visibility = View.VISIBLE
+                bottomNavigation.visibility = View.VISIBLE
+            }
+            else -> {
+                // Client only - normal UI
+                dialogsRecyclerView.visibility = View.VISIBLE
+                bottomNavigation.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun showTunnelStatus() {
+        // For server-only mode, show tunnel connection status
+        settingsContainer.visibility = View.VISIBLE
+        // TODO: Add tunnel status UI
+    }
+
     private fun setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_appeals -> {
-                    showAppeals()
+                R.id.nav_dialogs -> {
+                    showDialogs()
                     true
                 }
                 R.id.nav_settings -> {
@@ -152,17 +185,65 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showAppeals() {
-        headerTitle.text = "Обращения"
-        appealsRecyclerView.visibility = View.VISIBLE
+    private fun showDialogs() {
+        headerTitle.text = "Диалоги"
+        dialogsRecyclerView.visibility = View.VISIBLE
         settingsContainer.visibility = View.GONE
     }
 
     private fun showSettings() {
         headerTitle.text = "Настройки"
-        appealsRecyclerView.visibility = View.GONE
+        dialogsRecyclerView.visibility = View.GONE
         settingsContainer.visibility = View.VISIBLE
         updateCallRecordingUI()
+    }
+
+    private fun loadDialogs() {
+        // TODO: Load from server via API
+        // For now, show empty list or mock data
+        val mockDialogs = listOf(
+            DialogEntity(
+                id = "1",
+                clientName = "Иван Петров",
+                clientPhone = "+7 999 123-45-67",
+                channel = "telegram",
+                chatId = "123456",
+                lastMessageText = "Здравствуйте, у меня не работает экран",
+                lastMessageTime = System.currentTimeMillis() - 3600000,
+                unreadCount = 2
+            ),
+            DialogEntity(
+                id = "2",
+                clientName = "Мария Сидорова",
+                clientPhone = "+7 999 765-43-21",
+                channel = "whatsapp",
+                chatId = "789012",
+                lastMessageText = "Спасибо за помощь!",
+                lastMessageTime = System.currentTimeMillis() - 86400000,
+                unreadCount = 0
+            ),
+            DialogEntity(
+                id = "3",
+                clientName = null,
+                clientPhone = "+7 999 111-22-33",
+                channel = "avito",
+                chatId = "345678",
+                lastMessageText = "",
+                lastMessageTime = System.currentTimeMillis() - 172800000,
+                lastMessageIsVoice = true,
+                unreadCount = 1
+            )
+        )
+        dialogsAdapter.updateDialogs(mockDialogs)
+    }
+
+    private fun openChat(dialog: DialogEntity) {
+        val intent = Intent(this, AppealDetailActivity::class.java)
+        intent.putExtra("dialog_id", dialog.id)
+        intent.putExtra("chat_id", dialog.chatId)
+        intent.putExtra("channel", dialog.channel)
+        intent.putExtra("client_name", dialog.clientName ?: dialog.clientPhone ?: "Клиент")
+        startActivity(intent)
     }
 
     private fun setupAiModeSettings() {
@@ -226,26 +307,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Наблюдаем за списком обращений из кэша
-                launch {
-                    viewModel.appeals.collect { appeals ->
-                        appealsAdapter.updateAppealsFromEntities(appeals)
-                    }
-                }
-
-                // Наблюдаем за ошибками
-                launch {
-                    viewModel.error.collect { error ->
-                        error?.let {
-                            Toast.makeText(this@MainActivity, it, Toast.LENGTH_SHORT).show()
-                            viewModel.clearError()
-                        }
-                    }
-                }
-            }
-        }
+        // TODO: Add observers for dialogs from server
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -255,18 +317,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // При возврате на экран обновляем данные с сервера
-        refreshAppeals()
-    }
-
-    private fun refreshAppeals() {
-        val operatorId = sessionManager.getOperatorId()
-        if (operatorId.isNullOrBlank()) {
-            Toast.makeText(this, "Сессия недействительна", Toast.LENGTH_SHORT).show()
-            navigateToLogin()
-            return
-        }
-        viewModel.refresh(operatorId)
+        // Refresh dialogs when returning to screen
+        loadDialogs()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -294,20 +346,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleNotificationIntent(intent: Intent?) {
         if (intent == null) return
-        if (intent.getBooleanExtra("open_appeal_detail", false)) {
-            val appealId = intent.getStringExtra("appeal_id")
-            if (!appealId.isNullOrBlank()) {
-                openAppealDetail(appealId)
-                intent.removeExtra("open_appeal_detail")
-                intent.removeExtra("appeal_id")
+        if (intent.getBooleanExtra("open_dialog", false)) {
+            val dialogId = intent.getStringExtra("dialog_id")
+            val chatId = intent.getStringExtra("chat_id")
+            val channel = intent.getStringExtra("channel")
+            val clientName = intent.getStringExtra("client_name")
+            if (!dialogId.isNullOrBlank()) {
+                val chatIntent = Intent(this, AppealDetailActivity::class.java)
+                chatIntent.putExtra("dialog_id", dialogId)
+                chatIntent.putExtra("chat_id", chatId)
+                chatIntent.putExtra("channel", channel)
+                chatIntent.putExtra("client_name", clientName ?: "Клиент")
+                startActivity(chatIntent)
+                intent.removeExtra("open_dialog")
             }
         }
-    }
-
-    private fun openAppealDetail(appealId: String) {
-        val detailIntent = Intent(this, AppealDetailActivity::class.java)
-        detailIntent.putExtra("appeal_id", appealId)
-        startActivity(detailIntent)
     }
 
     private fun showPermissionDeniedDialog() {
@@ -325,6 +378,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                     logoutButton.isEnabled = true
                     if (response.isSuccessful && response.body()?.success == true) {
+                        TunnelService.stop(this@MainActivity)
                         sessionManager.clearSession()
                         Toast.makeText(
                             this@MainActivity,
@@ -333,6 +387,7 @@ class MainActivity : AppCompatActivity() {
                         ).show()
                         navigateToLogin()
                     } else if (response.code() == 401) {
+                        TunnelService.stop(this@MainActivity)
                         sessionManager.clearSession()
                         Toast.makeText(
                             this@MainActivity,

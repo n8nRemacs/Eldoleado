@@ -145,7 +145,12 @@ data class LoginResponse(
     val location_id: String?,
     val password_valid: Boolean? = null,
     val session_token: String,
-    val token: String? = null
+    val token: String? = null,
+    // App mode: "client" | "server" | "both"
+    val app_mode: String? = null,
+    // Tunnel config (for server/both modes)
+    val tunnel_url: String? = null,
+    val tunnel_secret: String? = null
 )
 
 data class AppealsListResponse(

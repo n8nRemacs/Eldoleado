@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -71,6 +72,13 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone|phoneCall" />
+
+        <!-- Tunnel Service (WebSocket proxy) -->
+        <service
+            android:name=".tunnel.TunnelService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- Call Receiver -->
         <receiver

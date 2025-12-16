@@ -16,6 +16,8 @@
     <color name="channel_whatsapp">#25D366</color>
     <color name="channel_telegram">#26A4E3</color>
     <color name="channel_avito">#4A65F6</color>
+    <color name="channel_vk">#4A76A8</color>
+    <color name="channel_max">#FF5722</color>
     <color name="channel_generic">#BDBDBD</color>
     <!-- Status colors -->
     <color name="status_new_text">#1565C0</color>

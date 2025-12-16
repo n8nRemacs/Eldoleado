@@ -124,8 +124,8 @@ class AppealDetailActivity : AppCompatActivity() {
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_appeals -> {
-                    // Возврат к списку заявок
+                R.id.nav_dialogs -> {
+                    // Возврат к списку диалогов
                     finish()
                     true
                 }

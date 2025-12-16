@@ -1,0 +1,48 @@
+# Mobile Server Configuration
+# Runs on Android (Termux) or any Linux system
+
+server:
+  id: "phone_1"
+  name: "Mobile Server"
+
+tunnel:
+  url: "${TUNNEL_URL}"
+  secret: "${TUNNEL_SECRET}"
+  reconnect_delay: 5  # seconds
+
+# Channel services
+channels:
+  whatsapp:
+    enabled: true
+    port: 3001
+    type: baileys
+
+  telegram:
+    enabled: true
+    port: 3002
+    type: pyrogram
+
+  avito:
+    enabled: true
+    port: 3003
+    type: http_reverse
+
+  max:
+    enabled: true
+    port: 3004
+    type: http_reverse
+
+  vk:
+    enabled: true
+    port: 3005
+    type: http_reverse
+
+  http_proxy:
+    enabled: true
+    port: 3010
+    type: proxy
+
+# Logging
+logging:
+  level: INFO
+  file: ./logs/mobile-server.log

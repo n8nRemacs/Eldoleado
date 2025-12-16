@@ -1,0 +1,53 @@
+# Tunnel Server Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8800
+  ws_path: "/ws"
+  api_prefix: "/api"
+
+# Database connections
+database:
+  postgres:
+    host: "${POSTGRES_HOST:185.221.214.83}"
+    port: "${POSTGRES_PORT:6544}"
+    database: "${POSTGRES_DB:postgres}"
+    user: "${POSTGRES_USER:supabase_admin}"
+    password: "${POSTGRES_PASSWORD}"
+
+  neo4j:
+    uri: "${NEO4J_URI:bolt+ssc://45.144.177.128:7687}"
+    user: "${NEO4J_USER:neo4j}"
+    password: "${NEO4J_PASSWORD}"
+
+  redis:
+    host: "${REDIS_HOST:45.144.177.128}"
+    port: "${REDIS_PORT:6379}"
+
+# Webhooks
+webhooks:
+  n8n_incoming: "${N8N_WEBHOOK_URL:https://n8n.n8nsrv.ru/webhook/incoming}"
+  fcm_enabled: true
+
+# AI Core (stub for now)
+ai_core:
+  enabled: false  # Will be true when AI is ready
+  endpoint: "${AI_CORE_URL:http://localhost:8900}"
+  timeout: 30
+
+# Pipeline settings
+pipeline:
+  pre_ai:
+    normalize_messages: true
+    load_context: true
+    max_context_messages: 50
+
+  post_ai:
+    format_response: true
+    log_to_db: true
+    send_notifications: true
+
+# Logging
+logging:
+  level: "${LOG_LEVEL:INFO}"
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

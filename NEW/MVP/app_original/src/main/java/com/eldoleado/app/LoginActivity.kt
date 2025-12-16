@@ -95,7 +95,10 @@ class LoginActivity : AppCompatActivity() {
                         tenantId = data.tenant_id,
                         username = data.email,
                         name = data.name,
-                        sessionToken = data.session_token
+                        sessionToken = data.session_token,
+                        appMode = data.app_mode,
+                        tunnelUrl = data.tunnel_url,
+                        tunnelSecret = data.tunnel_secret
                     )
                     registerFCMToken(data.operator_id, data.session_token)
                     navigateToMain()
