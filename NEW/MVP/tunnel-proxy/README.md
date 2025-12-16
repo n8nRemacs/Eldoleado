@@ -1,113 +1,136 @@
 # Tunnel Proxy
 
-Туннель для проксирования трафика через мобильный IP.
+HTTP прокси через мобильный IP для защиты от банов мессенджеров.
+
+## Почему это работает
+
+| Фактор | Без прокси | С прокси |
+|--------|-----------|----------|
+| **IP адрес** | ❌ Серверный (бан) | ✅ Мобильный |
+| **TLS Fingerprint** | ❌ Python/aiohttp | ✅ Android/OkHttp |
+| **Device ID** | ❌ Нет | ✅ Реальное устройство |
 
 ## Архитектура
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     SERVER (VPS)                             │
+│  SERVER (VPS)                                                │
 ├─────────────────────────────────────────────────────────────┤
-│  MCP Servers                                                │
-│  ├── avito-messenger-api ──┐                                │
-│  ├── vk-community-api ─────┼── HTTP_PROXY=http://tunnel:8080│
-│  ├── whatsapp-api ─────────┤                                │
-│  └── parsers ──────────────┘                                │
-│                                                             │
-│  tunnel-proxy (localhost:8080) ◄─── WebSocket ──────────────┼──┐
-└─────────────────────────────────────────────────────────────┘  │
-                                                                  │
-┌─────────────────────────────────────────────────────────────┐  │
-│               MOBILE (телефон/Termux)                        │◄─┘
+│                                                              │
+│  MCP Servers ────► tunnel-server:8765/proxy                  │
+│  (avito, vk, max)       │                                    │
+│                         │ HTTP API                           │
+│                         ▼                                    │
+│              ┌─────────────────────┐                         │
+│              │   tunnel-server     │                         │
+│              │   (WebSocket)       │◄── Android connects here│
+│              └──────────┬──────────┘                         │
+│                         │                                    │
+└─────────────────────────┼────────────────────────────────────┘
+                          │ WebSocket
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  ANDROID APP (TunnelService)                                 │
 ├─────────────────────────────────────────────────────────────┤
-│  mobile-tunnel (0.0.0.0:8765)                               │
-│       ↓                                                     │
-│  HTTP requests → Mobile Internet → Target                   │
+│                                                              │
+│  1. Подключается к tunnel-server по WebSocket                │
+│  2. Получает HTTP запросы                                    │
+│  3. Выполняет через OkHttp (Android TLS fingerprint!)        │
+│  4. Возвращает ответы                                        │
+│                                                              │
+│  IP = мобильный ✅                                           │
+│  TLS = Android ✅                                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Компоненты
 
-### Mobile (телефон)
+### 1. tunnel-server (на VPS)
 
-Простой WebSocket сервер + HTTP клиент. Получает запросы через туннель, выполняет их через мобильный интернет.
-
-```bash
-cd mobile
-cp .env.example .env
-nano .env  # задать TUNNEL_SECRET
-
-chmod +x start.sh
-./start.sh
-```
-
-### Server (VPS)
-
-HTTP прокси который пробрасывает запросы через туннель на телефон.
+WebSocket сервер + HTTP API.
 
 ```bash
+# Сборка и запуск
 cd server
-cp .env.example .env
-nano .env  # задать MOBILE_WS_URL и TUNNEL_SECRET
-
-docker-compose up -d
-```
-
-## Использование
-
-### 1. Запустить на телефоне
-
-```bash
-# Termux
-pkg install python
-pip install aiohttp
-
-export TUNNEL_SECRET="my_secret"
-python tunnel.py
-```
-
-### 2. Запустить на сервере
-
-```bash
-docker run -d \
-  --name tunnel-proxy \
+docker build -t tunnel-server .
+docker run -d --name tunnel-server \
   --network eldoleado \
-  -p 8080:8080 \
-  -e MOBILE_WS_URL=ws://PHONE_IP:8765/ws \
-  -e TUNNEL_SECRET=my_secret \
-  tunnel-proxy
+  -p 8765:8765 \
+  -e TUNNEL_SECRET=Mi31415926pSss! \
+  -e API_KEY=BattCRM_Tunnel_Secret_2024 \
+  tunnel-server
 ```
 
-### 3. Использовать в MCP серверах
+**Endpoints:**
+- `GET /health` — статус
+- `GET /devices` — список устройств
+- `POST /proxy` — отправить HTTP запрос через мобильный прокси
 
-```bash
-docker run -d \
-  --name avito-messenger-api \
-  --network eldoleado \
-  -e HTTP_PROXY=http://tunnel-proxy:8080 \
-  -e HTTPS_PROXY=http://tunnel-proxy:8080 \
-  avito-messenger-api:v2.0.0
-```
+### 2. TunnelService (в Android приложении)
+
+Foreground Service, подключается к tunnel-server.
+
+**Настройки в приложении:**
+- Tunnel URL: `wss://your-server.com:8765/ws`
+- Tunnel Secret: `Mi31415926pSss!`
 
 ## API
 
-### Mobile Tunnel
+### POST /proxy
 
-```
-GET  /health     - статус
-GET  /ws         - WebSocket endpoint (для сервера)
+Отправить HTTP запрос через мобильное устройство.
+
+```bash
+curl -X POST http://tunnel-server:8765/proxy \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: BattCRM_Tunnel_Secret_2024" \
+  -d '{
+    "url": "https://api.avito.ru/messenger/v2/accounts",
+    "method": "GET",
+    "headers": {
+      "Authorization": "Bearer token..."
+    },
+    "timeout": 30
+  }'
 ```
 
-### Server Proxy
-
+**Response:**
+```json
+{
+  "id": "uuid",
+  "status": 200,
+  "headers": {"content-type": "application/json"},
+  "body": "{...}",
+  "body_base64": false
+}
 ```
-GET  /health     - статус
-*    /*          - проксирование запросов
+
+### Использование в MCP серверах
+
+```python
+import aiohttp
+
+TUNNEL_URL = "http://tunnel-server:8765/proxy"
+TUNNEL_API_KEY = "BattCRM_Tunnel_Secret_2024"
+
+async def request_via_tunnel(url, method="GET", headers=None, body=None):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            TUNNEL_URL,
+            headers={"X-API-Key": TUNNEL_API_KEY},
+            json={
+                "url": url,
+                "method": method,
+                "headers": headers or {},
+                "body": body or ""
+            }
+        ) as resp:
+            return await resp.json()
 ```
 
 ## Протокол
 
-### Server → Mobile (запрос)
+### Server → Android (запрос)
 
 ```json
 {
@@ -116,42 +139,73 @@ GET  /health     - статус
   "method": "GET",
   "url": "https://api.avito.ru/...",
   "headers": {"Authorization": "Bearer ..."},
-  "body": null,
+  "body": "",
+  "body_base64": false,
   "timeout": 30
 }
 ```
 
-### Mobile → Server (ответ)
+### Android → Server (ответ)
 
 ```json
 {
   "id": "uuid",
   "status": 200,
   "headers": {"content-type": "application/json"},
-  "body": "{...}",
-  "body_encoded": false
+  "body": "{\"data\": ...}",
+  "body_base64": false
 }
 ```
 
 ## Безопасность
 
-- `TUNNEL_SECRET` - общий секрет для авторизации
-- WebSocket через WS (внутри VPN) или WSS (публично)
-- Телефон должен быть за NAT или VPN
+| Параметр | Описание |
+|----------|----------|
+| `TUNNEL_SECRET` | Авторизация Android → Server (WebSocket) |
+| `API_KEY` | Авторизация MCP → Server (HTTP API) |
 
-## Termux Quick Start
+## Деплой
+
+### 1. Собрать и запустить tunnel-server
 
 ```bash
-# Установка
-pkg update && pkg install python
+ssh root@155.212.221.189
+cd /opt/tunnel-server
+docker build -t tunnel-server .
+docker run -d --name tunnel-server \
+  --network eldoleado \
+  -p 8765:8765 \
+  -e TUNNEL_SECRET=Mi31415926pSss! \
+  -e API_KEY=BattCRM_Tunnel_Secret_2024 \
+  tunnel-server
+```
 
-# Запуск
-cd mobile-tunnel
-pip install aiohttp
-export TUNNEL_SECRET="secret123"
-export WS_PORT=8765
-python tunnel.py
+### 2. Настроить Android приложение
 
-# Фоновый режим
-nohup python tunnel.py > tunnel.log 2>&1 &
+В настройках указать:
+- Tunnel URL: `ws://155.212.221.189:8765/ws`
+- Tunnel Secret: `Mi31415926pSss!`
+
+### 3. Включить TunnelService
+
+Запустить сервис туннеля в приложении.
+
+### 4. Проверить подключение
+
+```bash
+curl http://155.212.221.189:8765/devices
+```
+
+## Мониторинг
+
+```bash
+# Статус сервера
+curl http://tunnel-server:8765/health
+
+# Подключенные устройства
+curl http://tunnel-server:8765/devices
+
+# Детальный статус (с API ключом)
+curl -H "X-API-Key: BattCRM_Tunnel_Secret_2024" \
+  http://tunnel-server:8765/status
 ```

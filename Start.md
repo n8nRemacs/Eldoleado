@@ -14,7 +14,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**16 December 2025, 18:50 (UTC+4)**
+**16 December 2025, 19:50 (UTC+4)**
 
 ---
 
@@ -23,32 +23,28 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ### Контекст
 
 Омниканальный мессенджер для сервисных центров.
-- Android приложение готово (APK собран)
-- Серверы мигрированы на NEW
-- Tunnel Proxy для мобильного IP создан
+- Android приложение готово
+- Серверы настроены на NEW
+- **Tunnel Server готов** — ждёт подключения Android
 
-### Архитектура
+### Архитектура (защита от банов)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     SERVER (NEW 155.212.221.189)            │
-├─────────────────────────────────────────────────────────────┤
-│  MCP Servers (логика)                                       │
-│  ├── avito-messenger-api:8765 ─┐                            │
-│  ├── vk-community-api:8767 ────┼── HTTP_PROXY=tunnel:8080   │
-│  ├── max-bot-api:8768 ─────────┘                            │
-│  ├── android-api:8780 (без прокси)                          │
-│  └── redis:6379                                             │
-│                                                             │
-│  tunnel-proxy:8080 ◄─── WebSocket ──────────────────────────┼──┐
-└─────────────────────────────────────────────────────────────┘  │
-                                                                  │
-┌─────────────────────────────────────────────────────────────┐  │
-│               MOBILE (телефон/Termux)                        │◄─┘
-├─────────────────────────────────────────────────────────────┤
-│  tunnel.py:8765 → Mobile IP → Internet                      │
-└─────────────────────────────────────────────────────────────┘
+Android App (TunnelService)
+    │
+    │ WebSocket (мобильный IP + Android TLS fingerprint)
+    ▼
+tunnel-server:8765 ◄──── MCP серверы (POST /proxy)
+    │
+    ├── avito-messenger-api:8766
+    ├── vk-community-api:8767
+    └── max-bot-api:8768
 ```
+
+**Почему это защищает от банов:**
+- ✅ Мобильный IP (не серверный)
+- ✅ Android TLS fingerprint (OkHttp, не Python)
+- ✅ Реальный Device ID
 
 ---
 
@@ -56,10 +52,21 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 
 | Server | IP | Контейнеры | Статус |
 |--------|-----|------------|--------|
+| **NEW** | 155.212.221.189 | tunnel-server, android-api, avito, vk, max, redis | ✅ Готов |
 | **RU** | 45.144.177.128 | neo4j, redis, marzban | ✅ Готов |
-| **NEW** | 155.212.221.189 | tunnel-proxy, android-api, avito, vk, max, redis | ✅ Готов |
 | **n8n** | 185.221.214.83 | n8n, postgresql | ⬜ Активировать workflows |
-| **FI** | 217.145.79.27 | telegram, whatsapp (unhealthy) | ⚠️ Проверить |
+| **FI** | 217.145.79.27 | telegram, whatsapp | ⚠️ Проверить |
+
+### NEW Server — Порты
+
+| Сервис | Порт | Описание |
+|--------|------|----------|
+| tunnel-server | 8765 | WebSocket + HTTP API |
+| avito-messenger-api | 8766 | Avito MCP |
+| vk-community-api | 8767 | VK MCP |
+| max-bot-api | 8768 | MAX MCP |
+| android-api | 8780 | API для приложения |
+| redis | 6379 | Redis |
 
 ---
 
@@ -68,41 +75,28 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ### ✅ Выполнено
 - [x] RU сервер: оставить только neo4j + redis + marzban
 - [x] NEW сервер: развернуть android-api, MCP серверы
-- [x] Создать tunnel-proxy (server + mobile)
-- [x] Настроить MCP серверы с HTTP_PROXY
+- [x] Создать tunnel-server (правильная архитектура)
+- [x] Обновить TunnelService в Android приложении
 
 ### ⬜ Осталось
-1. **Запустить tunnel на телефоне** — см. инструкцию ниже
-2. **Обновить IP телефона** в tunnel-proxy
+1. **Настроить Android приложение** — указать Tunnel URL
+2. **Запустить TunnelService** — включить в приложении
 3. **Активировать n8n workflows** (API_Android_*)
-4. **Обновить DNS** — android-api.eldoleado.ru → 155.212.221.189
-5. **Проверить FI сервер** — telegram/whatsapp unhealthy
+4. **Тестировать** — проверить работу через мобильный IP
 
 ---
 
-## Запуск Tunnel на телефоне
+## Настройка Android приложения
 
+В приложении указать:
+- **Tunnel URL:** `ws://155.212.221.189:8765/ws`
+- **Tunnel Secret:** `Mi31415926pSss!`
+
+После настройки — включить TunnelService.
+
+Проверить подключение:
 ```bash
-# Termux
-pkg install python
-pip install aiohttp
-
-export TUNNEL_SECRET="Mi31415926pSss!"
-export WS_PORT=8765
-
-# Скопировать tunnel.py из NEW/MVP/tunnel-proxy/mobile/
-python tunnel.py
-```
-
-После запуска — обновить на сервере:
-```bash
-ssh root@155.212.221.189
-docker rm -f tunnel-proxy
-docker run -d --name tunnel-proxy --network eldoleado -p 8080:8080 \
-  -e MOBILE_WS_URL=ws://PHONE_IP:8765/ws \
-  -e TUNNEL_SECRET=Mi31415926pSss! \
-  --restart unless-stopped \
-  tunnel-proxy
+curl http://155.212.221.189:8765/devices
 ```
 
 ---
@@ -111,27 +105,26 @@ docker run -d --name tunnel-proxy --network eldoleado -p 8080:8080 \
 
 | Файл | Описание |
 |------|----------|
-| `NEW/MVP/tunnel-proxy/` | Tunnel Proxy (server + mobile) |
-| `NEW/MVP/tunnel-proxy/mobile/tunnel.py` | Скрипт для телефона |
-| `NEW/MVP/tunnel-proxy/server/` | Docker для сервера |
+| `NEW/MVP/tunnel-proxy/` | Tunnel Proxy (server + Android) |
+| `NEW/MVP/tunnel-proxy/params.md` | Все параметры и секреты |
+| `NEW/MVP/tunnel-proxy/server/tunnel_server.py` | Серверная часть |
+| `NEW/MVP/app_original/src/.../tunnel/TunnelService.kt` | Android сервис |
 | `app/build/outputs/apk/debug/app-debug.apk` | Android APK |
-| `MCP/mcp-ssh/servers.json` | SSH конфиг серверов |
-
----
-
-## Параметры
-
-См. `NEW/MVP/tunnel-proxy/params.md` для всех параметров и секретов.
 
 ---
 
 ## QUICK START
 
 ```bash
-# 1. Запустить tunnel на телефоне
-# 2. Обновить PHONE_IP в tunnel-proxy на сервере
-# 3. Активировать n8n workflows через UI
-# 4. Тестировать Android приложение
+# 1. Проверить tunnel-server работает
+curl http://155.212.221.189:8765/health
+
+# 2. Настроить приложение и включить TunnelService
+
+# 3. Проверить подключение устройства
+curl http://155.212.221.189:8765/devices
+
+# 4. Активировать n8n workflows через UI
 ```
 
 ---

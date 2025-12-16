@@ -1,21 +1,20 @@
 version: '3.8'
 
 services:
-  tunnel-proxy:
+  tunnel-server:
     build: .
-    container_name: tunnel-proxy
+    container_name: tunnel-server
     ports:
-      - "8080:8080"
+      - "8765:8765"  # WebSocket for Android + HTTP API
     environment:
-      - PROXY_PORT=8080
-      - MOBILE_WS_URL=${MOBILE_WS_URL:-ws://host.docker.internal:8765/ws}
-      - TUNNEL_SECRET=${TUNNEL_SECRET:-change_me}
+      - WS_PORT=8765
+      - TUNNEL_SECRET=${TUNNEL_SECRET:-Mi31415926pSss!}
+      - API_KEY=${API_KEY:-BattCRM_Tunnel_Secret_2024}
+      - REQUEST_TIMEOUT=60
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     restart: unless-stopped
     networks:
       - eldoleado
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 networks:
   eldoleado:

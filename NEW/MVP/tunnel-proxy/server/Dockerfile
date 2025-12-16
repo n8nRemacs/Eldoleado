@@ -2,15 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir aiohttp
 
-COPY tunnel_client.py .
+COPY tunnel_server.py .
 
-ENV PROXY_PORT=8080
-ENV MOBILE_WS_URL=ws://host.docker.internal:8765/ws
+ENV WS_PORT=8765
 ENV TUNNEL_SECRET=change_me
+ENV API_KEY=change_me
+ENV REQUEST_TIMEOUT=60
 
-EXPOSE 8080
+EXPOSE 8765
 
-CMD ["python", "tunnel_client.py"]
+CMD ["python", "tunnel_server.py"]
