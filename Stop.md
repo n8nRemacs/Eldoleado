@@ -42,101 +42,105 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: 17 December 2025, 00:10 (UTC+4)
+## Last session: 17 December 2025, 01:35 (UTC+4)
 
 ---
 
 ## What's done in this session
 
-### 1. Реструктуризация Android Messager
+### 1. tunnel-server — WebSocket Hub + ProxyManager ✅
 
-- Перенесли все файлы из `NEW/MVP/` в `NEW/MVP/Android Messager/`
-- Консолидировали tunnel-proxy в mobile-server
-- Удалили дубликаты
+- Доработали `tunnel-server/app/main.py` — интеграция с ProxyManager
+- Доработали `websocket_manager.py` — обработчики proxy_response, proxy_status, hello
+- TunnelConnection расширен полями: tenant_id, node_type, wifi_only, max_requests_per_hour
+- Auto-registration proxy nodes при hello с http_proxy service
 
-### 2. Создан ROADMAP.md
+### 2. mobile-server — Proxy Protocol ✅
 
-Файл: `NEW/MVP/Android Messager/ROADMAP.md`
+- Обновили `tunnel_proxy/proxy.py`:
+  - send_hello() с tenant_id, node_type, services
+  - proxy_response action для proxy_fetch ответов
+  - _status_update_loop() — периодические proxy_status
+  - _get_device_status() — WiFi/battery через Termux API
+- Обновили `config.py` — TENANT_ID, NODE_TYPE, WIFI_ONLY, STATUS_UPDATE_INTERVAL
+- Обновили `.env.example`
 
-Содержит:
-- ✅ Полная архитектура (диаграмма)
-- ✅ Deployment checklist для VPS (tunnel-server)
-- ✅ Deployment checklist для Termux (mobile-server)
-- ✅ .env примеры для обоих компонентов
-- ✅ Nginx config для WSS
-- ✅ Все API endpoints с примерами curl
-- ✅ External APIs (Telegram, Avito, VK, WhatsApp)
-- ✅ Три режима работы (messenger/proxy/both)
-- ✅ Database tables (PostgreSQL + Neo4j)
-- ✅ Security checklist
-- ✅ Monitoring и Troubleshooting
+### 3. Android TunnelService ✅
 
-### 3. Добавлен proxy_fetch
+- Обновили протокол подключения (server_id вместо operator_id)
+- sendHello() с tenant_id, node_type, device info
+- startStatusUpdates() + sendProxyStatus() — WiFi/battery updates
+- handleProxyFetch() — proxy_fetch через мобильный IP
+- isOnWifi(), getBatteryLevel() — нативные методы Android
 
-- ProxyManager для балансировки между телефонами
-- proxy_fetch handler для прямых HTTP запросов через мобильный IP
-- Поддержка wifi_only для клиентских прокси
+### 4. Docker Deployment на 155.212.221.189 ✅
 
-### 4. Git коммит
+- Создали Dockerfile, docker-compose.yml, deploy.sh, .dockerignore
+- Задеплоили tunnel-server на 155.212.221.189:8800
+- Health check: `curl http://155.212.221.189:8800/api/health` → OK
 
-```
-Android Messager: restructure and add ROADMAP
+### 5. ROADMAP.md обновлён ✅
 
-- Move all MVP components into Android Messager folder
-- Add client proxy (proxy_fetch) for price scraping via mobile IP
-- Add ROADMAP.md with deployment guide, API docs, architecture
-- Remove duplicate tunnel-proxy folder (consolidated into mobile-server)
-- Add ProxyManager for load balancing across phone nodes
-```
+- Phase 1 (tunnel-server): ✅ DEPLOYED
+- Phase 3 (Android): ✅ PROTOCOL READY
+- Добавлен раздел "Implemented Features"
+- Добавлена таблица WebSocket Protocol
+- Обновлены Quick Start Commands
 
 ---
 
 ## Current system state
 
 **Код:**
-- ✅ tunnel-server структура готова
-- ✅ mobile-server структура готова
-- ✅ ROADMAP.md создан
-- ⏳ Нужно дописать код tunnel-server
-- ⏳ Нужно дописать код mobile-server
+- ✅ tunnel-server полностью готов и задеплоен
+- ✅ mobile-server готов к использованию в Termux
+- ✅ Android TunnelService готов к сборке APK
 
 **Серверы:**
 - ✅ RU (45.144.177.128): neo4j, redis, marzban
 - ✅ n8n (185.221.214.83): postgresql, n8n
-- ⏳ NEW (155.212.221.189): требуется деплой tunnel-server
+- ✅ **TUNNEL (155.212.221.189): tunnel-server:8800 RUNNING**
+
+**Проверка:**
+```bash
+curl http://155.212.221.189:8800/api/health
+# {"status":"ok","tunnels_connected":0,"version":"1.0.0"}
+```
 
 ---
 
 ## NEXT STEPS (для следующей сессии)
 
-### Phase 1: Backend (tunnel-server) — ПРИОРИТЕТ
+### Phase 2: Mobile Client — ПРИОРИТЕТ
 
-1. **Доработать tunnel-server код:**
-   - `tunnel-server/app/main.py` — WebSocket hub
-   - `tunnel-server/app/input/proxy_manager.py` — ProxyManager
-   - API endpoints: `/ws`, `/api/send`, `/api/proxy/fetch`
+**Вариант A: Termux**
+```bash
+pkg install python
+cd mobile-server
+cp .env.example .env
+nano .env  # TUNNEL_URL=ws://155.212.221.189:8800/ws, TENANT_ID
+pip install -r requirements.txt
+python -m tunnel_proxy.proxy
+```
 
-2. **Деплой на VPS:**
-   - SSH to 155.212.221.189
-   - Docker setup
-   - Nginx + SSL
+**Вариант B: Android App**
+1. Open `app_original` in Android Studio
+2. Configure tunnel URL in SessionManager
+3. Build APK
+4. Install and test
 
-### Phase 2: Mobile Client (mobile-server)
+### Phase 3: End-to-End Testing
 
-1. **Доработать mobile-server код:**
-   - WebSocket клиент
-   - proxy_fetch handler
-   - Channel handlers (Telegram, Avito)
+1. Подключить телефон к tunnel-server
+2. Проверить `/api/servers` — должен показать подключённый телефон
+3. Отправить proxy_fetch через API
+4. Проверить получение ответа
 
-2. **Тест в Termux:**
-   - Создать .env
-   - Запустить и проверить подключение
+### Phase 4: SSL/WSS (опционально)
 
-### Phase 3: Android App
-
-1. **Обновить TunnelService**
-2. **Собрать APK**
-3. **End-to-end тестирование**
+1. Nginx reverse proxy на tunnel сервере
+2. Let's Encrypt сертификат
+3. WSS вместо WS
 
 ---
 
@@ -145,8 +149,9 @@ Android Messager: restructure and add ROADMAP
 | File | What |
 |------|------|
 | `NEW/MVP/Android Messager/ROADMAP.md` | Полный роадмап и API |
-| `NEW/MVP/Android Messager/tunnel-server/` | Бэкенд код |
-| `NEW/MVP/Android Messager/mobile-server/` | Клиент для телефона |
+| `NEW/MVP/Android Messager/tunnel-server/` | Бэкенд (DEPLOYED) |
+| `NEW/MVP/Android Messager/mobile-server/` | Клиент для Termux |
+| `NEW/MVP/Android Messager/app_original/` | Android App |
 | `Start.md` | Контекст для старта сессии |
 
 ---
@@ -156,4 +161,4 @@ Android Messager: restructure and add ROADMAP
 1. `git pull`
 2. Read `Start.md`
 3. Read `NEW/MVP/Android Messager/ROADMAP.md`
-4. Начать с Phase 1: tunnel-server backend
+4. Подключить телефон (Termux или APK)

@@ -14,7 +14,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**17 December 2025, 00:10 (UTC+4)**
+**17 December 2025, 01:35 (UTC+4)**
 
 ---
 
@@ -26,9 +26,10 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ### Текущий статус
 - ✅ Документация и архитектура готовы
 - ✅ ROADMAP.md создан с деплоем и API
-- ⏳ **NEXT: Бэкенд (tunnel-server)**
-- ⏳ Android приложение
-- ⏳ Тестирование
+- ✅ **tunnel-server ЗАДЕПЛОЕН** на 155.212.221.189:8800
+- ✅ WebSocket протокол реализован (hello, proxy_fetch, proxy_status)
+- ✅ Android TunnelService готов к сборке
+- ⏳ **NEXT: Подключить телефон (Termux или APK)**
 
 ---
 
@@ -37,13 +38,12 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ### Схема
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         VPS SERVER                               │
+│                    VPS SERVER (155.212.221.189)                   │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │                    tunnel-server:8800                        ││
+│  │                    tunnel-server:8800 ✅ RUNNING             ││
 │  │  - WebSocket hub for all phones                             ││
-│  │  - API for MCP servers                                      ││
-│  │  - Proxy Manager (load balancing)                           ││
-│  │  - AI Pipeline (future)                                     ││
+│  │  - ProxyManager (load balancing, multi-tenant)              ││
+│  │  - API: /api/health, /api/servers, /api/proxy/fetch         ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                              ▲                                   │
 │                              │ WebSocket                         │
@@ -54,10 +54,10 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
         ▼                      ▼                      ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
 │   Phone 1     │    │   Phone 2     │    │   Phone N     │
-│ mobile-server │    │ mobile-server │    │ mobile-server │
-│  - Telegram   │    │  - WhatsApp   │    │  - Proxy only │
-│  - Avito      │    │  - VK         │    │               │
-│  - Proxy      │    │  - Proxy      │    │               │
+│ mobile-server │    │ Android App   │    │ mobile-server │
+│  - Telegram   │    │ TunnelService │    │  - Proxy only │
+│  - Avito      │    │  - Proxy      │    │               │
+│  - Proxy      │    │               │    │               │
 └───────────────┘    └───────────────┘    └───────────────┘
 ```
 
@@ -74,7 +74,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 |------|----------|
 | `NEW/MVP/Android Messager/` | **Основная папка проекта** |
 | `NEW/MVP/Android Messager/ROADMAP.md` | **Роадмап, деплой, API, env** |
-| `NEW/MVP/Android Messager/tunnel-server/` | Бэкенд на VPS |
+| `NEW/MVP/Android Messager/tunnel-server/` | Бэкенд на VPS ✅ DEPLOYED |
 | `NEW/MVP/Android Messager/mobile-server/` | Клиент для Termux на телефоне |
 | `NEW/MVP/Android Messager/app_original/` | Android приложение (Kotlin) |
 
@@ -86,7 +86,15 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 |--------|-----|---------|--------|
 | **RU** | 45.144.177.128 | neo4j, redis, marzban (VPN) | ✅ Ready |
 | **n8n** | 185.221.214.83 | n8n, postgresql | ✅ Ready |
-| **NEW** | 155.212.221.189 | Будет tunnel-server | ⏳ Deploy needed |
+| **TUNNEL** | 155.212.221.189 | **tunnel-server:8800** | ✅ **RUNNING** |
+
+### Проверка tunnel-server
+```bash
+curl http://155.212.221.189:8800/api/health
+# {"status":"ok","tunnels_connected":0,"version":"1.0.0"}
+
+ssh root@155.212.221.189 "docker logs tunnel-server --tail 20"
+```
 
 ---
 
@@ -96,84 +104,83 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 |----------|----------|-----|
 | SSH Password | Mi31415926pSss! | Все серверы |
 | Neo4j Password | Mi31415926pS | 45.144.177.128 |
-| PostgreSQL | supabase_admin | 185.221.214.83:6544 |
+| PostgreSQL | Postgres159951 | 185.221.214.83:6544 |
 | TUNNEL_SECRET | <generate 32 chars> | tunnel ↔ phone |
 
 ---
 
 ## TODO: План разработки
 
-### Phase 1: Backend (tunnel-server) ⏳ CURRENT
+### Phase 1: Backend (tunnel-server) ✅ DONE
 
-1. **Подготовить tunnel-server код**
-   - [ ] Доработать `tunnel-server/app/main.py`
-   - [ ] Реализовать WebSocket hub
-   - [ ] Реализовать ProxyManager
-   - [ ] API endpoints из ROADMAP.md
+- ✅ WebSocket hub с ProxyManager
+- ✅ Мультитенантность (tenant_id)
+- ✅ Docker deployment на 155.212.221.189
+- ✅ Health check работает
 
-2. **Деплой на VPS**
-   - [ ] SSH to 155.212.221.189 (или другой)
-   - [ ] Docker или systemd setup
-   - [ ] Nginx + SSL (wss://)
-   - [ ] Firewall rules
+### Phase 2: Mobile Client ⏳ CURRENT
 
-### Phase 2: Mobile Client (mobile-server) ⏳
+**Вариант A: Termux (mobile-server)**
+```bash
+# На телефоне в Termux
+pkg install python
+cd mobile-server
+cp .env.example .env
+nano .env  # TUNNEL_URL=ws://155.212.221.189:8800/ws
+pip install -r requirements.txt
+python -m tunnel_proxy.proxy
+```
 
-1. **Подготовить mobile-server код**
-   - [ ] WebSocket клиент к tunnel-server
-   - [ ] HTTP proxy handler (proxy_fetch)
-   - [ ] Telegram/Avito/VK channel handlers
+**Вариант B: Android App**
+1. Open `app_original` in Android Studio
+2. Configure tunnel URL in SessionManager
+3. Build APK
+4. Install and test
 
-2. **Деплой на Termux**
-   - [ ] Инструкция для пользователей
-   - [ ] .env.example с примерами
-   - [ ] start.sh скрипт
+### Phase 3: End-to-End Testing ⏳
 
-### Phase 3: Android App ⏳
-
-1. **Обновить приложение**
-   - [ ] TunnelService для WebSocket
-   - [ ] UI для включения/выключения сервисов
-   - [ ] Push notifications (FCM)
-
-2. **Сборка и тестирование**
-   - [ ] Build APK
-   - [ ] Install on test device
-   - [ ] End-to-end testing
+1. Подключить телефон к tunnel-server
+2. Проверить proxy_fetch через API
+3. Тестирование мессенджеров
 
 ---
 
 ## Quick Commands
 
 ```bash
-# Проверить сервера
-ssh root@45.144.177.128 "docker ps"
-ssh root@185.221.214.83 "docker ps"
+# Проверить tunnel-server
+curl http://155.212.221.189:8800/api/health
 
-# Локальная разработка
-cd "C:/Users/User/Documents/Eldoleado/NEW/MVP/Android Messager"
+# Логи tunnel-server
+ssh root@155.212.221.189 "docker logs tunnel-server --tail 50"
 
-# Сборка APK
-cd C:/Users/User/Documents/Eldoleado
-export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
-./gradlew.bat :app:assembleDebug
+# Рестарт tunnel-server
+ssh root@155.212.221.189 "cd /opt/eldoleado/tunnel-server && docker-compose restart"
+
+# Re-deploy tunnel-server
+cd "/c/Users/User/Eldoleado/NEW/MVP/Android Messager/tunnel-server"
+scp -r app main.py requirements.txt Dockerfile docker-compose.yml root@155.212.221.189:/opt/eldoleado/tunnel-server/
+ssh root@155.212.221.189 "cd /opt/eldoleado/tunnel-server && docker-compose down && docker-compose build --no-cache && docker-compose up -d"
 ```
+
+---
+
+## WebSocket Protocol
+
+| Action | Direction | Description |
+|--------|-----------|-------------|
+| `hello` | Client→Server | Registration with tenant_id, services |
+| `proxy_status` | Client→Server | WiFi/battery status updates |
+| `http_request` | Server→Client | Proxy to local services |
+| `proxy_fetch` | Server→Client | Direct URL fetch via mobile IP |
+| `proxy_response` | Client→Server | Response from proxy_fetch |
+| `ping`/`pong` | Both | Heartbeat |
 
 ---
 
 ## Полная документация
 
 Смотри: `NEW/MVP/Android Messager/ROADMAP.md`
-
-Там есть:
-- ✅ Полная архитектура
-- ✅ Deployment checklist для VPS и Termux
-- ✅ .env примеры для обоих компонентов
-- ✅ Nginx config для WSS
-- ✅ Все API endpoints
-- ✅ External APIs (Telegram, Avito, VK)
-- ✅ Security checklist
-- ✅ Troubleshooting
 
 ---
 
