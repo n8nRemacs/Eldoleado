@@ -4,13 +4,13 @@
       "host": "45.144.177.128",
       "user": "root",
       "port": 22,
-      "key_path": "C:/Users/User/.ssh/id_ed25519"
+      "password": "Mi31415926pSss!"
     },
     "fi": {
       "host": "217.145.79.27",
       "user": "root",
       "port": 22,
-      "key_path": "C:/Users/User/.ssh/id_ed25519"
+      "password": "Mi31415926pSss!"
     },
     "n8n": {
       "host": "185.221.214.83",

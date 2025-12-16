@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  tunnel-proxy:
+    build: .
+    container_name: tunnel-proxy
+    ports:
+      - "8080:8080"
+    environment:
+      - PROXY_PORT=8080
+      - MOBILE_WS_URL=${MOBILE_WS_URL:-ws://host.docker.internal:8765/ws}
+      - TUNNEL_SECRET=${TUNNEL_SECRET:-change_me}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    networks:
+      - eldoleado
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  eldoleado:
+    external: true
