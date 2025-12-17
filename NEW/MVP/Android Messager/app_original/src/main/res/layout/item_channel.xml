@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical">
+
+    <!-- Channel Icon -->
+    <ImageView
+        android:id="@+id/channelIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="centerInside"
+        tools:src="@drawable/ic_telegram" />
+
+    <!-- Channel Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/channelName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            tools:text="Telegram" />
+
+        <TextView
+            android:id="@+id/channelStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            tools:text="Подключено: @MyBot" />
+
+    </LinearLayout>
+
+    <!-- Status Indicator -->
+    <View
+        android:id="@+id/statusIndicator"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/status_not_configured" />
+
+    <!-- Chevron -->
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_chevron_right"
+        android:scaleType="centerInside" />
+
+</LinearLayout>

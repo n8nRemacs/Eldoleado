@@ -1,6 +1,6 @@
 # STOP - Session Completion Checklist
 
-> **IMPORTANT:** When updating this file ALWAYS specify date AND time in format: `DD Month YYYY, HH:MM (UTC+4)`
+> **IMPORTANT:** When updating this file ALWAYS specify date AND time in format: `DD Month YYYY, HH:MM (UTC+3)`
 
 ---
 
@@ -42,91 +42,106 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: 17 December 2025, 13:20 (UTC+4)
+## Last session: 17 December 2025, 22:50 (MSK, UTC+3)
 
 ---
 
 ## What's done in this session
 
-### 1. tunnel-server: IN/OUT Connectors ✅
+### 1. Login + Roles System ✅
 
-Создали полную архитектуру коннекторов:
-- `tunnel_in.py` — приём сообщений от телефонов, батчинг, Whisper
-- `tunnel_out.py` — отправка сообщений на телефоны
-- `message_router.py` — маршрутизация через n8n
-- `operator_connector.py` — WebSocket для операторов `/ws/operator`
+Реализована система выбора режима работы при логине:
+- **client** — только мессенджер (оператор без сервера)
+- **server** — только tunnel (сервер без UI)
+- **both** — мессенджер + tunnel (оператор с сервером)
 
-### 2. n8n Workflows ✅
+**Файлы:**
+- `LoginActivity.kt` — RadioGroup для выбора режима
+- `activity_login.xml` — UI с описанием каждого режима
+- `ApiService.kt` — `LoginRequest.app_mode`
+- `SessionManager.kt` — константы MODE_CLIENT/MODE_SERVER/MODE_BOTH
 
-Созданы и импортированы:
-- `ELO_In_App` — транскрипция аудио (Whisper API) + media download через proxy_fetch
-- `ELO_Message_Router` — роутинг сообщений + нормализация текста (OpenRouter/Gemini)
-- JSON файлы в `tunnel-server/n8n/`
+### 2. Database Schema ✅
 
-### 3. Android Operator UI ✅
+Создана таблица `elo_t_operator_devices`:
+```sql
+- app_mode VARCHAR(20) -- client | server | both
+- tunnel_url TEXT
+- tunnel_secret VARCHAR(255)
+- session_token, fcm_token
+- Связь с elo_t_operators и elo_t_tenants
+```
 
-Полный UI для оператора:
-- `OperatorActivity` — главное activity
-- `OperatorWebSocketService` — foreground service с WebSocket
-- `ChatsListFragment` + `ChatsAdapter` — список чатов
-- `ChatFragment` + `MessagesAdapter` — переписка
-- `DraftApprovalDialog` — утверждение нормализованного текста
-- `ChatsRepository` — singleton для состояния (LiveData)
-- `ChatModels.kt` — Channel, Chat, ChatMessage, DraftMessage
-- Все layouts и drawables
+### 3. Auth Workflow ✅
+
+Создан `API_Android_Auth_ELO.json`:
+- Использует elo_ таблицы (не старые operators)
+- Возвращает: `app_mode`, `tunnel_url`, `tunnel_secret`
+- Автогенерация `tunnel_secret` для server/both
+- **Требует импорта в n8n**
 
 ### 4. Documentation ✅
 
-- `NEW/Schema_messagers.md` — полная документация системы (1200+ строк)
-- Все API endpoints, WebSocket протоколы
-- Message flow диаграммы (incoming, outgoing, audio)
-- Data models (Kotlin + Python)
-- Security, troubleshooting
-
-### 5. Scripts ✅
-
-- `start.sh` — обновлён с поддержкой Docker
-- `stop.sh` — создан для graceful shutdown
+Полностью обновлён `NEW/MVP/Android Messager/ROADMAP.md`:
+- Current Status Overview
+- Architecture diagrams
+- API Endpoints (Auth)
+- Problems & Solutions
+- Next Steps (priority order)
+- File Structure
+- Quick Commands
 
 ---
 
 ## Current system state
 
 **Код:**
-- ✅ tunnel-server с полной архитектурой IN/OUT
-- ✅ n8n workflows (ELO_In_App, ELO_Message_Router)
-- ✅ Android Operator UI полностью готов
-- ✅ Документация Schema_messagers.md
+- ✅ Login с выбором режима (client/server/both)
+- ✅ Database table `elo_t_operator_devices`
+- ✅ Auth workflow для elo_ таблиц
+- ✅ Android app билдится успешно
+- ⬜ Dialogs API (mock data)
+- 🔄 Channel Setup (UI ready, backend partial)
 
 **Серверы:**
-- ✅ Finnish (217.145.79.27): tunnel-server, mcp-telegram, mcp-whatsapp
-- ✅ RU (45.144.177.128): mcp-avito, mcp-max, neo4j, redis
-- ✅ n8n (185.221.214.83): postgresql, n8n с workflows
+- ✅ n8n (185.221.214.83): postgresql, n8n
+- ✅ Tunnel (155.212.221.189:8800): running
+- ✅ Finnish (217.145.79.27): mcp-telegram, mcp-whatsapp
+- ✅ RU (45.144.177.128): mcp-avito, mcp-max, neo4j
 
 **Архитектура:**
 ```
-Phone (Server) ──► tunnel-server ──► n8n (Whisper, OpenRouter)
-                        │
-                        ▼
-              Operator App (Client)
+n8n (185.221.214.83)
+    │
+    │ android/auth/login → elo_t_operators
+    │
+Android App ──┬── client mode ──► Messenger UI only
+              ├── server mode ──► TunnelService only
+              └── both mode ────► Messenger + Tunnel
+                      │
+                      ▼
+              tunnel-server (155.212.221.189:8800)
 ```
 
 ---
 
 ## NEXT STEPS
 
-### 1. Интеграция с MainActivity
-- [ ] Добавить кнопку перехода в OperatorActivity
-- [ ] Показывать только в Client mode
+### Priority 1: Test Auth Flow
+1. [ ] Импортировать `API_Android_Auth_ELO.json` в n8n
+2. [ ] Деактивировать старый `API_Android_Auth`
+3. [ ] Создать тестового оператора в `elo_t_operators`
+4. [ ] Протестировать curl + Android app
 
-### 2. Тестирование полного flow
-- [ ] Телефон в Server mode → tunnel-server
-- [ ] Оператор в Client mode → tunnel-server
-- [ ] Проверить incoming/outgoing/audio
+### Priority 2: Dialogs API
+1. [ ] Создать workflow `ELO_API_Android_Dialogs`
+2. [ ] Query: `SELECT * FROM elo_t_dialogs WHERE assigned_operator_id = ?`
+3. [ ] Подключить в MainActivity
 
-### 3. Деплой обновлений
-- [ ] Обновить tunnel-server на Finnish
-- [ ] Проверить n8n workflows работают
+### Priority 3: Channel Backend
+1. [ ] Telegram Bot verification
+2. [ ] Avito sessid validation
+3. [ ] WhatsApp integration decision
 
 ---
 
@@ -134,10 +149,10 @@ Phone (Server) ──► tunnel-server ──► n8n (Whisper, OpenRouter)
 
 | File | What |
 |------|------|
-| `NEW/Schema_messagers.md` | **Полная документация системы** |
-| `NEW/MVP/Android Messager/tunnel-server/` | Бэкенд (connectors, n8n) |
-| `NEW/MVP/Android Messager/tunnel-server/n8n/` | n8n workflows JSON |
-| `NEW/MVP/Android Messager/app_original/.../operator/` | Android Operator UI |
+| `NEW/MVP/Android Messager/ROADMAP.md` | **Полная документация (обновлено!)** |
+| `NEW/workflows/API/API_Android_Auth_ELO.json` | Auth workflow для импорта |
+| `app/src/main/java/.../LoginActivity.kt` | Логин с выбором режима |
+| `app/src/main/res/layout/activity_login.xml` | UI логина |
 | `Start.md` | Контекст для старта сессии |
 
 ---
@@ -146,5 +161,5 @@ Phone (Server) ──► tunnel-server ──► n8n (Whisper, OpenRouter)
 
 1. `git pull`
 2. Read `Start.md`
-3. Read `NEW/Schema_messagers.md` для понимания архитектуры
-4. Интеграция с MainActivity или тестирование
+3. Read `NEW/MVP/Android Messager/ROADMAP.md` для понимания текущего состояния
+4. Импортировать workflow в n8n и тестировать

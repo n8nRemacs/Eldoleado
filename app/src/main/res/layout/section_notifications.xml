@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notificationsSection"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:visibility="gone">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="УВЕДОМЛЕНИЯ"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:letterSpacing="0.1" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="#E0E0E0" />
+
+    <!-- Alert Bot Configuration -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Telegram-бот для алертов"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Бот будет отправлять уведомления о проблемах"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary" />
+
+    <!-- Bot Token Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Bot Token">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputAlertBotToken"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Chat ID Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Chat ID администратора">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputAlertChatId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Test Button -->
+    <Button
+        android:id="@+id/btnTestNotification"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Отправить тестовое сообщение"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <!-- Alert Types -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:background="#E0E0E0" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Уведомлять о:"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <!-- Battery Alert Toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Критический заряд батареи"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="При заряде менее 15%"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchAlertBattery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true" />
+
+    </LinearLayout>
+
+    <!-- Network Alert Toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Потеря соединения"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Когда интернет недоступен"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchAlertNetwork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true" />
+
+    </LinearLayout>
+
+    <!-- Channels Alert Toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Проблемы с каналами"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Когда сессия канала слетает"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchAlertChannels"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true" />
+
+    </LinearLayout>
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/btnSaveNotifications"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Сохранить настройки"
+        android:backgroundTint="@color/blue_primary" />
+
+</LinearLayout>

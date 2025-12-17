@@ -10,7 +10,8 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val BASE_URL = "https://android-api.eldoleado.ru/"
+    // n8n webhook URL (production)
+    private const val BASE_URL = "https://n8n.n8nsrv.ru/webhook/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

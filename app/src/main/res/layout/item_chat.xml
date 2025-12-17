@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
+
+    <!-- Channel icon -->
+    <TextView
+        android:id="@+id/text_channel_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_channel_default"
+        android:gravity="center"
+        android:text="TG"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Client name -->
+    <TextView
+        android:id="@+id/text_client_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Client Name"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/text_timestamp"
+        app:layout_constraintStart_toEndOf="@id/text_channel_icon"
+        app:layout_constraintTop_toTopOf="@id/text_channel_icon" />
+
+    <!-- Timestamp -->
+    <TextView
+        android:id="@+id/text_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12:30"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/text_client_name" />
+
+    <!-- Last message -->
+    <TextView
+        android:id="@+id/text_last_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Last message preview..."
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/text_channel_icon"
+        app:layout_constraintEnd_toStartOf="@id/text_unread_badge"
+        app:layout_constraintStart_toEndOf="@id/text_channel_icon"
+        app:layout_constraintTop_toBottomOf="@id/text_client_name" />
+
+    <!-- Unread badge -->
+    <TextView
+        android:id="@+id/text_unread_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_unread_badge"
+        android:gravity="center"
+        android:minWidth="24dp"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:text="5"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/text_last_message"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Connection status bar -->
+    <TextView
+        android:id="@+id/text_connection_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/status_disconnected"
+        android:gravity="center"
+        android:padding="4dp"
+        android:text="Подключение..."
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/text_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Нет активных чатов"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+    <!-- Chats list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_chats"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
+
+</LinearLayout>

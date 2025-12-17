@@ -5,29 +5,43 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.eldoleado.app.adapters.DialogsAdapter
+import com.eldoleado.app.data.database.entities.DialogEntity
 import com.eldoleado.app.api.ApiResponse
 import com.eldoleado.app.api.RetrofitClient
-import com.eldoleado.app.api.UpdateSettingsRequest
 import com.eldoleado.app.callrecording.CallRecordingPreferences
 import com.eldoleado.app.callrecording.CallRecordingService
-import com.eldoleado.app.data.database.entities.DialogEntity
+import com.eldoleado.app.channels.ChannelCredentialsManager
+import com.eldoleado.app.channels.ChannelStatus
+import com.eldoleado.app.channels.ChannelType
+import com.eldoleado.app.channels.setup.TelegramSetupActivity
+import com.eldoleado.app.channels.setup.AvitoSetupActivity
+import com.eldoleado.app.channels.setup.WhatsAppSetupActivity
+import com.eldoleado.app.channels.setup.MaxSetupActivity
+import com.eldoleado.app.channels.setup.ChannelDetailsActivity
+import com.eldoleado.app.channels.AlertSender
+import com.eldoleado.app.channels.ChannelMonitorService
 import com.eldoleado.app.tunnel.TunnelService
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import retrofit2.Call
@@ -43,10 +57,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dialogsRecyclerView: RecyclerView
     private lateinit var settingsContainer: ScrollView
     private lateinit var headerTitle: TextView
-    private lateinit var aiModeRadioGroup: RadioGroup
-    private lateinit var radioAutomatic: RadioButton
-    private lateinit var radioSemiAutomatic: RadioButton
-    private lateinit var saveSettingsButton: Button
 
     // Call recording
     private lateinit var switchCallRecording: SwitchMaterial
@@ -54,11 +64,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var callRecordingDescription: TextView
     private lateinit var callRecordingPreferences: CallRecordingPreferences
 
-    companion object {
-        const val PREF_AI_MODE = "ai_mode"
-        const val AI_MODE_AUTOMATIC = "automatic"
-        const val AI_MODE_SEMI_AUTOMATIC = "semi_automatic"
-    }
+    // Channels
+    private lateinit var channelCredentialsManager: ChannelCredentialsManager
+    private lateinit var channelsSection: LinearLayout
+
+    // Notifications
+    private lateinit var notificationsSection: LinearLayout
+    private lateinit var inputAlertBotToken: TextInputEditText
+    private lateinit var inputAlertChatId: TextInputEditText
+    private lateinit var btnTestNotification: Button
+    private lateinit var switchAlertBattery: SwitchMaterial
+    private lateinit var switchAlertNetwork: SwitchMaterial
+    private lateinit var switchAlertChannels: SwitchMaterial
+    private lateinit var btnSaveNotifications: Button
+
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -90,16 +109,16 @@ class MainActivity : AppCompatActivity() {
         settingsContainer = findViewById(R.id.settingsContainer)
         headerTitle = findViewById(R.id.headerTitle)
         bottomNavigation = findViewById(R.id.bottomNavigation)
-        aiModeRadioGroup = findViewById(R.id.aiModeRadioGroup)
-        radioAutomatic = findViewById(R.id.radioAutomatic)
-        radioSemiAutomatic = findViewById(R.id.radioSemiAutomatic)
-        saveSettingsButton = findViewById(R.id.saveSettingsButton)
 
         // Call recording UI
         callRecordingPreferences = CallRecordingPreferences(this)
         switchCallRecording = findViewById(R.id.switchCallRecording)
         callRecordingStatusText = findViewById(R.id.callRecordingStatusText)
         callRecordingDescription = findViewById(R.id.callRecordingDescription)
+
+        // Channels UI
+        channelCredentialsManager = ChannelCredentialsManager(this)
+        channelsSection = findViewById(R.id.channelsSection)
 
         dialogsAdapter = DialogsAdapter { dialog ->
             openChat(dialog)
@@ -110,11 +129,11 @@ class MainActivity : AppCompatActivity() {
 
         logoutButton = findViewById(R.id.logoutButton)
         logoutButton.setOnClickListener { handleLogout() }
-        saveSettingsButton.setOnClickListener { saveSettings() }
 
         setupBottomNavigation()
-        setupAiModeSettings()
         setupCallRecordingSettings()
+        setupChannelsSection()
+        setupNotificationsSection()
         setupObservers()
         requestNotificationPermissionIfNeeded()
         handleNotificationIntent(intent)
@@ -196,6 +215,8 @@ class MainActivity : AppCompatActivity() {
         dialogsRecyclerView.visibility = View.GONE
         settingsContainer.visibility = View.VISIBLE
         updateCallRecordingUI()
+        updateChannelsUI()
+        updateNotificationsUI()
     }
 
     private fun loadDialogs() {
@@ -246,66 +267,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun setupAiModeSettings() {
-        // Загружаем сохранённую настройку
-        val savedMode = sessionManager.getAiMode()
-        when (savedMode) {
-            AI_MODE_AUTOMATIC -> radioAutomatic.isChecked = true
-            else -> radioSemiAutomatic.isChecked = true
-        }
-    }
-
-    private fun saveSettings() {
-        val operatorId = sessionManager.getOperatorId()
-        val tenantId = sessionManager.getTenantId()
-
-        if (operatorId.isNullOrBlank() || tenantId.isNullOrBlank()) {
-            Toast.makeText(this, "Сессия недействительна", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val mode = when (aiModeRadioGroup.checkedRadioButtonId) {
-            R.id.radioAutomatic -> AI_MODE_AUTOMATIC
-            else -> AI_MODE_SEMI_AUTOMATIC
-        }
-
-        // Сохраняем локально
-        sessionManager.saveAiMode(mode)
-
-        // Преобразуем в формат для сервера
-        val operationMode = if (mode == AI_MODE_AUTOMATIC) "auto" else "assist"
-
-        saveSettingsButton.isEnabled = false
-        saveSettingsButton.text = "Сохранение..."
-
-        val request = UpdateSettingsRequest(
-            operator_id = operatorId,
-            tenant_id = tenantId,
-            operation_mode = operationMode
-        )
-
-        RetrofitClient.getApiService(this).updateSettings(request)
-            .enqueue(object : Callback<ApiResponse> {
-                override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
-                    saveSettingsButton.isEnabled = true
-                    saveSettingsButton.text = "Сохранить"
-
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        val modeText = if (mode == AI_MODE_AUTOMATIC) "Автомат" else "Полуавтомат"
-                        Toast.makeText(this@MainActivity, "Настройки сохранены: $modeText", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "Ошибка сохранения: ${response.code()}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
-                    saveSettingsButton.isEnabled = true
-                    saveSettingsButton.text = "Сохранить"
-                    Toast.makeText(this@MainActivity, "Ошибка: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
     private fun setupObservers() {
         // TODO: Add observers for dialogs from server
     }
@@ -319,6 +280,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Refresh dialogs when returning to screen
         loadDialogs()
+        // Refresh channels status
+        updateChannelsUI()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -497,5 +460,225 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
 
         Toast.makeText(this, "Запись звонков выключена", Toast.LENGTH_SHORT).show()
+    }
+
+    // ==================== CHANNELS SECTION ====================
+
+    private fun setupChannelsSection() {
+        // Show channels section only for Server or Both mode
+        val appMode = sessionManager.getAppMode()
+        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+
+        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
+
+        if (!showChannels) return
+
+        // Setup click listeners for each channel
+        setupChannelItem(
+            channelView = findViewById(R.id.channelTelegram),
+            channelType = ChannelType.TELEGRAM,
+            iconRes = R.drawable.ic_telegram
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelWhatsApp),
+            channelType = ChannelType.WHATSAPP,
+            iconRes = R.drawable.ic_whatsapp
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelAvito),
+            channelType = ChannelType.AVITO,
+            iconRes = R.drawable.ic_avito
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelMax),
+            channelType = ChannelType.MAX,
+            iconRes = R.drawable.ic_max
+        )
+
+        updateChannelsUI()
+    }
+
+    private fun setupChannelItem(channelView: View, channelType: ChannelType, iconRes: Int) {
+        val icon = channelView.findViewById<ImageView>(R.id.channelIcon)
+        val name = channelView.findViewById<TextView>(R.id.channelName)
+
+        icon.setImageResource(iconRes)
+        name.text = channelType.displayName
+
+        channelView.setOnClickListener {
+            openChannelSetup(channelType)
+        }
+    }
+
+    private fun updateChannelsUI() {
+        if (!::channelsSection.isInitialized) return
+
+        val appMode = sessionManager.getAppMode()
+        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
+
+        if (!showChannels) return
+
+        updateChannelItemUI(findViewById(R.id.channelTelegram), ChannelType.TELEGRAM)
+        updateChannelItemUI(findViewById(R.id.channelWhatsApp), ChannelType.WHATSAPP)
+        updateChannelItemUI(findViewById(R.id.channelAvito), ChannelType.AVITO)
+        updateChannelItemUI(findViewById(R.id.channelMax), ChannelType.MAX)
+    }
+
+    private fun updateChannelItemUI(channelView: View, channelType: ChannelType) {
+        val statusText = channelView.findViewById<TextView>(R.id.channelStatus)
+        val statusIndicator = channelView.findViewById<View>(R.id.statusIndicator)
+
+        val status = channelCredentialsManager.getChannelStatus(channelType)
+        val displayInfo = channelCredentialsManager.getChannelDisplayInfo(channelType)
+
+        when (status) {
+            ChannelStatus.CONNECTED -> {
+                statusText.text = displayInfo ?: "Подключено"
+                statusIndicator.setBackgroundResource(R.drawable.status_connected)
+            }
+            ChannelStatus.ERROR -> {
+                statusText.text = "Ошибка подключения"
+                statusIndicator.setBackgroundResource(R.drawable.status_error)
+            }
+            ChannelStatus.CHECKING -> {
+                statusText.text = "Проверка..."
+                statusIndicator.setBackgroundResource(R.drawable.status_checking)
+            }
+            ChannelStatus.NOT_CONFIGURED -> {
+                statusText.text = "Не настроено"
+                statusIndicator.setBackgroundResource(R.drawable.status_not_configured)
+            }
+        }
+    }
+
+    private fun openChannelSetup(channelType: ChannelType) {
+        val status = channelCredentialsManager.getChannelStatus(channelType)
+
+        // If channel is configured, show details; otherwise show setup wizard
+        if (status == ChannelStatus.CONNECTED || status == ChannelStatus.ERROR) {
+            ChannelDetailsActivity.start(this, channelType)
+        } else {
+            val intent = when (channelType) {
+                ChannelType.TELEGRAM -> Intent(this, TelegramSetupActivity::class.java)
+                ChannelType.AVITO -> Intent(this, AvitoSetupActivity::class.java)
+                ChannelType.WHATSAPP -> Intent(this, WhatsAppSetupActivity::class.java)
+                ChannelType.MAX -> Intent(this, MaxSetupActivity::class.java)
+            }
+            startActivity(intent)
+        }
+    }
+
+    // ==================== NOTIFICATIONS SECTION ====================
+
+    private fun setupNotificationsSection() {
+        // Show notifications section only for Server or Both mode
+        val appMode = sessionManager.getAppMode()
+        val showNotifications = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+
+        notificationsSection = findViewById(R.id.notificationsSection)
+        notificationsSection.visibility = if (showNotifications) View.VISIBLE else View.GONE
+
+        if (!showNotifications) return
+
+        // Init views
+        inputAlertBotToken = findViewById(R.id.inputAlertBotToken)
+        inputAlertChatId = findViewById(R.id.inputAlertChatId)
+        btnTestNotification = findViewById(R.id.btnTestNotification)
+        switchAlertBattery = findViewById(R.id.switchAlertBattery)
+        switchAlertNetwork = findViewById(R.id.switchAlertNetwork)
+        switchAlertChannels = findViewById(R.id.switchAlertChannels)
+        btnSaveNotifications = findViewById(R.id.btnSaveNotifications)
+
+        // Load saved values
+        inputAlertBotToken.setText(channelCredentialsManager.getAlertBotToken() ?: "")
+        inputAlertChatId.setText(channelCredentialsManager.getAlertChatId() ?: "")
+        switchAlertBattery.isChecked = channelCredentialsManager.isAlertBatteryEnabled()
+        switchAlertNetwork.isChecked = channelCredentialsManager.isAlertNetworkEnabled()
+        switchAlertChannels.isChecked = channelCredentialsManager.isAlertChannelsEnabled()
+
+        // Test notification button
+        btnTestNotification.setOnClickListener {
+            sendTestNotification()
+        }
+
+        // Save button
+        btnSaveNotifications.setOnClickListener {
+            saveNotificationSettings()
+        }
+
+        // Start monitor service if configured
+        if (!channelCredentialsManager.getAlertBotToken().isNullOrBlank() &&
+            !channelCredentialsManager.getAlertChatId().isNullOrBlank()) {
+            ChannelMonitorService.start(this)
+        }
+    }
+
+    private fun updateNotificationsUI() {
+        if (!::notificationsSection.isInitialized) return
+
+        val appMode = sessionManager.getAppMode()
+        val showNotifications = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+        notificationsSection.visibility = if (showNotifications) View.VISIBLE else View.GONE
+    }
+
+    private fun sendTestNotification() {
+        val botToken = inputAlertBotToken.text?.toString()?.trim()
+        val chatId = inputAlertChatId.text?.toString()?.trim()
+
+        if (botToken.isNullOrBlank() || chatId.isNullOrBlank()) {
+            Toast.makeText(this, "Заполните Bot Token и Chat ID", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Save before testing
+        channelCredentialsManager.saveAlertSettings(
+            botToken,
+            chatId,
+            switchAlertBattery.isChecked,
+            switchAlertNetwork.isChecked,
+            switchAlertChannels.isChecked
+        )
+
+        btnTestNotification.isEnabled = false
+        btnTestNotification.text = "Отправка..."
+
+        val alertSender = AlertSender(this)
+        CoroutineScope(Dispatchers.Main).launch {
+            val success = alertSender.sendTestMessage()
+            btnTestNotification.isEnabled = true
+            btnTestNotification.text = "Отправить тестовое сообщение"
+
+            if (success) {
+                Toast.makeText(this@MainActivity, "Тестовое сообщение отправлено!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, "Ошибка отправки. Проверьте данные", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveNotificationSettings() {
+        val botToken = inputAlertBotToken.text?.toString()?.trim()
+        val chatId = inputAlertChatId.text?.toString()?.trim()
+
+        channelCredentialsManager.saveAlertSettings(
+            botToken,
+            chatId,
+            switchAlertBattery.isChecked,
+            switchAlertNetwork.isChecked,
+            switchAlertChannels.isChecked
+        )
+
+        Toast.makeText(this, "Настройки уведомлений сохранены", Toast.LENGTH_SHORT).show()
+
+        // Start or restart monitor service if configured
+        if (!botToken.isNullOrBlank() && !chatId.isNullOrBlank()) {
+            ChannelMonitorService.start(this)
+        } else {
+            ChannelMonitorService.stop(this)
+        }
     }
 }

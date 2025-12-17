@@ -1,647 +1,505 @@
-# Android Messager — Roadmap & Deployment Guide
+# Android Messenger — Roadmap & Technical Documentation
 
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         VPS SERVER                               │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    tunnel-server                         │    │
-│  │  - WebSocket hub for all phones                         │    │
-│  │  - API for MCP servers                                  │    │
-│  │  - Proxy Manager (load balancing)                       │    │
-│  │  - AI Pipeline (future)                                 │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                              ▲                                   │
-│                              │ WebSocket                         │
-└──────────────────────────────┼──────────────────────────────────┘
-                               │
-        ┌──────────────────────┼──────────────────────┐
-        │                      │                      │
-        ▼                      ▼                      ▼
-┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│   Phone 1     │    │   Phone 2     │    │   Phone N     │
-│ mobile-server │    │ mobile-server │    │ mobile-server │
-│  - Telegram   │    │  - WhatsApp   │    │  - Proxy only │
-│  - Avito      │    │  - VK         │    │               │
-│  - Proxy      │    │  - Proxy      │    │               │
-└───────────────┘    └───────────────┘    └───────────────┘
-```
+**Last Updated:** 2025-12-17 22:45 (MSK, UTC+3)
 
 ---
 
-## Deployment Checklist
+## Current Status Overview
 
-### Phase 1: VPS (tunnel-server) ✅ DEPLOYED
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Login + Roles** | ✅ Ready | client/server/both modes |
+| **Database (elo_)** | ✅ Created | elo_t_operator_devices |
+| **Auth Workflow** | ✅ Ready | API_Android_Auth_ELO.json |
+| **Android UI** | ✅ Built | Login с выбором режима |
+| **tunnel-server** | ✅ Running | 155.212.221.189:8800 |
+| **Dialogs API** | ⬜ Not started | Mock data in app |
+| **Channel Setup** | 🔄 Partial | UI есть, backend нет |
 
-**Server:** 155.212.221.189:8800
+---
 
-| Step | Command / Action | Status |
-|------|------------------|--------|
-| 1 | SSH to server | ✅ |
-| 2 | `scp` tunnel-server folder | ✅ |
-| 3 | Create `.env` with secrets | ✅ |
-| 4 | Docker network `eldoleado` | ✅ |
-| 5 | `docker-compose up -d` | ✅ |
-| 6 | Health check working | ✅ |
-| 7 | Port 8800 open | ✅ |
+## Part 1: Authentication & Roles System
 
-**Deployment commands:**
-```bash
-# Re-deploy
-cd /c/Users/User/Eldoleado/NEW/MVP/Android\ Messager/tunnel-server
-scp -r app main.py requirements.txt Dockerfile docker-compose.yml root@155.212.221.189:/opt/eldoleado/tunnel-server/
-ssh root@155.212.221.189 "cd /opt/eldoleado/tunnel-server && docker-compose down && docker-compose build --no-cache && docker-compose up -d"
+### 1.1 Three Operation Modes
 
-# Check status
-curl http://155.212.221.189:8800/api/health
-ssh root@155.212.221.189 "docker logs tunnel-server --tail 50"
+| Mode | Код | UI | Tunnel | Описание |
+|------|-----|-----|--------|----------|
+| **Оператор** | `client` | ✅ | ❌ | Только мессенджер, без сервера |
+| **Оператор + Сервер** | `both` | ✅ | ✅ | Мессенджер + приём из каналов |
+| **Сервер** | `server` | ❌ | ✅ | Только приём, без интерфейса |
+
+### 1.2 Database Schema
+
+**Table:** `elo_t_operator_devices` (создана 2025-12-17)
+
+```sql
+CREATE TABLE elo_t_operator_devices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    operator_id UUID NOT NULL REFERENCES elo_t_operators(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES elo_t_tenants(id) ON DELETE CASCADE,
+
+    -- Device identification
+    device_id VARCHAR(255),           -- Android device ID
+    device_type VARCHAR(20) NOT NULL DEFAULT 'mobile',
+    device_name VARCHAR(255),
+    device_info JSONB DEFAULT '{}',
+
+    -- Session
+    session_token VARCHAR(255) UNIQUE,
+    fcm_token TEXT,
+
+    -- App mode
+    app_mode VARCHAR(20) NOT NULL DEFAULT 'client',  -- client | server | both
+
+    -- Tunnel settings (for server/both modes)
+    tunnel_url TEXT,
+    tunnel_secret VARCHAR(255),
+
+    -- Status
+    is_active BOOLEAN DEFAULT true,
+    last_active_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+
+    UNIQUE(operator_id, device_type, tenant_id)
+);
 ```
 
-**Required `.env` for tunnel-server:**
+### 1.3 Login Flow
 
-```env
-# Server
-HOST=0.0.0.0
-PORT=8800
-LOG_LEVEL=INFO
-
-# PostgreSQL (185.221.214.83)
-POSTGRES_HOST=185.221.214.83
-POSTGRES_PORT=6544
-POSTGRES_DB=postgres
-POSTGRES_USER=supabase_admin
-POSTGRES_PASSWORD=<from_secrets>
-
-# Neo4j (45.144.177.128)
-NEO4J_URI=bolt+ssc://45.144.177.128:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=<from_secrets>
-
-# Redis
-REDIS_HOST=45.144.177.128
-REDIS_PORT=6379
-
-# Firebase (optional, for push)
-GOOGLE_APPLICATION_CREDENTIALS=./firebase-credentials.json
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         LOGIN SCREEN                              │
+├──────────────────────────────────────────────────────────────────┤
+│  Email/Phone: [_________________________]                         │
+│  Password:    [_________________________]                         │
+│                                                                   │
+│  Режим работы:                                                    │
+│  ○ Оператор           - Только мессенджер                        │
+│  ○ Оператор + Сервер  - Мессенджер + каналы                      │
+│  ○ Сервер             - Только приём сообщений                   │
+│                                                                   │
+│  [            ВОЙТИ            ]                                  │
+└──────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+              POST /webhook/android/auth/login
+              {
+                "login": "email_or_phone",
+                "password": "***",
+                "app_mode": "client|server|both",
+                "device_info": {...}
+              }
+                              │
+                              ▼
+              Response:
+              {
+                "success": true,
+                "operator_id": "uuid",
+                "tenant_id": "uuid",
+                "session_token": "uuid",
+                "app_mode": "both",
+                "tunnel_url": "https://tunnel.eldoleado.ru/{session}",
+                "tunnel_secret": "abc123..."
+              }
 ```
 
-**Nginx config (for WSS):**
+### 1.4 Files Modified/Created
 
-```nginx
-server {
-    listen 443 ssl;
-    server_name tunnel.eldoleado.ru;
+**Android App:**
+- [LoginActivity.kt](../../app/src/main/java/com/eldoleado/app/LoginActivity.kt) — добавлен RadioGroup для выбора режима
+- [activity_login.xml](../../app/src/main/res/layout/activity_login.xml) — UI с тремя radio buttons
+- [ApiService.kt](../../app/src/main/java/com/eldoleado/app/api/ApiService.kt) — `LoginRequest.app_mode`
+- [SessionManager.kt](../../app/src/main/java/com/eldoleado/app/SessionManager.kt) — константы MODE_*
 
-    ssl_certificate /etc/letsencrypt/live/tunnel.eldoleado.ru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/tunnel.eldoleado.ru/privkey.pem;
+**Workflows:**
+- [API_Android_Auth_ELO.json](../workflows/API/API_Android_Auth_ELO.json) — новый workflow для elo_ таблиц
 
-    location /ws {
-        proxy_pass http://127.0.0.1:8800;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_read_timeout 86400;
+### 1.5 API Endpoints (Auth)
+
+| Endpoint | Method | Body | Response |
+|----------|--------|------|----------|
+| `android/auth/login` | POST | `{login, password, app_mode, device_info}` | `{success, operator_id, tenant_id, session_token, app_mode, tunnel_url, tunnel_secret}` |
+| `android/logout` | POST | `{session_token}` | `{success}` |
+
+---
+
+## Part 2: Main Screen (Dialogs List)
+
+### 2.1 Current Implementation
+
+**Файлы:**
+- [MainActivity.kt](../../app/src/main/java/com/eldoleado/app/MainActivity.kt)
+- [activity_main.xml](../../app/src/main/res/layout/activity_main.xml)
+- [DialogsAdapter.kt](../../app/src/main/java/com/eldoleado/app/adapters/DialogsAdapter.kt)
+- [DialogEntity.kt](../../app/src/main/java/com/eldoleado/app/data/database/entities/DialogEntity.kt)
+
+**Сортировка диалогов:**
+```kotlin
+// Sort: unread first (oldest unread on top), then read (newest on top)
+val sortedDialogs = newDialogs.sortedWith(
+    compareBy<DialogEntity> { it.unreadCount == 0 }  // unread first
+        .thenBy { if (it.unreadCount > 0) it.lastMessageTime else Long.MAX_VALUE - it.lastMessageTime }
+)
+```
+
+### 2.2 Problem: No Real API
+
+Сейчас `loadDialogs()` в MainActivity использует **mock данные**:
+```kotlin
+private fun loadDialogs() {
+    // TODO: Load from API
+    val mockDialogs = listOf(
+        DialogEntity(id = "1", clientName = "Тест", channel = "telegram", ...)
+    )
+    dialogsAdapter.updateDialogs(mockDialogs)
+}
+```
+
+### 2.3 Required: Dialogs API
+
+**Endpoint нужен:** `GET /android/dialogs`
+
+**Response:**
+```json
+{
+  "success": true,
+  "dialogs": [
+    {
+      "id": "uuid",
+      "client_name": "Иван Петров",
+      "client_phone": "+79001234567",
+      "channel": "telegram",
+      "chat_id": "123456789",
+      "last_message_text": "Здравствуйте...",
+      "last_message_time": 1702800000000,
+      "last_message_is_voice": false,
+      "unread_count": 3
     }
-
-    location /api {
-        proxy_pass http://127.0.0.1:8800;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
+  ]
 }
 ```
 
 ---
 
-### Phase 2: Android/Termux (mobile-server)
+## Part 3: Settings Screen
 
-**Device:** Android phone with Termux installed
+### 3.1 Sections by Mode
 
-| Step | Command / Action | Status |
-|------|------------------|--------|
-| 1 | Install Termux from F-Droid | ⬜ |
-| 2 | `pkg install python nodejs git` | ⬜ |
-| 3 | Copy mobile-server to phone | ⬜ |
-| 4 | `cp .env.example .env` | ⬜ |
-| 5 | Fill `.env` (see below) | ⬜ |
-| 6 | `./start.sh` | ⬜ |
-| 7 | (Optional) Setup Termux:Boot for autostart | ⬜ |
+| Section | client | both | server |
+|---------|--------|------|--------|
+| Каналы | ❌ | ✅ | ✅ |
+| Уведомления | ❌ | ✅ | ✅ |
+| Запись звонков | ✅ | ✅ | ❌ |
+| Выход | ✅ | ✅ | ✅ |
 
-**Required `.env` for mobile-server:**
+### 3.2 Channels Section (для server/both)
 
-```env
-# Tunnel Connection
-TUNNEL_URL=ws://155.212.221.189:8800/ws   # <-- NEW SERVER
-TUNNEL_SECRET=<generate_random_32_chars>
-SERVER_ID=phone_1  # unique per phone
+**Files:**
+- [section_channels.xml](../../app/src/main/res/layout/section_channels.xml)
+- [ChannelCredentialsManager.kt](../../app/src/main/java/com/eldoleado/app/channels/ChannelCredentialsManager.kt)
 
-# Tenant/Proxy Settings (NEW)
-TENANT_ID=your_tenant_id          # Required for proxy registration
-NODE_TYPE=operator                 # "operator" or "client"
-WIFI_ONLY=true                     # Only use proxy on WiFi
-MAX_REQUESTS_PER_HOUR=10           # Rate limit for proxy requests
-STATUS_UPDATE_INTERVAL=60          # Status updates frequency (seconds)
+**Каналы:**
+| Канал | Способ настройки | Status |
+|-------|------------------|--------|
+| Telegram | Bot Token или User API | ✅ UI ready |
+| WhatsApp | QR-код | ✅ UI ready |
+| Avito | WebView login | ✅ UI ready |
+| MAX | QR-код | 🔄 Partial |
 
-# Telegram (from my.telegram.org)
-TELEGRAM_API_ID=12345678
-TELEGRAM_API_HASH=abcdef1234567890
-TELEGRAM_PHONE=+79001234567
+**Статусы каналов:**
+- `NOT_CONFIGURED` — серый кружок
+- `CHECKING` — жёлтый кружок
+- `CONNECTED` — зелёный кружок
+- `ERROR` — красный кружок
 
-# Avito (from browser cookies/OAuth)
-AVITO_SESSID=<from_browser>
-AVITO_ACCESS_TOKEN=<oauth_token>
-AVITO_REFRESH_TOKEN=<oauth_refresh>
+### 3.3 Notifications Section
 
-# MAX (VK Teams)
-MAX_TOKEN=<from_login>
+**Files:**
+- [section_notifications.xml](../../app/src/main/res/layout/section_notifications.xml)
+- [ChannelMonitorService.kt](../../app/src/main/java/com/eldoleado/app/channels/ChannelMonitorService.kt)
+- [AlertSender.kt](../../app/src/main/java/com/eldoleado/app/channels/AlertSender.kt)
 
-# VK
-VK_ACCESS_TOKEN=<from_vk_app>
+**Настройки:**
+- Bot Token для алертов
+- Chat ID администратора
+- Уведомлять о: батарее, сети, каналах
 
-LOG_LEVEL=INFO
+---
+
+## Part 4: Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              n8n SERVER (185.221.214.83)                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  Webhooks:                                                           │    │
+│  │  - android/auth/login     → ELO_API_Android_Auth                    │    │
+│  │  - android/dialogs        → ELO_API_Android_Dialogs (TODO)          │    │
+│  │  - android/messages       → ELO_API_Android_Messages (TODO)         │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                      │                                       │
+│                                      ▼                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  PostgreSQL: elo_t_operators, elo_t_operator_devices, elo_t_dialogs │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ HTTPS
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              ANDROID APP                                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  Mode: client/both/server                                            │    │
+│  │  - LoginActivity → выбор режима                                     │    │
+│  │  - MainActivity → список диалогов (client/both)                     │    │
+│  │  - TunnelService → WebSocket к tunnel-server (server/both)          │    │
+│  │  - ChannelMonitorService → мониторинг и алерты (server/both)        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      │ WebSocket (server/both modes)
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         tunnel-server (155.212.221.189:8800)                 │
+│  - Приём сообщений из каналов                                               │
+│  - Proxy через мобильный IP                                                 │
+│  - Forwarding в n8n                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Phase 3: Android App ✅ PROTOCOL READY
+## Part 5: Problems & Solutions
 
-**For:** Native Android app with TunnelService (proxy support)
+### 5.1 Current Problems
 
-| Step | Action | Status |
-|------|--------|--------|
-| 1 | Open `app_original` in Android Studio | ⬜ |
-| 2 | Add `google-services.json` from Firebase | ⬜ |
-| 3 | Configure tunnel URL in SessionManager | ⬜ |
-| 4 | Build APK | ⬜ |
-| 5 | Install on phone | ⬜ |
+| Problem | Impact | Solution |
+|---------|--------|----------|
+| **Нет API для диалогов** | Список пустой (mock data) | Создать workflow ELO_API_Android_Dialogs |
+| **Workflow использует старые таблицы** | Login не работает | Импортировать API_Android_Auth_ELO.json |
+| **Нет тестового оператора в elo_t_operators** | Нельзя залогиниться | Создать оператора в БД |
+| **WhatsApp/MAX требуют node.js** | Сложность интеграции | Рассмотреть альтернативы |
 
-**TunnelService features implemented:**
-- ✅ WebSocket connection with auto-reconnect
-- ✅ `hello` message with tenant_id, node_type, device info
-- ✅ `proxy_status` updates (WiFi, battery level)
-- ✅ `http_request` handler for local services
-- ✅ `proxy_fetch` handler for mobile IP proxy
-- ✅ Foreground service with notification
+### 5.2 Workflow Migration
 
----
+**Старые таблицы (НЕ использовать):**
+- `operators` → `elo_t_operators`
+- `operator_devices` → `elo_t_operator_devices`
+- `tenants` → `elo_t_tenants`
 
-## External APIs Required
-
-### Mandatory
-
-| API | Purpose | How to Get |
-|-----|---------|------------|
-| **Telegram API** | Telegram channel | https://my.telegram.org → API development tools |
-| **Avito OAuth** | Avito messenger | Avito Pro account → API settings |
-
-### Optional
-
-| API | Purpose | How to Get |
-|-----|---------|------------|
-| **WhatsApp** | WhatsApp channel | Automatic via QR (Baileys) |
-| **VK API** | VK communities | https://vk.com/dev → Create app |
-| **MAX (VK Teams)** | Corporate messenger | Login credentials |
-| **Firebase** | Push notifications | https://console.firebase.google.com |
+**Новые workflows нужно создать:**
+| Workflow | Путь | Статус |
+|----------|------|--------|
+| ELO_API_Android_Auth | NEW/workflows/API/API_Android_Auth_ELO.json | ✅ Создан |
+| ELO_API_Android_Dialogs | - | ⬜ TODO |
+| ELO_API_Android_Messages | - | ⬜ TODO |
+| ELO_API_Android_Send | - | ⬜ TODO |
 
 ---
 
-## Three Operation Modes
+## Part 6: Next Steps (Priority Order)
 
-Configure in `mobile-server/config.yaml`:
-
-### Mode 1: Messenger Only
-```yaml
-channels:
-  whatsapp:
-    enabled: true
-  telegram:
-    enabled: true
-  avito:
-    enabled: true
-  http_proxy:
-    enabled: false  # <-- disabled
-```
-
-### Mode 2: Proxy Only
-```yaml
-channels:
-  whatsapp:
-    enabled: false
-  telegram:
-    enabled: false
-  avito:
-    enabled: false
-  http_proxy:
-    enabled: true  # <-- only proxy
-```
-
-### Mode 3: Both (Full)
-```yaml
-channels:
-  whatsapp:
-    enabled: true
-  telegram:
-    enabled: true
-  avito:
-    enabled: true
-  http_proxy:
-    enabled: true  # <-- everything enabled
-```
-
----
-
-## API Endpoints
-
-### tunnel-server API
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/ws` | WebSocket | Phone tunnel connection |
-| `/api/send` | POST | Send message via tunnel |
-| `/api/status` | GET | Server status |
-| `/api/servers` | GET | Connected phones list |
-| `/api/proxy/fetch` | POST | Execute proxy request |
-| `/api/proxy/stats` | GET | Proxy statistics |
-| `/api/proxy/nodes` | GET | Available proxy nodes |
-| `/webhook/{source}` | POST | Incoming webhooks |
-
-### Proxy API Examples
-
-**Send message:**
+### Step 1: Setup Test Environment
 ```bash
-curl -X POST https://tunnel.eldoleado.ru/api/send \
+# 1. Создать тестовый tenant в elo_t_tenants
+INSERT INTO elo_t_tenants (id, name) VALUES (gen_random_uuid(), 'Test Tenant');
+
+# 2. Создать тестового оператора в elo_t_operators
+INSERT INTO elo_t_operators (tenant_id, email, password_hash, name)
+VALUES ('tenant_uuid', 'test@test.com', crypt('password', gen_salt('bf')), 'Test Operator');
+```
+
+### Step 2: Import Auth Workflow
+1. Открыть n8n: https://n8n.n8nsrv.ru
+2. Import → Upload from file: `API_Android_Auth_ELO.json`
+3. Активировать workflow
+4. Деактивировать старый `API_Android_Auth`
+
+### Step 3: Test Login
+```bash
+curl -X POST https://n8n.n8nsrv.ru/webhook/android/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "server_id": "phone_1",
-    "service": "telegram",
-    "method": "POST",
-    "path": "/send",
-    "body": {
-      "chat_id": "123456",
-      "text": "Hello!"
-    }
+    "login": "test@test.com",
+    "password": "password",
+    "app_mode": "both"
   }'
 ```
 
-**Proxy fetch (price scraping):**
+### Step 4: Create Dialogs API
+Создать workflow для получения списка диалогов:
+- Endpoint: `GET /android/dialogs?operator_id={uuid}`
+- Query: `SELECT * FROM elo_t_dialogs WHERE assigned_operator_id = ?`
+- Response: JSON с массивом диалогов
+
+### Step 5: Test Full Flow
+1. Запустить приложение на Android
+2. Залогиниться с режимом "Оператор + Сервер"
+3. Проверить список диалогов
+4. Проверить настройки каналов
+
+---
+
+## Part 7: Tunnel Server (Reference)
+
+### 7.1 Deployment Status
+
+**Server:** 155.212.221.189:8800 ✅ Running
+
+**Health check:**
 ```bash
-curl -X POST https://tunnel.eldoleado.ru/api/proxy/fetch \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tenant_id": "tenant_1",
-    "url": "https://competitor.ru/price",
-    "method": "GET",
-    "timeout": 30
-  }'
+curl http://155.212.221.189:8800/api/health
+# {"status":"ok","tunnels_connected":0,"version":"1.0.0"}
 ```
 
----
-
-## Database Tables Used
-
-### PostgreSQL (elo_*)
-
-| Table | Purpose |
-|-------|---------|
-| `elo_tenants` | Multi-tenant config |
-| `elo_channel_accounts` | Phone/channel mapping |
-| `elo_dialogs` | Conversations |
-| `elo_events` | Message events |
-
-### Neo4j
-
-| Label | Purpose |
-|-------|---------|
-| `Client` | Customer profiles |
-| `Device` | Customer devices |
-| `Dialog` | Conversation links |
-
----
-
-## Security Checklist
-
-| Item | Status |
-|------|--------|
-| TUNNEL_SECRET unique per phone | ⬜ |
-| WSS (not WS) in production | ⬜ |
-| Firewall: only 443, 22 open | ⬜ |
-| No secrets in git | ⬜ |
-| Rate limiting on proxy | ⬜ (built-in) |
-| wifi_only for client proxies | ⬜ (built-in) |
-
----
-
-## Monitoring
-
-### Logs
-
-```bash
-# tunnel-server
-tail -f logs/tunnel-server.log
-
-# mobile-server
-tail -f logs/mobile-server.log
-```
-
-### Health Check
-
-```bash
-# Server status
-curl https://tunnel.eldoleado.ru/api/status
-
-# Connected phones
-curl https://tunnel.eldoleado.ru/api/servers
-
-# Proxy stats
-curl https://tunnel.eldoleado.ru/api/proxy/stats
-```
-
----
-
-## Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| Phone disconnects | Check TUNNEL_SECRET matches |
-| "No proxy nodes" | Ensure phone is on WiFi (wifi_only=true) |
-| Telegram auth fails | Re-run with fresh session |
-| WebSocket timeout | Check nginx proxy_read_timeout |
-| SSL errors | Verify certbot certificates |
-
----
-
-## Implemented Features
-
-### Multi-Tenant Proxy System ✅
-
-- **ProxyManager** — балансировка запросов между телефонами
-- **ProxyNode types:** `operator` (сотрудники) и `client` (клиенты с бонусами)
-- **Rate limiting** — max_requests_per_hour per node
-- **WiFi-only mode** — прокси только на WiFi
-- **Status updates** — WiFi/battery мониторинг
-- **Auto-registration** — телефоны регистрируются при hello
-
-### WebSocket Protocol ✅
+### 7.2 WebSocket Protocol
 
 | Action | Direction | Description |
 |--------|-----------|-------------|
-| `hello` | Client→Server | Registration with tenant_id, services |
-| `proxy_status` | Client→Server | WiFi/battery status updates |
-| `http_request` | Server→Client | Proxy to local services |
-| `proxy_fetch` | Server→Client | Direct URL fetch via mobile IP |
-| `proxy_response` | Client→Server | Response from proxy_fetch |
-| `ping`/`pong` | Both | Heartbeat |
+| `hello` | Client→Server | Registration with tenant_id, app_mode |
+| `proxy_status` | Client→Server | WiFi/battery status |
+| `http_request` | Server→Client | Request to local service |
+| `proxy_fetch` | Server→Client | Fetch URL via mobile IP |
+| `push_message` | Server→Client | New message notification |
+
+### 7.3 Android TunnelService
+
+**Files:**
+- [TunnelService.kt](../../app/src/main/java/com/eldoleado/app/tunnel/TunnelService.kt)
+
+**Features:**
+- ✅ WebSocket connection with auto-reconnect
+- ✅ Foreground service
+- ✅ `hello` message with device info
+- ✅ `proxy_status` updates
+- ✅ `proxy_fetch` handler
 
 ---
 
-## Future Enhancements
+## Part 8: Channel Setup Wizards
 
-- [ ] AI Pipeline integration (Level 3-5)
-- [ ] Push notifications via FCM
-- [ ] Admin dashboard
-- [ ] Automatic phone provisioning
-- [x] ~~Proxy bonus system~~ (implemented in ProxyManager)
-- [ ] Geographic load balancing
-- [ ] SSL/WSS via nginx reverse proxy
+### 8.1 Telegram Setup
+
+**File:** [TelegramSetupActivity.kt](../../app/src/main/java/com/eldoleado/app/channels/setup/TelegramSetupActivity.kt)
+
+**Options:**
+1. **Bot Token** — получить от @BotFather
+2. **User API** — API_ID + API_HASH от my.telegram.org
+
+**Flow (Bot):**
+```
+1. Ввести Bot Token
+2. Проверка: GET https://api.telegram.org/bot{token}/getMe
+3. Если OK → сохранить в ChannelCredentialsManager
+```
+
+### 8.2 WhatsApp Setup
+
+**File:** [WhatsAppSetupActivity.kt](../../app/src/main/java/com/eldoleado/app/channels/setup/WhatsAppSetupActivity.kt)
+
+**Problem:** Требует Baileys (Node.js) на телефоне
+
+**Workaround options:**
+1. Termux + Node.js + Baileys
+2. WhatsApp Business API (платный)
+3. Wappi.pro (внешний сервис)
+
+### 8.3 Avito Setup
+
+**File:** [AvitoSetupActivity.kt](../../app/src/main/java/com/eldoleado/app/channels/setup/AvitoSetupActivity.kt)
+
+**Flow:**
+```
+1. Открыть WebView с m.avito.ru
+2. Пользователь логинится
+3. Перехватить cookies → извлечь sessid
+4. Проверка: POST /messenger/getChannels
+```
+
+### 8.4 MAX Setup
+
+**File:** [MaxSetupActivity.kt](../../app/src/main/java/com/eldoleado/app/channels/setup/MaxSetupActivity.kt)
+
+**Status:** Partial (нужна интеграция с vkmax)
 
 ---
 
-## Quick Start Commands
+## Appendix A: File Structure
+
+```
+app/src/main/java/com/eldoleado/app/
+├── LoginActivity.kt              # Логин с выбором режима
+├── MainActivity.kt               # Главный экран (диалоги + настройки)
+├── SessionManager.kt             # Хранение сессии, app_mode
+├── api/
+│   ├── ApiService.kt             # Retrofit endpoints
+│   └── RetrofitClient.kt         # Base URL: n8n.n8nsrv.ru/webhook
+├── adapters/
+│   └── DialogsAdapter.kt         # RecyclerView для диалогов
+├── channels/
+│   ├── ChannelCredentialsManager.kt  # Хранение credentials
+│   ├── ChannelMonitorService.kt      # Мониторинг каналов
+│   ├── AlertSender.kt                # Отправка алертов
+│   └── setup/
+│       ├── TelegramSetupActivity.kt
+│       ├── WhatsAppSetupActivity.kt
+│       ├── AvitoSetupActivity.kt
+│       └── MaxSetupActivity.kt
+├── data/database/entities/
+│   └── DialogEntity.kt           # Room entity для диалогов
+└── tunnel/
+    └── TunnelService.kt          # WebSocket к tunnel-server
+
+NEW/workflows/API/
+├── API_Android_Auth.json         # Старый (operators)
+├── API_Android_Auth_ELO.json     # Новый (elo_t_operators) ✅
+├── API_Android_Logout.json
+└── API_Android_Register_FCM.json
+```
+
+---
+
+## Appendix B: Quick Commands
 
 ```bash
-# === VPS (already deployed) ===
-# Check status
+# Build Android app
+export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
+cd /c/Users/User/Eldoleado
+./gradlew.bat assembleDebug
+
+# Check tunnel-server
 curl http://155.212.221.189:8800/api/health
-ssh root@155.212.221.189 "docker logs tunnel-server --tail 20"
 
-# Restart
-ssh root@155.212.221.189 "cd /opt/eldoleado/tunnel-server && docker-compose restart"
+# Test login API (after workflow import)
+curl -X POST https://n8n.n8nsrv.ru/webhook/android/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login":"test@test.com","password":"test","app_mode":"client"}'
 
-# === Phone (Termux) ===
-cd mobile-server
-cp .env.example .env
-nano .env  # fill: TUNNEL_URL=ws://155.212.221.189:8800/ws, TENANT_ID, etc.
-pip install -r requirements.txt
-python -m tunnel_proxy.proxy
-
-# === Test connection ===
-curl http://155.212.221.189:8800/api/health
-# {"status":"ok","tunnels_connected":0,"version":"1.0.0"}
-
-# After phone connects:
-curl http://155.212.221.189:8800/api/servers
-# {"servers": ["phone_1"]}
+# SSH to database server
+ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_t_operators;'"
 ```
 
 ---
 
-## Current Status (2025-12-17)
+## Appendix C: Environment Variables
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| tunnel-server | ✅ Running | 155.212.221.189:8800 |
-| mobile-server | ✅ Code ready | Needs Termux setup |
-| Android app | ✅ Protocol ready | Needs build + deploy |
-| n8n integration | ⬜ Pending | Next phase |
-| SSL/WSS | ⬜ Pending | Need nginx reverse proxy |
+**Android App (BuildConfig):**
+```
+BASE_URL=https://n8n.n8nsrv.ru/webhook/
+TUNNEL_URL=wss://tunnel.eldoleado.ru/ws
+```
+
+**tunnel-server (.env):**
+```
+HOST=0.0.0.0
+PORT=8800
+POSTGRES_HOST=185.221.214.83
+POSTGRES_PORT=6544
+POSTGRES_DB=postgres
+POSTGRES_USER=supabase_admin
+```
 
 ---
 
-## NEXT: n8n Integration & Messaging Flow
-
-### Phase 4: n8n Backend (ПРИОРИТЕТ)
-
-#### 4.1 Message Flow Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              ВХОДЯЩЕЕ СООБЩЕНИЕ                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-Клиент (Telegram/Avito/MAX)
-    │
-    ▼
-Phone (Termux) получает сообщение
-    │
-    │ Если голос → отправить на транскрипцию
-    │
-    ▼
-tunnel-server → POST n8n webhook
-    │
-    ▼
-n8n Workflow:
-  1. Определить tenant
-  2. Найти/создать Client в Neo4j
-  3. Скачать медиа через proxy_fetch (IP телефона)
-  4. Whisper транскрипция (если аудио)
-  5. Сохранить Message в Neo4j
-  6. Batching (3 сек, Redis)
-  7. Push в Android App оператора
-    │
-    ▼
-Оператор видит сообщение в app_original
-
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              ИСХОДЯЩЕЕ СООБЩЕНИЕ                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-Оператор в Android App
-    │
-    │ Голос → Android SpeechRecognizer (локально)
-    │ Текст → как есть
-    │
-    ▼
-tunnel-server → n8n webhook
-    │
-    ▼
-n8n Workflow:
-  1. Нормализация текста (OpenRouter, дешёвая модель)
-     - Исправить опечатки
-     - Пунктуация
-  2. Вернуть draft в Android App
-    │
-    ▼
-Оператор видит исправленный текст
-    │
-    │ [Отправить] или [Редактировать]
-    │
-    ▼
-n8n Workflow:
-  1. Сохранить Message в Neo4j
-  2. Отправить через tunnel → Phone → API мессенджера
-    │
-    ▼
-Клиент получает сообщение
-```
-
-#### 4.2 Neo4j Schema
-
-```cypher
-// Клиент (один на tenant, может иметь несколько каналов)
-(:Client {
-  id: "uuid",
-  tenant_id: "tenant_1",
-  name: "Иван Петров",
-  phone: "+79001234567",
-  created_at: timestamp(),
-  last_seen: timestamp()
-})
-
-// Аккаунты в каналах (омниканальность)
-(:ChannelAccount {
-  channel: "telegram",        // telegram, avito, max
-  external_id: "123456789",   // chat_id в мессенджере
-  username: "@ivan_petrov"
-})
-
-// Связи
-(client)-[:HAS_ACCOUNT]->(channel_account)
-
-// Сообщение
-(:Message {
-  id: "uuid",
-  tenant_id: "tenant_1",
-  text: "Текст сообщения",
-  direction: "in",            // in = от клиента, out = от оператора
-  channel: "telegram",        // через какой канал
-  has_audio: false,
-  audio_url: null,
-  transcription: null,
-  created_at: timestamp()
-})
-
-// Связи сообщений
-(client)-[:SENT]->(message)       // входящее
-(client)-[:RECEIVED]->(message)   // исходящее
-```
-
-#### 4.3 Омниканальность
-
-Один клиент может писать с разных каналов. В UI переписки:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  ← Иван Петров                                                  │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │ [TG ✓] [Avito ✗] [MAX ○] [📞]  +7 900 123-45-67        │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│     ↑         ↑        ↑      ↑                                 │
-│     │         │        │      └── звонок (если есть номер)      │
-│     │         │        └── доступен, но не выбран               │
-│     │         └── недоступен (нет аккаунта)                     │
-│     └── выбран для ответа                                       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Правила каналов:**
-| Канал | Можно отправить если |
-|-------|---------------------|
-| Telegram | Есть chat_id или @username |
-| Avito | Только ответ на существующий диалог |
-| MAX | Есть номер телефона |
-| Звонок 📞 | Есть номер телефона (ACTION_DIAL) |
-
-#### 4.4 Технологии
-
-| Задача | Технология |
-|--------|------------|
-| Транскрипция входящих (аудио) | Whisper API (n8n) |
-| Транскрипция исходящих (голос оператора) | Android SpeechRecognizer |
-| Нормализация текста | OpenRouter (дешёвая модель) |
-| Batching | Redis (TTL 3 сек) |
-| Push в Android | WebSocket через tunnel-server |
-
-#### 4.5 TODO: n8n Workflows
-
-| Workflow | Описание | Статус |
-|----------|----------|--------|
-| `ELO_Incoming_Message` | Приём сообщения → Neo4j → Push | ⬜ |
-| `ELO_Outgoing_Draft` | Нормализация текста → return draft | ⬜ |
-| `ELO_Outgoing_Send` | Сохранить → отправить через tunnel | ⬜ |
-| `ELO_Media_Download` | Скачать медиа через proxy_fetch | ⬜ |
-| `ELO_Audio_Transcribe` | Whisper транскрипция | ⬜ |
-
-#### 4.6 TODO: tunnel-server
-
-| Задача | Статус |
-|--------|--------|
-| Forward incoming → n8n webhook | ⬜ |
-| `/api/send` endpoint | ⬜ |
-| Push to Android via WebSocket | ⬜ |
-
-#### 4.7 TODO: Android App (app_original)
-
-| Задача | Статус |
-|--------|--------|
-| Экран "Клиенты" (список диалогов) | ⬜ |
-| Кнопки выбора канала в переписке | ⬜ |
-| Кнопка звонка 📞 (ACTION_DIAL) | ⬜ |
-| Получение push через WebSocket | ⬜ |
-| SpeechRecognizer для голосового ввода | ⬜ |
-| Отображение транскрипции под аудио | ⬜ |
-
----
-
-## Client Identification Flow
-
-```
-Входящее сообщение от (channel, external_id)
-    │
-    ▼
-Найти ChannelAccount?
-    │
-    ├── ДА → взять Client
-    │
-    └── НЕТ → Есть номер телефона в сообщении?
-              │
-              ├── ДА → Найти Client по phone?
-              │        │
-              │        ├── ДА → привязать новый ChannelAccount
-              │        │
-              │        └── НЕТ → создать Client + ChannelAccount
-              │
-              └── НЕТ → создать Client + ChannelAccount
-```
+*Document version: 2.0 — 2025-12-17 22:45 MSK*

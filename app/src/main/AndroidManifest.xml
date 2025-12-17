@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -71,6 +72,64 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone|phoneCall" />
+
+        <!-- Tunnel Service (WebSocket proxy) -->
+        <service
+            android:name=".tunnel.TunnelService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Operator WebSocket Service -->
+        <service
+            android:name=".operator.OperatorWebSocketService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Channel Monitor Service -->
+        <service
+            android:name=".channels.ChannelMonitorService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Operator Activity -->
+        <activity
+            android:name=".operator.OperatorActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <!-- Channel Setup Activities -->
+        <activity
+            android:name=".channels.setup.TelegramSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".channels.setup.AvitoSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".channels.setup.WhatsAppSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".channels.setup.MaxSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".channels.setup.ChannelDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
 
         <!-- Call Receiver -->
         <receiver

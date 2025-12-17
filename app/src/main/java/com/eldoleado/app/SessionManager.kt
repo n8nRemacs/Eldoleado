@@ -56,14 +56,16 @@ class SessionManager(context: Context) {
     fun isLoggedIn(): Boolean = prefs.getBoolean(KEY_IS_LOGGED_IN, false)
 
     fun getOperatorId(): String? = prefs.getString(KEY_OPERATOR_ID, null)
-
+    
     fun getTenantId(): String? = prefs.getString(KEY_TENANT_ID, null)
-
+    
     fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
-
+    
     fun getName(): String? = prefs.getString(KEY_NAME, null)
-
+    
     fun getSessionToken(): String? = prefs.getString(KEY_SESSION_TOKEN, null)
+
+    fun getAuthToken(): String? = prefs.getString(KEY_SESSION_TOKEN, null)
 
     fun saveAiMode(mode: String) {
         prefs.edit().putString(KEY_AI_MODE, mode).apply()

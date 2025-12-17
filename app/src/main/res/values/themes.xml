@@ -19,4 +19,14 @@
         <item name="android:insetBottom">0dp</item>
         <item name="cornerRadius">4dp</item>
     </style>
+
+    <style name="Theme.Eldoleado.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorPrimaryVariant">#1976D2</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+    </style>
 </resources>

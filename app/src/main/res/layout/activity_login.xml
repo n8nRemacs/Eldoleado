@@ -12,13 +12,13 @@
         android:text="Eldoleado"
         android:textSize="32sp"
         android:textStyle="bold"
-        android:layout_marginBottom="48dp"/>
+        android:layout_marginBottom="32dp"/>
 
     <EditText
         android:id="@+id/et_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email"
+        android:hint="Email или телефон"
         android:inputType="textEmailAddress"
         android:padding="16dp"
         android:layout_marginBottom="16dp"/>
@@ -27,16 +27,82 @@
         android:id="@+id/et_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
+        android:hint="Пароль"
         android:inputType="textPassword"
         android:padding="16dp"
         android:layout_marginBottom="24dp"/>
+
+    <!-- App Mode Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Режим работы"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/rgAppMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="24dp">
+
+        <RadioButton
+            android:id="@+id/rbClient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Оператор"
+            android:padding="8dp"
+            android:checked="true"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Только мессенджер для общения с клиентами"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:paddingStart="40dp"
+            android:paddingBottom="8dp"/>
+
+        <RadioButton
+            android:id="@+id/rbBoth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Оператор + Сервер"
+            android:padding="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Мессенджер + приём сообщений из каналов"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:paddingStart="40dp"
+            android:paddingBottom="8dp"/>
+
+        <RadioButton
+            android:id="@+id/rbServer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сервер"
+            android:padding="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Только приём сообщений (без интерфейса оператора)"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:paddingStart="40dp"/>
+
+    </RadioGroup>
 
     <Button
         android:id="@+id/btn_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login"
+        android:text="Войти"
         android:padding="16dp"/>
 
 </LinearLayout>

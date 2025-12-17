@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/channelsSection"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <!-- Section Header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="КАНАЛЫ"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_secondary"
+        android:letterSpacing="0.1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Настройка подключений к мессенджерам"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary" />
+
+    <!-- Channels List Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        android:background="@drawable/bg_input_field">
+
+        <!-- Telegram -->
+        <include
+            android:id="@+id/channelTelegram"
+            layout="@layout/item_channel" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="72dp"
+            android:background="@color/gray_light" />
+
+        <!-- WhatsApp -->
+        <include
+            android:id="@+id/channelWhatsApp"
+            layout="@layout/item_channel" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="72dp"
+            android:background="@color/gray_light" />
+
+        <!-- Avito -->
+        <include
+            android:id="@+id/channelAvito"
+            layout="@layout/item_channel" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="72dp"
+            android:background="@color/gray_light" />
+
+        <!-- MAX -->
+        <include
+            android:id="@+id/channelMax"
+            layout="@layout/item_channel" />
+
+    </LinearLayout>
+
+    <!-- Divider after section -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/gray_light" />
+
+</LinearLayout>

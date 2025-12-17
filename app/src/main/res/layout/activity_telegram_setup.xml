@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/gray_light"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/headerTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:text="Настройка Telegram"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Step 1: Choose type (Bot or User) -->
+            <LinearLayout
+                android:id="@+id/stepChooseType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Выберите тип подключения:"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black" />
+
+                <!-- Bot Option -->
+                <LinearLayout
+                    android:id="@+id/optionBot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bot (Бот)"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/channel_telegram" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Создайте бота через @BotFather.\nБот получает сообщения от клиентов."
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <!-- User Option -->
+                <LinearLayout
+                    android:id="@+id/optionUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User (Пользователь)"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/channel_telegram" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Подключите свой аккаунт Telegram.\nДоступ ко всем вашим чатам."
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Step 2a: Bot Token -->
+            <LinearLayout
+                android:id="@+id/stepBotToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Шаг 1: Создайте бота"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="1. Откройте @BotFather в Telegram\n2. Отправьте команду /newbot\n3. Следуйте инструкциям\n4. Скопируйте полученный токен"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnOpenBotFather"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Открыть @BotFather"
+                    android:backgroundTint="@color/channel_telegram"
+                    android:textColor="@android:color/white" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@color/gray_light" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Шаг 2: Вставьте токен"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <EditText
+                    android:id="@+id/inputBotToken"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="123456789:ABCdefGHI..."
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/btnVerifyBot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Проверить и подключить"
+                    android:backgroundTint="@color/channel_telegram"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
+
+            <!-- Step 2b: User API -->
+            <LinearLayout
+                android:id="@+id/stepUserApi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Шаг 1: Получите API credentials"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="1. Откройте https://my.telegram.org\n2. Войдите по номеру телефона\n3. Перейдите в 'API development tools'\n4. Создайте приложение (если нет)\n5. Скопируйте API_ID и API_HASH"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnOpenTelegramOrg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Открыть my.telegram.org"
+                    android:backgroundTint="@color/channel_telegram"
+                    android:textColor="@android:color/white" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@color/gray_light" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Шаг 2: Введите данные"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="API ID:"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/inputApiId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="12345678"
+                    android:inputType="number"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="API Hash:"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/inputApiHash"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="abcdef1234567890..."
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Номер телефона:"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/inputPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="+7 999 123-45-67"
+                    android:inputType="phone"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/btnRequestCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Получить код"
+                    android:backgroundTint="@color/channel_telegram"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
+
+            <!-- Step 3: Enter code (for User API) -->
+            <LinearLayout
+                android:id="@+id/stepEnterCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Введите код из Telegram"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/codeDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Код отправлен на +7 999 ***-**-67"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/inputCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:padding="16dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="12345"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:gravity="center"
+                    android:textSize="24sp"
+                    android:letterSpacing="0.5" />
+
+                <Button
+                    android:id="@+id/btnVerifyCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Подтвердить"
+                    android:backgroundTint="@color/channel_telegram"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/btnResendCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_gravity="center"
+                    android:text="Отправить код повторно"
+                    android:textSize="14sp"
+                    android:textColor="@color/channel_telegram"
+                    android:padding="8dp" />
+
+            </LinearLayout>
+
+            <!-- Success State -->
+            <LinearLayout
+                android:id="@+id/stepSuccess"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="48dp"
+                    android:src="@drawable/ic_telegram"
+                    android:scaleType="centerInside" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Telegram подключен!"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_status" />
+
+                <TextView
+                    android:id="@+id/successInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@MyBot"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnDone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="48dp"
+                    android:text="Готово"
+                    android:backgroundTint="@color/green_status"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
+
+            <!-- Loading State -->
+            <LinearLayout
+                android:id="@+id/loadingState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:gravity="center"
+                android:padding="48dp">
+
+                <ProgressBar
+                    android:layout_width="48dp"
+                    android:layout_height="48dp" />
+
+                <TextView
+                    android:id="@+id/loadingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Проверка..."
+                    android:textSize="16sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

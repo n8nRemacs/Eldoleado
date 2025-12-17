@@ -11,69 +11,73 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    // API Gateway endpoints (2025-12-09)
-    // Base URL: https://android-api.eldoleado.ru/
+    // n8n webhook endpoints (2025-12-17)
+    // Base URL: https://n8n.n8nsrv.ru/webhook/
 
-    @POST("api/auth/login")
+    // Auth
+    @POST("android/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-    @GET("api/appeals")
+    @POST("android/logout")
+    fun logout(): Call<ApiResponse>
+
+    // Appeals
+    @GET("api/operator/appeals/list")
     fun getAppealsList(
         @Query("operator_id") operatorId: String,
         @Query("status") status: String? = null,
         @Query("limit") limit: Int = 20
     ): Call<AppealsListResponse>
 
-    @GET("api/appeals/{appeal_id}")
+    @GET("api/android/appeals/{appeal_id}")
     fun getAppealDetail(
         @Path("appeal_id") appealId: String,
         @Query("limit") limit: Int = 50
     ): Call<AppealDetailResponse>
 
-    @POST("api/appeals/{appeal_id}/send")
+    // Appeal actions
+    @POST("api/android/appeals/{appeal_id}/send")
     fun sendResponse(
         @Path("appeal_id") appealId: String,
         @Body request: SendMessageRequest
     ): Call<ApiResponse>
 
-    @POST("api/appeals/{appeal_id}/normalize")
+    @POST("api/android/appeals/{appeal_id}/normalize")
     fun normalizeText(
         @Path("appeal_id") appealId: String,
         @Body request: NormalizeRequest
     ): Call<NormalizeResponse>
 
-    @POST("api/appeals/{appeal_id}/take")
+    @POST("api/android/appeals/{appeal_id}/take")
     fun takeAppeal(
         @Path("appeal_id") appealId: String,
         @Body request: TakeAppealRequest
     ): Call<ApiResponse>
 
-    @POST("api/appeals/{appeal_id}/reject")
+    @POST("api/android/appeals/{appeal_id}/reject")
     fun rejectAiResponse(
         @Path("appeal_id") appealId: String,
         @Body request: RejectRequest
     ): Call<ApiResponse>
 
-    @POST("api/appeals/{appeal_id}/promo")
+    @POST("api/android/appeals/{appeal_id}/promo")
     fun sendPromo(
         @Path("appeal_id") appealId: String,
         @Body request: PromoRequest
     ): Call<ApiResponse>
 
-    @POST("api/auth/logout")
-    fun logout(): Call<ApiResponse>
-
-    @POST("api/fcm/register")
+    // FCM & Settings
+    @POST("android-register-fcm")
     fun registerFCMToken(
         @Body request: FCMTokenRegisterRequest
     ): Call<FCMTokenResponse>
 
-    @POST("api/settings")
+    @POST("android-update-settings")
     fun updateSettings(
         @Body request: UpdateSettingsRequest
     ): Call<ApiResponse>
 
-    @POST("api/appeals/{appeal_id}/mode")
+    @POST("android-update-appeal-mode")
     fun updateAppealMode(
         @Path("appeal_id") appealId: String,
         @Body request: UpdateAppealModeRequest
@@ -81,38 +85,38 @@ interface ApiService {
 
     // ========== DEVICE CRUD ==========
 
-    @POST("api/appeals/{appeal_id}/devices")
+    @POST("android/appeal-devices")
     fun createDevice(
         @Path("appeal_id") appealId: String,
         @Body request: CreateDeviceRequest
     ): Call<DeviceResponse>
 
-    @PATCH("api/devices/{device_id}")
+    @PATCH("android/appeal-devices/{device_id}")
     fun updateDevice(
         @Path("device_id") deviceId: String,
         @Body request: UpdateDeviceRequest
     ): Call<DeviceResponse>
 
-    @DELETE("api/devices/{device_id}")
+    @DELETE("android/appeal-devices/{device_id}")
     fun deleteDevice(
         @Path("device_id") deviceId: String
     ): Call<ApiResponse>
 
     // ========== REPAIR CRUD ==========
 
-    @POST("api/devices/{device_id}/repairs")
+    @POST("android/appeal-repairs")
     fun createRepair(
         @Path("device_id") deviceId: String,
         @Body request: CreateRepairRequest
     ): Call<RepairResponse>
 
-    @PATCH("api/repairs/{repair_id}")
+    @PATCH("android/appeal-repairs/{repair_id}")
     fun updateRepair(
         @Path("repair_id") repairId: String,
         @Body request: UpdateRepairRequest
     ): Call<RepairResponse>
 
-    @DELETE("api/repairs/{repair_id}")
+    @DELETE("android/appeal-repairs/{repair_id}")
     fun deleteRepair(
         @Path("repair_id") repairId: String
     ): Call<ApiResponse>
@@ -133,7 +137,9 @@ data class UpdateAppealModeRequest(
 data class LoginRequest(
     val login: String,
     val password: String,
-    val device_info: DeviceInfo? = null
+    val device_info: DeviceInfo? = null,
+    // App mode: "client" (operator only) | "server" (tunnel only) | "both" (operator + tunnel)
+    val app_mode: String = "client"
 )
 
 data class LoginResponse(
@@ -145,7 +151,12 @@ data class LoginResponse(
     val location_id: String?,
     val password_valid: Boolean? = null,
     val session_token: String,
-    val token: String? = null
+    val token: String? = null,
+    // App mode: "client" | "server" | "both"
+    val app_mode: String? = null,
+    // Tunnel config (for server/both modes)
+    val tunnel_url: String? = null,
+    val tunnel_secret: String? = null
 )
 
 data class AppealsListResponse(

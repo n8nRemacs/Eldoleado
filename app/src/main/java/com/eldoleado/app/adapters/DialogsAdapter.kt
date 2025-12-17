@@ -22,15 +22,20 @@ class DialogsAdapter(
 
     fun updateDialogs(newDialogs: List<DialogEntity>) {
         val oldList = dialogs
+        // Sort: unread first (oldest unread on top), then read (newest on top)
+        val sortedDialogs = newDialogs.sortedWith(
+            compareBy<DialogEntity> { it.unreadCount == 0 }  // unread first (false < true)
+                .thenBy { if (it.unreadCount > 0) it.lastMessageTime else Long.MAX_VALUE - it.lastMessageTime }
+        )
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize() = oldList.size
-            override fun getNewListSize() = newDialogs.size
+            override fun getNewListSize() = sortedDialogs.size
             override fun areItemsTheSame(oldPos: Int, newPos: Int) =
-                oldList[oldPos].id == newDialogs[newPos].id
+                oldList[oldPos].id == sortedDialogs[newPos].id
             override fun areContentsTheSame(oldPos: Int, newPos: Int) =
-                oldList[oldPos] == newDialogs[newPos]
+                oldList[oldPos] == sortedDialogs[newPos]
         })
-        dialogs = newDialogs
+        dialogs = sortedDialogs
         diffResult.dispatchUpdatesTo(this)
     }
 

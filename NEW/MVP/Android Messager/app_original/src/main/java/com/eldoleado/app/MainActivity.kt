@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -27,6 +29,11 @@ import com.eldoleado.app.api.RetrofitClient
 import com.eldoleado.app.api.UpdateSettingsRequest
 import com.eldoleado.app.callrecording.CallRecordingPreferences
 import com.eldoleado.app.callrecording.CallRecordingService
+import com.eldoleado.app.channels.ChannelCredentialsManager
+import com.eldoleado.app.channels.ChannelStatus
+import com.eldoleado.app.channels.ChannelType
+import com.eldoleado.app.channels.setup.TelegramSetupActivity
+import com.eldoleado.app.channels.setup.AvitoSetupActivity
 import com.eldoleado.app.tunnel.TunnelService
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -53,6 +60,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var callRecordingStatusText: TextView
     private lateinit var callRecordingDescription: TextView
     private lateinit var callRecordingPreferences: CallRecordingPreferences
+
+    // Channels
+    private lateinit var channelCredentialsManager: ChannelCredentialsManager
+    private lateinit var channelsSection: LinearLayout
 
     companion object {
         const val PREF_AI_MODE = "ai_mode"
@@ -101,6 +112,10 @@ class MainActivity : AppCompatActivity() {
         callRecordingStatusText = findViewById(R.id.callRecordingStatusText)
         callRecordingDescription = findViewById(R.id.callRecordingDescription)
 
+        // Channels UI
+        channelCredentialsManager = ChannelCredentialsManager(this)
+        channelsSection = findViewById(R.id.channelsSection)
+
         dialogsAdapter = DialogsAdapter { dialog ->
             openChat(dialog)
         }
@@ -115,6 +130,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupAiModeSettings()
         setupCallRecordingSettings()
+        setupChannelsSection()
         setupObservers()
         requestNotificationPermissionIfNeeded()
         handleNotificationIntent(intent)
@@ -196,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         dialogsRecyclerView.visibility = View.GONE
         settingsContainer.visibility = View.VISIBLE
         updateCallRecordingUI()
+        updateChannelsUI()
     }
 
     private fun loadDialogs() {
@@ -319,6 +336,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Refresh dialogs when returning to screen
         loadDialogs()
+        // Refresh channels status
+        updateChannelsUI()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -497,5 +516,114 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
 
         Toast.makeText(this, "Запись звонков выключена", Toast.LENGTH_SHORT).show()
+    }
+
+    // ==================== CHANNELS SECTION ====================
+
+    private fun setupChannelsSection() {
+        // Show channels section only for Server or Both mode
+        val appMode = sessionManager.getAppMode()
+        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+
+        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
+
+        if (!showChannels) return
+
+        // Setup click listeners for each channel
+        setupChannelItem(
+            channelView = findViewById(R.id.channelTelegram),
+            channelType = ChannelType.TELEGRAM,
+            iconRes = R.drawable.ic_telegram
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelWhatsApp),
+            channelType = ChannelType.WHATSAPP,
+            iconRes = R.drawable.ic_whatsapp
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelAvito),
+            channelType = ChannelType.AVITO,
+            iconRes = R.drawable.ic_avito
+        )
+
+        setupChannelItem(
+            channelView = findViewById(R.id.channelMax),
+            channelType = ChannelType.MAX,
+            iconRes = R.drawable.ic_max
+        )
+
+        updateChannelsUI()
+    }
+
+    private fun setupChannelItem(channelView: View, channelType: ChannelType, iconRes: Int) {
+        val icon = channelView.findViewById<ImageView>(R.id.channelIcon)
+        val name = channelView.findViewById<TextView>(R.id.channelName)
+
+        icon.setImageResource(iconRes)
+        name.text = channelType.displayName
+
+        channelView.setOnClickListener {
+            openChannelSetup(channelType)
+        }
+    }
+
+    private fun updateChannelsUI() {
+        if (!::channelsSection.isInitialized) return
+
+        val appMode = sessionManager.getAppMode()
+        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
+
+        if (!showChannels) return
+
+        updateChannelItemUI(findViewById(R.id.channelTelegram), ChannelType.TELEGRAM)
+        updateChannelItemUI(findViewById(R.id.channelWhatsApp), ChannelType.WHATSAPP)
+        updateChannelItemUI(findViewById(R.id.channelAvito), ChannelType.AVITO)
+        updateChannelItemUI(findViewById(R.id.channelMax), ChannelType.MAX)
+    }
+
+    private fun updateChannelItemUI(channelView: View, channelType: ChannelType) {
+        val statusText = channelView.findViewById<TextView>(R.id.channelStatus)
+        val statusIndicator = channelView.findViewById<View>(R.id.statusIndicator)
+
+        val status = channelCredentialsManager.getChannelStatus(channelType)
+        val displayInfo = channelCredentialsManager.getChannelDisplayInfo(channelType)
+
+        when (status) {
+            ChannelStatus.CONNECTED -> {
+                statusText.text = displayInfo ?: "Подключено"
+                statusIndicator.setBackgroundResource(R.drawable.status_connected)
+            }
+            ChannelStatus.ERROR -> {
+                statusText.text = "Ошибка подключения"
+                statusIndicator.setBackgroundResource(R.drawable.status_error)
+            }
+            ChannelStatus.CHECKING -> {
+                statusText.text = "Проверка..."
+                statusIndicator.setBackgroundResource(R.drawable.status_checking)
+            }
+            ChannelStatus.NOT_CONFIGURED -> {
+                statusText.text = "Не настроено"
+                statusIndicator.setBackgroundResource(R.drawable.status_not_configured)
+            }
+        }
+    }
+
+    private fun openChannelSetup(channelType: ChannelType) {
+        val intent = when (channelType) {
+            ChannelType.TELEGRAM -> Intent(this, TelegramSetupActivity::class.java)
+            ChannelType.AVITO -> Intent(this, AvitoSetupActivity::class.java)
+            ChannelType.WHATSAPP -> {
+                Toast.makeText(this, "WhatsApp: скоро будет доступно", Toast.LENGTH_SHORT).show()
+                return
+            }
+            ChannelType.MAX -> {
+                Toast.makeText(this, "MAX: скоро будет доступно", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+        startActivity(intent)
     }
 }

@@ -43,7 +43,13 @@
       "Bash(/c/tools/jadx/bin/jadx.bat:*)",
       "Bash(export JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\":*)",
       "Bash(/c/tools/jadx/bin/jadx:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(bash:*)",
+      "Bash(\"/c/Users/User/AppData/Local/Android/Sdk/emulator/emulator.exe\" -list-avds)",
+      "Bash(\"/c/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe\" wait-for-device)",
+      "Bash(\"/c/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe\" install -r \"c:/Users/User/Eldoleado/app/build/outputs/apk/debug/app-debug.apk\")",
+      "Bash(\"/c/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe\" shell am start -n com.eldoleado.app/.LoginActivity)",
+      "Bash(\"/c/Users/User/AppData/Local/Android/Sdk/platform-tools/adb.exe\" logcat -d -s \"MainActivity\" \"WhatsAppSetupActivity\" \"MaxSetupActivity\" \"ChannelMonitorService\" \"AlertSender\")"
     ],
     "deny": [],
     "ask": []

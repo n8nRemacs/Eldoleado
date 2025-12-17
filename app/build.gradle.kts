@@ -71,6 +71,9 @@ dependencies {
     // Activity KTX (для viewModels())
     implementation("androidx.activity:activity-ktx:1.8.2")
 
+    // ZXing (QR code generation)
+    implementation("com.google.zxing:core:3.5.2")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
