@@ -1,0 +1,287 @@
+{
+  "name": "ELO_API_Android_SendMessage",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android/dialogs/:dialog_id/messages",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-send",
+      "name": "Webhook - Send Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-800, 200],
+      "webhookId": "android-send-message"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT od.operator_id, od.tenant_id, o.name as operator_name\nFROM elo_t_operator_devices od\nJOIN elo_t_operators o ON od.operator_id = o.id\nWHERE od.session_token = '{{ $json.query.session_token }}'\n  AND od.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "validate-session",
+      "name": "Postgres - Validate Session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [-576, 200],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "session-valid",
+              "leftValue": "={{ $json.operator_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-session-valid",
+      "name": "IF - Session Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-352, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  d.id as dialog_id,\n  d.client_id,\n  d.channel_id,\n  d.external_chat_id as chat_id,\n  c.name as client_name,\n  LOWER(ch.name) as channel\nFROM elo_t_dialogs d\nJOIN elo_t_clients c ON d.client_id = c.id\nJOIN elo_channels ch ON d.channel_id = ch.id\nWHERE d.id = '{{ $('Webhook - Send Message').item.json.params.dialog_id }}'::uuid\n  AND d.tenant_id = '{{ $('Postgres - Validate Session').item.json.tenant_id }}'::uuid\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "get-dialog-info",
+      "name": "Postgres - Get Dialog Info",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [-128, 104],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_messages (\n  tenant_id,\n  dialog_id,\n  client_id,\n  direction_id,\n  actor_type,\n  actor_id,\n  content,\n  timestamp\n) VALUES (\n  '{{ $('Postgres - Validate Session').item.json.tenant_id }}'::uuid,\n  '{{ $('Webhook - Send Message').item.json.params.dialog_id }}'::uuid,\n  '{{ $('Postgres - Get Dialog Info').item.json.client_id }}'::uuid,\n  2,\n  'operator',\n  '{{ $('Postgres - Validate Session').item.json.operator_id }}'::uuid,\n  '{{ $('Webhook - Send Message').item.json.body.text.replace(/'/g, \"''\") }}',\n  NOW()\n)\nRETURNING id, EXTRACT(EPOCH FROM timestamp)::bigint * 1000 as timestamp;",
+        "options": {}
+      },
+      "id": "insert-message",
+      "name": "Postgres - Insert Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [96, 104],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs SET \n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $('Webhook - Send Message').item.json.params.dialog_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "update-dialog",
+      "name": "Postgres - Update Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [320, 104],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dialogInfo = $('Postgres - Get Dialog Info').first().json;\nconst insertResult = $('Postgres - Insert Message').first().json;\nconst session = $('Postgres - Validate Session').first().json;\nconst webhook = $('Webhook - Send Message').first().json;\n\nreturn {\n  message: {\n    id: insertResult.id,\n    text: webhook.body.text,\n    direction: 'out',\n    sender_type: 'operator',\n    sender_name: session.operator_name,\n    timestamp: insertResult.timestamp\n  },\n  to_send: {\n    channel: dialogInfo.channel,\n    chat_id: dialogInfo.chat_id,\n    text: webhook.body.text\n  }\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [544, 104]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": {{ JSON.stringify($json.message) }}\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "response-success",
+      "name": "Response - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [768, 104]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"invalid_session\"\n}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "response-unauthorized",
+      "name": "Response - Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [-128, 296]
+    }
+  ],
+  "connections": {
+    "Webhook - Send Message": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Validate Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Validate Session": {
+      "main": [
+        [
+          {
+            "node": "IF - Session Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Session Valid": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Get Dialog Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response - Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Get Dialog Info": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Insert Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Insert Message": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Update Dialog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Update Dialog": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Response - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "API"
+    }
+  ]
+}

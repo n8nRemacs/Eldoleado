@@ -31,6 +31,13 @@ interface ApiService {
         @Query("session_token") sessionToken: String
     ): Call<ChatMessagesResponse>
 
+    @POST("android-send/android/dialogs/{dialog_id}/messages")
+    fun sendChatMessage(
+        @Path("dialog_id") dialogId: String,
+        @Query("session_token") sessionToken: String,
+        @Body request: SendChatMessageRequest
+    ): Call<SendChatMessageResponse>
+
     // Appeals
     @GET("api/operator/appeals/list")
     fun getAppealsList(
@@ -456,4 +463,16 @@ data class ChatMessageDto(
     val sender_name: String?,
     val timestamp: Long?,
     val media: Any? = null
+)
+
+// ========== SEND MESSAGE DTOs ==========
+
+data class SendChatMessageRequest(
+    val text: String
+)
+
+data class SendChatMessageResponse(
+    val success: Boolean,
+    val message: ChatMessageDto? = null,
+    val error: String? = null
 )

@@ -1,5 +1,6 @@
 package com.eldoleado.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,8 +13,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.eldoleado.app.api.ChatMessageDto
 import com.eldoleado.app.api.ChatMessagesResponse
 import com.eldoleado.app.api.RetrofitClient
+import com.eldoleado.app.api.SendChatMessageRequest
+import com.eldoleado.app.api.SendChatMessageResponse
 import com.eldoleado.app.adapters.ChatMessagesAdapter
 import retrofit2.Call
 import retrofit2.Callback
@@ -36,6 +41,11 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var tvEmpty: TextView
     private lateinit var inputMessage: EditText
     private lateinit var btnSend: ImageButton
+    private lateinit var normalizeButton: ImageButton
+    private lateinit var voiceButton: ImageButton
+    private lateinit var clearButton: ImageButton
+    private lateinit var rejectButton: ImageButton
+    private lateinit var bottomNavigation: BottomNavigationView
 
     private var dialogId: String = ""
     private var channel: String = ""
@@ -71,6 +81,11 @@ class ChatActivity : AppCompatActivity() {
         tvEmpty = findViewById(R.id.tvEmpty)
         inputMessage = findViewById(R.id.inputMessage)
         btnSend = findViewById(R.id.btnSend)
+        normalizeButton = findViewById(R.id.normalizeButton)
+        voiceButton = findViewById(R.id.voiceButton)
+        clearButton = findViewById(R.id.clearButton)
+        rejectButton = findViewById(R.id.rejectButton)
+        bottomNavigation = findViewById(R.id.bottomNavigation)
 
         tvClientName.text = clientName
         tvChannel.text = channel.uppercase()
@@ -81,6 +96,43 @@ class ChatActivity : AppCompatActivity() {
             val text = inputMessage.text.toString().trim()
             if (text.isNotEmpty()) {
                 sendMessage(text)
+            }
+        }
+
+        // Normalize button - пока заглушка
+        normalizeButton.setOnClickListener {
+            Toast.makeText(this, "Нормализация в разработке", Toast.LENGTH_SHORT).show()
+        }
+
+        // Voice button - пока заглушка
+        voiceButton.setOnClickListener {
+            Toast.makeText(this, "Голосовые сообщения в разработке", Toast.LENGTH_SHORT).show()
+        }
+
+        // Clear button - очистить поле ввода
+        clearButton.setOnClickListener {
+            inputMessage.text.clear()
+        }
+
+        // Reject button - пока заглушка
+        rejectButton.setOnClickListener {
+            Toast.makeText(this, "Отклонение в разработке", Toast.LENGTH_SHORT).show()
+        }
+
+        // Bottom Navigation
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dialogs -> {
+                    // Вернуться к списку диалогов
+                    finish()
+                    true
+                }
+                R.id.nav_settings -> {
+                    // Открыть настройки
+                    Toast.makeText(this, "Настройки в разработке", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                else -> false
             }
         }
     }
@@ -153,8 +205,54 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage(text: String) {
-        // TODO: Implement send message API
-        Toast.makeText(this, "Отправка сообщений в разработке", Toast.LENGTH_SHORT).show()
-        inputMessage.text.clear()
+        val sessionToken = sessionManager.getSessionToken()
+        if (sessionToken.isNullOrBlank()) {
+            Toast.makeText(this, "Сессия истекла", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Disable send button while sending
+        btnSend.isEnabled = false
+        inputMessage.isEnabled = false
+
+        val request = SendChatMessageRequest(text = text)
+
+        RetrofitClient.getApiService(this).sendChatMessage(dialogId, sessionToken, request)
+            .enqueue(object : Callback<SendChatMessageResponse> {
+                override fun onResponse(
+                    call: Call<SendChatMessageResponse>,
+                    response: Response<SendChatMessageResponse>
+                ) {
+                    btnSend.isEnabled = true
+                    inputMessage.isEnabled = true
+
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        inputMessage.text.clear()
+
+                        // Add message to adapter
+                        response.body()?.message?.let { msg ->
+                            messagesAdapter.addMessage(msg)
+                            recyclerView.scrollToPosition(messagesAdapter.itemCount - 1)
+                        }
+
+                        Log.i(TAG, "Message sent successfully")
+                    } else if (response.code() == 401) {
+                        Toast.makeText(this@ChatActivity, "Сессия истекла", Toast.LENGTH_SHORT).show()
+                        sessionManager.clearSession()
+                        finish()
+                    } else {
+                        val error = response.body()?.error ?: "Ошибка отправки"
+                        Toast.makeText(this@ChatActivity, error, Toast.LENGTH_SHORT).show()
+                        Log.e(TAG, "Send failed: ${response.code()} - $error")
+                    }
+                }
+
+                override fun onFailure(call: Call<SendChatMessageResponse>, t: Throwable) {
+                    btnSend.isEnabled = true
+                    inputMessage.isEnabled = true
+                    Toast.makeText(this@ChatActivity, "Ошибка сети", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Send error: ${t.message}")
+                }
+            })
     }
 }

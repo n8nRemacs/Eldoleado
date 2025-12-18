@@ -14,7 +14,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**18 December 2025, 14:25 (MSK, UTC+3)**
+**18 December 2025, 22:30 (MSK, UTC+3)**
 
 ---
 
@@ -28,43 +28,37 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 - ✅ **Auth API** — `ELO_API_Android_Auth` в n8n
 - ✅ **Dialogs API** — `ELO_API_Android_Dialogs` в n8n
 - ✅ **Messages API** — `ELO_API_Android_Messages` в n8n
-- ✅ **ChatActivity** — новый экран чата (открывается, загружает сообщения)
+- ✅ **Send Message API** — `ELO_API_Android_SendMessage` в n8n
+- ✅ **ChatActivity** — полноценный экран чата с кнопками
+- ✅ **Тестовые сообщения** — добавлены в elo_t_messages (14 шт)
 - ✅ **tunnel-server** — работает на 155.212.221.189:8800
-- ⬜ **Тестовые сообщения** — нужно добавить в elo_t_messages
 - 🔄 **Channel Setup** — UI готов, backend частично
 
 ---
 
-## Что сделано в текущей сессии (18.12.2025)
+## Что сделано в сессии (18.12.2025, вечер)
 
-### 1. Auth API ✅
-- Импортирован `API_Android_Auth_ELO.json` в n8n
-- Создан тестовый оператор: `admin@test.local` / `test123`
-- Протестирован логин — работает
+### 1. Test Messages ✅
+- Добавлены тестовые сообщения в БД (14 шт для 3 диалогов)
+- Иван Петров (Telegram) — 5 сообщений
+- Мария Сидорова (WhatsApp) — 4 сообщения
+- Алексей Козлов (Avito) — 5 сообщений
 
-### 2. Dialogs API ✅
-- Создан workflow `ELO_API_Android_Dialogs`
-- Endpoint: `GET /android/dialogs?session_token=...`
-- Возвращает список диалогов оператора
-- Тестовые данные: 3 диалога (Telegram, WhatsApp, Avito)
+### 2. Send Message API ✅
+- Создан workflow `ELO_API_Android_SendMessage`
+- Endpoint: `POST /android-send/android/dialogs/:dialog_id/messages`
+- Сохраняет сообщение в БД, обновляет диалог
 
-### 3. Messages API ✅
-- Создан workflow `ELO_API_Android_Messages`
-- Endpoint: `GET /android-messages/android/dialogs/:dialog_id/messages`
-- Возвращает сообщения диалога
+### 3. Chat UI обновлён ✅
+- Панель кнопок: Normalize (зелёная), Voice (оранжевая), Send (синяя)
+- Поле ввода 80dp с кнопками Clear и Reject
+- Нижняя навигация: Диалоги / Настройки
+- Дизайн сообщений: CardView, клиент слева (голубой), оператор справа (оранжевый)
 
-### 4. ChatActivity ✅
-- Новый экран для просмотра чата
-- Заменил старый AppealDetailActivity
-- Загружает сообщения с сервера
-- Layout: header + messages list + input
-
-### 5. Android App Updates
-- `ApiService.kt` — добавлены endpoints для dialogs и messages
-- `MainActivity.kt` — загружает диалоги с API (не mock)
-- `ChatActivity.kt` — новый экран чата
-- `ChatMessagesAdapter.kt` — адаптер для сообщений
-- Layouts: `activity_chat.xml`, `item_chat_message.xml`
+### 4. Файлы скопированы из app_old
+- Drawables: bg_button_normalize, bg_button_voice, bg_button_send_wide, bg_button_clear, bg_button_reject, bg_input_field
+- Icons: ic_edit, ic_mic, ic_clear, ic_close, ic_appeals, ic_settings
+- Menu: bottom_navigation_menu.xml
 
 ---
 
@@ -93,20 +87,25 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 
 ---
 
-## NEXT STEPS
+## NEXT STEPS (19.12.2025)
 
-### Priority 1: Add Test Messages
-```sql
--- Добавить тестовые сообщения в elo_t_messages
-INSERT INTO elo_t_messages (tenant_id, dialog_id, client_id, direction_id, actor_type, content, timestamp)
-VALUES (...);
-```
+### Priority 1: API кнопок чата
+- **Normalize API** — нормализация текста через AI
+- **Voice API** — отправка голосовых сообщений
+- **Reject API** — отклонение AI-ответа
 
-### Priority 2: Send Message API
-- Создать endpoint для отправки сообщений
-- `POST /android/dialogs/:dialog_id/messages`
+### Priority 2: UI окна сообщений
+- Доработать дизайн сообщений
+- Добавить медиа-вложения (фото, документы)
+- Индикатор "печатает..."
 
-### Priority 3: Channel Setup Backend
+### Priority 3: Режим через права (НЕ выбор)
+- Убрать выбор режима при логине (client/server/both)
+- Режим определяется правами оператора в БД
+- Поле `app_mode` в `elo_t_operators`
+- Auth API возвращает режим на основе прав
+
+### Priority 4: Channel Setup Backend
 - Telegram Bot verification
 - Avito sessid validation
 - WhatsApp integration
@@ -172,7 +171,9 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * F
 | `NEW/workflows/API/API_Android_Auth_ELO.json` | Auth workflow |
 | `NEW/workflows/API/API_Android_Dialogs.json` | Dialogs workflow |
 | `NEW/workflows/API/API_Android_Messages.json` | Messages workflow |
-| `app/src/main/java/.../ChatActivity.kt` | Экран чата |
+| `NEW/workflows/API/API_Android_SendMessage.json` | Send Message workflow |
+| `app/src/main/java/.../ChatActivity.kt` | Экран чата с кнопками |
+| `app/src/main/java/.../ChatMessagesAdapter.kt` | Адаптер сообщений (CardView) |
 | `app/src/main/java/.../MainActivity.kt` | Главный экран |
 | `app/src/main/java/.../api/ApiService.kt` | API endpoints |
 
