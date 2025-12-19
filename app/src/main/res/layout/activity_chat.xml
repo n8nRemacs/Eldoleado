@@ -6,51 +6,131 @@
     android:orientation="vertical"
     android:background="@android:color/white">
 
-    <!-- Header -->
+    <!-- Header with client info -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="8dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:background="@color/colorPrimary"
         android:elevation="4dp">
 
-        <ImageView
-            android:id="@+id/ivBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_back"
-            android:contentDescription="Back"
-            app:tint="@android:color/white" />
-
+        <!-- Top row: Back + Client name + Call button -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="8dp">
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="4dp">
 
-            <TextView
-                android:id="@+id/tvClientName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Клиент"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_arrow_back"
+                android:contentDescription="Back"
+                app:tint="@android:color/white" />
 
-            <TextView
-                android:id="@+id/tvChannel"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="TELEGRAM"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:alpha="0.8" />
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="4dp">
+
+                <TextView
+                    android:id="@+id/tvClientName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Клиент"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/tvChannel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TELEGRAM"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp"
+                    android:alpha="0.8" />
+
+            </LinearLayout>
+
+            <!-- Call button -->
+            <ImageButton
+                android:id="@+id/btnCall"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_button_call"
+                android:src="@drawable/ic_phone"
+                android:scaleType="centerInside"
+                android:padding="10dp"
+                android:contentDescription="Call" />
+
+        </LinearLayout>
+
+        <!-- Omnichannel buttons row -->
+        <LinearLayout
+            android:id="@+id/channelButtonsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="6dp">
+
+            <ImageButton
+                android:id="@+id/btnChannelTelegram"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:background="@drawable/bg_channel_button"
+                android:src="@drawable/ic_telegram"
+                android:scaleType="centerInside"
+                android:padding="4dp"
+                android:contentDescription="Telegram" />
+
+            <ImageButton
+                android:id="@+id/btnChannelWhatsApp"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:background="@drawable/bg_channel_button"
+                android:src="@drawable/ic_whatsapp"
+                android:scaleType="centerInside"
+                android:padding="4dp"
+                android:contentDescription="WhatsApp" />
+
+            <ImageButton
+                android:id="@+id/btnChannelAvito"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:background="@drawable/bg_channel_button"
+                android:src="@drawable/ic_avito"
+                android:scaleType="centerInside"
+                android:padding="4dp"
+                android:contentDescription="Avito" />
+
+            <ImageButton
+                android:id="@+id/btnChannelMax"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:background="@drawable/bg_channel_button"
+                android:src="@drawable/ic_max"
+                android:scaleType="centerInside"
+                android:padding="4dp"
+                android:contentDescription="Max" />
 
         </LinearLayout>
 
@@ -88,59 +168,133 @@
 
     </FrameLayout>
 
-    <!-- Input Area -->
+    <!-- Action Buttons Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginHorizontal="12dp"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="@android:color/white"
-        android:elevation="8dp"
         android:gravity="center_vertical">
 
-        <!-- Audio Record Button -->
         <ImageButton
-            android:id="@+id/btnAudio"
-            android:layout_width="40dp"
+            android:id="@+id/btnNormalize"
+            android:layout_width="0dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_mic"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Record Audio"
-            app:tint="@color/colorPrimary" />
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_button_normalize"
+            android:src="@drawable/ic_edit"
+            android:scaleType="centerInside"
+            android:contentDescription="Normalize" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp">
+
+            <ImageButton
+                android:id="@+id/btnAudio"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_button_voice"
+                android:src="@drawable/ic_mic"
+                android:scaleType="centerInside"
+                android:contentDescription="Voice" />
+
+            <TextView
+                android:id="@+id/recordingTimer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text=""
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_send_wide"
+            android:src="@drawable/ic_send"
+            android:scaleType="centerInside"
+            android:contentDescription="Send" />
+    </LinearLayout>
+
+    <!-- Input Area with Clear/Reject buttons -->
+    <LinearLayout
+        android:id="@+id/actionsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="6dp"
+        android:gravity="bottom"
+        android:orientation="horizontal">
 
         <EditText
             android:id="@+id/inputMessage"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_weight="1"
-            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/bg_input_field"
+            android:gravity="top|start"
             android:hint="Сообщение..."
-            android:background="@drawable/bg_input_message"
-            android:padding="12dp"
-            android:maxLines="4"
-            android:inputType="textMultiLine" />
+            android:textColorHint="#888888"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:maxLines="5"
+            android:padding="8dp"
+            android:scrollbars="vertical"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
 
-        <!-- Normalize Button -->
-        <ImageButton
-            android:id="@+id/btnNormalize"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_normalize"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Normalize text"
-            app:tint="@color/colorPrimary" />
-
-        <!-- Send Button -->
-        <ImageButton
-            android:id="@+id/btnSend"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="80dp"
             android:layout_marginStart="4dp"
-            android:src="@drawable/ic_send"
-            android:background="@drawable/bg_send_button"
-            android:contentDescription="Send"
-            app:tint="@android:color/white" />
+            android:orientation="vertical">
 
+            <ImageButton
+                android:id="@+id/btnClear"
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/bg_button_clear"
+                android:src="@drawable/ic_clear"
+                android:scaleType="centerInside"
+                android:contentDescription="Clear" />
+
+            <ImageButton
+                android:id="@+id/btnReject"
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_button_reject"
+                android:src="@drawable/ic_close"
+                android:scaleType="centerInside"
+                android:contentDescription="Reject" />
+        </LinearLayout>
     </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/white"
+        app:menu="@menu/bottom_navigation_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconSize="16dp"
+        app:itemPaddingTop="2dp"
+        app:itemPaddingBottom="2dp" />
 
 </LinearLayout>

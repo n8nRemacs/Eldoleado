@@ -173,11 +173,13 @@ class MainActivity : AppCompatActivity() {
             SessionManager.MODE_BOTH -> {
                 // Both - show everything
                 dialogsRecyclerView.visibility = View.VISIBLE
+                settingsContainer.visibility = View.GONE
                 bottomNavigation.visibility = View.VISIBLE
             }
             else -> {
                 // Client only - normal UI
                 dialogsRecyclerView.visibility = View.VISIBLE
+                settingsContainer.visibility = View.GONE
                 bottomNavigation.visibility = View.VISIBLE
             }
         }
@@ -269,6 +271,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("chat_id", dialog.chatId)
         intent.putExtra("channel", dialog.channel)
         intent.putExtra("client_name", dialog.clientName ?: dialog.clientPhone ?: "Клиент")
+        intent.putExtra("client_phone", dialog.clientPhone ?: "")
         startActivity(intent)
     }
 

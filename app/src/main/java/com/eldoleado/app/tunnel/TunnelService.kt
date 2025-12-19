@@ -19,6 +19,11 @@ import okio.ByteString
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
@@ -72,6 +77,17 @@ class TunnelService : Service() {
     private val requestCounter = AtomicLong(0)
     private val activeRequests = AtomicLong(0)
 
+    // TCP Tunnels: tunnelId -> TcpTunnel
+    private val tcpTunnels = ConcurrentHashMap<String, TcpTunnel>()
+
+    private data class TcpTunnel(
+        val tunnelId: String,
+        val socket: Socket,
+        val inputStream: InputStream,
+        val outputStream: OutputStream,
+        var readJob: Job? = null
+    )
+
     private lateinit var sessionManager: SessionManager
     private lateinit var httpClient: OkHttpClient
 
@@ -120,13 +136,13 @@ class TunnelService : Service() {
     }
 
     private fun connect() {
-        val tunnelUrl = sessionManager.getTunnelUrl()
+        var tunnelUrl = sessionManager.getTunnelUrl()
         val tunnelSecret = sessionManager.getTunnelSecret()
 
-        if (tunnelUrl.isNullOrBlank()) {
-            Log.e(TAG, "Tunnel URL not configured")
-            updateNotification("Ошибка: URL не настроен")
-            return
+        // Fallback to default tunnel server if URL not configured or invalid
+        if (tunnelUrl.isNullOrBlank() || tunnelUrl.contains("eldoleado.ru")) {
+            tunnelUrl = "ws://155.212.221.189:8800/ws"
+            Log.i(TAG, "Using default tunnel URL: $tunnelUrl")
         }
 
         // Generate server_id from device info
@@ -153,6 +169,12 @@ class TunnelService : Service() {
     private fun disconnect() {
         reconnectJob?.cancel()
         statusUpdateJob?.cancel()
+
+        // Close all TCP tunnels
+        for (tunnelId in tcpTunnels.keys.toList()) {
+            closeTcpTunnel(tunnelId, notifyServer = false)
+        }
+
         webSocket?.close(1000, "Service stopped")
         webSocket = null
         isConnected = false
@@ -190,7 +212,8 @@ class TunnelService : Service() {
         }
 
         override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-            onMessage(webSocket, bytes.utf8())
+            // Binary message - TCP tunnel data
+            handleTcpData(bytes.toByteArray())
         }
 
         override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
@@ -224,7 +247,7 @@ class TunnelService : Service() {
         val hello = JSONObject().apply {
             put("action", "hello")
             put("server_id", serverId)
-            put("services", JSONArray(listOf("http_proxy")))  // We support http_proxy
+            put("services", JSONArray(listOf("http_proxy", "tcp_tunnel")))  // We support http_proxy and tcp_tunnel
             put("tenant_id", tenantId)
             put("node_type", nodeType)
             put("wifi_only", true)  // Only use on WiFi by default
@@ -329,6 +352,8 @@ class TunnelService : Service() {
             when (action) {
                 "http", "http_request" -> handleHttpRequest(id, json)
                 "proxy_fetch" -> handleProxyFetch(id, json)
+                "tcp_connect" -> handleTcpConnect(json)
+                "tcp_close" -> handleTcpClose(json)
                 "ping" -> sendPong(id)
                 "status" -> sendStatus(id)
                 else -> {
@@ -586,6 +611,163 @@ class TunnelService : Service() {
             put("id", id)
             put("action", "proxy_response")
             put("status", 500)
+            put("error", error)
+        }
+        sendResponse(response.toString())
+    }
+
+    // ============ TCP Tunnel Handlers ============
+
+    /**
+     * Handle tcp_connect request - create TCP tunnel to target host.
+     *
+     * Format:
+     * {
+     *   "action": "tcp_connect",
+     *   "tunnel_id": "uuid",
+     *   "host": "web.whatsapp.com",
+     *   "port": 443
+     * }
+     */
+    private fun handleTcpConnect(json: JSONObject) {
+        val tunnelId = json.optString("tunnel_id", "")
+        val host = json.optString("host", "")
+        val port = json.optInt("port", 0)
+
+        if (tunnelId.isEmpty() || host.isEmpty() || port <= 0) {
+            Log.e(TAG, "Invalid tcp_connect params")
+            sendTcpError(tunnelId, "Invalid parameters")
+            return
+        }
+
+        Log.i(TAG, "TCP connect: $host:$port (tunnel: $tunnelId)")
+
+        serviceScope.launch {
+            try {
+                // Create socket and connect
+                val socket = Socket()
+                socket.soTimeout = 0 // No read timeout for long-lived connections
+                socket.connect(InetSocketAddress(host, port), 30000)
+
+                val tunnel = TcpTunnel(
+                    tunnelId = tunnelId,
+                    socket = socket,
+                    inputStream = socket.getInputStream(),
+                    outputStream = socket.getOutputStream()
+                )
+                tcpTunnels[tunnelId] = tunnel
+
+                // Notify server of successful connection
+                val response = JSONObject().apply {
+                    put("action", "tcp_connected")
+                    put("tunnel_id", tunnelId)
+                }
+                sendResponse(response.toString())
+
+                Log.i(TAG, "TCP tunnel $tunnelId connected to $host:$port")
+
+                // Start reading from socket and forwarding to server
+                tunnel.readJob = launch {
+                    readFromTcpTunnel(tunnel)
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "TCP connect error: ${e.message}")
+                sendTcpError(tunnelId, e.message ?: "Connection failed")
+            }
+        }
+    }
+
+    /**
+     * Read data from TCP socket and send to server via WebSocket.
+     */
+    private suspend fun readFromTcpTunnel(tunnel: TcpTunnel) {
+        val buffer = ByteArray(8192)
+
+        try {
+            withContext(Dispatchers.IO) {
+                while (tcpTunnels.containsKey(tunnel.tunnelId)) {
+                    val bytesRead = tunnel.inputStream.read(buffer)
+                    if (bytesRead <= 0) break
+
+                    // Send binary: tunnelId (36 bytes) + data
+                    val tunnelIdBytes = tunnel.tunnelId.toByteArray(Charsets.UTF_8)
+                    val data = ByteArray(36 + bytesRead)
+                    System.arraycopy(tunnelIdBytes, 0, data, 0, 36)
+                    System.arraycopy(buffer, 0, data, 36, bytesRead)
+
+                    webSocket?.send(ByteString.of(*data))
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "TCP tunnel ${tunnel.tunnelId} read ended: ${e.message}")
+        } finally {
+            closeTcpTunnel(tunnel.tunnelId, notifyServer = true)
+        }
+    }
+
+    /**
+     * Handle incoming binary data from server for TCP tunnel.
+     */
+    private fun handleTcpData(data: ByteArray) {
+        if (data.size < 36) return
+
+        val tunnelId = String(data, 0, 36, Charsets.UTF_8)
+        val payload = data.copyOfRange(36, data.size)
+
+        val tunnel = tcpTunnels[tunnelId] ?: return
+
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                tunnel.outputStream.write(payload)
+                tunnel.outputStream.flush()
+            } catch (e: Exception) {
+                Log.e(TAG, "TCP write error: ${e.message}")
+                closeTcpTunnel(tunnelId, notifyServer = true)
+            }
+        }
+    }
+
+    /**
+     * Handle tcp_close request from server.
+     */
+    private fun handleTcpClose(json: JSONObject) {
+        val tunnelId = json.optString("tunnel_id", "")
+        if (tunnelId.isNotEmpty()) {
+            Log.i(TAG, "TCP close requested: $tunnelId")
+            closeTcpTunnel(tunnelId, notifyServer = false)
+        }
+    }
+
+    /**
+     * Close TCP tunnel and clean up.
+     */
+    private fun closeTcpTunnel(tunnelId: String, notifyServer: Boolean) {
+        val tunnel = tcpTunnels.remove(tunnelId) ?: return
+
+        tunnel.readJob?.cancel()
+
+        try {
+            tunnel.socket.close()
+        } catch (e: Exception) {
+            // Ignore
+        }
+
+        if (notifyServer) {
+            val response = JSONObject().apply {
+                put("action", "tcp_closed")
+                put("tunnel_id", tunnelId)
+            }
+            sendResponse(response.toString())
+        }
+
+        Log.i(TAG, "TCP tunnel $tunnelId closed")
+    }
+
+    private fun sendTcpError(tunnelId: String, error: String) {
+        val response = JSONObject().apply {
+            put("action", "tcp_error")
+            put("tunnel_id", tunnelId)
             put("error", error)
         }
         sendResponse(response.toString())
