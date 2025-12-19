@@ -42,106 +42,90 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: 17 December 2025, 22:50 (MSK, UTC+3)
+## Last session: 19 December 2025, 16:15 (MSK, UTC+3)
 
 ---
 
 ## What's done in this session
 
-### 1. Login + Roles System ✅
+### 1. WhatsApp nodejs-mobile Integration 🔄
 
-Реализована система выбора режима работы при логине:
-- **client** — только мессенджер (оператор без сервера)
-- **server** — только tunnel (сервер без UI)
-- **both** — мессенджер + tunnel (оператор с сервером)
+Попытка встроить Node.js + Baileys прямо в APK:
 
-**Файлы:**
-- `LoginActivity.kt` — RadioGroup для выбора режима
-- `activity_login.xml` — UI с описанием каждого режима
-- `ApiService.kt` — `LoginRequest.app_mode`
-- `SessionManager.kt` — константы MODE_CLIENT/MODE_SERVER/MODE_BOTH
+**Completed:**
+- ✅ libnode.so v18.20.4 встроен (arm64-v8a, armeabi-v7a, x86_64)
+- ✅ JNI bridge (native-lib.cpp) с логированием
+- ✅ CMake конфигурация
+- ✅ NodeJSBridge.kt с рекурсивным копированием assets
+- ✅ main.js с HTTP API на порту 3000
+- ✅ ESM module fix (dynamic import для Baileys)
+- ✅ crypto.subtle polyfill
+- ✅ pino-compatible logger
+- ✅ Файловое логирование (node.log)
+- ✅ DNS работает
+- ✅ Pairing code endpoint добавлен
 
-### 2. Database Schema ✅
+**Current problem:**
+WebSocket соединение с WhatsApp зависает в статусе "connecting"
 
-Создана таблица `elo_t_operator_devices`:
-```sql
-- app_mode VARCHAR(20) -- client | server | both
-- tunnel_url TEXT
-- tunnel_secret VARCHAR(255)
-- session_token, fcm_token
-- Связь с elo_t_operators и elo_t_tenants
+**Logs show:**
 ```
+[CONN] connection.update: {"connection":"connecting","receivedPendingNotifications":false}
+```
+После этого никаких событий — ни QR, ни ошибок.
 
-### 3. Auth Workflow ✅
+### 2. Documented Channel Issues
 
-Создан `API_Android_Auth_ELO.json`:
-- Использует elo_ таблицы (не старые operators)
-- Возвращает: `app_mode`, `tunnel_url`, `tunnel_secret`
-- Автогенерация `tunnel_secret` для server/both
-- **Требует импорта в n8n**
-
-### 4. Documentation ✅
-
-Полностью обновлён `NEW/MVP/Android Messager/ROADMAP.md`:
-- Current Status Overview
-- Architecture diagrams
-- API Endpoints (Auth)
-- Problems & Solutions
-- Next Steps (priority order)
-- File Structure
-- Quick Commands
+| Channel | Issue |
+|---------|-------|
+| **WhatsApp** | WebSocket зависает, QR не генерируется |
+| **Telegram** | Токен слетает при переустановке приложения |
+| **Avito** | Токен не подхватывается, неправильная страница авторизации |
+| **MAX** | Требует QR-код, но API не поддерживает |
 
 ---
 
 ## Current system state
 
-**Код:**
-- ✅ Login с выбором режима (client/server/both)
-- ✅ Database table `elo_t_operator_devices`
-- ✅ Auth workflow для elo_ таблиц
-- ✅ Android app билдится успешно
-- ⬜ Dialogs API (mock data)
-- 🔄 Channel Setup (UI ready, backend partial)
+**WhatsApp:**
+- Node.js запускается в APK
+- HTTP сервер работает на порту 3000
+- Baileys загружается
+- WebSocket НЕ устанавливает соединение с WhatsApp
 
-**Серверы:**
-- ✅ n8n (185.221.214.83): postgresql, n8n
-- ✅ Tunnel (155.212.221.189:8800): running
-- ✅ Finnish (217.145.79.27): mcp-telegram, mcp-whatsapp
-- ✅ RU (45.144.177.128): mcp-avito, mcp-max, neo4j
+**How to debug:**
+```bash
+# Check Node.js logs
+adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"
 
-**Архитектура:**
+# Clear and reinstall
+adb shell "run-as com.eldoleado.app rm -rf files/nodejs"
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
-n8n (185.221.214.83)
-    │
-    │ android/auth/login → elo_t_operators
-    │
-Android App ──┬── client mode ──► Messenger UI only
-              ├── server mode ──► TunnelService only
-              └── both mode ────► Messenger + Tunnel
-                      │
-                      ▼
-              tunnel-server (155.212.221.189:8800)
-```
+
+**Files modified:**
+- `app/src/main/cpp/native-lib.cpp` — добавлено логирование
+- `app/src/main/assets/nodejs/main.js` — файловое логирование, crypto polyfill, pairing code
+- `NEW/MVP/Android Messager/ROADMAP.md` — документация проблем
 
 ---
 
 ## NEXT STEPS
 
-### Priority 1: Test Auth Flow
-1. [ ] Импортировать `API_Android_Auth_ELO.json` в n8n
-2. [ ] Деактивировать старый `API_Android_Auth`
-3. [ ] Создать тестового оператора в `elo_t_operators`
-4. [ ] Протестировать curl + Android app
+### Priority 1: WhatsApp — Try Pairing Code
+1. [ ] Добавить UI для ввода номера телефона
+2. [ ] Вызвать `/pair` endpoint с номером
+3. [ ] Показать пользователю код для ввода в WhatsApp
 
-### Priority 2: Dialogs API
-1. [ ] Создать workflow `ELO_API_Android_Dialogs`
-2. [ ] Query: `SELECT * FROM elo_t_dialogs WHERE assigned_operator_id = ?`
-3. [ ] Подключить в MainActivity
+### Priority 2: WhatsApp — Alternative Solutions
+1. [ ] Попробовать VPN/proxy
+2. [ ] Исследовать wa-js или другие библиотеки
+3. [ ] Рассмотреть WhatsApp Business API
 
-### Priority 3: Channel Backend
-1. [ ] Telegram Bot verification
-2. [ ] Avito sessid validation
-3. [ ] WhatsApp integration decision
+### Priority 3: Fix Other Channels
+1. [ ] Telegram — сохранять токен на сервере
+2. [ ] Avito — исправить WebView и cookies
+3. [ ] MAX — изменить на bot token вместо QR
 
 ---
 
@@ -149,10 +133,10 @@ Android App ──┬── client mode ──► Messenger UI only
 
 | File | What |
 |------|------|
-| `NEW/MVP/Android Messager/ROADMAP.md` | **Полная документация (обновлено!)** |
-| `NEW/workflows/API/API_Android_Auth_ELO.json` | Auth workflow для импорта |
-| `app/src/main/java/.../LoginActivity.kt` | Логин с выбором режима |
-| `app/src/main/res/layout/activity_login.xml` | UI логина |
+| `NEW/MVP/Android Messager/ROADMAP.md` | Документация проблем с каналами |
+| `app/src/main/assets/nodejs/main.js` | WhatsApp bridge script |
+| `app/src/main/cpp/native-lib.cpp` | JNI bridge |
+| `app/src/main/java/.../nodejs/NodeJSBridge.kt` | Kotlin wrapper |
 | `Start.md` | Контекст для старта сессии |
 
 ---
@@ -161,5 +145,5 @@ Android App ──┬── client mode ──► Messenger UI only
 
 1. `git pull`
 2. Read `Start.md`
-3. Read `NEW/MVP/Android Messager/ROADMAP.md` для понимания текущего состояния
-4. Импортировать workflow в n8n и тестировать
+3. Read `NEW/MVP/Android Messager/ROADMAP.md` для понимания проблем
+4. Проверить логи: `adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"`

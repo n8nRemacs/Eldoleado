@@ -14,7 +14,7 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 ---
 
 ## Last update date and time
-**18 December 2025, 22:30 (MSK, UTC+3)**
+**19 December 2025, 16:15 (MSK, UTC+3)**
 
 ---
 
@@ -28,138 +28,100 @@ After git pull — REREAD this file from the beginning (Start.md), starting from
 - ✅ **Auth API** — `ELO_API_Android_Auth` в n8n
 - ✅ **Dialogs API** — `ELO_API_Android_Dialogs` в n8n
 - ✅ **Messages API** — `ELO_API_Android_Messages` в n8n
-- ✅ **Send Message API** — `ELO_API_Android_SendMessage` в n8n
-- ✅ **ChatActivity** — полноценный экран чата с кнопками
-- ✅ **Тестовые сообщения** — добавлены в elo_t_messages (14 шт)
+- ✅ **ChatActivity** — полноценный экран чата
 - ✅ **tunnel-server** — работает на 155.212.221.189:8800
-- 🔄 **Channel Setup** — UI готов, backend частично
+- 🔄 **WhatsApp** — nodejs-mobile встроен, WebSocket зависает
+- ❌ **Telegram** — токен слетает при переустановке
+- ❌ **Avito** — неправильная страница авторизации
+- ❌ **MAX** — требует QR, но API не поддерживает
 
 ---
 
-## Что сделано в сессии (18.12.2025, вечер)
+## CRITICAL: Проблемы с каналами (19.12.2025)
 
-### 1. Test Messages ✅
-- Добавлены тестовые сообщения в БД (14 шт для 3 диалогов)
-- Иван Петров (Telegram) — 5 сообщений
-- Мария Сидорова (WhatsApp) — 4 сообщения
-- Алексей Козлов (Avito) — 5 сообщений
+### WhatsApp — WebSocket зависает
 
-### 2. Send Message API ✅
-- Создан workflow `ELO_API_Android_SendMessage`
-- Endpoint: `POST /android-send/android/dialogs/:dialog_id/messages`
-- Сохраняет сообщение в БД, обновляет диалог
+**Статус:** Node.js + Baileys встроен в APK, но соединение не устанавливается.
 
-### 3. Chat UI обновлён ✅
-- Панель кнопок: Normalize (зелёная), Voice (оранжевая), Send (синяя)
-- Поле ввода 80dp с кнопками Clear и Reject
-- Нижняя навигация: Диалоги / Настройки
-- Дизайн сообщений: CardView, клиент слева (голубой), оператор справа (оранжевый)
-
-### 4. Файлы скопированы из app_old
-- Drawables: bg_button_normalize, bg_button_voice, bg_button_send_wide, bg_button_clear, bg_button_reject, bg_input_field
-- Icons: ic_edit, ic_mic, ic_clear, ic_close, ic_appeals, ic_settings
-- Menu: bottom_navigation_menu.xml
-
----
-
-## Архитектура (актуальная)
-
+**Лог показывает:**
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    n8n SERVER (185.221.214.83)                   │
-│  Webhooks:                                                       │
-│  - android/auth/login     → ELO_API_Android_Auth                │
-│  - android/dialogs        → ELO_API_Android_Dialogs             │
-│  - android-messages/...   → ELO_API_Android_Messages            │
-└─────────────────────────────────────────────────────────────────┘
-                              │ HTTPS
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    ANDROID APP (Eldoleado)                       │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  LoginActivity → MainActivity → ChatActivity              │   │
-│  │  - Dialogs list from API                                  │   │
-│  │  - Messages from API                                      │   │
-│  │  - TunnelService for server/both modes                    │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+[CONN] connection.update: {"connection":"connecting","receivedPendingNotifications":false}
 ```
+После этого — тишина. Ни QR, ни ошибок.
 
----
+**Что сделано:**
+- ✅ libnode.so v18.20.4 встроен
+- ✅ JNI bridge работает
+- ✅ Baileys загружается (ESM, crypto polyfill)
+- ✅ HTTP сервер на порту 3000
+- ✅ DNS работает
+- ✅ Endpoint `/pair` для pairing code добавлен
 
-## NEXT STEPS (19.12.2025)
-
-### Priority 1: API кнопок чата
-- **Normalize API** — нормализация текста через AI
-- **Voice API** — отправка голосовых сообщений
-- **Reject API** — отклонение AI-ответа
-
-### Priority 2: UI окна сообщений
-- Доработать дизайн сообщений
-- Добавить медиа-вложения (фото, документы)
-- Индикатор "печатает..."
-
-### Priority 3: Режим через права (НЕ выбор)
-- Убрать выбор режима при логине (client/server/both)
-- Режим определяется правами оператора в БД
-- Поле `app_mode` в `elo_t_operators`
-- Auth API возвращает режим на основе прав
-
-### Priority 4: Channel Setup Backend
-- Telegram Bot verification
-- Avito sessid validation
-- WhatsApp integration
-
----
-
-## Тестовые данные
-
-### Оператор
-- Email: `admin@test.local`
-- Password: `test123`
-- Tenant: `Test Repair Shop`
-
-### Диалоги (в БД)
-| Клиент | Канал | Chat ID |
-|--------|-------|---------|
-| Иван Петров | Telegram | 123456789 |
-| Алексей Козлов | Avito | avito_chat_555 |
-| Мария Сидорова | WhatsApp | 79007654321 |
-
----
-
-## Серверы
-
-| Server | IP | Что там | Статус |
-|--------|-----|---------|--------|
-| **n8n** | 185.221.214.83 | n8n, postgresql | ✅ Ready |
-| **Tunnel** | 155.212.221.189 | tunnel-server:8800 | ✅ Running |
-| **Finnish** | 217.145.79.27 | mcp-telegram, mcp-whatsapp | ✅ Ready |
-| **RU** | 45.144.177.128 | mcp-avito, mcp-max, neo4j | ✅ Ready |
-
----
-
-## Quick Commands
-
+**Как проверить:**
 ```bash
-# Build Android app
-export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
-cd /c/Users/User/Documents/Eldoleado && ./gradlew.bat assembleDebug
+# Посмотреть логи Node.js
+adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"
 
-# Install on emulator
+# Очистить и переустановить
+adb shell "run-as com.eldoleado.app rm -rf files/nodejs"
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# Test login
-curl -X POST https://n8n.n8nsrv.ru/webhook/android/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"login":"admin@test.local","password":"test123","app_mode":"both"}'
-
-# Test dialogs
-curl "https://n8n.n8nsrv.ru/webhook/android/dialogs?session_token=YOUR_TOKEN"
-
-# Database access
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_t_dialogs;'"
 ```
+
+### Другие каналы
+
+| Канал | Проблема |
+|-------|----------|
+| **Telegram** | Токен слетает при переустановке (SharedPreferences) |
+| **Avito** | При переходе открывается не та страница, токен не подхватывается |
+| **MAX** | UI требует QR-код, но API MAX не поддерживает |
+
+---
+
+## Архитектура WhatsApp (nodejs-mobile)
+
+```
+Android App (Kotlin)
+    │
+    ├── WhatsAppSetupActivity
+    │       │
+    │       ├── NodeJSBridge.kt
+    │       │     ├── loadLibrary("native-lib")
+    │       │     ├── loadLibrary("node")
+    │       │     └── startNodeWithArguments() → JNI
+    │       │
+    │       └── HTTP → http://127.0.0.1:3000
+    │             ├── /status
+    │             ├── /qr
+    │             ├── /pair (NEW!)
+    │             └── /connect
+    │
+    └── native-lib.cpp
+          └── node::Start()
+                │
+                └── main.js
+                      ├── HTTP server
+                      ├── Baileys (@whiskeysockets/baileys)
+                      └── node.log (file logging)
+```
+
+---
+
+## NEXT STEPS
+
+### 1. WhatsApp — попробовать Pairing Code
+- Endpoint `/pair` уже добавлен
+- Нужен UI для ввода номера телефона
+- Показать код пользователю для ввода в WhatsApp
+
+### 2. WhatsApp — альтернативы
+- VPN/proxy
+- Другие библиотеки (wa-js)
+- WhatsApp Business API
+
+### 3. Исправить другие каналы
+- Telegram: сохранять токен на сервере
+- Avito: исправить WebView
+- MAX: изменить на bot token
 
 ---
 
@@ -167,15 +129,33 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * F
 
 | Файл | Описание |
 |------|----------|
-| `NEW/MVP/Android Messager/ROADMAP.md` | Полная документация |
-| `NEW/workflows/API/API_Android_Auth_ELO.json` | Auth workflow |
-| `NEW/workflows/API/API_Android_Dialogs.json` | Dialogs workflow |
-| `NEW/workflows/API/API_Android_Messages.json` | Messages workflow |
-| `NEW/workflows/API/API_Android_SendMessage.json` | Send Message workflow |
-| `app/src/main/java/.../ChatActivity.kt` | Экран чата с кнопками |
-| `app/src/main/java/.../ChatMessagesAdapter.kt` | Адаптер сообщений (CardView) |
-| `app/src/main/java/.../MainActivity.kt` | Главный экран |
-| `app/src/main/java/.../api/ApiService.kt` | API endpoints |
+| `NEW/MVP/Android Messager/ROADMAP.md` | Полная документация проблем |
+| `app/src/main/assets/nodejs/main.js` | WhatsApp bridge |
+| `app/src/main/cpp/native-lib.cpp` | JNI bridge |
+| `app/src/main/java/.../nodejs/NodeJSBridge.kt` | Kotlin wrapper |
+| `app/src/main/java/.../setup/WhatsAppSetupActivity.kt` | Setup UI |
+
+---
+
+## Quick Commands
+
+```bash
+# Build
+export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
+cd /c/Users/User/Documents/Eldoleado && ./gradlew.bat assembleDebug
+
+# Install
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+# WhatsApp logs
+adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"
+
+# Clear WhatsApp data
+adb shell "run-as com.eldoleado.app rm -rf files/nodejs"
+
+# Check port
+adb shell "netstat -tlnp | grep 3000"
+```
 
 ---
 
