@@ -80,13 +80,6 @@
             android:exported="false"
             android:foregroundServiceType="microphone|phoneCall" />
 
-        <!-- Tunnel Service (WebSocket proxy) -->
-        <service
-            android:name=".tunnel.TunnelService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
         <!-- Operator WebSocket Service -->
         <service
             android:name=".operator.OperatorWebSocketService"
