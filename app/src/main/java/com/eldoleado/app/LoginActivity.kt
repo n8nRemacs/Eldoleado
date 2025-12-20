@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
-import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.eldoleado.app.BuildConfig
@@ -34,7 +33,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
     private lateinit var btnLogin: Button
-    private lateinit var rgAppMode: RadioGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +49,6 @@ class LoginActivity : AppCompatActivity() {
         etEmail = findViewById(R.id.et_email)
         etPassword = findViewById(R.id.et_password)
         btnLogin = findViewById(R.id.btn_login)
-        rgAppMode = findViewById(R.id.rgAppMode)
 
         btnLogin.setOnClickListener { login() }
     }
@@ -139,12 +136,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun getSelectedAppMode(): String {
-        return when (rgAppMode.checkedRadioButtonId) {
-            R.id.rbClient -> SessionManager.MODE_CLIENT
-            R.id.rbServer -> SessionManager.MODE_SERVER
-            R.id.rbBoth -> SessionManager.MODE_BOTH
-            else -> SessionManager.MODE_CLIENT
-        }
+        return SessionManager.MODE_CLIENT
     }
 
     private fun getDeviceInfo(): DeviceInfo {

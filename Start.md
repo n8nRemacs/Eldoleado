@@ -1,145 +1,101 @@
-# START - Context for Continuing Work
+# Start Session - План на 2025-12-21
 
-## FIRST — Sync
-
-**If reading this file SECOND time after git pull — SKIP this block and go to next section!**
-
-```bash
-cd "C:/Users/User/Documents/Eldoleado"
-git pull
-```
-
-After git pull — REREAD this file from the beginning (Start.md), starting from the next section (skipping this sync block to avoid loops).
-
----
-
-## Last update date and time
-**20 December 2025, 15:50 (MSK, UTC+3)**
-
----
-
-## Текущая задача: WhatsApp → Android
-
-### Цель
-Входящие сообщения WhatsApp должны отображаться в Android приложении.
-
-### Статус
-```
-WhatsApp → Baileys → ELO_In_WhatsApp → Redis → Batcher → ELO_Client_Resolve → AI_Stub
-     ✓         ✓            ✓             ✓        ✓              ✓              ✓
-                                                                   │
-                                                          НО: message не сохраняется в БД!
-```
+## Приоритет 1: Исправить нормализацию текста
 
 ### Проблема
-Android читает сообщения из `elo_t_messages`, но **никто туда не пишет**.
+Webhook `android-normalize/android/dialogs/:dialog_id/normalize` не работает - n8n не поддерживает динамические path параметры.
+
+### Решение
+1. **n8n:** Изменить webhook path на `android/normalize`
+
+2. **ApiService.kt:** Убрать `@Path`, использовать body:
+   ```kotlin
+   @POST("android/normalize")
+   fun normalizeDialogText(
+       @Body request: NormalizeDialogRequest
+   ): Call<NormalizeDialogResponse>
+   ```
+
+3. **NormalizeDialogRequest:** Добавить dialog_id:
+   ```kotlin
+   data class NormalizeDialogRequest(
+       val session_token: String,
+       val dialog_id: String,
+       val text: String
+   )
+   ```
+
+4. **ChatActivity.kt:** Передавать dialog_id в request
 
 ---
 
-## NEXT STEP: Изучить полную цепочку
+## Приоритет 2: Исправить отправку сообщений
 
-### Нужно найти и изучить:
+Проверить webhook для отправки сообщений - вероятно та же проблема с path параметрами.
 
-1. **Batcher** — какой workflow? что делает с данными?
-2. **ELO_Core_Ingest** — что происходит после Client_Resolve?
-3. **Где INSERT INTO elo_t_messages?** — кто должен сохранять?
-
-### Текущий flow (с вопросами):
-
-```
-ELO_In_WhatsApp
-    │ RPUSH queue:incoming
-    ▼
-Redis Queue
-    │ BRPOP
-    ▼
-??? Batcher ???          ← Какой workflow? Где он?
-    │
-    ▼
-ELO_Client_Resolve       ← Создаёт client + dialog, НО НЕ message
-    │ HTTP POST
-    ▼
-??? ELO_Core_Ingest ???  ← Что делает?
-    │
-    ▼
-ELO_Core_AI_Test_Stub    ← Заглушка AI
-    │
-    ▼
-??? ← КТО СОХРАНЯЕТ MESSAGE? КТО УВЕДОМЛЯЕТ ОПЕРАТОРА?
-```
-
----
-
-## Что уже сделано
-
-### 1. ELO_In_WhatsApp — исправлен
-- ✅ Фильтр message events (отсекает presence)
-- ✅ Извлечение session_id из Baileys
-- ✅ profile_id добавляется в данные
-
-### 2. WhatsApp Channel Account — создан
-```sql
-tenant_id: 11111111-1111-1111-1111-111111111111 (Test Repair Shop)
-account_id: eldoleado_main
-channel_id: 2 (whatsapp)
+Текущий endpoint в ApiService.kt:
+```kotlin
+@POST("android-messages/android/dialogs/{dialog_id}/messages")
+fun sendChatMessage(...)
 ```
 
-### 3. ELO_Client_Resolve — исправлен
-- ✅ DB Get Tenant берёт sessionId из `meta.raw.sessionId`
-- ✅ Находит tenant для WhatsApp
+---
+
+## Приоритет 3: Автоназначение оператора для новых диалогов
+
+### ELO_Client_Resolve - изменения:
+
+1. **DB Get Tenant** - добавить `channel_account_id`:
+   ```sql
+   SELECT t.id as tenant_id, t.domain_id, ca.id as channel_account_id, ca.channel_id
+   FROM elo_t_tenants t
+   JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id
+   ...
+   ```
+
+2. **Prepare Dialog Cache Key** - передавать `channel_account_id`
+
+3. **DB Create Dialog** - назначать оператора:
+   ```sql
+   INSERT INTO elo_t_dialogs (..., assigned_operator_id, channel_account_id)
+   SELECT ...,
+       (SELECT oc.operator_id FROM elo_t_operator_channels oc
+        WHERE oc.channel_account_id = '...' AND oc.is_active = true
+        ORDER BY oc.is_primary DESC LIMIT 1),
+       '...'
+   ```
+
+4. **Save Incoming Message** - обновлять `last_message_at`:
+   ```sql
+   WITH msg AS (INSERT INTO elo_t_messages ... RETURNING id, dialog_id)
+   UPDATE elo_t_dialogs SET last_message_at = NOW() WHERE id = (SELECT dialog_id FROM msg)
+   ```
 
 ---
 
-## Baileys Session
+## Документация
 
-**Server:** 217.145.79.27:8766
-**Session ID:** eldoleado_main
-**Phone:** 79171708077 (Ремакс)
-**Status:** connected
-**Webhook:** https://n8n.n8nsrv.ru/webhook/whatsapp-incoming
+Полные SQL запросы в: `NEW/N8N_SQL_FIXES.md`
 
 ---
 
-## Key Files
+## Тестовые данные
 
-| File | Description |
-|------|-------------|
-| `NEW/workflows/Chanel Contour/ELO_In/ELO_In_WhatsApp.json` | Incoming WhatsApp messages |
-| `NEW/workflows/Chanel Contour/ELO_Out/ELO_Out_WhatsApp.json` | Outgoing WhatsApp messages |
-| `NEW/workflows/Client Contour/ELO_Client_Resolve.json` | Resolve tenant/client/dialog |
-| `NEW/workflows/API/API_Android_Dialogs.json` | Android dialogs API |
-| `NEW/workflows/API/API_Android_Messages.json` | Android messages API |
+- **Оператор:** Test Admin (22222222-2222-2222-2222-222222222222)
+- **Session:** 85bc5364-7765-4562-be9e-02d899bb575e
+- **Диалог:** cff56064-1fc3-4152-8e64-6e0266a87bf6
+- **Клиент:** Дмитрий (+79997253777, WhatsApp)
 
 ---
 
-## Quick Commands
+## Команды для тестирования
 
 ```bash
-# Check Redis queue
-ssh root@185.221.214.83 "docker exec n8n-redis redis-cli LRANGE queue:incoming 0 5"
+# Тест messages webhook
+curl "https://n8n.n8nsrv.ru/webhook/android/messages?dialog_id=cff56064-1fc3-4152-8e64-6e0266a87bf6&session_token=85bc5364-7765-4562-be9e-02d899bb575e"
 
-# Check Baileys logs
-ssh root@217.145.79.27 "docker logs mcp-whatsapp-baileys --tail 50"
-
-# Check Baileys sessions
-curl http://217.145.79.27:8766/sessions
-
-# Database query
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_t_messages LIMIT 5;'"
+# Тест normalize webhook (после фикса)
+curl -X POST "https://n8n.n8nsrv.ru/webhook/android/normalize" \
+  -H "Content-Type: application/json" \
+  -d '{"session_token":"85bc5364-7765-4562-be9e-02d899bb575e","dialog_id":"cff56064-1fc3-4152-8e64-6e0266a87bf6","text":"тест"}'
 ```
-
----
-
-## Database Tables (Android reads from)
-
-```sql
--- Dialogs (ELO_Client_Resolve создаёт ✓)
-SELECT * FROM elo_t_dialogs WHERE tenant_id = '11111111-1111-1111-1111-111111111111';
-
--- Messages (ПУСТО - никто не пишет ✗)
-SELECT * FROM elo_t_messages WHERE dialog_id = '...';
-```
-
----
-
-**Before ending session:** update Start.md, Stop.md, git push

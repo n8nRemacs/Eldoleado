@@ -25,9 +25,9 @@ interface ApiService {
     @GET("android/dialogs")
     fun getDialogs(@Query("session_token") sessionToken: String): Call<DialogsResponse>
 
-    @GET("android/dialogs/{dialog_id}/messages")
+    @GET("android/messages")
     fun getChatMessages(
-        @Path("dialog_id") dialogId: String,
+        @Query("dialog_id") dialogId: String,
         @Query("session_token") sessionToken: String
     ): Call<ChatMessagesResponse>
 
