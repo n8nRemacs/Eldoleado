@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.eldoleado.app.AppealEventBus
 import com.eldoleado.app.AppealUpdateEvent
 import com.eldoleado.app.EldoleadoApplication
+import com.eldoleado.app.ChatActivity
 import com.eldoleado.app.MainActivity
 import com.eldoleado.app.R
 import com.eldoleado.app.SessionManager
@@ -41,17 +42,21 @@ class EldoleadoMessagingService : FirebaseMessagingService() {
         val type = data["type"] ?: "generic"
         val title = data["title"] ?: message.notification?.title ?: getString(R.string.app_name)
         val body = data["body"] ?: message.notification?.body ?: ""
-        val appealId = data["appeal_id"]
+        // Support both dialog_id (new) and appeal_id (legacy)
+        val dialogId = data["dialog_id"] ?: data["appeal_id"]
         val draftText = data["draft_text"] ?: data["ai_response"]
 
+        Log.d(TAG, "FCM received: type=$type, dialogId=$dialogId, title=$title")
+
         // Инвалидация кэша и публикация события для realtime обновления UI
-        handleCacheInvalidation(type, appealId, draftText)
+        handleCacheInvalidation(type, dialogId, draftText)
 
         when (type) {
-            "new_appeal" -> showNotification(title, body, appealId, true)
-            "appeal_update", "new_message" -> showNotification(title, body, appealId, true)
-            "draft_ready", "agent_message" -> showNotification(title, body, appealId, true)
-            else -> showNotification(title, body, appealId, false)
+            "new_appeal", "new_dialog" -> showNotification(title, body, dialogId, openDetail = true)
+            "new_message" -> showNotification(title, body, dialogId, openDetail = false, openChat = true)
+            "appeal_update" -> showNotification(title, body, dialogId, openDetail = true)
+            "draft_ready", "agent_message" -> showNotification(title, body, dialogId, openDetail = true)
+            else -> showNotification(title, body, dialogId, openDetail = false)
         }
     }
 
@@ -107,16 +112,24 @@ class EldoleadoMessagingService : FirebaseMessagingService() {
         private const val TAG = "EldoleadoFCM"
     }
 
-    private fun showNotification(title: String, body: String, appealId: String?, openDetail: Boolean) {
+    private fun showNotification(title: String, body: String, dialogId: String?, openDetail: Boolean, openChat: Boolean = false) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "eldoleado_default"
         createNotificationChannelIfNeeded(notificationManager, channelId)
 
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            if (openDetail && !appealId.isNullOrBlank()) {
-                putExtra("open_appeal_detail", true)
-                putExtra("appeal_id", appealId)
+        val intent = if (openChat && !dialogId.isNullOrBlank()) {
+            // Open ChatActivity directly for new messages
+            Intent(this, ChatActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("dialog_id", dialogId)
+            }
+        } else {
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                if (openDetail && !dialogId.isNullOrBlank()) {
+                    putExtra("open_appeal_detail", true)
+                    putExtra("appeal_id", dialogId)
+                }
             }
         }
         val pendingIntent = PendingIntent.getActivity(

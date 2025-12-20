@@ -23,8 +23,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.eldoleado.app.api.ChatMessageDto
 import com.eldoleado.app.api.ChatMessagesResponse
@@ -104,6 +108,25 @@ class ChatActivity : AppCompatActivity() {
         initViews()
         setupAdapter()
         loadMessages()
+        setupEventBusListener()
+    }
+
+    private fun setupEventBusListener() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                AppealEventBus.events.collect { event ->
+                    when (event) {
+                        is AppealUpdateEvent.NewMessage -> {
+                            if (event.appealId == dialogId) {
+                                Log.d(TAG, "FCM event: new message for current dialog, refreshing...")
+                                loadMessages()
+                            }
+                        }
+                        else -> { /* ignore other events */ }
+                    }
+                }
+            }
+        }
     }
 
     private fun initViews() {
