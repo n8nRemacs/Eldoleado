@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # API Key for server authentication (optional)
     api_key: str = Field(default="", description="API key for server authentication")
 
+    # Alerting
+    alert_telegram_bot_token: str = Field(default="", description="Telegram bot token for alerts")
+    alert_telegram_chat_id: str = Field(default="", description="Telegram chat ID for alerts")
+    alert_n8n_webhook_url: str = Field(default="", description="n8n webhook URL for alerts")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

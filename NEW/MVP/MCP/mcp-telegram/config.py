@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # If not set, bots are managed via API calls only
     DATABASE_URL: Optional[str] = None
 
+    # Alerting
+    ALERT_TELEGRAM_BOT_TOKEN: str = ""
+    ALERT_TELEGRAM_CHAT_ID: str = ""
+    ALERT_N8N_WEBHOOK_URL: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

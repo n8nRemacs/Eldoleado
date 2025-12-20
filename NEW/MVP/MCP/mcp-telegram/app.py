@@ -22,8 +22,16 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import httpx
 
+import sys
+import os
+
 from config import settings
 from telegram_client import TelegramClient, TelegramAPIError
+
+# Add shared module to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from shared.health import get_health_checker
+from shared.alerts import get_alert_service, AlertConfig
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +39,14 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Initialize health checker and alert service
+health_checker = get_health_checker("telegram", "2.1.0")
+alert_service = get_alert_service(AlertConfig(
+    telegram_bot_token=settings.ALERT_TELEGRAM_BOT_TOKEN or None,
+    telegram_chat_id=settings.ALERT_TELEGRAM_CHAT_ID or None,
+    n8n_webhook_url=settings.ALERT_N8N_WEBHOOK_URL or None,
+))
 
 # Bot registry: token_hash -> {token, client, bot_info}
 bot_registry: Dict[str, dict] = {}
@@ -439,11 +455,19 @@ async def forward_to_n8n(normalized: NormalizedMessage):
 async def health_check():
     """Health check endpoint."""
     return {
-        "status": "ok",
+        "status": health_checker.get_status().value,
         "service": "telegram-mcp-server",
+        "version": "2.1.0",
         "mode": "multi-tenant",
-        "registered_bots": len(bot_registry)
+        "registered_bots": len(bot_registry),
+        "health_score": health_checker.calculate_health_score()
     }
+
+
+@app.get("/health/extended")
+async def health_extended():
+    """Extended health check with metrics."""
+    return health_checker.to_dict()
 
 
 @app.get("/bots")
@@ -520,6 +544,10 @@ async def send_message(
             disable_notification=request.disable_notification,
             disable_web_page_preview=request.disable_web_page_preview
         )
+
+        # Record metrics
+        health_checker.record_message_sent(token_hash)
+
         return {
             "success": True,
             "message_id": result.get("message_id"),
@@ -529,6 +557,7 @@ async def send_message(
     except ValueError:
         return {"success": False, "error": f"Invalid chat_id: {request.chat_id}"}
     except TelegramAPIError as e:
+        health_checker.record_error(token_hash, str(e))
         return {"success": False, "error": e.message, "error_code": e.status_code}
 
 
@@ -786,6 +815,9 @@ async def webhook_handler(
 
     update_id = data.get("update_id", "unknown")
     logger.info(f"Received webhook update_id={update_id} for bot {token_hash}")
+
+    # Record metrics
+    health_checker.record_message_received(token_hash)
 
     # Normalize and forward to n8n
     normalized = await normalize_update(data, bot_token, client)

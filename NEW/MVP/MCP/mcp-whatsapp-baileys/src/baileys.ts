@@ -39,6 +39,8 @@ import {
   SendMessageResponse,
   GroupInfo,
 } from './types';
+import { AlertService, getAlertService } from './alerts';
+import { MetricsCollector, getMetricsCollector } from './metrics';
 
 // Simple logger wrapper
 const logger = {
@@ -79,6 +81,8 @@ export interface BaileysClientOptions {
   sessionsDir: string;
   webhookUrl?: string;
   proxyUrl?: string; // socks5://user:pass@host:port
+  alertService?: AlertService;
+  metricsCollector?: MetricsCollector;
   onQR?: (qr: string, qrImage: string) => void;
   onConnected?: (info: SessionInfo) => void;
   onDisconnected?: (reason: string) => void;
@@ -98,7 +102,11 @@ export class BaileysClient {
   private phoneNumber?: string;
   private pushName?: string;
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
+  private maxReconnectAttempts: number = 10;
+
+  // Self-healing services
+  private alertService: AlertService;
+  private metrics: MetricsCollector;
 
   // Callbacks
   private onQR?: (qr: string, qrImage: string) => void;
@@ -112,11 +120,16 @@ export class BaileysClient {
     this.sessionsDir = options.sessionsDir;
     this.webhookUrl = options.webhookUrl;
     this.proxyUrl = options.proxyUrl;
+    this.alertService = options.alertService || getAlertService();
+    this.metrics = options.metricsCollector || getMetricsCollector();
     this.onQR = options.onQR;
     this.onConnected = options.onConnected;
     this.onDisconnected = options.onDisconnected;
     this.onMessage = options.onMessage;
     this.onCall = options.onCall;
+
+    // Initialize metrics for this session
+    this.metrics.initSession(this.sessionId);
   }
 
   get sessionPath(): string {
@@ -202,19 +215,43 @@ export class BaileysClient {
         const reason = DisconnectReason[statusCode] || 'Unknown';
 
         logger.info(`Connection closed: ${reason} (${statusCode})`);
+        this.metrics.updateStatus(this.sessionId, 'disconnected');
 
+        // Handle different disconnect reasons
         if (statusCode === DisconnectReason.loggedOut) {
+          // User logged out - terminal state
           this.status = 'logged_out';
-          // Clean up session files
           await this.deleteSession();
           this.onDisconnected?.('logged_out');
-        } else if (statusCode !== DisconnectReason.loggedOut && this.reconnectAttempts < this.maxReconnectAttempts) {
+        } else if (statusCode === 403) {
+          // Account banned - alert and stop
+          this.status = 'disconnected';
+          await this.alertService.alertBanned(this.sessionId);
+          this.onDisconnected?.('banned');
+        } else if (statusCode === 440) {
+          // Connection replaced (logged in elsewhere)
+          this.status = 'disconnected';
+          await this.alertService.alertDisconnected(this.sessionId, 'connection_replaced');
+          this.onDisconnected?.('connection_replaced');
+        } else if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          // Recoverable error - attempt reconnect with exponential backoff
           this.status = 'connecting';
           this.reconnectAttempts++;
-          logger.info(`Reconnecting... attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-          setTimeout(() => this.connect(), 3000);
+          this.metrics.recordReconnectAttempt(this.sessionId);
+
+          // Calculate backoff delay: 3s, 6s, 12s, 24s, 48s, 60s max
+          const delay = Math.min(3000 * Math.pow(2, this.reconnectAttempts - 1), 60000);
+
+          logger.info(`Reconnecting... attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}, delay ${delay}ms`);
+
+          // Alert on reconnect attempts (first and every 3rd)
+          await this.alertService.alertReconnecting(this.sessionId, this.reconnectAttempts, this.maxReconnectAttempts);
+
+          setTimeout(() => this.connect(), delay);
         } else {
+          // Max retries exceeded
           this.status = 'disconnected';
+          await this.alertService.alertMaxRetriesExceeded(this.sessionId, this.reconnectAttempts);
           this.onDisconnected?.(reason);
         }
       }
@@ -224,10 +261,18 @@ export class BaileysClient {
       }
 
       if (connection === 'open') {
+        const wasReconnecting = this.reconnectAttempts > 0;
+
         this.status = 'connected';
         this.reconnectAttempts = 0;
         this.qrCode = '';
         this.qrImage = '';
+
+        // Update metrics
+        this.metrics.updateStatus(this.sessionId, 'connected');
+        if (wasReconnecting) {
+          this.metrics.recordReconnectSuccess(this.sessionId);
+        }
 
         // Get user info
         const user = this.socket?.user;
@@ -237,6 +282,12 @@ export class BaileysClient {
         }
 
         logger.info(`Connected as ${this.pushName} (${this.phoneNumber})`);
+
+        // Send connected alert (after reconnect)
+        if (wasReconnecting) {
+          await this.alertService.alertConnected(this.sessionId, this.phoneNumber);
+        }
+
         this.onConnected?.(this.getSessionInfo());
       }
     });
@@ -250,6 +301,7 @@ export class BaileysClient {
 
         const parsed = await this.parseMessage(msg);
         if (parsed) {
+          this.metrics.recordMessageReceived(this.sessionId);
           this.onMessage?.(parsed);
           await this.sendWebhook('message', parsed);
         }
@@ -434,18 +486,26 @@ export class BaileysClient {
       throw new Error('Not connected');
     }
 
-    const jid = formatJid(request.to);
-    const result = await this.socket.sendMessage(jid, {
-      text: request.text,
-    }, {
-      quoted: request.quotedMessageId ? { key: { id: request.quotedMessageId } } as any : undefined,
-    });
+    try {
+      const jid = formatJid(request.to);
+      const result = await this.socket.sendMessage(jid, {
+        text: request.text,
+      }, {
+        quoted: request.quotedMessageId ? { key: { id: request.quotedMessageId } } as any : undefined,
+      });
 
-    return {
-      messageId: result?.key.id || '',
-      timestamp: Date.now(),
-      status: 'sent',
-    };
+      this.metrics.recordMessageSent(this.sessionId);
+
+      return {
+        messageId: result?.key.id || '',
+        timestamp: Date.now(),
+        status: 'sent',
+      };
+    } catch (error: any) {
+      this.metrics.recordMessageFailed(this.sessionId);
+      this.metrics.recordError(this.sessionId, error.message);
+      throw error;
+    }
   }
 
   // Send image

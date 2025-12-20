@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # n8n Integration
     n8n_webhook_url: Optional[str] = None
 
+    # Alerting
+    alert_telegram_bot_token: Optional[str] = None
+    alert_telegram_chat_id: Optional[str] = None
+    alert_n8n_webhook_url: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

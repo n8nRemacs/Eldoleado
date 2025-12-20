@@ -27,6 +27,8 @@ from shared.storage import (
     init_storage, close_storage, get_credentials_hash,
     save_account, load_accounts, get_account, delete_account
 )
+from shared.health import get_health_checker, HealthStatus
+from shared.alerts import get_alert_service, AlertConfig
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +39,14 @@ logger = logging.getLogger(__name__)
 
 # Channel name for storage
 CHANNEL_NAME = "avito"
+
+# Initialize health checker and alert service
+health_checker = get_health_checker("avito", "2.1.0")
+alert_service = get_alert_service(AlertConfig(
+    telegram_bot_token=getattr(settings, 'alert_telegram_bot_token', None),
+    telegram_chat_id=getattr(settings, 'alert_telegram_chat_id', None),
+    n8n_webhook_url=getattr(settings, 'alert_n8n_webhook_url', None),
+))
 
 # Multi-tenant registries
 client_cache: Dict[str, AvitoClient] = {}  # user_hash -> AvitoClient
@@ -281,13 +291,20 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 async def health_check():
     """Health check endpoint."""
     return {
-        "status": "healthy",
+        "status": health_checker.get_status().value,
         "service": "avito-messenger-api",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "mode": "multi-tenant",
         "accounts_loaded": len(client_cache),
+        "health_score": health_checker.calculate_health_score(),
         "timestamp": datetime.now().isoformat()
     }
+
+
+@app.get("/health/extended")
+async def health_extended():
+    """Extended health check with metrics."""
+    return health_checker.to_dict()
 
 
 @app.get("/info")
@@ -606,20 +623,26 @@ async def send_message(request: SendMessageRequest, user_hash: Optional[str] = Q
         if not client:
             raise HTTPException(status_code=404, detail="Account not found")
     elif request.client_id and request.client_secret and request.user_id:
-        client, _ = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
+        client, user_hash = await get_or_create_client(request.client_id, request.client_secret, request.user_id)
     else:
         raise HTTPException(status_code=400, detail="Provide user_hash or credentials")
 
-    result = await client.send_message(
-        chat_id=request.chat_id,
-        text=request.text
-    )
-    return {
-        "success": True,
-        "chat_id": request.chat_id,
-        "message": "Message sent",
-        "response": result
-    }
+    try:
+        result = await client.send_message(
+            chat_id=request.chat_id,
+            text=request.text
+        )
+        health_checker.record_message_sent()
+        return {
+            "success": True,
+            "chat_id": request.chat_id,
+            "message": "Message sent",
+            "response": result
+        }
+    except Exception as e:
+        health_checker.record_message_failed()
+        health_checker.record_error(str(e))
+        raise
 
 
 @app.post("/api/messages/send/image", dependencies=[Depends(verify_api_key)])
@@ -848,6 +871,9 @@ async def avito_webhook_multitenant(user_hash: str, request: Request):
         if normalized.get("skip"):
             logger.info(f"Skipping message: {normalized.get('reason')}")
             return {"ok": True, "skipped": True, "reason": normalized.get("reason")}
+
+        # Record incoming message
+        health_checker.record_message_received()
 
         # Forward to n8n
         forwarded = await _forward_to_n8n(normalized)

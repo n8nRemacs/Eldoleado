@@ -27,6 +27,8 @@ from shared.storage import (
     init_storage, close_storage, get_credentials_hash,
     save_account, load_accounts, get_account, delete_account
 )
+from shared.health import get_health_checker
+from shared.alerts import get_alert_service, AlertConfig
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +39,14 @@ logger = logging.getLogger(__name__)
 
 # Channel name for storage
 CHANNEL_NAME = "vk"
+
+# Initialize health checker and alert service
+health_checker = get_health_checker("vk", "2.1.0")
+alert_service = get_alert_service(AlertConfig(
+    telegram_bot_token=getattr(settings, 'alert_telegram_bot_token', None),
+    telegram_chat_id=getattr(settings, 'alert_telegram_chat_id', None),
+    n8n_webhook_url=getattr(settings, 'alert_n8n_webhook_url', None),
+))
 
 # Multi-tenant registries
 client_cache: Dict[str, VKClient] = {}      # group_hash -> VKClient
@@ -255,13 +265,20 @@ async def vk_error_handler(request: Request, exc: VKAPIError):
 async def health_check():
     """Health check endpoint."""
     return {
-        "status": "healthy",
+        "status": health_checker.get_status().value,
         "service": "vk-community-api",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "mode": "multi-tenant",
         "accounts_loaded": len(client_cache),
+        "health_score": health_checker.calculate_health_score(),
         "timestamp": datetime.now().isoformat()
     }
+
+
+@app.get("/health/extended")
+async def health_extended():
+    """Extended health check with metrics."""
+    return health_checker.to_dict()
 
 
 @app.get("/info")
@@ -426,6 +443,10 @@ async def send_message(request: SendMessageRequest, group_hash: Optional[str] = 
         reply_to=request.reply_to,
         keyboard=request.keyboard
     )
+
+    # Record metrics
+    health_checker.record_message_sent(group_hash if group_hash else "default")
+
     return {
         "success": True,
         "peer_id": request.peer_id,
@@ -886,6 +907,11 @@ async def _handle_message_new(body: dict, account: dict):
     if from_id < 0:
         logger.debug("Skipping message from community")
         return
+
+    # Record metrics
+    group_id = account.get("group_id")
+    if group_id:
+        health_checker.record_message_received(get_group_hash(group_id))
 
     # Normalize and forward
     normalized = _normalize_vk_message(message, body, account)

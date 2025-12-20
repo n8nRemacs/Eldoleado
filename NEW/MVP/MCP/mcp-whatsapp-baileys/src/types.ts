@@ -176,3 +176,39 @@ export interface CreateSessionRequest {
 export interface SessionWithQR extends SessionInfo {
   qrCode?: string;
 }
+
+// Extended health response for monitoring
+export interface HealthResponse {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  channel: string;
+  version: string;
+  uptime: number;
+  timestamp: string;
+
+  // Session stats
+  sessions: {
+    total: number;
+    connected: number;
+    disconnected: number;
+  };
+
+  // Metrics (24h)
+  metrics: {
+    messagesSent: number;
+    messagesReceived: number;
+    messagesFailed: number;
+    errors: number;
+    reconnects: number;
+  };
+
+  // Health score
+  healthScore: number;
+}
+
+// Alert configuration
+export interface AlertConfigType {
+  telegramBotToken?: string;
+  telegramChatId?: string;
+  n8nWebhookUrl?: string;
+  enabled: boolean;
+}

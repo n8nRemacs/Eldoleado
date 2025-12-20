@@ -17,7 +17,10 @@ import {
   LocationMessageRequest,
   ContactMessageRequest,
   ReactionMessageRequest,
+  HealthResponse,
 } from './types';
+import { initAlertService } from './alerts';
+import { getMetricsCollector } from './metrics';
 
 // Simple logger wrapper
 const logger = {
@@ -34,7 +37,25 @@ const config = {
   redisUrl: process.env.REDIS_URL,
   defaultWebhookUrl: process.env.DEFAULT_WEBHOOK_URL,
   apiKey: process.env.API_KEY,
+  // Alert settings
+  alertTelegramBotToken: process.env.ALERT_TELEGRAM_BOT_TOKEN,
+  alertTelegramChatId: process.env.ALERT_TELEGRAM_CHAT_ID,
+  alertN8nWebhookUrl: process.env.ALERT_N8N_WEBHOOK_URL,
 };
+
+// Initialize alert service
+const alertService = initAlertService({
+  telegramBotToken: config.alertTelegramBotToken,
+  telegramChatId: config.alertTelegramChatId,
+  n8nWebhookUrl: config.alertN8nWebhookUrl,
+  enabled: !!(config.alertTelegramBotToken || config.alertN8nWebhookUrl),
+});
+
+// Initialize metrics collector
+const metricsCollector = getMetricsCollector();
+
+// Track server start time for uptime
+const serverStartTime = Date.now();
 
 // Initialize session manager
 const sessionManager = new SessionManager({
@@ -78,13 +99,66 @@ function sendError(res: Response, error: string, status: number = 400, code?: st
 
 // ==================== HEALTH ====================
 
+// Basic health check (backwards compatible)
 app.get('/health', (req, res) => {
+  const sessions = sessionManager.listSessions();
+  const sessionIds = sessions.map(s => s.id);
+  const aggregated = metricsCollector.getAggregatedMetrics(sessionIds);
+
   res.json({
-    status: 'ok',
+    status: aggregated.status,
     service: 'mcp-whatsapp-baileys',
-    version: '1.0.0',
-    sessions: sessionManager.listSessions().length,
+    version: '1.1.0',
+    sessions: sessions.length,
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Extended health check with metrics
+app.get('/health/extended', (req, res) => {
+  const sessions = sessionManager.listSessions();
+  const sessionIds = sessions.map(s => s.id);
+  const aggregated = metricsCollector.getAggregatedMetrics(sessionIds);
+  const uptimeSeconds = Math.floor((Date.now() - serverStartTime) / 1000);
+
+  const response: HealthResponse = {
+    status: aggregated.status,
+    channel: 'whatsapp',
+    version: '1.1.0',
+    uptime: uptimeSeconds,
+    timestamp: new Date().toISOString(),
+    sessions: {
+      total: aggregated.totalSessions,
+      connected: aggregated.connectedSessions,
+      disconnected: aggregated.disconnectedSessions,
+    },
+    metrics: {
+      messagesSent: aggregated.totalMessagesSent,
+      messagesReceived: aggregated.totalMessagesReceived,
+      messagesFailed: aggregated.totalMessagesFailed,
+      errors: aggregated.totalErrors,
+      reconnects: aggregated.totalReconnects,
+    },
+    healthScore: aggregated.healthScore,
+  };
+
+  res.json(response);
+});
+
+// Per-session health check
+app.get('/health/sessions/:sessionId', authMiddleware, (req, res) => {
+  const { sessionId } = req.params;
+  const client = sessionManager.getSession(sessionId);
+
+  if (!client) {
+    return sendError(res, 'Session not found', 404);
+  }
+
+  const metrics = metricsCollector.getSessionMetrics(sessionId);
+  sendResponse(res, {
+    sessionId,
+    status: client.getStatus(),
+    metrics,
   });
 });
 

@@ -24,6 +24,8 @@ from max_client import MaxClient, MaxAPIError
 # Add shared module to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from shared import storage
+from shared.health import get_health_checker
+from shared.alerts import get_alert_service, AlertConfig
 
 # Configure logging
 logging.basicConfig(
@@ -34,6 +36,14 @@ logger = logging.getLogger(__name__)
 
 # Channel name for storage
 CHANNEL_NAME = "max"
+
+# Initialize health checker and alert service
+health_checker = get_health_checker("max", "2.1.0")
+alert_service = get_alert_service(AlertConfig(
+    telegram_bot_token=settings.ALERT_TELEGRAM_BOT_TOKEN or None,
+    telegram_chat_id=settings.ALERT_TELEGRAM_CHAT_ID or None,
+    n8n_webhook_url=settings.ALERT_N8N_WEBHOOK_URL or None,
+))
 
 # In-memory client cache: token_hash -> MaxClient
 client_cache: Dict[str, MaxClient] = {}
@@ -404,11 +414,18 @@ async def unregister_account(
 async def health_check():
     """Health check endpoint."""
     return {
-        "status": "ok",
+        "status": health_checker.get_status().value,
         "service": "max-mcp-server",
-        "version": "2.0.0",
-        "accounts": len(client_cache)
+        "version": "2.1.0",
+        "accounts": len(client_cache),
+        "health_score": health_checker.calculate_health_score()
     }
+
+
+@app.get("/health/extended")
+async def health_extended():
+    """Extended health check with metrics."""
+    return health_checker.to_dict()
 
 
 @app.get("/info")
@@ -462,8 +479,14 @@ async def send_message(
             notify=request.notify,
             disable_link_preview=request.disable_link_preview
         )
+
+        # Record metrics
+        token_hash = get_token_hash(request.access_token)
+        health_checker.record_message_sent(token_hash)
+
         return {"status": "ok", "result": result}
     except MaxAPIError as e:
+        health_checker.record_error(get_token_hash(request.access_token), str(e))
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -730,6 +753,9 @@ async def webhook_handler(
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
     logger.info(f"Received webhook for {token_hash}: {data.get('update_type', 'unknown')}")
+
+    # Record metrics
+    health_checker.record_message_received(token_hash)
 
     # Normalize with tenant info and forward to n8n
     normalized = normalize_update(data, access_token, token_hash)
