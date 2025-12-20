@@ -27,6 +27,7 @@ export interface SessionManagerOptions {
   sessionsDir: string;
   redisUrl?: string;
   defaultWebhookUrl?: string;
+  defaultProxyUrl?: string;
 }
 
 export class SessionManager {
@@ -35,10 +36,12 @@ export class SessionManager {
   private sessionsDir: string;
   private redis: Redis | null = null;
   private defaultWebhookUrl?: string;
+  private defaultProxyUrl?: string;
 
   constructor(options: SessionManagerOptions) {
     this.sessionsDir = options.sessionsDir;
     this.defaultWebhookUrl = options.defaultWebhookUrl;
+    this.defaultProxyUrl = options.defaultProxyUrl;
 
     // Create sessions directory
     if (!fs.existsSync(this.sessionsDir)) {
@@ -100,11 +103,13 @@ export class SessionManager {
     }
 
     const webhookUrl = request.webhookUrl || this.defaultWebhookUrl;
+    const proxyUrl = request.proxyUrl || this.defaultProxyUrl;
 
     const client = new BaileysClient({
       sessionId,
       sessionsDir: this.sessionsDir,
       webhookUrl,
+      proxyUrl,
       onQR: async (qr, qrImage) => {
         logger.info(`QR code generated for session ${sessionId}`);
         await this.saveSessionToRedis(sessionId, {

@@ -22,6 +22,7 @@ import axios from 'axios';
 import P from 'pino';
 import * as QRCode from 'qrcode';
 import * as mime from 'mime-types';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 import {
   SessionStatus,
@@ -77,6 +78,7 @@ export interface BaileysClientOptions {
   sessionId: string;
   sessionsDir: string;
   webhookUrl?: string;
+  proxyUrl?: string; // socks5://user:pass@host:port
   onQR?: (qr: string, qrImage: string) => void;
   onConnected?: (info: SessionInfo) => void;
   onDisconnected?: (reason: string) => void;
@@ -89,6 +91,7 @@ export class BaileysClient {
   private sessionId: string;
   private sessionsDir: string;
   private webhookUrl?: string;
+  private proxyUrl?: string;
   private status: SessionStatus = 'disconnected';
   private qrCode: string = '';
   private qrImage: string = '';
@@ -108,6 +111,7 @@ export class BaileysClient {
     this.sessionId = options.sessionId;
     this.sessionsDir = options.sessionsDir;
     this.webhookUrl = options.webhookUrl;
+    this.proxyUrl = options.proxyUrl;
     this.onQR = options.onQR;
     this.onConnected = options.onConnected;
     this.onDisconnected = options.onDisconnected;
@@ -157,6 +161,13 @@ export class BaileysClient {
 
     const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
 
+    // Create proxy agent if proxy URL is provided
+    let agent: SocksProxyAgent | undefined;
+    if (this.proxyUrl) {
+      agent = new SocksProxyAgent(this.proxyUrl);
+      logger.info(`Using proxy: ${this.proxyUrl.replace(/:[^:@]+@/, ':***@')}`);
+    }
+
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: false,
@@ -164,6 +175,7 @@ export class BaileysClient {
       browser: ['Eldoleado', 'Chrome', '120.0.0'],
       connectTimeoutMs: 60000,
       qrTimeout: 60000,
+      agent,
     });
 
     // Save credentials on update

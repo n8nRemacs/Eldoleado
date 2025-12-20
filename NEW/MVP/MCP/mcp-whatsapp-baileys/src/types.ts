@@ -169,6 +169,7 @@ export interface CreateSessionRequest {
   sessionId?: string; // optional, will generate if not provided
   webhookUrl?: string;
   tenantId?: string;
+  proxyUrl?: string; // socks5://user:pass@host:port
 }
 
 // Session with QR

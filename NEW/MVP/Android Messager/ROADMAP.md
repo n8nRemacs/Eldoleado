@@ -1,6 +1,6 @@
 # Android Messenger — Roadmap & Technical Documentation
 
-**Last Updated:** 2025-12-19 16:15 (MSK, UTC+3)
+**Last Updated:** 2025-12-20 09:00 (MSK, UTC+3)
 
 ---
 
@@ -17,25 +17,73 @@
 | **Messages API** | ✅ Ready | ELO_API_Android_Messages |
 | **ChatActivity** | ✅ Built | Полный UI чата |
 | **Telegram Setup** | ❌ Problem | Токен слетает при переустановке |
-| **WhatsApp Setup** | 🔄 In Progress | nodejs-mobile, зависает соединение |
+| **WhatsApp Setup** | ✅ SOLVED | Baileys + резидентный proxy (geonix.com) |
 | **Avito Setup** | ❌ Problem | Токен не подхватывается, неправильная страница |
 | **MAX Setup** | ❌ Problem | Требует QR, но API MAX не поддерживает |
 
 ---
 
-## CRITICAL ISSUES (19.12.2025)
+## WhatsApp — SOLVED (20.12.2025)
 
-### 1. WhatsApp — WebSocket Connection Hangs
+### Solution: Baileys + Residential Proxy
 
-**Status:** 🔄 In Progress
+**Status:** ✅ WORKING
 
-**Problem:** QR-код не генерируется, соединение зависает в статусе "connecting"
+**Problem was:**
+- nodejs-mobile в APK — WebSocket зависал (datacenter IP блокируются WhatsApp)
+- Серверный Baileys без proxy — тоже блокировка (405, 408 ошибки)
+- VPN на рабочей станции направляет трафик через datacenter
+
+**Solution:**
+- Добавили поддержку SOCKS5 proxy в mcp-whatsapp-baileys
+- Используем резидентный proxy от geonix.com
+- Успешно подключились и отправили сообщения!
+
+**Proxy details (geonix.com):**
+```
+Host: res.geonix.com
+Port: 10000
+Login: 4bac75b003ba6c8f
+Password: 1Cl0A5wm
+Plan: 1GB until 20.01.2026
+URL: socks5://4bac75b003ba6c8f:1Cl0A5wm@res.geonix.com:10000
+```
+
+**How to run:**
+```bash
+cd /c/Users/User/Eldoleado/NEW/MVP/MCP/mcp-whatsapp-baileys
+npm install
+npm run build
+PORT=3003 npm start
+```
+
+**API usage:**
+```bash
+# Create session with proxy
+curl -X POST http://localhost:3003/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId": "wa-proxy", "proxyUrl": "socks5://4bac75b003ba6c8f:1Cl0A5wm@res.geonix.com:10000"}'
+
+# Get QR code
+curl http://localhost:3003/sessions/wa-proxy/qr
+
+# Send message (use node for UTF-8)
+node -e "const http=require('http');const data=JSON.stringify({sessionId:'wa-proxy',to:'79991234567',text:'Hello!'});const req=http.request({hostname:'localhost',port:3003,path:'/messages/text',method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(data)}},res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>console.log(d))});req.write(data);req.end()"
+```
+
+---
+
+## Other Issues (19.12.2025)
+
+### Previous WhatsApp attempts (archived)
 
 **What we tried:**
 1. ❌ **Termux + Node.js** — репозиторий недоступен, dependency hell
-2. ✅ **nodejs-mobile embedded in APK** — частично работает
+2. ❌ **nodejs-mobile embedded in APK** — WebSocket зависает (datacenter IP)
+3. ❌ **Server Baileys without proxy** — blocked (405, 408)
+4. ✅ **Baileys + residential proxy** — WORKS!
 
-**What's done with nodejs-mobile:**
+**What was done with nodejs-mobile (archived):**
 - ✅ libnode.so v18.20.4 встроен в APK (arm64-v8a, armeabi-v7a, x86_64)
 - ✅ JNI bridge (native-lib.cpp) для запуска Node.js
 - ✅ CMake конфигурация для нативной сборки

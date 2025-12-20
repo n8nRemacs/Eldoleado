@@ -42,102 +42,94 @@ git add -A && git commit -m "Session update: brief description" && git push
 
 ---
 
-## Last session: 19 December 2025, 16:15 (MSK, UTC+3)
+## Last session: 20 December 2025, 09:00 (MSK, UTC+3)
 
 ---
 
 ## What's done in this session
 
-### 1. WhatsApp nodejs-mobile Integration 🔄
+### 1. WhatsApp Baileys + Residential Proxy — SOLVED!
 
-Попытка встроить Node.js + Baileys прямо в APK:
+**Problem was:**
+- nodejs-mobile in APK — WebSocket hangs (datacenter IPs blocked by WhatsApp)
+- Server Baileys without proxy — also blocked (405, 408 errors)
+- VPN on workstation routes traffic through datacenter
 
-**Completed:**
-- ✅ libnode.so v18.20.4 встроен (arm64-v8a, armeabi-v7a, x86_64)
-- ✅ JNI bridge (native-lib.cpp) с логированием
-- ✅ CMake конфигурация
-- ✅ NodeJSBridge.kt с рекурсивным копированием assets
-- ✅ main.js с HTTP API на порту 3000
-- ✅ ESM module fix (dynamic import для Baileys)
-- ✅ crypto.subtle polyfill
-- ✅ pino-compatible logger
-- ✅ Файловое логирование (node.log)
-- ✅ DNS работает
-- ✅ Pairing code endpoint добавлен
+**Solution:**
+- Added SOCKS5 proxy support to mcp-whatsapp-baileys
+- Used residential proxy from geonix.com
+- Successfully connected and sent messages!
 
-**Current problem:**
-WebSocket соединение с WhatsApp зависает в статусе "connecting"
+**What was done:**
+- ✅ Installed socks-proxy-agent in mcp-whatsapp-baileys
+- ✅ Added proxyUrl option to BaileysClientOptions
+- ✅ Added proxyUrl to CreateSessionRequest
+- ✅ Added defaultProxyUrl to SessionManagerOptions
+- ✅ Proxy agent created in connect() method
+- ✅ Tested connection — QR generated, scanned, connected!
+- ✅ Sent test messages — working!
 
-**Logs show:**
+**Proxy details (geonix.com):**
 ```
-[CONN] connection.update: {"connection":"connecting","receivedPendingNotifications":false}
+Host: res.geonix.com
+Port: 10000
+Login: 4bac75b003ba6c8f
+Password: 1Cl0A5wm
+Plan: 1GB until 20.01.2026
 ```
-После этого никаких событий — ни QR, ни ошибок.
 
-### 2. Documented Channel Issues
+### 2. Files Modified
 
-| Channel | Issue |
-|---------|-------|
-| **WhatsApp** | WebSocket зависает, QR не генерируется |
-| **Telegram** | Токен слетает при переустановке приложения |
-| **Avito** | Токен не подхватывается, неправильная страница авторизации |
-| **MAX** | Требует QR-код, но API не поддерживает |
+| File | Changes |
+|------|---------|
+| `NEW/MVP/MCP/mcp-whatsapp-baileys/src/baileys.ts` | Added SocksProxyAgent import, proxyUrl option, agent in makeWASocket |
+| `NEW/MVP/MCP/mcp-whatsapp-baileys/src/session.ts` | Added defaultProxyUrl, pass proxyUrl to BaileysClient |
+| `NEW/MVP/MCP/mcp-whatsapp-baileys/src/types.ts` | Added proxyUrl to CreateSessionRequest |
+| `NEW/MVP/MCP/mcp-whatsapp-baileys/package.json` | Added socks-proxy-agent dependency |
 
 ---
 
 ## Current system state
 
 **WhatsApp:**
-- Node.js запускается в APK
-- HTTP сервер работает на порту 3000
-- Baileys загружается
-- WebSocket НЕ устанавливает соединение с WhatsApp
+- ✅ Baileys server works with residential proxy
+- ✅ QR code generation works
+- ✅ Connection established
+- ✅ Sending messages works
+- Session saved in `NEW/MVP/MCP/mcp-whatsapp-baileys/sessions/wa-proxy/`
 
-**How to debug:**
-```bash
-# Check Node.js logs
-adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"
-
-# Clear and reinstall
-adb shell "run-as com.eldoleado.app rm -rf files/nodejs"
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+**Running services:**
 ```
-
-**Files modified:**
-- `app/src/main/cpp/native-lib.cpp` — добавлено логирование
-- `app/src/main/assets/nodejs/main.js` — файловое логирование, crypto polyfill, pairing code
-- `NEW/MVP/Android Messager/ROADMAP.md` — документация проблем
+localhost:3003 — mcp-whatsapp-baileys (WhatsApp API)
+```
 
 ---
 
 ## NEXT STEPS
 
-### Priority 1: WhatsApp — Try Pairing Code
-1. [ ] Добавить UI для ввода номера телефона
-2. [ ] Вызвать `/pair` endpoint с номером
-3. [ ] Показать пользователю код для ввода в WhatsApp
+### Priority 1: Deploy WhatsApp to Server
+1. [ ] Deploy mcp-whatsapp-baileys to Finnish server (217.145.79.27)
+2. [ ] Configure with proxy
+3. [ ] Set up webhook for incoming messages
 
-### Priority 2: WhatsApp — Alternative Solutions
-1. [ ] Попробовать VPN/proxy
-2. [ ] Исследовать wa-js или другие библиотеки
-3. [ ] Рассмотреть WhatsApp Business API
+### Priority 2: Integrate with Android App
+1. [ ] Update WhatsAppSetupActivity to use server API instead of nodejs-mobile
+2. [ ] Remove nodejs-mobile code from APK (reduce size)
 
 ### Priority 3: Fix Other Channels
-1. [ ] Telegram — сохранять токен на сервере
-2. [ ] Avito — исправить WebView и cookies
-3. [ ] MAX — изменить на bot token вместо QR
+1. [ ] Telegram — save token on server
+2. [ ] Avito — fix WebView
+3. [ ] MAX — use bot token
 
 ---
 
-## Key files to look at
+## Key files
 
-| File | What |
-|------|------|
-| `NEW/MVP/Android Messager/ROADMAP.md` | Документация проблем с каналами |
-| `app/src/main/assets/nodejs/main.js` | WhatsApp bridge script |
-| `app/src/main/cpp/native-lib.cpp` | JNI bridge |
-| `app/src/main/java/.../nodejs/NodeJSBridge.kt` | Kotlin wrapper |
-| `Start.md` | Контекст для старта сессии |
+| File | Description |
+|------|-------------|
+| `NEW/MVP/MCP/mcp-whatsapp-baileys/` | WhatsApp server with proxy support |
+| `Start.md` | Session start context |
+| `NEW/MVP/Android Messager/ROADMAP.md` | Android Messenger documentation |
 
 ---
 
@@ -145,5 +137,5 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 1. `git pull`
 2. Read `Start.md`
-3. Read `NEW/MVP/Android Messager/ROADMAP.md` для понимания проблем
-4. Проверить логи: `adb shell "run-as com.eldoleado.app cat files/nodejs/node.log"`
+3. Start WhatsApp server: `cd NEW/MVP/MCP/mcp-whatsapp-baileys && PORT=3003 npm start`
+4. Session already exists in `sessions/wa-proxy/`
