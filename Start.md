@@ -79,6 +79,25 @@ fun sendChatMessage(...)
 
 ---
 
+## Baileys Session (ЛОКАЛЬНО!)
+
+**ВАЖНО: Baileys работает ЛОКАЛЬНО на рабочем компе, НЕ на сервере!**
+
+```bash
+cd /c/Users/User/Documents/Eldoleado/NEW/MVP/MCP/mcp-whatsapp-baileys
+npm run build && npm start
+```
+
+**Port:** localhost:8766
+**Session ID:** test-local
+**Session path:** C:\Users\User\Documents\Eldoleado\NEW\MVP\MCP\mcp-whatsapp-baileys\sessions\test-local\
+**Phone:** 79171708077 (Ремакс)
+**Webhook:** https://n8n.n8nsrv.ru/webhook/whatsapp-incoming
+
+**ВАЖНО:** В БД `elo_t_channel_accounts.account_id` должен совпадать с Session ID!
+
+---
+
 ## Тестовые данные
 
 - **Оператор:** Test Admin (22222222-2222-2222-2222-222222222222)
@@ -91,6 +110,14 @@ fun sendChatMessage(...)
 ## Команды для тестирования
 
 ```bash
+# === BAILEYS (ЛОКАЛЬНО!) ===
+cd /c/Users/User/Documents/Eldoleado/NEW/MVP/MCP/mcp-whatsapp-baileys
+npm run build && npm start   # Запустить Baileys
+
+# Check Baileys status
+curl http://localhost:8766/sessions
+
+# === n8n webhooks ===
 # Тест messages webhook
 curl "https://n8n.n8nsrv.ru/webhook/android/messages?dialog_id=cff56064-1fc3-4152-8e64-6e0266a87bf6&session_token=85bc5364-7765-4562-be9e-02d899bb575e"
 
@@ -98,4 +125,10 @@ curl "https://n8n.n8nsrv.ru/webhook/android/messages?dialog_id=cff56064-1fc3-415
 curl -X POST "https://n8n.n8nsrv.ru/webhook/android/normalize" \
   -H "Content-Type: application/json" \
   -d '{"session_token":"85bc5364-7765-4562-be9e-02d899bb575e","dialog_id":"cff56064-1fc3-4152-8e64-6e0266a87bf6","text":"тест"}'
+
+# === n8n / Redis (сервер 185.221.214.83) ===
+ssh root@185.221.214.83 "docker exec n8n-redis redis-cli LRANGE queue:incoming 0 5"
+
+# === Database ===
+ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_t_messages LIMIT 5;'"
 ```

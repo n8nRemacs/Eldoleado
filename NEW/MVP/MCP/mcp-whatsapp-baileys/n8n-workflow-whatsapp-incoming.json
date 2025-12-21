@@ -1,0 +1,213 @@
+{
+  "name": "WhatsApp Incoming → Android",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-incoming",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "whatsapp-incoming"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.event }}",
+              "rightValue": "message",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "filter-1",
+      "name": "Is Message?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-1",
+              "name": "channel",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "assign-2",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-3",
+              "name": "messageId",
+              "value": "={{ $json.data.messageId }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-4",
+              "name": "from",
+              "value": "={{ $json.data.from }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-5",
+              "name": "fromName",
+              "value": "={{ $json.data.fromName }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-6",
+              "name": "text",
+              "value": "={{ $json.data.text }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-7",
+              "name": "type",
+              "value": "={{ $json.data.type }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-8",
+              "name": "timestamp",
+              "value": "={{ $json.data.timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "assign-9",
+              "name": "isGroup",
+              "value": "={{ $json.data.isGroup }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "transform-1",
+      "name": "Transform Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/android-push",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "channel",
+              "value": "={{ $json.channel }}"
+            },
+            {
+              "name": "from",
+              "value": "={{ $json.from }}"
+            },
+            {
+              "name": "fromName",
+              "value": "={{ $json.fromName }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $json.type }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-1",
+      "name": "Send to Android API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [910, 300]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Message?": {
+      "main": [
+        [
+          {
+            "node": "Transform Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Message": {
+      "main": [
+        [
+          {
+            "node": "Send to Android API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "eldoleado"
+  },
+  "tags": []
+}
