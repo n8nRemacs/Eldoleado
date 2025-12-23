@@ -1,0 +1,290 @@
+{
+  "name": "ELO_Avito_Session_Refresh",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 10:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "notes": "Runs once daily at 10:00. Change time as needed."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, tenant_id, account_id, account_name, credentials, session_status\nFROM elo_t_channel_accounts \nWHERE channel_id = 3 \n  AND is_active = true \n  AND credentials->>'sessid' IS NOT NULL\nORDER BY updated_at ASC",
+        "options": {}
+      },
+      "id": "get-avito-accounts",
+      "name": "Get All Avito Accounts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-batches",
+      "name": "One by One",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "value": "={{ Math.floor(Math.random() * (90 - 30 + 1)) + 30 }}"
+      },
+      "id": "random-wait",
+      "name": "Wait 30-90s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [660, 0],
+      "notes": "Random delay between accounts for anti-detection"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://m.avito.ru/api/1/profile/short",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "=sessid={{ $json.credentials.sessid }}; auth=1"
+            },
+            {
+              "name": "User-Agent",
+              "value": "={{ ['Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36', 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Mobile Safari/537.36', 'Mozilla/5.0 (Linux; Android 12; Samsung Galaxy S21) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36'][Math.floor(Math.random() * 3)] }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "check-session",
+      "name": "Check Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 0],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-valid",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-response",
+      "name": "Session Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_channel_accounts \nSET session_status = 'active',\n    updated_at = NOW(),\n    error_count = 0,\n    last_error = NULL\nWHERE id = '{{ $('One by One').item.json.id }}'",
+        "options": {}
+      },
+      "id": "update-active",
+      "name": "Mark Active",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1320, -100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_channel_accounts \nSET session_status = 'expired',\n    updated_at = NOW(),\n    error_count = error_count + 1,\n    last_error = 'Session expired - 401 Unauthorized'\nWHERE id = '{{ $('One by One').item.json.id }}'",
+        "options": {}
+      },
+      "id": "update-expired",
+      "name": "Mark Expired",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1320, 100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "no-op-next",
+      "name": "Next Account",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1540, -100]
+    }
+  ],
+  "connections": {
+    "Daily 10:00": {
+      "main": [
+        [
+          {
+            "node": "Get All Avito Accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Avito Accounts": {
+      "main": [
+        [
+          {
+            "node": "One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One by One": {
+      "main": [
+        [
+          {
+            "node": "Wait 30-90s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Next Account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30-90s": {
+      "main": [
+        [
+          {
+            "node": "Check Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Session": {
+      "main": [
+        [
+          {
+            "node": "Session Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Expired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session Valid?": {
+      "main": [
+        [
+          {
+            "node": "Mark Active",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Expired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Active": {
+      "main": [
+        [
+          {
+            "node": "One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Expired": {
+      "main": [
+        [
+          {
+            "node": "One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Next Account": {
+      "main": []
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "Avito"
+    }
+  ]
+}

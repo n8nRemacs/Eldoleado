@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from n8n_client import N8NClient, N8NClientError
+from db import init_db, close_db, get_pool
 from auth import get_current_operator, create_token, TokenData
 from models import (
     LoginRequest, LoginResponse,
@@ -23,6 +24,7 @@ from models import (
     DeviceCreateRequest, DeviceUpdateRequest,
     RepairCreateRequest, RepairUpdateRequest,
     RegisterFCMRequest, UpdateSettingsRequest, UpdateAppealModeRequest,
+    AvitoAuthRequest, ChannelAuthResponse, ChannelStatusResponse,
     APIResponse
 )
 
@@ -43,8 +45,10 @@ async def lifespan(app: FastAPI):
     global n8n_client
     n8n_client = N8NClient()
     await n8n_client.connect()
+    await init_db()
     logger.info("API Gateway started")
     yield
+    await close_db()
     await n8n_client.close()
     logger.info("API Gateway stopped")
 
@@ -370,6 +374,136 @@ async def update_settings(
         settings=request.settings
     )
     return result
+
+
+# ========== Channel Auth Endpoints ==========
+
+CHANNEL_IDS = {
+    "avito": 3,
+    "telegram": 1,
+    "whatsapp": 2,
+    "vk": 4,
+    "max": 5,
+}
+
+
+@app.post("/api/channels/avito/auth", response_model=ChannelAuthResponse)
+async def avito_auth(
+    request: AvitoAuthRequest,
+    operator: TokenData = Depends(get_current_operator)
+):
+    """Save Avito sessid to database."""
+    import json
+
+    pool = await get_pool()
+
+    credentials = {
+        "sessid": request.sessid,
+        "auth": "1"
+    }
+    if request.user_id:
+        credentials["user_id"] = request.user_id
+    if request.email:
+        credentials["email"] = request.email
+
+    try:
+        # Upsert: insert or update on conflict
+        result = await pool.fetchrow("""
+            INSERT INTO elo_t_channel_accounts
+                (tenant_id, channel_id, account_id, account_name, credentials, session_status, is_active)
+            VALUES
+                ($1, $2, $3, $4, $5, 'active', true)
+            ON CONFLICT (tenant_id, channel_id, account_id)
+            DO UPDATE SET
+                credentials = $5,
+                account_name = COALESCE($4, elo_t_channel_accounts.account_name),
+                session_status = 'active',
+                updated_at = NOW(),
+                error_count = 0,
+                last_error = NULL
+            RETURNING id, session_status
+        """,
+            operator.tenant_id,
+            CHANNEL_IDS["avito"],
+            request.user_id or "default",
+            request.email,
+            json.dumps(credentials)
+        )
+
+        logger.info(f"Avito auth saved for tenant {operator.tenant_id}")
+
+        return ChannelAuthResponse(
+            success=True,
+            channel_account_id=str(result["id"]),
+            session_status=result["session_status"]
+        )
+
+    except Exception as e:
+        logger.error(f"Avito auth error: {e}")
+        return ChannelAuthResponse(
+            success=False,
+            error=str(e)
+        )
+
+
+@app.get("/api/channels/avito/status", response_model=ChannelStatusResponse)
+async def avito_status(
+    operator: TokenData = Depends(get_current_operator)
+):
+    """Get Avito channel status."""
+    pool = await get_pool()
+
+    try:
+        result = await pool.fetchrow("""
+            SELECT account_name, session_status, updated_at
+            FROM elo_t_channel_accounts
+            WHERE tenant_id = $1 AND channel_id = $2 AND is_active = true
+            LIMIT 1
+        """, operator.tenant_id, CHANNEL_IDS["avito"])
+
+        if not result:
+            return ChannelStatusResponse(
+                success=True,
+                channel="avito",
+                session_status="not_configured"
+            )
+
+        return ChannelStatusResponse(
+            success=True,
+            channel="avito",
+            session_status=result["session_status"],
+            account_name=result["account_name"],
+            last_check=result["updated_at"]
+        )
+
+    except Exception as e:
+        logger.error(f"Avito status error: {e}")
+        return ChannelStatusResponse(
+            success=False,
+            channel="avito",
+            error=str(e)
+        )
+
+
+@app.delete("/api/channels/avito/auth")
+async def avito_logout(
+    operator: TokenData = Depends(get_current_operator)
+):
+    """Deactivate Avito channel."""
+    pool = await get_pool()
+
+    try:
+        await pool.execute("""
+            UPDATE elo_t_channel_accounts
+            SET is_active = false, session_status = 'disconnected', updated_at = NOW()
+            WHERE tenant_id = $1 AND channel_id = $2
+        """, operator.tenant_id, CHANNEL_IDS["avito"])
+
+        return {"success": True, "message": "Avito disconnected"}
+
+    except Exception as e:
+        logger.error(f"Avito logout error: {e}")
+        return {"success": False, "error": str(e)}
 
 
 # ========== Run Server ==========

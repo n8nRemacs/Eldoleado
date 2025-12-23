@@ -1,0 +1,211 @@
+{
+  "name": "ELO_API_Channel_Avito_Auth",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "android/channels/avito/auth",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-avito-auth",
+      "name": "Webhook - Avito Auth",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "android-channels-avito-auth"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-sessid",
+              "leftValue": "={{ $json.body.sessid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "has-operator",
+              "leftValue": "={{ $json.body.operator_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-valid-request",
+      "name": "IF - Valid Request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT tenant_id FROM elo_t_operators WHERE id = '{{ $json.body.operator_id }}' LIMIT 1;",
+        "options": {}
+      },
+      "id": "get-tenant",
+      "name": "Get Tenant ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, -100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_channel_accounts\n  (tenant_id, channel_id, account_id, account_name, credentials, session_status, is_active)\nVALUES\n  (\n    '{{ $json.tenant_id }}',\n    3,\n    '{{ $('Webhook - Avito Auth').item.json.body.user_id || 'default' }}',\n    '{{ $('Webhook - Avito Auth').item.json.body.email || '' }}',\n    '{\"sessid\": \"{{ $('Webhook - Avito Auth').item.json.body.sessid }}\", \"auth\": \"1\"}'::jsonb,\n    'active',\n    true\n  )\nON CONFLICT (tenant_id, channel_id, account_id)\nDO UPDATE SET\n  credentials = '{\"sessid\": \"{{ $('Webhook - Avito Auth').item.json.body.sessid }}\", \"auth\": \"1\"}'::jsonb,\n  account_name = COALESCE(NULLIF('{{ $('Webhook - Avito Auth').item.json.body.email || '' }}', ''), elo_t_channel_accounts.account_name),\n  session_status = 'active',\n  updated_at = NOW(),\n  error_count = 0,\n  last_error = NULL\nRETURNING id, session_status;",
+        "options": {}
+      },
+      "id": "upsert-channel",
+      "name": "Upsert Channel Account",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [660, -100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"channel_account_id\": \"{{ $json.id }}\",\n  \"session_status\": \"{{ $json.session_status }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "response-success",
+      "name": "Response - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Missing required fields: sessid, operator_id\"\n}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "response-error",
+      "name": "Response - Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 100]
+    }
+  ],
+  "connections": {
+    "Webhook - Avito Auth": {
+      "main": [
+        [
+          {
+            "node": "IF - Valid Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Valid Request": {
+      "main": [
+        [
+          {
+            "node": "Get Tenant ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tenant ID": {
+      "main": [
+        [
+          {
+            "node": "Upsert Channel Account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Channel Account": {
+      "main": [
+        [
+          {
+            "node": "Response - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "API"
+    }
+  ]
+}

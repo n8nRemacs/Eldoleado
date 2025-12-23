@@ -16,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.eldoleado.app.R
+import com.eldoleado.app.SessionManager
 import com.eldoleado.app.channels.ChannelCredentialsManager
 import com.eldoleado.app.channels.ChannelStatus
 import kotlinx.coroutines.CoroutineScope
@@ -32,9 +33,11 @@ class AvitoSetupActivity : AppCompatActivity() {
         private const val TAG = "AvitoSetupActivity"
         private const val AVITO_URL = "https://m.avito.ru/profile"
         private const val AVITO_LOGIN_URL = "https://m.avito.ru/login"
+        private const val N8N_WEBHOOK_URL = "https://n8n.n8nsrv.ru/webhook/android/channels/avito/auth"
     }
 
     private lateinit var channelCredentialsManager: ChannelCredentialsManager
+    private lateinit var sessionManager: SessionManager
 
     // Views
     private lateinit var btnBack: ImageView
@@ -54,6 +57,7 @@ class AvitoSetupActivity : AppCompatActivity() {
         setContentView(R.layout.activity_avito_setup)
 
         channelCredentialsManager = ChannelCredentialsManager(this)
+        sessionManager = SessionManager(this)
 
         initViews()
         setupListeners()
@@ -183,8 +187,11 @@ class AvitoSetupActivity : AppCompatActivity() {
                         val name = json.optString("name", null)
                         val userId = json.optString("id", null)
 
-                        // Save credentials
+                        // Save credentials locally
                         channelCredentialsManager.saveAvito(sessid, userId, email ?: name)
+
+                        // Send to server (n8n -> PostgreSQL)
+                        sendToServer(sessid, userId, email ?: name)
 
                         withContext(Dispatchers.Main) {
                             showSuccess(email ?: name ?: "Подключено")
@@ -192,6 +199,7 @@ class AvitoSetupActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         // Even if parsing fails, sessid might still be valid
                         channelCredentialsManager.saveAvito(sessid, null, null)
+                        sendToServer(sessid, null, null)
 
                         withContext(Dispatchers.Main) {
                             showSuccess("Подключено")
@@ -199,19 +207,63 @@ class AvitoSetupActivity : AppCompatActivity() {
                     }
                 } else {
                     // Try alternative check
+                    channelCredentialsManager.saveAvito(sessid, null, null)
+                    sendToServer(sessid, null, null)
+
                     withContext(Dispatchers.Main) {
-                        // Save anyway if we got to profile page
-                        channelCredentialsManager.saveAvito(sessid, null, null)
                         showSuccess("Подключено")
                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error verifying sessid", e)
+                // Save anyway - user did login
+                channelCredentialsManager.saveAvito(sessid, null, null)
+                sendToServer(sessid, null, null)
+
                 withContext(Dispatchers.Main) {
-                    // Save anyway - user did login
-                    channelCredentialsManager.saveAvito(sessid, null, null)
                     showSuccess("Подключено")
                 }
+            }
+        }
+    }
+
+    private fun sendToServer(sessid: String, userId: String?, email: String?) {
+        val operatorId = sessionManager.getOperatorId()
+        if (operatorId.isNullOrBlank()) {
+            Log.w(TAG, "No operator_id, skipping server sync")
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL(N8N_WEBHOOK_URL)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+
+                val body = JSONObject().apply {
+                    put("operator_id", operatorId)
+                    put("sessid", sessid)
+                    userId?.let { put("user_id", it) }
+                    email?.let { put("email", it) }
+                }
+
+                connection.outputStream.bufferedWriter().use { it.write(body.toString()) }
+
+                val responseCode = connection.responseCode
+                Log.d(TAG, "Server sync response: $responseCode")
+
+                if (responseCode == 200) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    Log.d(TAG, "Server sync success: $response")
+                } else {
+                    Log.w(TAG, "Server sync failed: $responseCode")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending to server", e)
             }
         }
     }

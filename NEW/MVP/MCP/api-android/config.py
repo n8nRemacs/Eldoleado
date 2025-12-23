@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     n8n_base_url: str = "https://n8n.n8nsrv.ru/webhook"
     n8n_timeout: int = 30
 
+    # PostgreSQL
+    database_url: str = "postgresql://supabase_admin:your-super-secret-password@185.221.214.83:6544/postgres"
+
     # JWT Settings
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"

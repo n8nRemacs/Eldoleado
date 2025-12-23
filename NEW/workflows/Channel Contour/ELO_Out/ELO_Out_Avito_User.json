@@ -1,0 +1,522 @@
+{
+  "name": "ELO_Out_Avito_User",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 5
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule 5s",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-800, 0]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:outgoing:avito",
+        "tail": false,
+        "options": {
+          "propertyName": "message_json"
+        }
+      },
+      "id": "redis-pop",
+      "name": "Redis Pop Message",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [-576, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-n8n",
+          "name": "Redis n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.message_json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-message",
+      "name": "IF Has Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-352, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\nreturn {\n  out_message: message\n};"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, -100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  ca.id,\n  ca.credentials->>'sessid' as sessid,\n  ca.session_status\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.out_message.tenant_id }}'::uuid\n  AND ca.channel_id = 3\n  AND ca.is_active = true\n  AND ca.session_status = 'active'\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "get-sessid",
+      "name": "Get Sessid from DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [96, -100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-sessid",
+              "leftValue": "={{ $json.sessid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-sessid-exists",
+      "name": "IF Sessid Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [320, -100]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "value": "={{ Math.floor(Math.random() * (7 - 3 + 1)) + 3 }}"
+      },
+      "id": "humanized-wait",
+      "name": "Humanized Wait 3-7s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [544, -200],
+      "notes": "Random delay for human-like behavior"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = $('Parse Message').first().json;\nconst sessidData = $('Get Sessid from DB').first().json;\n\nreturn {\n  ...parsed,\n  sessid: sessidData.sessid,\n  channel_account_id: sessidData.id\n};"
+      },
+      "id": "prepare-send",
+      "name": "Prepare Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [768, -200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://m.avito.ru/web/1/messenger/sendTextMessage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "=sessid={{ $json.sessid }}; auth=1"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "={{ ['Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36', 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Mobile Safari/537.36', 'Mozilla/5.0 (Linux; Android 12; Samsung Galaxy S21) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36'][Math.floor(Math.random() * 3)] }}"
+            },
+            {
+              "name": "Origin",
+              "value": "https://m.avito.ru"
+            },
+            {
+              "name": "Referer",
+              "value": "https://m.avito.ru/profile/messenger"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"channelId\": \"{{ $json.out_message.external_chat_id }}\",\n  \"text\": {{ JSON.stringify($json.out_message.message_text) }},\n  \"idempotencyKey\": \"{{ $runIndex }}-{{ Date.now() }}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "send-avito-user",
+      "name": "Send via User API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [992, -200],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-send-success",
+      "name": "IF Send Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1216, -200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $('Prepare Send').item.json.out_message.dialog_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "update-dialog-success",
+      "name": "Update Dialog Success",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1440, -300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Send failed - check if session expired (401)\nconst prepared = $('Prepare Send').first().json;\nconst response = $input.first().json;\n\nconst statusCode = response.statusCode || response.code;\nconst isSessionExpired = statusCode === 401 || statusCode === 403;\n\nreturn {\n  success: false,\n  error: response.message || 'Send failed',\n  status_code: statusCode,\n  session_expired: isSessionExpired,\n  channel_account_id: prepared.channel_account_id,\n  out_message: prepared.out_message\n};"
+      },
+      "id": "handle-error",
+      "name": "Handle Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "expired",
+              "leftValue": "={{ $json.session_expired }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-session-expired",
+      "name": "IF Session Expired",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1664, -100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_channel_accounts SET\n  session_status = 'expired',\n  last_error = 'Session expired during send',\n  error_count = error_count + 1,\n  updated_at = NOW()\nWHERE id = '{{ $json.channel_account_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "mark-session-expired",
+      "name": "Mark Session Expired",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1888, -200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "queue:outgoing:avito:failed",
+        "messageData": "={{ JSON.stringify($json) }}",
+        "tail": true
+      },
+      "id": "push-to-failed",
+      "name": "Push to Failed Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1888, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-n8n",
+          "name": "Redis n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// No sessid found - session not configured or expired\nconst parsed = $('Parse Message').first().json;\n\nreturn {\n  success: false,\n  error: 'No active Avito session found for tenant',\n  out_message: parsed.out_message\n};"
+      },
+      "id": "no-sessid-error",
+      "name": "No Sessid Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [544, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No message in queue\nreturn { empty: true };"
+      },
+      "id": "no-message",
+      "name": "No Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, 100]
+    }
+  ],
+  "connections": {
+    "Schedule 5s": {
+      "main": [
+        [
+          {
+            "node": "Redis Pop Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Pop Message": {
+      "main": [
+        [
+          {
+            "node": "IF Has Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Message": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Get Sessid from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sessid from DB": {
+      "main": [
+        [
+          {
+            "node": "IF Sessid Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Sessid Exists": {
+      "main": [
+        [
+          {
+            "node": "Humanized Wait 3-7s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Sessid Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Humanized Wait 3-7s": {
+      "main": [
+        [
+          {
+            "node": "Prepare Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Send": {
+      "main": [
+        [
+          {
+            "node": "Send via User API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send via User API": {
+      "main": [
+        [
+          {
+            "node": "IF Send Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Send Success": {
+      "main": [
+        [
+          {
+            "node": "Update Dialog Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Error": {
+      "main": [
+        [
+          {
+            "node": "IF Session Expired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Expired": {
+      "main": [
+        [
+          {
+            "node": "Mark Session Expired",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Push to Failed Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Session Expired": {
+      "main": []
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "Out"
+    }
+  ]
+}

@@ -129,6 +129,30 @@ class UpdateAppealModeRequest(BaseModel):
     mode: str = Field(..., description="ai or manual")
 
 
+# ========== Channel Auth Models ==========
+
+class AvitoAuthRequest(BaseModel):
+    sessid: str = Field(..., description="Avito sessid cookie")
+    user_id: Optional[str] = Field(None, description="Avito user ID")
+    email: Optional[str] = Field(None, description="Avito account email/name")
+
+
+class ChannelAuthResponse(BaseModel):
+    success: bool
+    channel_account_id: Optional[str] = None
+    session_status: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ChannelStatusResponse(BaseModel):
+    success: bool
+    channel: str
+    session_status: Optional[str] = None
+    account_name: Optional[str] = None
+    last_check: Optional[datetime] = None
+    error: Optional[str] = None
+
+
 # ========== Generic Response ==========
 
 class APIResponse(BaseModel):

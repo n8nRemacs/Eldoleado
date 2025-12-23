@@ -1,0 +1,200 @@
+{
+  "name": "ELO_In_Avito_User",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "avito/incoming",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-incoming",
+      "name": "Webhook - Avito Incoming",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "avito-incoming",
+      "notes": "Receives messages from avito-listener Python service"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.body.external_chat_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-valid",
+      "name": "IF Valid Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and normalize message from webhook\nconst body = $json.body;\nconst rawMsg = body.raw_message || {};\nconst msg = rawMsg.message || rawMsg;\n\n// Extract message body\nconst msgBody = msg.body || {};\nconst textObj = msgBody.text || {};\n\n// Determine message type\nlet msgType = 'text';\nlet mediaUrl = null;\nlet mediaInfo = {};\n\nif (msgBody.image) {\n  msgType = 'image';\n  mediaUrl = msgBody.image.url || msgBody.image.imageUrl;\n  mediaInfo = { image_id: msgBody.image.imageId };\n} else if (msgBody.voice) {\n  msgType = 'voice';\n  mediaInfo = { voice_id: msgBody.voice.voiceId, duration: msgBody.voice.duration };\n} else if (msgBody.video) {\n  msgType = 'video';\n  mediaInfo = { video_id: msgBody.video.videoId };\n} else if (msgBody.file) {\n  msgType = 'file';\n  mediaInfo = { file_id: msgBody.file.fileId, file_name: msgBody.file.name };\n}\n\n// Convert timestamp\nconst createdAt = msg.createdAt \n  ? new Date(msg.createdAt / 1000000).toISOString() \n  : body.received_at;\n\nreturn {\n  // ELO standard fields\n  channel_account_id: body.channel_account_id,\n  tenant_id: body.tenant_id,\n  channel_type: 'avito',\n  external_chat_id: body.external_chat_id || msg.channelId,\n  external_message_id: body.external_message_id || msg.id,\n  \n  // Message content\n  message_type: msgType,\n  message_text: body.message_text || textObj.text,\n  media_url: mediaUrl,\n  media_info: Object.keys(mediaInfo).length > 0 ? mediaInfo : null,\n  \n  // Sender info\n  sender_id: body.sender_id || msg.authorId,\n  sender_name: rawMsg.userName || null,\n  \n  // Timestamps\n  message_date: createdAt,\n  received_at: body.received_at,\n  \n  // Raw for debugging\n  raw: rawMsg\n};"
+      },
+      "id": "normalize-message",
+      "name": "Normalize Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, -100]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "queue:incoming:universal",
+        "messageData": "={{ JSON.stringify($json) }}",
+        "tail": true
+      },
+      "id": "push-to-queue",
+      "name": "Push to Universal Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [660, -100],
+      "credentials": {
+        "redis": {
+          "id": "redis-n8n",
+          "name": "Redis n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_events (tenant_id, event_type, payload, created_at)\nVALUES (\n  '{{ $json.tenant_id }}'::uuid,\n  'incoming_message',\n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb,\n  NOW()\n)\nRETURNING id;",
+        "options": {}
+      },
+      "id": "log-event",
+      "name": "Log Event",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [880, -100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"event_id\": \"{{ $json.id }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "response-ok",
+      "name": "Response OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1100, -100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Invalid message format\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "response-error",
+      "name": "Response Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 100]
+    }
+  ],
+  "connections": {
+    "Webhook - Avito Incoming": {
+      "main": [
+        [
+          {
+            "node": "IF Valid Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Valid Message": {
+      "main": [
+        [
+          {
+            "node": "Normalize Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Message": {
+      "main": [
+        [
+          {
+            "node": "Push to Universal Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Universal Queue": {
+      "main": [
+        [
+          {
+            "node": "Log Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Event": {
+      "main": [
+        [
+          {
+            "node": "Response OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "In"
+    }
+  ]
+}
