@@ -3,13 +3,14 @@ package com.eldoleado.app
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Base64
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -41,7 +42,6 @@ import com.eldoleado.app.adapters.ChatMessagesAdapter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
 
 class ChatActivity : AppCompatActivity() {
 
@@ -80,12 +80,12 @@ class ChatActivity : AppCompatActivity() {
     private var clientPhone: String = ""
     private var selectedResponseChannel: String = ""
 
-    // Audio recording
-    private var mediaRecorder: MediaRecorder? = null
-    private var audioFile: File? = null
-    private var isRecording = false
-    private var recordingStartTime: Long = 0
-    private val recordingHandler = Handler(Looper.getMainLooper())
+    // Speech recognition
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
+    private var listeningStartTime: Long = 0
+    private val listeningHandler = Handler(Looper.getMainLooper())
+    private var textBeforeListening: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,11 +115,13 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 AppealEventBus.events.collect { event ->
+                    Log.d(TAG, "EventBus received: $event, current dialogId=$dialogId")
                     when (event) {
                         is AppealUpdateEvent.NewMessage -> {
+                            Log.d(TAG, "NewMessage event: fcmDialogId=${event.appealId}, currentDialogId=$dialogId, match=${event.appealId == dialogId}")
                             if (event.appealId == dialogId) {
                                 Log.d(TAG, "FCM event: new message for current dialog, refreshing...")
-                                loadMessages()
+                                runOnUiThread { loadMessages() }
                             }
                         }
                         else -> { /* ignore other events */ }
@@ -215,13 +217,13 @@ class ChatActivity : AppCompatActivity() {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     if (checkAudioPermission()) {
-                        startRecording()
+                        startListening()
                     }
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (isRecording) {
-                        stopRecording()
+                    if (isListening) {
+                        stopListening()
                     }
                     true
                 }
@@ -251,7 +253,7 @@ class ChatActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Удерживайте кнопку для записи", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Удерживайте кнопку для записи голоса", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Разрешение на запись аудио отклонено", Toast.LENGTH_SHORT).show()
             }
@@ -434,88 +436,149 @@ class ChatActivity : AppCompatActivity() {
             })
     }
 
-    private fun startRecording() {
+    private fun startListening() {
         try {
-            audioFile = File(cacheDir, "voice_${System.currentTimeMillis()}.m4a")
-
-            mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(this)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaRecorder()
-            }.apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setAudioEncodingBitRate(128000)
-                setAudioSamplingRate(44100)
-                setOutputFile(audioFile?.absolutePath)
-                prepare()
-                start()
+            if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+                Toast.makeText(this, "Распознавание речи недоступно", Toast.LENGTH_SHORT).show()
+                return
             }
 
-            isRecording = true
-            recordingStartTime = System.currentTimeMillis()
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+            speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d(TAG, "Ready for speech")
+                }
+
+                override fun onBeginningOfSpeech() {
+                    Log.d(TAG, "Beginning of speech")
+                }
+
+                override fun onRmsChanged(rmsdB: Float) {}
+
+                override fun onBufferReceived(buffer: ByteArray?) {}
+
+                override fun onEndOfSpeech() {
+                    Log.d(TAG, "End of speech")
+                    resetListeningUI()
+                }
+
+                override fun onError(error: Int) {
+                    val errorMessage = when (error) {
+                        SpeechRecognizer.ERROR_AUDIO -> "Ошибка аудио"
+                        SpeechRecognizer.ERROR_CLIENT -> "Ошибка клиента"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Нет разрешений"
+                        SpeechRecognizer.ERROR_NETWORK -> "Ошибка сети"
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Таймаут сети"
+                        SpeechRecognizer.ERROR_NO_MATCH -> "Речь не распознана"
+                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Распознаватель занят"
+                        SpeechRecognizer.ERROR_SERVER -> "Ошибка сервера"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Таймаут речи"
+                        else -> "Неизвестная ошибка"
+                    }
+                    Log.e(TAG, "Speech recognition error: $error - $errorMessage")
+                    if (error != SpeechRecognizer.ERROR_NO_MATCH) {
+                        Toast.makeText(this@ChatActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                    resetListeningUI()
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val transcribedText = matches?.firstOrNull()
+
+                    if (!transcribedText.isNullOrBlank()) {
+                        Log.i(TAG, "Transcribed: $transcribedText")
+                        // Append to existing text or set new
+                        val currentText = textBeforeListening.trim()
+                        val newText = if (currentText.isNotEmpty()) {
+                            "$currentText $transcribedText"
+                        } else {
+                            transcribedText
+                        }
+                        inputMessage.setText(newText)
+                        inputMessage.setSelection(newText.length)
+                    } else {
+                        // Restore original text if nothing recognized
+                        inputMessage.setText(textBeforeListening)
+                        Toast.makeText(this@ChatActivity, "Речь не распознана", Toast.LENGTH_SHORT).show()
+                    }
+                    resetListeningUI()
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val partialText = matches?.firstOrNull()
+                    if (!partialText.isNullOrBlank()) {
+                        // Show partial results appended to existing text
+                        val currentText = textBeforeListening.trim()
+                        val displayText = if (currentText.isNotEmpty()) {
+                            "$currentText $partialText"
+                        } else {
+                            partialText
+                        }
+                        inputMessage.setText(displayText)
+                    }
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ru-RU")
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            }
+
+            // Save current text before listening
+            textBeforeListening = inputMessage.text.toString()
+
+            speechRecognizer?.startListening(intent)
+            isListening = true
+            listeningStartTime = System.currentTimeMillis()
             btnAudio.setBackgroundResource(R.drawable.bg_button_recording)
             recordingTimer.visibility = View.VISIBLE
-            updateRecordingTimer()
-            Log.i(TAG, "Recording started")
+            updateListeningTimer()
+            Log.i(TAG, "Speech recognition started")
+
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start recording: ${e.message}")
-            Toast.makeText(this, "Ошибка записи: ${e.message}", Toast.LENGTH_SHORT).show()
-            isRecording = false
+            Log.e(TAG, "Failed to start speech recognition: ${e.message}")
+            Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+            isListening = false
         }
     }
 
-    private fun updateRecordingTimer() {
-        if (!isRecording) return
-        val elapsed = (System.currentTimeMillis() - recordingStartTime) / 1000
+    private fun updateListeningTimer() {
+        if (!isListening) return
+        val elapsed = (System.currentTimeMillis() - listeningStartTime) / 1000
         val minutes = elapsed / 60
         val seconds = elapsed % 60
         recordingTimer.text = String.format("%d:%02d", minutes, seconds)
-        recordingHandler.postDelayed({ updateRecordingTimer() }, 1000)
+        listeningHandler.postDelayed({ updateListeningTimer() }, 1000)
     }
 
-    private fun stopRecording() {
+    private fun stopListening() {
         try {
-            mediaRecorder?.apply {
-                stop()
-                release()
-            }
-            mediaRecorder = null
-            isRecording = false
+            speechRecognizer?.stopListening()
+            Log.i(TAG, "Speech recognition stopped")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop speech recognition: ${e.message}")
+        }
+    }
 
-            // Reset UI
-            recordingHandler.removeCallbacksAndMessages(null)
+    private fun resetListeningUI() {
+        isListening = false
+        listeningHandler.removeCallbacksAndMessages(null)
+        runOnUiThread {
             recordingTimer.visibility = View.GONE
             btnAudio.setBackgroundResource(R.drawable.bg_button_voice)
-
-            // Send audio file
-            audioFile?.let { file ->
-                if (file.exists() && file.length() > 0) {
-                    val audioBytes = file.readBytes()
-                    val base64Audio = Base64.encodeToString(audioBytes, Base64.NO_WRAP)
-
-                    Toast.makeText(this, "Отправка голосового сообщения...", Toast.LENGTH_SHORT).show()
-                    sendMessage("[Голосовое сообщение]", "voice", base64Audio)
-
-                    // Clean up
-                    file.delete()
-                }
-            }
-
-            Log.i(TAG, "Recording stopped and sent")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to stop recording: ${e.message}")
-            Toast.makeText(this, "Ошибка остановки записи", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaRecorder?.release()
-        mediaRecorder = null
-        audioFile?.delete()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
     }
 
     private fun setupChannelButtons() {

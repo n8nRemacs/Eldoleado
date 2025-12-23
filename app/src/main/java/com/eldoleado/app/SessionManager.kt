@@ -18,6 +18,7 @@ class SessionManager(context: Context) {
         private const val KEY_APP_MODE = "app_mode"
         private const val KEY_TUNNEL_URL = "tunnel_url"
         private const val KEY_TUNNEL_SECRET = "tunnel_secret"
+        private const val KEY_ALLOWED_CHANNELS = "allowed_channels"
 
         // App modes
         const val MODE_CLIENT = "client"       // Only messenger UI
@@ -33,7 +34,8 @@ class SessionManager(context: Context) {
         sessionToken: String,
         appMode: String? = null,
         tunnelUrl: String? = null,
-        tunnelSecret: String? = null
+        tunnelSecret: String? = null,
+        allowedChannels: List<String>? = null
     ) {
         prefs.edit().apply {
             putString(KEY_OPERATOR_ID, operatorId)
@@ -45,6 +47,8 @@ class SessionManager(context: Context) {
             putString(KEY_APP_MODE, appMode ?: MODE_CLIENT)
             tunnelUrl?.let { putString(KEY_TUNNEL_URL, it) }
             tunnelSecret?.let { putString(KEY_TUNNEL_SECRET, it) }
+            // Save allowed channels as comma-separated string
+            putString(KEY_ALLOWED_CHANNELS, allowedChannels?.joinToString(",") ?: "")
             apply()
         }
     }
@@ -92,4 +96,23 @@ class SessionManager(context: Context) {
     fun getTunnelUrl(): String? = prefs.getString(KEY_TUNNEL_URL, null)
 
     fun getTunnelSecret(): String? = prefs.getString(KEY_TUNNEL_SECRET, null)
+
+    /**
+     * Get list of allowed channels based on tenant subscription.
+     * Returns null if not set (fallback to show all channels).
+     */
+    fun getAllowedChannels(): List<String>? {
+        val channelsStr = prefs.getString(KEY_ALLOWED_CHANNELS, null)
+        if (channelsStr.isNullOrBlank()) return null
+        return channelsStr.split(",").filter { it.isNotBlank() }
+    }
+
+    /**
+     * Check if a specific channel is allowed for this tenant.
+     * Returns true if allowed_channels is not set (fallback) or channel is in the list.
+     */
+    fun isChannelAllowed(channelKey: String): Boolean {
+        val allowed = getAllowedChannels() ?: return true // fallback: all allowed
+        return channelKey in allowed
+    }
 }

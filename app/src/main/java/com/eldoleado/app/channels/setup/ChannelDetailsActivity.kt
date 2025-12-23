@@ -106,8 +106,11 @@ class ChannelDetailsActivity : AppCompatActivity() {
 
         // Set channel icon
         val iconRes = when (channelType) {
-            ChannelType.TELEGRAM -> R.drawable.ic_telegram
             ChannelType.WHATSAPP -> R.drawable.ic_whatsapp
+            ChannelType.TELEGRAM -> R.drawable.ic_telegram
+            ChannelType.TELEGRAM_BOT -> R.drawable.ic_telegram
+            ChannelType.VK -> R.drawable.ic_vk
+            ChannelType.VK_GROUP -> R.drawable.ic_vk
             ChannelType.AVITO -> R.drawable.ic_avito
             ChannelType.MAX -> R.drawable.ic_max
         }
@@ -160,6 +163,13 @@ class ChannelDetailsActivity : AppCompatActivity() {
 
             // Set secondary info based on channel type
             when (channelType) {
+                ChannelType.WHATSAPP -> {
+                    val name = channelCredentialsManager.getWhatsAppName()
+                    if (!name.isNullOrBlank()) {
+                        accountSecondaryInfo.text = name
+                        accountSecondaryInfo.visibility = View.VISIBLE
+                    }
+                }
                 ChannelType.TELEGRAM -> {
                     val type = channelCredentialsManager.getTelegramType()
                     if (type == ChannelCredentialsManager.TG_TYPE_BOT) {
@@ -170,10 +180,21 @@ class ChannelDetailsActivity : AppCompatActivity() {
                         accountSecondaryInfo.visibility = View.VISIBLE
                     }
                 }
-                ChannelType.WHATSAPP -> {
-                    val name = channelCredentialsManager.getWhatsAppName()
-                    if (!name.isNullOrBlank()) {
-                        accountSecondaryInfo.text = name
+                ChannelType.TELEGRAM_BOT -> {
+                    accountSecondaryInfo.text = "Бот"
+                    accountSecondaryInfo.visibility = View.VISIBLE
+                }
+                ChannelType.VK -> {
+                    val userId = channelCredentialsManager.getVkUserId()
+                    if (!userId.isNullOrBlank()) {
+                        accountSecondaryInfo.text = "ID: $userId"
+                        accountSecondaryInfo.visibility = View.VISIBLE
+                    }
+                }
+                ChannelType.VK_GROUP -> {
+                    val groupId = channelCredentialsManager.getVkGroupId()
+                    if (!groupId.isNullOrBlank()) {
+                        accountSecondaryInfo.text = "ID: $groupId"
                         accountSecondaryInfo.visibility = View.VISIBLE
                     }
                 }
@@ -197,13 +218,17 @@ class ChannelDetailsActivity : AppCompatActivity() {
 
     private fun reconnectChannel() {
         // Open the appropriate setup activity
-        val setupIntent = when (channelType) {
-            ChannelType.TELEGRAM -> Intent(this, TelegramSetupActivity::class.java)
-            ChannelType.WHATSAPP -> Intent(this, WhatsAppSetupActivity::class.java)
-            ChannelType.AVITO -> Intent(this, AvitoSetupActivity::class.java)
-            ChannelType.MAX -> Intent(this, MaxSetupActivity::class.java)
+        when (channelType) {
+            ChannelType.WHATSAPP -> startActivity(Intent(this, WhatsAppSetupActivity::class.java))
+            ChannelType.TELEGRAM -> startActivity(Intent(this, TelegramSetupActivity::class.java))
+            ChannelType.AVITO -> startActivity(Intent(this, AvitoSetupActivity::class.java))
+            ChannelType.MAX -> startActivity(Intent(this, MaxSetupActivity::class.java))
+            // TODO: Add setup activities for these
+            ChannelType.TELEGRAM_BOT, ChannelType.VK, ChannelType.VK_GROUP -> {
+                Toast.makeText(this, "В разработке", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
-        startActivity(setupIntent)
         finish()
     }
 

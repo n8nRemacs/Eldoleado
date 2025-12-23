@@ -1,102 +1,47 @@
 # Start Session - План на следующую сессию
 
-## Приоритет 0: Исправить Redis зависание
+## Приоритет 1: Авторизация каналов через Android
 
-### Проблема
-Нода "Set Deadline" в ELO_Input_Batcher зависает — получает данные, но не завершается.
+### 1.1 Avito - Puppeteer авторизация
+- [ ] Установить Puppeteer/Playwright на сервер (155.212.221.189)
+- [ ] Создать endpoint `/auth/avito/start` - принимает login/password
+- [ ] Puppeteer логинится на avito.ru, извлекает sessid
+- [ ] Сохраняем только sessid (не credentials)
+- [ ] Android: экран ввода логин/пароль → вызов endpoint → статус
 
-### Что проверить
-1. **Redis credentials в n8n:**
-   - n8n → Credentials → "Redis account"
-   - Host должен быть `n8n-redis` (не `redis`, не `localhost`)
-   - Port: `6379`
+### 1.2 MAX - QR авторизация (User API)
+- [ ] Добавить WebSocket endpoint для QR авторизации
+- [ ] Использовать opcode 20 (QR_LOGIN) из MAX User API
+- [ ] Android: показать QR код → пользователь сканирует в MAX → connected
+- [ ] Документация: `NEW/MVP/MCP/Max-user/MAX_USER_API.md`
 
-2. **Тест без TTL:**
-   - Убрать галочку "Expire" в ноде Set Deadline
-   - Проверить проходит ли без TTL
+### 1.3 Telegram Bot
+- [ ] Endpoint для регистрации бота по токену
+- [ ] Токен получается от @BotFather
+- [ ] Android: ввод токена → проверка через getMe → сохранение
 
-3. **Проверить Redis доступность:**
-   ```bash
-   ssh root@185.221.214.83 "docker exec n8n-n8n-1 sh -c 'echo PING | nc n8n-redis 6379'"
-   # Должен вернуть +PONG
-   ```
-
----
-
-## Приоритет 1: DB Get Tenant — исправить поиск
-
-### Проблема
-Запрос ищет `account_id = 'eldoleado_arceos'`, но в базе `account_id = 'eldoleado_main'`.
-
-### Решение
-Изменить запрос в ELO_Client_Resolve → DB Get Tenant:
-
-```sql
-SELECT
-  t.id as tenant_id,
-  t.domain_id,
-  ca.id as channel_account_id,
-  ca.channel_id
-FROM elo_t_tenants t
-JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id
-JOIN elo_channels c ON c.id = ca.channel_id
-WHERE ca.credentials->>'session_id' = '{{ $('Validate Input').item.json.meta.raw.sessionId }}'
-  AND c.code = '{{ $('Validate Input').first().json.channel }}'
-  AND ca.is_active = true
-  AND t.is_active = true
-LIMIT 1;
-```
+### 1.4 Telegram User (позже)
+- [ ] Endpoint для SMS авторизации
+- [ ] api_id/api_hash - глобальные (в .env сервера)
+- [ ] Пользователь вводит телефон → получает SMS код → вводит код
 
 ---
 
-## Приоритет 2: Тестировать полный flow WhatsApp
+## Приоритет 2: Humanized отправка сообщений
 
-### Входящие сообщения
-1. Отправить сообщение с +79171708077 на +79997253777
-2. Проверить:
-   - ELO_In_WhatsApp получил webhook
-   - Extract WhatsApp Data отфильтровал мусор
-   - Сообщение в Redis queue
-   - ELO_Input_Batcher обработал
-   - ELO_Client_Resolve нашёл tenant
-   - Сообщение в базе
+**Уже сделано на 155.212.221.189:**
 
-### Исходящие сообщения
-```bash
-curl -X POST "https://n8n.n8nsrv.ru/webhook/android/messages/send" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "session_token": "85bc5364-7765-4562-be9e-02d899bb575e",
-    "dialog_id": "cff56064-1fc3-4152-8e64-6e0266a87bf6",
-    "text": "Test message"
-  }'
-```
+| Сервис | Порт | Humanizer | Typing |
+|--------|------|-----------|--------|
+| `avito-messenger-api` | 8766 | ✅ | ❌ (нет в API) |
+| `max-bot-api` | 8768 | ✅ | ✅ typing_on |
+| `telegram-bot-api` | 8761 | ✅ | ✅ typing |
+| `telegram-user-api` | 8762 | ✅ | ✅ (ждёт credentials) |
 
----
-
-## Текущая архитектура WhatsApp
-
-```
-Клиент (+79171708077)
-    │
-    ▼ WhatsApp
-    │
-MessagerOne (155.212.221.189:8769) — @arceos/baileys
-    │
-    ▼ WEBHOOK
-    │
-https://n8n.n8nsrv.ru/webhook/whatsapp-incoming
-    │
-    ▼
-ELO_In_WhatsApp → Redis queue → ELO_Input_Batcher → ELO_Client_Resolve
-    │
-    ▼
-elo_t_messages (PostgreSQL)
-```
-
-**Сессия:** eldoleado_arceos
-**Оператор:** +79997253777
-**IP Nodes:** MessagerOne (155.212.221.189, 217.114.14.17)
+**Задержки:**
+- Рабочее (09:00-18:00): 3-7 сек
+- Нерабочее (18:00-00:00, 07:00-09:00): 15-45 сек
+- Ночное (00:00-07:00): 1-3 мин
 
 ---
 
@@ -104,10 +49,9 @@ elo_t_messages (PostgreSQL)
 
 | Сервер | IP | Сервисы |
 |--------|-----|---------|
+| MessagerOne | 155.212.221.189 | WhatsApp (8769), Avito (8766), MAX (8768), Telegram Bot (8761), Telegram User (8762) |
 | n8n | 185.221.214.83 | n8n, PostgreSQL, Redis |
-| MessagerOne | 155.212.221.189 | WhatsApp Baileys (8769) |
-| Finnish | 217.145.79.27 | Telegram (8767) — WhatsApp ВЫКЛЮЧЕН |
-| RU Server | 45.144.177.128 | Avito, VK, MAX, Neo4j |
+| Finnish | 217.145.79.27 | Telegram (legacy) |
 
 ---
 
@@ -115,38 +59,39 @@ elo_t_messages (PostgreSQL)
 
 - **Оператор:** Test Admin (22222222-2222-2222-2222-222222222222)
 - **Session:** 85bc5364-7765-4562-be9e-02d899bb575e
-- **Диалог:** cff56064-1fc3-4152-8e64-6e0266a87bf6
 - **WhatsApp Session:** eldoleado_arceos
+- **Телефон оператора:** +79997253777
 
 ---
 
 ## Полезные команды
 
 ```bash
-# === WhatsApp Baileys ===
-ssh root@155.212.221.189 "curl -s http://localhost:8769/health"
-ssh root@155.212.221.189 "docker logs mcp-whatsapp-ip1 --tail 30"
+# === Проверка сервисов ===
+ssh root@155.212.221.189 "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 
-# === Redis ===
-ssh root@185.221.214.83 "docker exec n8n-redis redis-cli KEYS '*'"
-ssh root@185.221.214.83 "docker exec n8n-redis redis-cli LLEN queue:incoming"
+# === Логи ===
+ssh root@155.212.221.189 "docker logs avito-messenger-api --tail 20"
+ssh root@155.212.221.189 "docker logs max-bot-api --tail 20"
+ssh root@155.212.221.189 "docker logs telegram-bot-api --tail 20"
 
-# === Database ===
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c \"
-  SELECT account_id, credentials->>'session_id' as session_id
-  FROM elo_t_channel_accounts WHERE channel_id = 2;
-\""
+# === WhatsApp ===
+curl http://155.212.221.189:8769/sessions
 
-# === Test send message ===
-ssh root@155.212.221.189 "curl -X POST http://155.212.221.189:8769/messages/text \
-  -H 'Content-Type: application/json' \
-  -d '{\"sessionId\": \"eldoleado_arceos\", \"to\": \"79171708077\", \"text\": \"Test\"}'"
+# === Telegram User (.env) ===
+ssh root@155.212.221.189 "cat /opt/mcp-telegram-user/.env"
 ```
 
 ---
 
-## Файлы с кодом (обновлены)
+## Файлы проекта
 
-- `NEW/workflows/Channel Contour/ELO_In/ELO_In_WhatsApp.json` — нужно обновить в n8n
-- `NEW/workflows/Channel Contour/ELO_Out/ELO_Out_WhatsApp_v2.json` — обновлён Parse Message
-- `NEW/workflows/API/ELO_API_Android_Normalize.json` — path изменён на `android/normalize`
+### Humanized клиенты
+- `NEW/MVP/MCP/mcp-avito-user/humanized_client.py`
+- `NEW/MVP/MCP/mcp-max/humanized_client.py`
+- `NEW/MVP/MCP/Max-user/humanized_client.py`
+- `NEW/MVP/MCP/Max-user/max_user_client.py`
+
+### Android
+- `app/src/main/java/com/eldoleado/app/channels/setup/WhatsAppSetupActivity.kt`
+- `app/src/main/java/com/eldoleado/app/channels/ChannelCredentialsManager.kt`

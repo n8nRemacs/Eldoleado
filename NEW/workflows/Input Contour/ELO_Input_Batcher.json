@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-20T20:03:03.698Z",
+  "updatedAt": "2025-12-22T19:24:16.887Z",
   "createdAt": "2025-12-14T07:11:27.172Z",
   "id": "3AfObE32mua4kLmr",
   "name": "ELO_Input_Batcher",
@@ -411,10 +411,31 @@
     }
   },
   "meta": null,
-  "pinData": {},
-  "versionId": "424cb5c8-e718-48d6-9c2e-58169fa15593",
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2025-12-22T23:21:03.001+04:00",
+          "Readable date": "December 22nd 2025, 11:21:03 pm",
+          "Readable time": "11:21:03 pm",
+          "Day of week": "Monday",
+          "Year": "2025",
+          "Month": "December",
+          "Day of month": "22",
+          "Hour": "23",
+          "Minute": "21",
+          "Second": "03",
+          "Timezone": "Europe/Samara (UTC+04:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "c4a281b9-d301-4a05-8b44-b9bdd1085905",
   "activeVersionId": null,
-  "versionCounter": 73,
+  "versionCounter": 97,
   "triggerCount": 1,
   "shared": [
     {
@@ -438,7 +459,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -453,7 +474,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }

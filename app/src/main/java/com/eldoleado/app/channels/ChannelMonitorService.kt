@@ -277,8 +277,11 @@ class ChannelMonitorService : Service() {
 
             // Update stored status
             when (channel) {
-                ChannelType.TELEGRAM -> credentialsManager.setTelegramStatus(currentStatus)
                 ChannelType.WHATSAPP -> credentialsManager.setWhatsAppStatus(currentStatus)
+                ChannelType.TELEGRAM -> credentialsManager.setTelegramStatus(currentStatus)
+                ChannelType.TELEGRAM_BOT -> credentialsManager.setTelegramBotStandaloneStatus(currentStatus)
+                ChannelType.VK -> credentialsManager.setVkStatus(currentStatus)
+                ChannelType.VK_GROUP -> credentialsManager.setVkGroupStatus(currentStatus)
                 ChannelType.AVITO -> credentialsManager.setAvitoStatus(currentStatus)
                 ChannelType.MAX -> credentialsManager.setMaxStatus(currentStatus)
             }
@@ -316,8 +319,11 @@ class ChannelMonitorService : Service() {
         return withContext(Dispatchers.IO) {
             try {
                 when (channel) {
-                    ChannelType.TELEGRAM -> checkTelegramHealth()
                     ChannelType.WHATSAPP -> checkWhatsAppHealth()
+                    ChannelType.TELEGRAM -> checkTelegramHealth()
+                    ChannelType.TELEGRAM_BOT -> ChannelStatus.NOT_CONFIGURED // TODO: implement
+                    ChannelType.VK -> ChannelStatus.NOT_CONFIGURED // TODO: implement
+                    ChannelType.VK_GROUP -> ChannelStatus.NOT_CONFIGURED // TODO: implement
                     ChannelType.AVITO -> checkAvitoHealth()
                     ChannelType.MAX -> checkMaxHealth()
                 }

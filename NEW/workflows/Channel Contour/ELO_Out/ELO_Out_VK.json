@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-10T10:02:03.000Z",
+  "updatedAt": "2025-12-21T11:27:07.611Z",
   "createdAt": "2025-12-10T10:01:36.319Z",
   "id": "ZqRsbSo0I0z71Bwb",
   "name": "ELO_Out_VK",
@@ -8,14 +8,147 @@
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "id": "c4ee68d4-a2d5-431f-975c-2b1d80421b27",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "42f230c6-0ec1-4cc0-bbd2-c9c832105439",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1504,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:outgoing:vk",
+        "options": {}
+      },
+      "id": "02926d5f-a1ad-41ed-a5d0-9caf4cc773cb",
+      "name": "Redis Pop Message",
+      "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -224,
-        -80
+        -1280,
+        64
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.message_json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9f769393-428d-4f6e-b23f-5c0a4d63b029",
+      "name": "IF Has Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\nreturn {\n  out_message: message\n};"
+      },
+      "id": "d25e2da8-2757-4965-b264-068df5f31fe7",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  ca.credentials->>'access_token' as access_token,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.out_message.tenant_id }}'::uuid\n  AND ca.channel_id = 4\n  AND ca.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "0c757117-d2e8-4c13-b252-7b14f855c0d2",
+      "name": "Get VK Token",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -608,
+        -32
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-token",
+              "leftValue": "={{ $json.access_token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "01440499-4c99-41ae-8bc6-5aca1d2a80d7",
+      "name": "IF Token Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -32
       ]
     },
     {
@@ -26,12 +159,16 @@
         "queryParameters": {
           "parameters": [
             {
+              "name": "access_token",
+              "value": "={{ $json.access_token }}"
+            },
+            {
               "name": "peer_id",
-              "value": "={{ $json.out_message.external_chat_id }}"
+              "value": "={{ $('Parse Message').item.json.out_message.external_chat_id }}"
             },
             {
               "name": "message",
-              "value": "={{ $json.out_message.message_text }}"
+              "value": "={{ $('Parse Message').item.json.out_message.message_text }}"
             },
             {
               "name": "random_id",
@@ -43,43 +180,45 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "db5c3f45-b5d3-4493-b97b-a26c76620cda",
+      "id": "bbe1fafc-ad28-4f60-8701-7e79704085a2",
       "name": "Send VK Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        0,
-        -80
+        -160,
+        -128
       ]
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\n\nif (response.error) {\n  throw new Error(`VK API Error: ${response.error.error_msg}`);\n}\n\nconst inMessage = $('Execute Workflow Trigger').first().json;\n\n// Определяем тип touchpoint\nconst actionSource = inMessage.out_message?.action_source || '';\nconst touchpointDirection = (actionSource === 'promo' || actionSource === 'greeting' || actionSource === 'broadcast') ? 'promo' : 'outbound';\n\nreturn {\n  ...inMessage,\n  vk_response: response.response,\n  message_id: response.response?.toString() || 'unknown',\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection\n};"
+        "jsCode": "const parsed = $('Parse Message').first().json;\nconst response = $input.first().json;\n\nconst success = !response.error;\nconst messageId = response.response?.toString() || Date.now().toString();\n\nreturn {\n  ...parsed,\n  vk_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success\n};"
       },
-      "id": "c1c6b014-c297-41d0-bec5-7241ee9a7b5d",
+      "id": "65ea5399-4807-4451-b868-82b2afd7060c",
       "name": "Process VK Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        -80
+        64,
+        -128
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO messages_history (\n  tenant_id,\n  appeal_id,\n  message_type,\n  message_text,\n  channel, channel_id,\n  external_message_id,\n  external_chat_id\n)\nSELECT\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.appeal_id }}'::uuid,\n  'agent',\n  '{{ $json.out_message.message_text }}',\n  'vk',\n  (SELECT id FROM channels WHERE code = 'vk' LIMIT 1),\n  '{{ $json.message_id }}',\n  '{{ $json.out_message.external_chat_id }}'\nRETURNING *;",
+        "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;",
         "options": {}
       },
-      "id": "0a42ae91-3601-489d-9717-3f85b2bced14",
-      "name": "Save Message History",
+      "id": "093e0f8a-ab44-42e9-a907-0523564b1472",
+      "name": "Update Dialog Timestamp",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.4,
+      "typeVersion": 2.6,
       "position": [
-        448,
-        -80
+        288,
+        -128
       ],
       "credentials": {
         "postgres": {
@@ -90,31 +229,106 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://n8n.n8nsrv.ru/webhook/neo4j/touchpoint/register",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  client_id: $('Process VK Response').item.json.out_message.client_id,\n  appeal_id: $('Process VK Response').item.json.out_message.appeal_id,\n  channel: 'vk',\n  direction: $('Process VK Response').item.json.touchpoint_direction,\n  type: 'message',\n  tenant_id: $('Process VK Response').item.json.out_message.tenant_id,\n  creates_entity: false\n}) }}",
-        "options": {
-          "timeout": 5000
-        }
+        "jsCode": "// No token found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No VK access token found for tenant:', parsed.out_message?.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No VK access token found for tenant',\n  tenant_id: parsed.out_message?.tenant_id,\n  out_message: parsed.out_message\n};"
       },
-      "id": "2df674d4-6f19-462d-a32c-a87f2e0e3f0e",
-      "name": "Register Touchpoint",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "id": "62924467-6449-4e31-8fa8-c1cb27b70789",
+      "name": "No Token Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        672,
-        -80
+        -160,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No message in queue - just return\nreturn { empty: true };"
+      },
+      "id": "eb03b052-b1f5-4bd5-a29f-07e9610a69fe",
+      "name": "No Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        160
       ]
     }
   ],
   "connections": {
-    "Execute Workflow Trigger": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis Pop Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Pop Message": {
+      "main": [
+        [
+          {
+            "node": "IF Has Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Message": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Get VK Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VK Token": {
+      "main": [
+        [
+          {
+            "node": "IF Token Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Token Exists": {
       "main": [
         [
           {
             "node": "Send VK Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Token Error",
             "type": "main",
             "index": 0
           }
@@ -136,18 +350,7 @@
       "main": [
         [
           {
-            "node": "Save Message History",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Message History": {
-      "main": [
-        [
-          {
-            "node": "Register Touchpoint",
+            "node": "Update Dialog Timestamp",
             "type": "main",
             "index": 0
           }
@@ -159,11 +362,13 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "9cedad55-d291-4188-b21d-31b9932a65c2",
+  "versionId": "978868fe-2aa2-44e5-ab58-7c0d36beafab",
   "activeVersionId": null,
-  "versionCounter": 3,
+  "versionCounter": 4,
   "triggerCount": 0,
   "shared": [
     {
@@ -187,7 +392,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -202,7 +407,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }

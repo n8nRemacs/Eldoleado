@@ -176,7 +176,13 @@ data class LoginResponse(
     val app_mode: String? = null,
     // Tunnel config (for server/both modes)
     val tunnel_url: String? = null,
-    val tunnel_secret: String? = null
+    val tunnel_secret: String? = null,
+    // Allowed channels based on tenant subscription
+    // e.g. ["whatsapp", "telegram", "avito"]
+    val allowed_channels: List<String>? = null,
+    // Channel connection statuses from server
+    // e.g. {"whatsapp": "connected", "telegram": "not_configured"}
+    val channel_statuses: Map<String, String>? = null
 )
 
 data class AppealsListResponse(

@@ -452,7 +452,7 @@
   "pinData": {},
   "versionId": "03c7d4ac-d83d-4a6f-b3db-067cacb8d378",
   "activeVersionId": "03c7d4ac-d83d-4a6f-b3db-067cacb8d378",
-  "versionCounter": 8,
+  "versionCounter": 9,
   "triggerCount": 1,
   "shared": [
     {
@@ -476,7 +476,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -491,7 +491,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }

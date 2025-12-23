@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-20T11:45:52.240Z",
+  "updatedAt": "2025-12-22T18:42:28.190Z",
   "createdAt": "2025-12-10T10:01:53.940Z",
   "id": "j8SAGf1ZIC8uqDya",
   "name": "ELO_Out_WhatsApp",
@@ -8,14 +8,91 @@
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "id": "ceab2ae7-43f1-4759-8f97-18a51ed89372",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "59cd4f62-3516-4944-89d3-2539af6b306c",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1728,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:outgoing:whatsapp",
+        "options": {}
+      },
+      "id": "a0de0a32-33b2-4734-8481-0bfaebd70180",
+      "name": "Redis Pop Message",
+      "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -608,
-        -32
+        -1504,
+        160
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.propertyName.message_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "70c011af-fa6b-4baf-97ac-1276e1c40b7c",
+      "name": "IF Has Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let message;\n  if ($json.message_json) {\n    message = typeof $json.message_json === 'string'\n      ? JSON.parse($json.message_json)\n      : $json.message_json;\n  } else if ($json.propertyName) {\n    message = typeof $json.propertyName === 'string'\n      ? JSON.parse($json.propertyName)\n      : $json.propertyName;\n  } else {\n    throw new Error('No message data found');\n  }\n\n  return {\n    out_message: message\n  };"
+      },
+      "id": "995fddb5-479d-49aa-8955-4dcbba4f660b",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        64
       ]
     },
     {
@@ -24,13 +101,13 @@
         "query": "SELECT \n  ca.credentials->>'session_id' as session_id,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.out_message.tenant_id }}'::uuid\n  AND ca.channel_id = 2\n  AND ca.is_active = true\nLIMIT 1;",
         "options": {}
       },
-      "id": "59054814-6b59-484e-a36e-1ef6330afb02",
+      "id": "10c77e06-1e26-4a57-8ce1-91937182bcc7",
       "name": "Get WhatsApp Session",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -384,
-        -32
+        -832,
+        64
       ],
       "credentials": {
         "postgres": {
@@ -64,19 +141,19 @@
         },
         "options": {}
       },
-      "id": "498c70ab-a9f9-493e-a357-c74777c7b8b4",
+      "id": "c7e551d9-3089-49b0-a08b-1a0989f4afb7",
       "name": "IF Session Exists",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -160,
-        -32
+        -608,
+        64
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://217.145.79.27:8766/messages/text",
+        "url": "http://155.212.221.189:8769/messages/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -88,67 +165,46 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"sessionId\": \"{{ $('Get WhatsApp Session').item.json.session_id }}\",\n  \"to\": \"{{ $('Execute Workflow Trigger').item.json.out_message.external_chat_id }}\",\n  \"text\": \"{{ $('Execute Workflow Trigger').item.json.out_message.message_text.replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\"\n}",
+        "jsonBody": "={\n    \"sessionId\": \"{{ $('Get WhatsApp Session').item.json.session_id }}\",\n    \"to\": \"{{ $('Parse Message').item.json.out_message.external_chat_id }}\",\n    \"text\": \"{{ $('Parse Message').item.json.out_message.message_text.replace(/\\\"/g, '\\\\\\\"').replace(/\\n/g, '\\\\n') }}\"\n  }",
         "options": {
           "timeout": 30000
         }
       },
-      "id": "f519f27a-0a8e-49d7-919c-bbc380d8bc84",
+      "id": "98360e13-d3b9-41e1-8d0f-239f2478a211",
       "name": "Send via Baileys",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        64,
-        -128
+        -384,
+        -32
       ]
     },
     {
       "parameters": {
-        "jsCode": "const trigger = $('Execute Workflow Trigger').first().json;\nconst sessionData = $('Get WhatsApp Session').first().json;\nconst response = $input.first().json;\n\n// Check if send was successful\nconst success = response.success === true;\nconst messageId = response.data?.messageId || Date.now().toString();\n\n// Determine touchpoint direction\nconst actionSource = trigger.out_message?.action_source || '';\nconst touchpointDirection = ['promo', 'greeting', 'broadcast'].includes(actionSource) ? 'promo' : 'outbound';\n\nreturn {\n  ...trigger,\n  baileys_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  touchpoint_direction: touchpointDirection,\n  send_success: success,\n  session_id: sessionData.session_id\n};"
+        "jsCode": "const parsed = $('Parse Message').first().json;\nconst sessionData = $('Get WhatsApp Session').first().json;\nconst response = $input.first().json;\n\nconst success = response.success === true;\nconst messageId = response.data?.messageId || Date.now().toString();\n\nreturn {\n  ...parsed,\n  baileys_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success,\n  session_id: sessionData.session_id\n};"
       },
-      "id": "206b5b8a-8b22-4ce2-9e3a-680dbb8e9d0d",
+      "id": "f400bceb-522e-465e-9095-1c96f7546402",
       "name": "Process Baileys Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        288,
-        -128
+        -160,
+        -32
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO elo_t_messages (\n  tenant_id, dialog_id, client_id, direction_id, actor_type, actor_id,\n  content, external_message_id, timestamp\n)\nVALUES (\n  '{{ $json.out_message.tenant_id }}'::uuid,\n  '{{ $json.out_message.dialog_id }}'::uuid,\n  '{{ $json.out_message.client_id }}'::uuid,\n  2,\n  '{{ $json.out_message.actor_type || \"operator\" }}',\n  {{ $json.out_message.actor_id ? \"'\" + $json.out_message.actor_id + \"'::uuid\" : \"NULL\" }},\n  '{{ $json.out_message.message_text.replace(/'/g, \"''\") }}',\n  '{{ $json.message_id }}',\n  NOW()\n)\nRETURNING id;",
+        "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;",
         "options": {}
       },
-      "id": "fe2a1703-940c-4938-aec9-028650ecd39f",
-      "name": "Save Outbound Message",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        512,
-        -128
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "n2SyhP9QhMnp1ryk",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $('Execute Workflow Trigger').item.json.out_message.dialog_id }}'::uuid;",
-        "options": {}
-      },
-      "id": "6bc8af44-61c0-4a34-9e24-6b03c9dd031e",
+      "id": "b33a1571-905e-4858-8fa0-36f84d07f3dc",
       "name": "Update Dialog Timestamp",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        736,
-        -128
+        64,
+        -32
       ],
       "credentials": {
         "postgres": {
@@ -159,20 +215,73 @@
     },
     {
       "parameters": {
-        "jsCode": "// Return error - no WhatsApp session configured\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nreturn {\n  success: false,\n  error: 'No active WhatsApp session found for tenant',\n  tenant_id: trigger.out_message?.tenant_id,\n  out_message: trigger.out_message\n};"
+        "jsCode": "// No session found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No active WhatsApp session found for tenant:', parsed.out_message?.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No active WhatsApp session found for tenant',\n  tenant_id: parsed.out_message?.tenant_id,\n  out_message: parsed.out_message\n};"
       },
-      "id": "7b83e681-9a09-4007-969b-4d3792f013be",
+      "id": "37912a38-7d7e-420e-acba-d99483a5274b",
       "name": "No Session Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        64
+        -384,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No message in queue - just return\nreturn { empty: true };"
+      },
+      "id": "c22a1ecb-64fa-4cd0-8bbf-9b92a7693e41",
+      "name": "No Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        256
       ]
     }
   ],
   "connections": {
-    "Execute Workflow Trigger": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis Pop Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Pop Message": {
+      "main": [
+        [
+          {
+            "node": "IF Has Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Message": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
       "main": [
         [
           {
@@ -227,17 +336,6 @@
       "main": [
         [
           {
-            "node": "Save Outbound Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Outbound Message": {
-      "main": [
-        [
-          {
             "node": "Update Dialog Timestamp",
             "type": "main",
             "index": 0
@@ -249,13 +347,19 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": null,
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "16632913-9c45-4456-99bf-ced71407c4c5",
+  "versionId": "7a579f01-ccbf-4d80-9a92-95c92465bed8",
   "activeVersionId": null,
-  "versionCounter": 7,
-  "triggerCount": 0,
+  "versionCounter": 21,
+  "triggerCount": 1,
   "shared": [
     {
       "updatedAt": "2025-12-10T10:01:53.948Z",
@@ -278,7 +382,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -293,7 +397,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }

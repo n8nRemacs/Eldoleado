@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-20T20:03:10.772Z",
+  "updatedAt": "2025-12-22T19:30:21.539Z",
   "createdAt": "2025-12-14T07:12:31.403Z",
   "id": "afbJwet95gV9Evc5",
   "name": "ELO_Input_Processor",
@@ -659,16 +659,16 @@
     "Schedule Trigger": [
       {
         "json": {
-          "timestamp": "2025-12-14T12:50:24.002+04:00",
-          "Readable date": "December 14th 2025, 12:50:24 pm",
-          "Readable time": "12:50:24 pm",
-          "Day of week": "Sunday",
+          "timestamp": "2025-12-22T23:28:45.002+04:00",
+          "Readable date": "December 22nd 2025, 11:28:45 pm",
+          "Readable time": "11:28:45 pm",
+          "Day of week": "Monday",
           "Year": "2025",
           "Month": "December",
-          "Day of month": "14",
-          "Hour": "12",
-          "Minute": "50",
-          "Second": "24",
+          "Day of month": "22",
+          "Hour": "23",
+          "Minute": "28",
+          "Second": "45",
           "Timezone": "Europe/Samara (UTC+04:00)"
         },
         "pairedItem": {
@@ -677,9 +677,9 @@
       }
     ]
   },
-  "versionId": "b64329f7-fd5e-40c9-ae8a-e0f70d455d96",
+  "versionId": "aae4e889-8d84-432c-90c3-d1fabd083707",
   "activeVersionId": null,
-  "versionCounter": 67,
+  "versionCounter": 86,
   "triggerCount": 1,
   "shared": [
     {
@@ -703,7 +703,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -718,7 +718,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }

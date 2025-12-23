@@ -40,17 +40,15 @@ class WhatsAppSetupActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "WhatsAppSetupActivity"
-        // Cloud Baileys server (Finnish server)
-        private const val BAILEYS_URL = "http://217.145.79.27:8766"
-        private const val REMOTE_BAILEYS_URL = BAILEYS_URL // alias for compatibility
-        private const val LOCAL_BAILEYS_URL = "http://127.0.0.1:3000" // dead code, kept for compilation
+        // Cloud Baileys server (MessagerOne)
+        private const val BAILEYS_URL = "http://155.212.221.189:8769"
+        private const val REMOTE_BAILEYS_URL = BAILEYS_URL
         private const val QR_POLL_INTERVAL = 3000L // 3 seconds
         private const val QR_TIMEOUT = 120000L // 120 seconds
     }
 
     private lateinit var channelCredentialsManager: ChannelCredentialsManager
     private lateinit var sessionManager: SessionManager
-    private var useLocalBaileys = false // always false - local nodejs removed
 
     // Views
     private lateinit var btnBack: ImageView
@@ -85,143 +83,9 @@ class WhatsAppSetupActivity : AppCompatActivity() {
     private fun startCloudBaileysConnect() {
         showQrLoading()
         statusText.text = "Подключение к WhatsApp сервису..."
-
-        // Connect to cloud Baileys server
-        CoroutineScope(Dispatchers.IO).launch {
-
-            // Check if local server is available
-            val isLocalAvailable = checkLocalServer()
-
-            withContext(Dispatchers.Main) {
-                if (isLocalAvailable) {
-                    useLocalBaileys = true
-                    Log.i(TAG, "Using local Baileys server")
-                    requestQrFromLocal()
-                } else {
-                    useLocalBaileys = false
-                    Log.i(TAG, "Local server not available, using remote")
-                    createSessionAndRequestQr()
-                }
-            }
-        }
+        createSessionAndRequestQr()
     }
 
-    private fun checkLocalServer(): Boolean {
-        // Local nodejs-mobile removed - always use cloud Baileys
-        return false
-    }
-
-    private fun requestQrFromLocal() {
-        showQrLoading()
-        pollJob?.cancel()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // Trigger connection
-                val connectUrl = URL("$LOCAL_BAILEYS_URL/connect")
-                val connectConn = connectUrl.openConnection() as HttpURLConnection
-                connectConn.requestMethod = "POST"
-                connectConn.connectTimeout = 5000
-                connectConn.doOutput = true
-                connectConn.outputStream.close()
-                connectConn.responseCode // trigger
-
-                // Wait for QR to be generated
-                delay(3000)
-
-                // Get QR code
-                val qrUrl = URL("$LOCAL_BAILEYS_URL/qr")
-                val qrConn = qrUrl.openConnection() as HttpURLConnection
-                qrConn.requestMethod = "GET"
-                qrConn.connectTimeout = 5000
-
-                if (qrConn.responseCode == 200) {
-                    val response = qrConn.inputStream.bufferedReader().readText()
-                    val json = JSONObject(response)
-
-                    if (json.optBoolean("success", false)) {
-                        val qr = json.optString("qr", "")
-                        if (qr.isNotEmpty()) {
-                            withContext(Dispatchers.Main) {
-                                displayQrCode(qr)
-                                startLocalPolling()
-                            }
-                            return@launch
-                        }
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    showQrError("QR-код не готов")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Local QR request failed: ${e.message}", e)
-                withContext(Dispatchers.Main) {
-                    showQrError("Ошибка: ${e.message}")
-                }
-            }
-        }
-    }
-
-    private fun startLocalPolling() {
-        pollJob?.cancel()
-        pollJob = CoroutineScope(Dispatchers.IO).launch {
-            val startTime = System.currentTimeMillis()
-
-            while (isActive && (System.currentTimeMillis() - startTime) < QR_TIMEOUT) {
-                try {
-                    val url = URL("$LOCAL_BAILEYS_URL/status")
-                    val connection = url.openConnection() as HttpURLConnection
-                    connection.requestMethod = "GET"
-                    connection.connectTimeout = 5000
-                    connection.readTimeout = 5000
-
-                    if (connection.responseCode == 200) {
-                        val response = connection.inputStream.bufferedReader().readText()
-                        val json = JSONObject(response)
-                        val status = json.optString("status", "")
-
-                        Log.i(TAG, "Local poll status: $status")
-
-                        when (status) {
-                            "connected" -> {
-                                val phone = json.optString("phone", "")
-                                val name = json.optString("name", "")
-
-                                withContext(Dispatchers.Main) {
-                                    onConnectionSuccess(phone, name, "local_baileys")
-                                }
-                                return@launch
-                            }
-                            "qr" -> {
-                                // QR might have changed, refresh it
-                                val qrUrl = URL("$LOCAL_BAILEYS_URL/qr")
-                                val qrConn = qrUrl.openConnection() as HttpURLConnection
-                                if (qrConn.responseCode == 200) {
-                                    val qrResponse = qrConn.inputStream.bufferedReader().readText()
-                                    val qrJson = JSONObject(qrResponse)
-                                    val qr = qrJson.optString("qr", "")
-                                    if (qr.isNotEmpty() && qr != currentQrData) {
-                                        withContext(Dispatchers.Main) {
-                                            displayQrCode(qr)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Local poll error: ${e.message}")
-                }
-
-                delay(QR_POLL_INTERVAL)
-            }
-
-            withContext(Dispatchers.Main) {
-                statusText.text = "Время ожидания истекло"
-            }
-        }
-    }
 
     private fun initViews() {
         btnBack = findViewById(R.id.btnBack)

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-20T17:10:08.229Z",
+  "updatedAt": "2025-12-22T18:24:03.738Z",
   "createdAt": "2025-12-19T08:32:05.137Z",
   "id": "nsMrS7SmpsxutrfN",
   "name": "ELO_API_Android_Normalize",
@@ -16,13 +16,13 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "8dee676f-9bcb-4577-8d49-ef051ba83be3",
+      "id": "4f05fef1-2808-4b6d-acbe-76035c46ad8b",
       "name": "Webhook - Normalize",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -944,
-        48
+        -960,
+        32
       ],
       "webhookId": "android-normalize"
     },
@@ -32,13 +32,13 @@
         "query": "SELECT od.operator_id, od.tenant_id\nFROM elo_t_operator_devices od\nWHERE od.session_token = '{{ $json.body.session_token }}'\n  AND od.is_active = true\nLIMIT 1;",
         "options": {}
       },
-      "id": "e46986b7-9b7e-4880-a2cf-22fae6efe755",
+      "id": "01b0a9bd-4d2f-43af-92ab-2f199258e371",
       "name": "Postgres - Validate Session",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -720,
-        48
+        -736,
+        32
       ],
       "alwaysOutputData": true,
       "credentials": {
@@ -73,13 +73,13 @@
         },
         "options": {}
       },
-      "id": "d354a7e5-d678-4741-8dcb-c02d201ea58b",
+      "id": "b9ead139-584c-43f5-9fdb-b86a60437ce8",
       "name": "IF - Session Valid",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -496,
-        48
+        -512,
+        32
       ]
     },
     {
@@ -102,13 +102,13 @@
         "jsonBody": "={\n  \"model\": \"openai/gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Ты помощник оператора сервисного центра по ремонту телефонов. Твоя задача - нормализовать текст сообщения оператора:\\n1. Исправить орфографические и грамматические ошибки\\n2. Сделать текст более вежливым и профессиональным\\n3. Сохранить смысл и ключевую информацию\\n4. Убрать лишние слова-паразиты\\n5. Отвечай ТОЛЬКО нормализованным текстом, без пояснений\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($('Webhook - Normalize').item.json.body.text) }}\n    }\n  ],\n  \"max_tokens\": 500,\n  \"temperature\": 0.3\n}",
         "options": {}
       },
-      "id": "ad439d0a-bffd-4e2e-af1a-7d856271992e",
+      "id": "40906ce7-69dc-462d-80b5-d60bf94de148",
       "name": "OpenRouter - Normalize",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -272,
-        -64
+        -288,
+        -80
       ],
       "credentials": {
         "openRouterApi": {
@@ -121,13 +121,13 @@
       "parameters": {
         "jsCode": "const response = $input.first().json;\nconst normalizedText = response.choices?.[0]?.message?.content || '';\n\nreturn {\n  normalized_text: normalizedText.trim()\n};"
       },
-      "id": "f6e1954e-ac9c-4f4c-b378-025ca0910245",
+      "id": "682206bd-3ae3-4211-947b-4fba86ab6ea0",
       "name": "Extract Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -48,
-        -64
+        -64,
+        -80
       ]
     },
     {
@@ -150,13 +150,13 @@
           }
         }
       },
-      "id": "9c4b56d9-77c4-4fdb-b75f-2648d846f3e0",
+      "id": "2078f314-c406-4cc1-8c14-6a529392580c",
       "name": "Response - Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        176,
-        -64
+        160,
+        -80
       ]
     },
     {
@@ -179,13 +179,13 @@
           }
         }
       },
-      "id": "dad7685f-47fd-4841-8de8-a134accba62b",
+      "id": "74cd3da3-4e0b-4430-97af-5637bcbf3115",
       "name": "Response - Unauthorized",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        -272,
-        144
+        -288,
+        128
       ]
     }
   ],
@@ -259,9 +259,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "06835b1b-13b3-40a8-852b-eb5a9b93d5be",
-  "activeVersionId": "06835b1b-13b3-40a8-852b-eb5a9b93d5be",
-  "versionCounter": 7,
+  "versionId": "2d7a76ab-1b61-4100-8442-f364f7d5d756",
+  "activeVersionId": "2d7a76ab-1b61-4100-8442-f364f7d5d756",
+  "versionCounter": 10,
   "triggerCount": 1,
   "shared": [
     {
@@ -285,7 +285,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T20:00:02.000Z",
+              "updatedAt": "2025-12-23T08:01:19.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -300,7 +300,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-20",
+              "lastActiveAt": "2025-12-22",
               "isPending": false
             }
           }
@@ -323,9 +323,9 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2025-12-20T17:10:08.230Z",
-    "createdAt": "2025-12-20T17:10:08.230Z",
-    "versionId": "06835b1b-13b3-40a8-852b-eb5a9b93d5be",
+    "updatedAt": "2025-12-22T18:24:03.740Z",
+    "createdAt": "2025-12-22T18:24:03.740Z",
+    "versionId": "2d7a76ab-1b61-4100-8442-f364f7d5d756",
     "workflowId": "nsMrS7SmpsxutrfN",
     "nodes": [
       {
@@ -337,13 +337,13 @@
             "allowedOrigins": "*"
           }
         },
-        "id": "8dee676f-9bcb-4577-8d49-ef051ba83be3",
+        "id": "4f05fef1-2808-4b6d-acbe-76035c46ad8b",
         "name": "Webhook - Normalize",
         "type": "n8n-nodes-base.webhook",
         "typeVersion": 2,
         "position": [
-          -944,
-          48
+          -960,
+          32
         ],
         "webhookId": "android-normalize"
       },
@@ -353,13 +353,13 @@
           "query": "SELECT od.operator_id, od.tenant_id\nFROM elo_t_operator_devices od\nWHERE od.session_token = '{{ $json.body.session_token }}'\n  AND od.is_active = true\nLIMIT 1;",
           "options": {}
         },
-        "id": "e46986b7-9b7e-4880-a2cf-22fae6efe755",
+        "id": "01b0a9bd-4d2f-43af-92ab-2f199258e371",
         "name": "Postgres - Validate Session",
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2.6,
         "position": [
-          -720,
-          48
+          -736,
+          32
         ],
         "alwaysOutputData": true,
         "credentials": {
@@ -394,13 +394,13 @@
           },
           "options": {}
         },
-        "id": "d354a7e5-d678-4741-8dcb-c02d201ea58b",
+        "id": "b9ead139-584c-43f5-9fdb-b86a60437ce8",
         "name": "IF - Session Valid",
         "type": "n8n-nodes-base.if",
         "typeVersion": 2,
         "position": [
-          -496,
-          48
+          -512,
+          32
         ]
       },
       {
@@ -423,13 +423,13 @@
           "jsonBody": "={\n  \"model\": \"openai/gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Ты помощник оператора сервисного центра по ремонту телефонов. Твоя задача - нормализовать текст сообщения оператора:\\n1. Исправить орфографические и грамматические ошибки\\n2. Сделать текст более вежливым и профессиональным\\n3. Сохранить смысл и ключевую информацию\\n4. Убрать лишние слова-паразиты\\n5. Отвечай ТОЛЬКО нормализованным текстом, без пояснений\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($('Webhook - Normalize').item.json.body.text) }}\n    }\n  ],\n  \"max_tokens\": 500,\n  \"temperature\": 0.3\n}",
           "options": {}
         },
-        "id": "ad439d0a-bffd-4e2e-af1a-7d856271992e",
+        "id": "40906ce7-69dc-462d-80b5-d60bf94de148",
         "name": "OpenRouter - Normalize",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          -272,
-          -64
+          -288,
+          -80
         ],
         "credentials": {
           "openRouterApi": {
@@ -442,13 +442,13 @@
         "parameters": {
           "jsCode": "const response = $input.first().json;\nconst normalizedText = response.choices?.[0]?.message?.content || '';\n\nreturn {\n  normalized_text: normalizedText.trim()\n};"
         },
-        "id": "f6e1954e-ac9c-4f4c-b378-025ca0910245",
+        "id": "682206bd-3ae3-4211-947b-4fba86ab6ea0",
         "name": "Extract Response",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          -48,
-          -64
+          -64,
+          -80
         ]
       },
       {
@@ -471,13 +471,13 @@
             }
           }
         },
-        "id": "9c4b56d9-77c4-4fdb-b75f-2648d846f3e0",
+        "id": "2078f314-c406-4cc1-8c14-6a529392580c",
         "name": "Response - Success",
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.1,
         "position": [
-          176,
-          -64
+          160,
+          -80
         ]
       },
       {
@@ -500,13 +500,13 @@
             }
           }
         },
-        "id": "dad7685f-47fd-4841-8de8-a134accba62b",
+        "id": "74cd3da3-4e0b-4430-97af-5637bcbf3115",
         "name": "Response - Unauthorized",
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.1,
         "position": [
-          -272,
-          144
+          -288,
+          128
         ]
       }
     ],

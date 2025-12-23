@@ -39,10 +39,16 @@ import com.eldoleado.app.channels.AlertSender
 import com.eldoleado.app.channels.ChannelMonitorService
 // TunnelService removed - all processing in cloud now
 import com.google.android.material.textfield.TextInputEditText
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import retrofit2.Call
@@ -217,6 +223,8 @@ class MainActivity : AppCompatActivity() {
         updateCallRecordingUI()
         updateChannelsUI()
         updateNotificationsUI()
+        // Check channel statuses from server
+        checkWhatsAppServerStatus()
     }
 
     private fun loadDialogs() {
@@ -273,7 +281,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // TODO: Add observers for dialogs from server
+        // Subscribe to EventBus for real-time updates
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                AppealEventBus.events.collect { event ->
+                    Log.d("MainActivity", "EventBus received: $event")
+                    when (event) {
+                        is AppealUpdateEvent.NewMessage,
+                        is AppealUpdateEvent.AllAppealsUpdated -> {
+                            Log.d("MainActivity", "Refreshing dialogs due to FCM event")
+                            runOnUiThread { loadDialogs() }
+                        }
+                        else -> { /* ignore */ }
+                    }
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -468,38 +491,30 @@ class MainActivity : AppCompatActivity() {
     // ==================== CHANNELS SECTION ====================
 
     private fun setupChannelsSection() {
-        // Show channels section only for Server or Both mode
-        val appMode = sessionManager.getAppMode()
-        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
+        // Always show channels section
+        channelsSection.visibility = View.VISIBLE
 
-        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
-
-        if (!showChannels) return
-
-        // Setup click listeners for each channel
-        setupChannelItem(
-            channelView = findViewById(R.id.channelTelegram),
-            channelType = ChannelType.TELEGRAM,
-            iconRes = R.drawable.ic_telegram
+        // Channel configs: view id, type, icon
+        val channelConfigs = listOf(
+            Triple(R.id.channelWhatsApp, ChannelType.WHATSAPP, R.drawable.ic_whatsapp),
+            Triple(R.id.channelTelegram, ChannelType.TELEGRAM, R.drawable.ic_telegram),
+            Triple(R.id.channelTelegramBot, ChannelType.TELEGRAM_BOT, R.drawable.ic_telegram),
+            Triple(R.id.channelVk, ChannelType.VK, R.drawable.ic_vk),
+            Triple(R.id.channelVkGroup, ChannelType.VK_GROUP, R.drawable.ic_vk),
+            Triple(R.id.channelAvito, ChannelType.AVITO, R.drawable.ic_avito),
+            Triple(R.id.channelMax, ChannelType.MAX, R.drawable.ic_max)
         )
 
-        setupChannelItem(
-            channelView = findViewById(R.id.channelWhatsApp),
-            channelType = ChannelType.WHATSAPP,
-            iconRes = R.drawable.ic_whatsapp
-        )
-
-        setupChannelItem(
-            channelView = findViewById(R.id.channelAvito),
-            channelType = ChannelType.AVITO,
-            iconRes = R.drawable.ic_avito
-        )
-
-        setupChannelItem(
-            channelView = findViewById(R.id.channelMax),
-            channelType = ChannelType.MAX,
-            iconRes = R.drawable.ic_max
-        )
+        // Setup each channel, hide if not allowed by tenant subscription
+        for ((viewId, channelType, iconRes) in channelConfigs) {
+            val channelView = findViewById<View>(viewId)
+            if (sessionManager.isChannelAllowed(channelType.key)) {
+                channelView.visibility = View.VISIBLE
+                setupChannelItem(channelView, channelType, iconRes)
+            } else {
+                channelView.visibility = View.GONE
+            }
+        }
 
         updateChannelsUI()
     }
@@ -519,16 +534,27 @@ class MainActivity : AppCompatActivity() {
     private fun updateChannelsUI() {
         if (!::channelsSection.isInitialized) return
 
-        val appMode = sessionManager.getAppMode()
-        val showChannels = appMode == SessionManager.MODE_SERVER || appMode == SessionManager.MODE_BOTH
-        channelsSection.visibility = if (showChannels) View.VISIBLE else View.GONE
+        channelsSection.visibility = View.VISIBLE
 
-        if (!showChannels) return
+        val channels = listOf(
+            Pair(R.id.channelWhatsApp, ChannelType.WHATSAPP),
+            Pair(R.id.channelTelegram, ChannelType.TELEGRAM),
+            Pair(R.id.channelTelegramBot, ChannelType.TELEGRAM_BOT),
+            Pair(R.id.channelVk, ChannelType.VK),
+            Pair(R.id.channelVkGroup, ChannelType.VK_GROUP),
+            Pair(R.id.channelAvito, ChannelType.AVITO),
+            Pair(R.id.channelMax, ChannelType.MAX)
+        )
 
-        updateChannelItemUI(findViewById(R.id.channelTelegram), ChannelType.TELEGRAM)
-        updateChannelItemUI(findViewById(R.id.channelWhatsApp), ChannelType.WHATSAPP)
-        updateChannelItemUI(findViewById(R.id.channelAvito), ChannelType.AVITO)
-        updateChannelItemUI(findViewById(R.id.channelMax), ChannelType.MAX)
+        for ((viewId, channelType) in channels) {
+            val channelView = findViewById<View>(viewId)
+            if (sessionManager.isChannelAllowed(channelType.key)) {
+                channelView.visibility = View.VISIBLE
+                updateChannelItemUI(channelView, channelType)
+            } else {
+                channelView.visibility = View.GONE
+            }
+        }
     }
 
     private fun updateChannelItemUI(channelView: View, channelType: ChannelType) {
@@ -565,13 +591,69 @@ class MainActivity : AppCompatActivity() {
         if (status == ChannelStatus.CONNECTED || status == ChannelStatus.ERROR) {
             ChannelDetailsActivity.start(this, channelType)
         } else {
-            val intent = when (channelType) {
-                ChannelType.TELEGRAM -> Intent(this, TelegramSetupActivity::class.java)
-                ChannelType.AVITO -> Intent(this, AvitoSetupActivity::class.java)
-                ChannelType.WHATSAPP -> Intent(this, WhatsAppSetupActivity::class.java)
-                ChannelType.MAX -> Intent(this, MaxSetupActivity::class.java)
+            when (channelType) {
+                ChannelType.WHATSAPP -> startActivity(Intent(this, WhatsAppSetupActivity::class.java))
+                ChannelType.TELEGRAM -> startActivity(Intent(this, TelegramSetupActivity::class.java))
+                ChannelType.AVITO -> startActivity(Intent(this, AvitoSetupActivity::class.java))
+                ChannelType.MAX -> startActivity(Intent(this, MaxSetupActivity::class.java))
+                // TODO: Implement setup activities for these channels
+                ChannelType.TELEGRAM_BOT -> Toast.makeText(this, "Telegram Bot: в разработке", Toast.LENGTH_SHORT).show()
+                ChannelType.VK -> Toast.makeText(this, "VK: в разработке", Toast.LENGTH_SHORT).show()
+                ChannelType.VK_GROUP -> Toast.makeText(this, "VK Группа: в разработке", Toast.LENGTH_SHORT).show()
             }
-            startActivity(intent)
+        }
+    }
+
+    /**
+     * Check WhatsApp status from Baileys server and update UI
+     */
+    private fun checkWhatsAppServerStatus() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL("http://155.212.221.189:8769/sessions")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+
+                if (connection.responseCode == 200) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    val json = JSONObject(response)
+
+                    if (json.optBoolean("success", false)) {
+                        val data = json.optJSONObject("data")
+                        val sessions = data?.optJSONArray("sessions")
+
+                        var whatsappConnected = false
+                        var whatsappPhone = ""
+                        var whatsappName = ""
+
+                        if (sessions != null) {
+                            for (i in 0 until sessions.length()) {
+                                val session = sessions.getJSONObject(i)
+                                val status = session.optString("status", "")
+                                if (status == "connected") {
+                                    whatsappConnected = true
+                                    whatsappPhone = session.optString("phone", "")
+                                    whatsappName = session.optString("name", "")
+                                    break
+                                }
+                            }
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            if (whatsappConnected) {
+                                channelCredentialsManager.saveWhatsApp("server", whatsappPhone, whatsappName)
+                            } else {
+                                channelCredentialsManager.clearWhatsApp()
+                            }
+                            updateChannelsUI()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Failed to check WhatsApp status: ${e.message}")
+            }
         }
     }
 

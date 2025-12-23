@@ -8,8 +8,11 @@ enum class ChannelStatus {
 }
 
 enum class ChannelType(val displayName: String, val key: String) {
-    TELEGRAM("Telegram", "telegram"),
     WHATSAPP("WhatsApp", "whatsapp"),
+    TELEGRAM("Telegram", "telegram"),
+    TELEGRAM_BOT("Telegram Bot", "telegram_bot"),
+    VK("VK", "vk"),
+    VK_GROUP("VK Группа", "vk_group"),
     AVITO("Avito", "avito"),
     MAX("MAX", "max")
 }

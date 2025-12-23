@@ -44,6 +44,23 @@ class ChannelCredentialsManager(context: Context) {
         private const val KEY_MAX_NAME = "max_name"
         private const val KEY_MAX_STATUS = "max_status"
 
+        // VK
+        private const val KEY_VK_TOKEN = "vk_token"
+        private const val KEY_VK_USER_ID = "vk_user_id"
+        private const val KEY_VK_NAME = "vk_name"
+        private const val KEY_VK_STATUS = "vk_status"
+
+        // VK Group
+        private const val KEY_VK_GROUP_TOKEN = "vk_group_token"
+        private const val KEY_VK_GROUP_ID = "vk_group_id"
+        private const val KEY_VK_GROUP_NAME = "vk_group_name"
+        private const val KEY_VK_GROUP_STATUS = "vk_group_status"
+
+        // Telegram Bot (separate from Telegram User)
+        private const val KEY_TG_BOT_STANDALONE_TOKEN = "tg_bot_standalone_token"
+        private const val KEY_TG_BOT_STANDALONE_USERNAME = "tg_bot_standalone_username"
+        private const val KEY_TG_BOT_STANDALONE_STATUS = "tg_bot_standalone_status"
+
         // Alert notifications
         private const val KEY_ALERT_BOT_TOKEN = "alert_bot_token"
         private const val KEY_ALERT_CHAT_ID = "alert_chat_id"
@@ -280,12 +297,141 @@ class ChannelCredentialsManager(context: Context) {
     fun isAlertNetworkEnabled(): Boolean = prefs.getBoolean(KEY_ALERT_NETWORK, true)
     fun isAlertChannelsEnabled(): Boolean = prefs.getBoolean(KEY_ALERT_CHANNELS, true)
 
+    // ==================== VK ====================
+
+    fun saveVk(token: String, userId: String?, name: String?) {
+        prefs.edit().apply {
+            putString(KEY_VK_TOKEN, token)
+            userId?.let { putString(KEY_VK_USER_ID, it) }
+            name?.let { putString(KEY_VK_NAME, it) }
+            putString(KEY_VK_STATUS, ChannelStatus.CONNECTED.name)
+            apply()
+        }
+    }
+
+    fun getVkToken(): String? = prefs.getString(KEY_VK_TOKEN, null)
+    fun getVkUserId(): String? = prefs.getString(KEY_VK_USER_ID, null)
+    fun getVkName(): String? = prefs.getString(KEY_VK_NAME, null)
+
+    fun getVkStatus(): ChannelStatus {
+        val statusStr = prefs.getString(KEY_VK_STATUS, null) ?: return ChannelStatus.NOT_CONFIGURED
+        return try {
+            ChannelStatus.valueOf(statusStr)
+        } catch (e: Exception) {
+            ChannelStatus.NOT_CONFIGURED
+        }
+    }
+
+    fun setVkStatus(status: ChannelStatus) {
+        prefs.edit().putString(KEY_VK_STATUS, status.name).apply()
+    }
+
+    fun getVkDisplayInfo(): String? {
+        return getVkName() ?: getVkUserId()
+    }
+
+    fun clearVk() {
+        prefs.edit().apply {
+            remove(KEY_VK_TOKEN)
+            remove(KEY_VK_USER_ID)
+            remove(KEY_VK_NAME)
+            remove(KEY_VK_STATUS)
+            apply()
+        }
+    }
+
+    // ==================== VK GROUP ====================
+
+    fun saveVkGroup(token: String, groupId: String?, name: String?) {
+        prefs.edit().apply {
+            putString(KEY_VK_GROUP_TOKEN, token)
+            groupId?.let { putString(KEY_VK_GROUP_ID, it) }
+            name?.let { putString(KEY_VK_GROUP_NAME, it) }
+            putString(KEY_VK_GROUP_STATUS, ChannelStatus.CONNECTED.name)
+            apply()
+        }
+    }
+
+    fun getVkGroupToken(): String? = prefs.getString(KEY_VK_GROUP_TOKEN, null)
+    fun getVkGroupId(): String? = prefs.getString(KEY_VK_GROUP_ID, null)
+    fun getVkGroupName(): String? = prefs.getString(KEY_VK_GROUP_NAME, null)
+
+    fun getVkGroupStatus(): ChannelStatus {
+        val statusStr = prefs.getString(KEY_VK_GROUP_STATUS, null) ?: return ChannelStatus.NOT_CONFIGURED
+        return try {
+            ChannelStatus.valueOf(statusStr)
+        } catch (e: Exception) {
+            ChannelStatus.NOT_CONFIGURED
+        }
+    }
+
+    fun setVkGroupStatus(status: ChannelStatus) {
+        prefs.edit().putString(KEY_VK_GROUP_STATUS, status.name).apply()
+    }
+
+    fun getVkGroupDisplayInfo(): String? {
+        return getVkGroupName() ?: getVkGroupId()
+    }
+
+    fun clearVkGroup() {
+        prefs.edit().apply {
+            remove(KEY_VK_GROUP_TOKEN)
+            remove(KEY_VK_GROUP_ID)
+            remove(KEY_VK_GROUP_NAME)
+            remove(KEY_VK_GROUP_STATUS)
+            apply()
+        }
+    }
+
+    // ==================== TELEGRAM BOT (Standalone) ====================
+
+    fun saveTelegramBotStandalone(token: String, username: String) {
+        prefs.edit().apply {
+            putString(KEY_TG_BOT_STANDALONE_TOKEN, token)
+            putString(KEY_TG_BOT_STANDALONE_USERNAME, username)
+            putString(KEY_TG_BOT_STANDALONE_STATUS, ChannelStatus.CONNECTED.name)
+            apply()
+        }
+    }
+
+    fun getTelegramBotStandaloneToken(): String? = prefs.getString(KEY_TG_BOT_STANDALONE_TOKEN, null)
+    fun getTelegramBotStandaloneUsername(): String? = prefs.getString(KEY_TG_BOT_STANDALONE_USERNAME, null)
+
+    fun getTelegramBotStandaloneStatus(): ChannelStatus {
+        val statusStr = prefs.getString(KEY_TG_BOT_STANDALONE_STATUS, null) ?: return ChannelStatus.NOT_CONFIGURED
+        return try {
+            ChannelStatus.valueOf(statusStr)
+        } catch (e: Exception) {
+            ChannelStatus.NOT_CONFIGURED
+        }
+    }
+
+    fun setTelegramBotStandaloneStatus(status: ChannelStatus) {
+        prefs.edit().putString(KEY_TG_BOT_STANDALONE_STATUS, status.name).apply()
+    }
+
+    fun getTelegramBotStandaloneDisplayInfo(): String? {
+        return getTelegramBotStandaloneUsername()?.let { "@$it" }
+    }
+
+    fun clearTelegramBotStandalone() {
+        prefs.edit().apply {
+            remove(KEY_TG_BOT_STANDALONE_TOKEN)
+            remove(KEY_TG_BOT_STANDALONE_USERNAME)
+            remove(KEY_TG_BOT_STANDALONE_STATUS)
+            apply()
+        }
+    }
+
     // ==================== UTILITY ====================
 
     fun getChannelStatus(channel: ChannelType): ChannelStatus {
         return when (channel) {
-            ChannelType.TELEGRAM -> getTelegramStatus()
             ChannelType.WHATSAPP -> getWhatsAppStatus()
+            ChannelType.TELEGRAM -> getTelegramStatus()
+            ChannelType.TELEGRAM_BOT -> getTelegramBotStandaloneStatus()
+            ChannelType.VK -> getVkStatus()
+            ChannelType.VK_GROUP -> getVkGroupStatus()
             ChannelType.AVITO -> getAvitoStatus()
             ChannelType.MAX -> getMaxStatus()
         }
@@ -293,8 +439,11 @@ class ChannelCredentialsManager(context: Context) {
 
     fun getChannelDisplayInfo(channel: ChannelType): String? {
         return when (channel) {
-            ChannelType.TELEGRAM -> getTelegramDisplayInfo()
             ChannelType.WHATSAPP -> getWhatsAppDisplayInfo()
+            ChannelType.TELEGRAM -> getTelegramDisplayInfo()
+            ChannelType.TELEGRAM_BOT -> getTelegramBotStandaloneDisplayInfo()
+            ChannelType.VK -> getVkDisplayInfo()
+            ChannelType.VK_GROUP -> getVkGroupDisplayInfo()
             ChannelType.AVITO -> getAvitoDisplayInfo()
             ChannelType.MAX -> getMaxDisplayInfo()
         }
@@ -302,8 +451,11 @@ class ChannelCredentialsManager(context: Context) {
 
     fun clearChannel(channel: ChannelType) {
         when (channel) {
-            ChannelType.TELEGRAM -> clearTelegram()
             ChannelType.WHATSAPP -> clearWhatsApp()
+            ChannelType.TELEGRAM -> clearTelegram()
+            ChannelType.TELEGRAM_BOT -> clearTelegramBotStandalone()
+            ChannelType.VK -> clearVk()
+            ChannelType.VK_GROUP -> clearVkGroup()
             ChannelType.AVITO -> clearAvito()
             ChannelType.MAX -> clearMax()
         }

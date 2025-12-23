@@ -1,11 +1,4 @@
 {
-  "updatedAt": "2025-12-14T09:04:45.250Z",
-  "createdAt": "2025-12-12T09:11:54.134Z",
-  "id": "DgnJMtf2Qu6LCha5",
-  "name": "ELO_Core_AI_Test_Stub",
-  "description": null,
-  "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -48,9 +41,116 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        256,
+        1552,
         -48
       ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    od.fcm_token,\n    od.operator_id,\n    o.name as operator_name\n  FROM elo_t_operator_devices od\n  JOIN elo_t_operators o ON o.id = od.operator_id\n  WHERE od.tenant_id = '{{ $json.tenant_id }}'::uuid\n    AND od.fcm_token IS NOT NULL\n    AND od.device_type = 'mobile'\n    AND o.is_active = true;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        -48
+      ],
+      "id": "f0da0f63-d9bb-47d3-ac05-cd65a814d669",
+      "name": "Get Operator FCM Tokens",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1280,
+        -48
+      ],
+      "id": "e38e6ae5-7126-415b-82ea-2a6503eec3ec",
+      "name": "Send FCM Push"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://oauth2.googleapis.com/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "urn:ietf:params:oauth:grant-type:jwt-bearer"
+            },
+            {
+              "name": "assertion",
+              "value": "={{ $json.jwt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        832,
+        -48
+      ],
+      "id": "ffb06aa0-89ca-4475-9b37-cd561661bcfd",
+      "name": "Get Access Token"
+    },
+    {
+      "parameters": {
+        "jsCode": " const crypto = require('crypto');\n\n  const keyLines = [\n    \"-----BEGIN PRIVATE KEY-----\",\n    \"MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCujR+Wss/CQ9JV\",\n    \"dJiwwy0pH9kR2Yr1MYZNBZEPC+BBiZLKUhoIP04TMjuXHQlsuKwfRGUDBO2dKBcv\",\n    \"MHKJ3iezYiroyrIkSz+/CPEHlRcjdgwH8tlQYadLpxKbYqrEGqU3+U+CDDeQTKhB\",\n    \"x89220TSx51UodQZIhcuv9zoiXWkbNam8TBveVKyuyaob9PNBF2XmauKZjf8tC1x\",\n    \"ld15l2VJBkqBKYuO/IrRnIBF7K7vi/UmHQGbi1l4PUsHHGj7/64T0DcJoK/02uBz\",\n    \"0ZOFRTKmwesq7ANug+P76wgni4OBxluupwGUW+dSOjWlAe7Fyy6NtylxzMygC6GZ\",\n    \"Yqy2XR6LAgMBAAECggEASt07UaqyofrtwPonrRShD3TZ6KZ5y20o0WsUSrRIxEMp\",\n    \"or3w7V2dcm1GkqsBClDwfd6bRl68PP3fZ71rOsd+FpmBluOs4RUnK5u9qQdga7Sr\",\n    \"N1OIskmX88IeIGgCnuZgu2+iEsCDqk++kKwOxscHrzGvQIfCDN+KuuHOcSvXuaPA\",\n    \"aWy/R+c98/8pMyii06T3uOqV90RfVuEDlfrWfzhh/vDxKWF7ywwbfZMJVMgBhMb+\",\n    \"j4M1SUSw+2uubhWRpQT8qrsHo00jUnDKMjmEZ9lvYvMeLrcL72a0oXKAbSxJi9Wm\",\n    \"Czz3UYpDYIoOmcJe8aaCQ2fOsEuzTZvVUMKxwe9cmQKBgQDqP5A1QgAFqUOnp2Hf\",\n    \"983/rkPlFDqQjcZqPSf2KxPNPyWmEOOPA6dGhbB5EMPS7SXgzDiLHW7vxRqX8olA\",\n    \"pn5xxrpG7hWJYjjAM9EVTX3dsjJWlgLWL5G8TK+dLLvlLs9+bkh/U4uqd/LhzlRG\",\n    \"MGe37cEILoXNeH4/rEVOnwEWWQKBgQC+wnikB9BX3kXq019Yz3jP8sbcQwvzGxTP\",\n    \"wCKwXWIbo9PrCsJW8O3KdDMvuWz7NGrZSdxU5krp8T47qgMDvAS0w9COxHkEMhCU\",\n    \"zvmf73BOkmwYm0G5QvKJiOgAurJEb5QZL0+EaV+Lxquuty4a8B0tMPsGPoiGVKpU\",\n    \"5HeM7PxHgwKBgGld1BkQqf/h5ku4b78VsTSMB4A4fCtfiltpTNte/xY4jE/JkwJW\",\n    \"a1y+b+XVE7CB+aLHWbvBro/tggvNDc3l1kSJVmrnVwqoAsz5wdeqNq6NJDVsXrRH\",\n    \"S29+sxOo9o+dYboGE1gqlU1FjRvi+mdkCJNkP4rVmlwVEfzEGZzGyu9pAoGBAJ7G\",\n    \"FsvQhSTdqKwviqjM5u2OUN58H7IU1Fmmvji1QTdoQLbdmavrlMBxvzj1yTO9CUIa\",\n    \"K/2uQKQ/W2ElvKSbFf+vDCQIfAF1+j8hlrv7+yoqzTYd47JjeqPnA9O3kTFM/aOI\",\n    \"sVKwsgoRLkyZwxJA0MgQgJ9N5SyJw8ws7SSrC8ApAoGBANB0UpLkoKvo5GEtqiLn\",\n    \"RHsaMa9U7w1Crbvm4JR5RhTe80kNVNx7znVXanyPOE3Qe251bHtSR2Qx1g1a52wx\",\n    \"r0eXgjwLIFtzt3ZmFLFGZ4bdrtxqTdHJDQFWamW1Y7K5w5kYyD3m3ISKjJrlePTU\",\n    \"Z6m4wqgHK1aErtx1REV9qsqb\",\n    \"-----END PRIVATE KEY-----\"\n  ];\n\n  const privateKeyPem = keyLines.join(\"\\n\");\n  const clientEmail = \"firebase-adminsdk-fbsvc@eldoleado.iam.gserviceaccount.com\";\n\n  const now = Math.floor(Date.now() / 1000);\n\n  const header = JSON.stringify({ alg: \"RS256\", typ: \"JWT\" });\n  const payload = JSON.stringify({\n    iss: clientEmail,\n    scope: \"https://www.googleapis.com/auth/firebase.messaging\",\n    aud: \"https://oauth2.googleapis.com/token\",\n    iat: now,\n    exp: now + 3600\n  });\n\n  const base64Header = Buffer.from(header).toString(\"base64url\");\n  const base64Payload = Buffer.from(payload).toString(\"base64url\");\n  const signatureInput = base64Header + \".\" + base64Payload;\n\n  const privateKey = crypto.createPrivateKey(privateKeyPem);\n  const sign = crypto.createSign(\"SHA256\");\n  sign.update(signatureInput);\n  const signature = sign.sign(privateKey, \"base64url\");\n\n  const jwt = signatureInput + \".\" + signature;\n\n  return $input.all().map(item => ({\n    json: {\n      ...item.json,\n      jwt: jwt\n    }\n  }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -48
+      ],
+      "id": "9c7d6b25-2492-4cc4-b1ee-272c3cd2df62",
+      "name": "Generate JWT"
+    },
+    {
+      "parameters": {
+        "jsCode": "const accessToken = $input.first().json.access_token;\nconst jwtNode = $(\"Generate JWT\").first().json;\nconst testResponse = $(\"Build Test Response\").first().json;\n\nreturn {\n  json: {\n    url: \"https://fcm.googleapis.com/v1/projects/eldoleado/messages:send\",\n    access_token: accessToken,\n    body: {\n      message: {\n        token: jwtNode.fcm_token,\n        notification: {\n          title: \"Новое сообщение\",\n          body: testResponse.message ? testResponse.message.text : \"У вас новое сообщение\"\n        },\n        data: {\n          type: \"new_message\",\n          dialog_id: String(testResponse.dialog_id || \"\"),\n          tenant_id: String(testResponse.tenant_id || \"\"),\n          channel_id: String(testResponse.channel_id || \"\"),\n          external_chat_id: String(testResponse.external_chat_id || \"\"),\n          click_action: \"OPEN_DIALOG\"\n        }\n      }\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        -48
+      ],
+      "id": "66a64cb8-ace5-4e14-b883-086130eb00dc",
+      "name": "Build FCM Request"
     }
   ],
   "connections": {
@@ -69,7 +169,62 @@
       "main": [
         [
           {
+            "node": "Get Operator FCM Tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Operator FCM Tokens": {
+      "main": [
+        [
+          {
+            "node": "Generate JWT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send FCM Push": {
+      "main": [
+        [
+          {
             "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Access Token": {
+      "main": [
+        [
+          {
+            "node": "Build FCM Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate JWT": {
+      "main": [
+        [
+          {
+            "node": "Get Access Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build FCM Request": {
+      "main": [
+        [
+          {
+            "node": "Send FCM Push",
             "type": "main",
             "index": 0
           }
@@ -77,201 +232,104 @@
       ]
     }
   },
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "staticData": null,
-  "meta": null,
   "pinData": {
     "Webhook": [
       {
-        "json": {
-          "headers": {
-            "host": "n8n.n8nsrv.ru",
-            "user-agent": "axios/1.12.0",
-            "content-length": "620",
-            "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
-            "accept-encoding": "gzip, compress, deflate, br",
-            "content-type": "application/json",
-            "via": "1.1 Caddy",
-            "x-forwarded-for": "172.19.0.1",
-            "x-forwarded-host": "n8n.n8nsrv.ru",
-            "x-forwarded-proto": "https"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "tenant_id": "11111111-1111-1111-1111-111111111111",
-            "domain_id": 1,
-            "client_id": "d8d45394-ae91-4257-82bb-f35fe8b79a1b",
-            "dialog_id": "7e76b10c-8f94-4b0a-bda9-7e26125b607b",
-            "channel_id": 1,
-            "external_chat_id": "tg_test_001",
-            "text": "Message 1\n\nMessage 2\n\nMessage 3",
-            "timestamp": "2025-12-14T10:00:02Z",
-            "message_ids": [],
-            "trace_id": "trace_1765701585267",
-            "media": {},
-            "meta": {
-              "batched": true,
-              "batch_size": 3,
-              "batch_reason": "orphan",
-              "is_new_client": true,
-              "is_new_dialog": true,
-              "tenant_from_cache": false,
-              "client_from_cache": false,
-              "dialog_from_cache": false
-            },
-            "client": {
-              "id": "d8d45394-ae91-4257-82bb-f35fe8b79a1b",
-              "name": null,
-              "phone": null
-            }
-          },
-          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/elo-core-ingest",
-          "executionMode": "production"
+        "headers": {
+          "host": "n8n.n8nsrv.ru",
+          "user-agent": "axios/1.12.0",
+          "content-length": "1683",
+          "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+          "accept-encoding": "gzip, compress, deflate, br",
+          "content-type": "application/json",
+          "via": "1.1 Caddy",
+          "x-forwarded-for": "172.19.0.1",
+          "x-forwarded-host": "n8n.n8nsrv.ru",
+          "x-forwarded-proto": "https"
         },
-        "pairedItem": {
-          "item": 0
-        }
+        "params": {},
+        "query": {},
+        "body": {
+          "tenant_id": "11111111-1111-1111-1111-111111111111",
+          "domain_id": 1,
+          "client_id": "16fa0bd2-3a11-485e-905a-98273a6ad8e4",
+          "dialog_id": "6df9ce28-0065-4dff-ae02-d69a6925c811",
+          "channel_id": 2,
+          "external_chat_id": "79171708077@s.whatsapp.net",
+          "text": "Привет как дела делишки",
+          "timestamp": "2025-12-23T10:13:58.000Z",
+          "message_ids": [
+            "2A614F17172CB420D59C"
+          ],
+          "trace_id": "trace_1766484861079",
+          "media": {
+            "has_voice": false,
+            "voice_transcribed_text": null,
+            "has_images": false,
+            "images": [],
+            "has_video": false,
+            "videos": [],
+            "has_document": false
+          },
+          "meta": {
+            "external_message_id": "2A614F17172CB420D59C",
+            "ad_channel": "whatsapp",
+            "ad_id": null,
+            "original_media_type": "text",
+            "raw": {
+              "sessionId": "eldoleado_arceos",
+              "message": {
+                "key": {
+                  "remoteJid": "79171708077@s.whatsapp.net",
+                  "fromMe": false,
+                  "id": "2A614F17172CB420D59C",
+                  "senderLid": "88897803534341@lid",
+                  "remoteLid": "79171708077@lid",
+                  "remoteJidNormalized": "79171708077@s.whatsapp.net"
+                },
+                "messageTimestamp": 1766484838,
+                "pushName": "Ремакс",
+                "broadcast": false,
+                "message": {
+                  "conversation": "Привет как дела делишки",
+                  "messageContextInfo": {
+                    "deviceListMetadata": {
+                      "senderKeyHash": "Wsc9+FOvBXv73w==",
+                      "senderTimestamp": "1766383934",
+                      "recipientKeyHash": "d+lg06pieOFTzQ==",
+                      "recipientTimestamp": "1766227136"
+                    },
+                    "deviceListMetadataVersion": 2,
+                    "messageSecret": "1a5ugMVmAUAULNZacSaxMnkoOH9+S1z8+z3j4NLIZ8s="
+                  }
+                },
+                "verifiedBizName": "Ремакс"
+              },
+              "type": "notify"
+            },
+            "provider": "baileys",
+            "batched": false,
+            "batch_size": 1,
+            "batch_reason": "orphan",
+            "is_new_client": false,
+            "is_new_dialog": false,
+            "tenant_from_cache": false,
+            "client_from_cache": false,
+            "dialog_from_cache": false
+          },
+          "client": {
+            "id": "16fa0bd2-3a11-485e-905a-98273a6ad8e4",
+            "name": "Ремакс",
+            "phone": "+79171708077"
+          }
+        },
+        "webhookUrl": "https://n8n.n8nsrv.ru/webhook/elo-core-ingest",
+        "executionMode": "production"
       }
     ]
   },
-  "versionId": "4b996811-a150-4fb8-af8a-d43d01d8c3fb",
-  "activeVersionId": "4b996811-a150-4fb8-af8a-d43d01d8c3fb",
-  "versionCounter": 10,
-  "triggerCount": 1,
-  "shared": [
-    {
-      "updatedAt": "2025-12-12T09:11:54.144Z",
-      "createdAt": "2025-12-12T09:11:54.144Z",
-      "role": "workflow:owner",
-      "workflowId": "DgnJMtf2Qu6LCha5",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-20T04:36:02.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-19",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
-  "tags": [
-    {
-      "updatedAt": "2025-12-09T18:50:08.518Z",
-      "createdAt": "2025-12-09T18:50:08.518Z",
-      "id": "tMSCjbvPU3xrNUqz",
-      "name": "ELO"
-    }
-  ],
-  "activeVersion": {
-    "updatedAt": "2025-12-14T09:04:45.253Z",
-    "createdAt": "2025-12-14T09:04:45.253Z",
-    "versionId": "4b996811-a150-4fb8-af8a-d43d01d8c3fb",
-    "workflowId": "DgnJMtf2Qu6LCha5",
-    "nodes": [
-      {
-        "parameters": {
-          "httpMethod": "POST",
-          "path": "elo-core-ingest",
-          "responseMode": "responseNode",
-          "options": {}
-        },
-        "id": "345dd5f7-ea31-48f9-b9cf-d663c93d4004",
-        "name": "Webhook",
-        "type": "n8n-nodes-base.webhook",
-        "typeVersion": 2,
-        "position": [
-          -192,
-          -48
-        ],
-        "webhookId": "elo-core-ingest"
-      },
-      {
-        "parameters": {
-          "jsCode": "const raw = $input.first().json;\n  const input = raw.body || raw;\n\n  console.log('=== ELO_Core_AI_Test_Stub ===');\n  console.log('Received:', JSON.stringify(input, null, 2));\n\n  const response = {\n    tenant_id: input.tenant_id,\n    dialog_id: input.dialog_id,\n    channel_id: input.channel_id,\n    external_chat_id: input.external_chat_id,\n\n    message: {\n      text: `[TEST] Получено: \"${input.text || 'пусто'}\"`,\n      buttons: [],\n      attachments: []\n    },\n\n    context_updated: true,\n    trace_id: input.trace_id || `trace_${Date.now()}`,\n\n    _debug: {\n      received_at: new Date().toISOString(),\n      input_keys: Object.keys(input),\n      client: input.client,\n      meta: input.meta\n    }\n  };\n\n  return response;"
-        },
-        "id": "93bf5bda-53f2-4a4d-a7f4-eb9bcb4e3ba7",
-        "name": "Build Test Response",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          32,
-          -48
-        ]
-      },
-      {
-        "parameters": {
-          "respondWith": "json",
-          "responseBody": "={{ $json }}",
-          "options": {}
-        },
-        "id": "2c6082a8-da90-4288-a1d4-f07ab8e98bdf",
-        "name": "Respond to Webhook",
-        "type": "n8n-nodes-base.respondToWebhook",
-        "typeVersion": 1.1,
-        "position": [
-          256,
-          -48
-        ]
-      }
-    ],
-    "connections": {
-      "Webhook": {
-        "main": [
-          [
-            {
-              "node": "Build Test Response",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Build Test Response": {
-        "main": [
-          [
-            {
-              "node": "Respond to Webhook",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      }
-    },
-    "authors": "Dmitriy Remacs",
-    "name": null,
-    "description": null
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
   }
 }

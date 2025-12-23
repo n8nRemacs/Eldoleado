@@ -75,8 +75,11 @@ class EldoleadoMessagingService : FirebaseMessagingService() {
                         // Новое сообщение - обновить UI если открыт этот диалог
                         if (!appealId.isNullOrBlank()) {
                             repository.invalidateAppealCache(appealId)
+                            Log.d(TAG, "Posting NewMessage event to EventBus for dialogId: $appealId")
                             AppealEventBus.post(AppealUpdateEvent.NewMessage(appealId))
-                            Log.d(TAG, "New message event for appeal: $appealId")
+                            Log.d(TAG, "NewMessage event posted successfully")
+                        } else {
+                            Log.w(TAG, "new_message type but appealId is null/blank!")
                         }
                     }
                     "draft_ready", "agent_message" -> {
