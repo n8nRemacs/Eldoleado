@@ -27,8 +27,8 @@
           },
           "conditions": [
             {
-              "id": "has-sessid",
-              "leftValue": "={{ $json.body.sessid }}",
+              "id": "has-cookies",
+              "leftValue": "={{ $json.body.cookies }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -68,15 +68,15 @@
       "position": [440, -100],
       "credentials": {
         "postgres": {
-          "id": "postgres-main",
-          "name": "PostgreSQL Main"
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
         }
       }
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO elo_t_channel_accounts\n  (tenant_id, channel_id, account_id, account_name, credentials, session_status, is_active)\nVALUES\n  (\n    '{{ $json.tenant_id }}',\n    3,\n    '{{ $('Webhook - Avito Auth').item.json.body.user_id || 'default' }}',\n    '{{ $('Webhook - Avito Auth').item.json.body.email || '' }}',\n    '{\"sessid\": \"{{ $('Webhook - Avito Auth').item.json.body.sessid }}\", \"auth\": \"1\"}'::jsonb,\n    'active',\n    true\n  )\nON CONFLICT (tenant_id, channel_id, account_id)\nDO UPDATE SET\n  credentials = '{\"sessid\": \"{{ $('Webhook - Avito Auth').item.json.body.sessid }}\", \"auth\": \"1\"}'::jsonb,\n  account_name = COALESCE(NULLIF('{{ $('Webhook - Avito Auth').item.json.body.email || '' }}', ''), elo_t_channel_accounts.account_name),\n  session_status = 'active',\n  updated_at = NOW(),\n  error_count = 0,\n  last_error = NULL\nRETURNING id, session_status;",
+        "query": "INSERT INTO elo_t_channel_accounts\n  (tenant_id, channel_id, account_id, account_name, credentials, session_status, is_active)\nVALUES\n  (\n    '{{ $json.tenant_id }}',\n    3,\n    '{{ $('Webhook - Avito Auth').item.json.body.upin || $('Webhook - Avito Auth').item.json.body.user_id || 'default' }}',\n    '{{ $('Webhook - Avito Auth').item.json.body.display_name || '' }}',\n    '{\n      \"cookies\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.cookies) }},\n      \"ft\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.ft || null) }},\n      \"f\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.f || null) }},\n      \"upin\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.upin || null) }}\n    }'::jsonb,\n    'active',\n    true\n  )\nON CONFLICT (tenant_id, channel_id, account_id)\nDO UPDATE SET\n  credentials = '{\n    \"cookies\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.cookies) }},\n    \"ft\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.ft || null) }},\n    \"f\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.f || null) }},\n    \"upin\": {{ JSON.stringify($('Webhook - Avito Auth').item.json.body.upin || null) }}\n  }'::jsonb,\n  account_name = COALESCE(NULLIF('{{ $('Webhook - Avito Auth').item.json.body.display_name || '' }}', ''), elo_t_channel_accounts.account_name),\n  session_status = 'active',\n  updated_at = NOW(),\n  error_count = 0,\n  last_error = NULL\nRETURNING id, session_status;",
         "options": {}
       },
       "id": "upsert-channel",
@@ -86,8 +86,8 @@
       "position": [660, -100],
       "credentials": {
         "postgres": {
-          "id": "postgres-main",
-          "name": "PostgreSQL Main"
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
         }
       }
     },
@@ -120,7 +120,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Missing required fields: sessid, operator_id\"\n}",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Missing required fields: cookies, operator_id\"\n}",
         "options": {
           "responseCode": 400,
           "responseHeaders": {

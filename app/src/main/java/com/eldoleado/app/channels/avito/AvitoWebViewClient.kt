@@ -388,25 +388,51 @@ class AvitoWebViewClient(
 
         return withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
-                // Use getChannelById API to get channel.info.name
-                // Note: Use www.avito.ru as m.avito.ru returns "Channel not found"
+                // Use getChannels API and extract name from users[] array
                 val js = """
                     (function() {
                         var called = false;
-                        fetch('https://www.avito.ru/web/1/messenger/getChannelById', {
+                        fetch('https://m.avito.ru/web/1/messenger/getChannels', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({channelId: '$channelId'}),
+                            body: JSON.stringify({
+                                category: 1,
+                                limit: 50
+                            }),
                             credentials: 'include'
                         })
                         .then(function(r) { return r.json(); })
                         .then(function(data) {
                             if (called) return;
                             called = true;
-                            console.log('AvitoWebView: getChannelById response:', JSON.stringify(data).substring(0, 500));
                             var name = '';
-                            if (data.success && data.success.channel && data.success.channel.info) {
-                                name = data.success.channel.info.name || '';
+                            if (data.success && data.success.channels) {
+                                for (var i = 0; i < data.success.channels.length; i++) {
+                                    var ch = data.success.channels[i];
+                                    if (ch.id === '$channelId') {
+                                        console.log('AvitoWebView: Found channel:', JSON.stringify(ch).substring(0, 500));
+                                        // Try to find other user's name in users array
+                                        var myUserId = ch.userId;
+                                        if (ch.users && ch.users.length > 0) {
+                                            for (var j = 0; j < ch.users.length; j++) {
+                                                var user = ch.users[j];
+                                                if (user.id !== myUserId && user.name) {
+                                                    name = user.name;
+                                                    console.log('AvitoWebView: Found user name:', name);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        // Fallback to info.name
+                                        if (!name && ch.info && ch.info.name) {
+                                            name = ch.info.name;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!name) {
+                                console.log('AvitoWebView: Channel not found in list or no name, got ' + (data.success ? data.success.channels.length : 0) + ' channels');
                             }
                             try {
                                 AvitoAndroid.onContactNameFetched('$channelId', name);
@@ -417,7 +443,7 @@ class AvitoWebViewClient(
                         .catch(function(e) {
                             if (called) return;
                             called = true;
-                            console.log('AvitoWebView: getChannelById error:', e);
+                            console.log('AvitoWebView: getChannels error:', e);
                             try {
                                 AvitoAndroid.onContactNameFetched('$channelId', '');
                             } catch(e2) {}

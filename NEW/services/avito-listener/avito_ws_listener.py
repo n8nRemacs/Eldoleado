@@ -41,10 +41,10 @@ AVITO_APP_VERSION = "7.456.1"
 class AvitoAccount:
     """Single Avito account WebSocket connection"""
 
-    def __init__(self, account_id: str, tenant_id: str, sessid: str, user_hash: str = None):
+    def __init__(self, account_id: str, tenant_id: str, cookies: str, user_hash: str = None):
         self.account_id = account_id
         self.tenant_id = tenant_id
-        self.sessid = sessid
+        self.cookies = cookies  # Full cookie string for auth
         self.user_hash = user_hash  # my_hash_id from Avito
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.user_id: Optional[str] = None
@@ -84,32 +84,78 @@ class AvitoAccount:
             logger.info(f"[{self.account_id[:8]}] Reconnecting in {RECONNECT_DELAY}s...")
             await asyncio.sleep(RECONNECT_DELAY)
 
+    def _extract_cookie_value(self, name: str) -> Optional[str]:
+        """Extract a specific cookie value from cookies string"""
+        for part in self.cookies.split(";"):
+            part = part.strip()
+            if part.startswith(f"{name}="):
+                value = part[len(name) + 1:]
+                # Remove quotes if present
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                return value
+        return None
+
     async def _get_user_hash(self) -> Optional[str]:
-        """Get user hash from Avito profile API"""
+        """Get user hash from cookies or API"""
+        import hashlib
+
+        # First try to extract from cookies directly
+        # __upin cookie contains user identifier
+        upin = self._extract_cookie_value("__upin")
+        if upin:
+            logger.info(f"[{self.account_id[:8]}] Using __upin from cookies: {upin}")
+            return upin
+
+        # Try to get user info from messenger API
         try:
             response = await self._http_client.get(
-                "https://m.avito.ru/api/1/profile/short",
+                "https://m.avito.ru/api/1/messenger/channel?limit=1",
                 headers={
-                    "Cookie": f"sessid={self.sessid}; auth=1",
-                    "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36"
+                    "Cookie": self.cookies,
+                    "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36",
+                    "X-Requested-With": "XMLHttpRequest"
                 }
             )
             if response.status_code == 200:
                 data = response.json()
-                # Try to extract hash from response or generate from user_id
-                self.user_id = data.get("id")
-                # Hash might be in the response or we need to derive it
-                user_hash = data.get("hash") or data.get("hashId")
-                if user_hash:
-                    return user_hash
-                # Fallback: generate hash from user_id (simplified)
-                if self.user_id:
-                    import hashlib
-                    return hashlib.md5(str(self.user_id).encode()).hexdigest()
-            elif response.status_code == 401:
-                logger.error(f"[{self.account_id[:8]}] Session expired")
+                # Try to extract user hash from messenger response
+                channels = data.get("channels") or data.get("result", {}).get("channels") or []
+                if channels and len(channels) > 0:
+                    # First channel might have our user info
+                    channel = channels[0]
+                    my_id = channel.get("myUserId") or channel.get("context", {}).get("myUserId")
+                    if my_id:
+                        logger.info(f"[{self.account_id[:8]}] Got myUserId from messenger: {my_id}")
+                        return my_id
+
+                # Try to get from meta
+                meta = data.get("meta") or data.get("result", {}).get("meta") or {}
+                my_hash = meta.get("myHashId") or meta.get("userId")
+                if my_hash:
+                    logger.info(f"[{self.account_id[:8]}] Got myHashId from meta: {my_hash}")
+                    return my_hash
+            else:
+                logger.warning(f"[{self.account_id[:8]}] Messenger API returned {response.status_code}")
         except Exception as e:
-            logger.error(f"[{self.account_id[:8]}] Failed to get user hash: {e}")
+            logger.warning(f"[{self.account_id[:8]}] Failed to get user hash from messenger: {e}")
+
+        # Fallback: use ma_cid (analytics cookie) as base for hash
+        ma_cid = self._extract_cookie_value("ma_cid")
+        if ma_cid:
+            # Generate deterministic hash from ma_cid
+            user_hash = hashlib.md5(ma_cid.encode()).hexdigest()
+            logger.info(f"[{self.account_id[:8]}] Generated hash from ma_cid: {user_hash[:16]}...")
+            return user_hash
+
+        # Last fallback: f cookie
+        f_cookie = self._extract_cookie_value("f")
+        if f_cookie:
+            user_hash = hashlib.md5(f_cookie[:32].encode()).hexdigest()
+            logger.info(f"[{self.account_id[:8]}] Generated hash from f cookie: {user_hash[:16]}...")
+            return user_hash
+
+        logger.error(f"[{self.account_id[:8]}] Could not determine user hash")
         return None
 
     async def _connect(self):
@@ -132,14 +178,14 @@ class AvitoAccount:
         )
 
         headers = {
-            "Cookie": f"sessid={self.sessid}; auth=1",
+            "Cookie": self.cookies,
             "Origin": "https://www.avito.ru",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
 
         self.ws = await websockets.connect(
             ws_url,
-            extra_headers=headers,
+            additional_headers=headers,
             ping_interval=PING_INTERVAL,
             ping_timeout=10
         )
@@ -312,12 +358,12 @@ class AvitoListenerService:
                 SELECT
                     id::text as account_id,
                     tenant_id::text,
-                    credentials->>'sessid' as sessid
+                    credentials->>'cookies' as cookies
                 FROM elo_t_channel_accounts
                 WHERE channel_id = 3
                   AND is_active = true
                   AND session_status = 'active'
-                  AND credentials->>'sessid' IS NOT NULL
+                  AND credentials->>'cookies' IS NOT NULL
             """)
 
             await conn.close()
@@ -339,7 +385,7 @@ class AvitoListenerService:
                     account = AvitoAccount(
                         account_id=account_id,
                         tenant_id=row['tenant_id'],
-                        sessid=row['sessid']
+                        cookies=row['cookies']
                     )
                     await account.start()
                     self.accounts[account_id] = account
