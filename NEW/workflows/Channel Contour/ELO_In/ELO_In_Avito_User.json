@@ -1,5 +1,11 @@
 {
+  "updatedAt": "2025-12-24T09:23:36.011Z",
+  "createdAt": "2025-12-23T19:02:59.329Z",
+  "id": "1Fcexk3PCvHwE2nE",
   "name": "ELO_In_Avito_User",
+  "description": null,
+  "active": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -8,11 +14,14 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-incoming",
+      "id": "d48933b4-7941-4853-b387-a74cea268ac2",
       "name": "Webhook - Avito Incoming",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [
+        -768,
+        48
+      ],
       "webhookId": "avito-incoming",
       "notes": "Receives messages from avito-listener Python service"
     },
@@ -22,7 +31,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
@@ -40,56 +50,47 @@
         },
         "options": {}
       },
-      "id": "if-valid",
+      "id": "55bd3791-a450-463c-a0fb-ac2d5f6a334d",
       "name": "IF Valid Message",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [220, 0]
+      "position": [
+        -544,
+        48
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Extract and normalize message from webhook\nconst body = $json.body;\nconst rawMsg = body.raw_message || {};\nconst msg = rawMsg.message || rawMsg;\n\n// Extract message body\nconst msgBody = msg.body || {};\nconst textObj = msgBody.text || {};\n\n// Determine message type\nlet msgType = 'text';\nlet mediaUrl = null;\nlet mediaInfo = {};\n\nif (msgBody.image) {\n  msgType = 'image';\n  mediaUrl = msgBody.image.url || msgBody.image.imageUrl;\n  mediaInfo = { image_id: msgBody.image.imageId };\n} else if (msgBody.voice) {\n  msgType = 'voice';\n  mediaInfo = { voice_id: msgBody.voice.voiceId, duration: msgBody.voice.duration };\n} else if (msgBody.video) {\n  msgType = 'video';\n  mediaInfo = { video_id: msgBody.video.videoId };\n} else if (msgBody.file) {\n  msgType = 'file';\n  mediaInfo = { file_id: msgBody.file.fileId, file_name: msgBody.file.name };\n}\n\n// Convert timestamp\nconst createdAt = msg.createdAt \n  ? new Date(msg.createdAt / 1000000).toISOString() \n  : body.received_at;\n\nreturn {\n  // ELO standard fields\n  channel_account_id: body.channel_account_id,\n  tenant_id: body.tenant_id,\n  channel_type: 'avito',\n  external_chat_id: body.external_chat_id || msg.channelId,\n  external_message_id: body.external_message_id || msg.id,\n  \n  // Message content\n  message_type: msgType,\n  message_text: body.message_text || textObj.text,\n  media_url: mediaUrl,\n  media_info: Object.keys(mediaInfo).length > 0 ? mediaInfo : null,\n  \n  // Sender info\n  sender_id: body.sender_id || msg.authorId,\n  sender_name: rawMsg.userName || null,\n  \n  // Timestamps\n  message_date: createdAt,\n  received_at: body.received_at,\n  \n  // Raw for debugging\n  raw: rawMsg\n};"
+        "jsCode": "  // Extract and normalize message from webhook (Avito)\n  const body = $json.body;\n  const rawMsg = body.raw_message || {};\n  const msg = rawMsg.value || rawMsg.message || rawMsg;\n\n  // Extract message body\n  const msgBody = msg.body || {};\n\n  // Determine media\n  let hasVoice = false;\n  let hasImages = false;\n  let hasVideo = false;\n  let hasDocument = false;\n  let images = [];\n  let videos = [];\n\n  if (msgBody.image) {\n    hasImages = true;\n    images.push({ url: msgBody.image.url || msgBody.image.imageUrl });\n  } else if (msgBody.voice) {\n    hasVoice = true;\n  } else if (msgBody.video) {\n    hasVideo = true;\n    videos.push({ url: msgBody.video.url });\n  } else if (msgBody.file) {\n    hasDocument = true;\n  }\n\n  // Convert timestamp (Avito uses nanoseconds)\n  const timestamp = msg.created\n    ? new Date(msg.created / 1000000).toISOString()\n    : body.received_at;\n\n  return {\n    // Standard fields\n    channel: 'avito',\n    user_id: 'default',\n    profile_id: body.channel_account_id || 'default',\n    external_user_id: body.sender_id || msg.fromUid,\n    external_chat_id: body.external_chat_id || msg.channelId,\n\n    text: body.message_text || msgBody.text,\n    timestamp: timestamp,\n\n    // Client info\n    client_phone: null,\n    client_name: rawMsg.userName || null,\n    client_email: null,\n\n    // Media\n    media: {\n      has_voice: hasVoice,\n      voice_transcribed_text: null,\n      has_images: hasImages,\n      images: images,\n      has_video: hasVideo,\n      videos: videos,\n      has_document: hasDocument\n    },\n\n    // Meta\n    meta: {\n      external_message_id: body.external_message_id || msg.id,\n      ad_channel: 'avito',\n      ad_id: msg.channelId,\n      original_media_type: hasVoice ? 'voice' : hasImages ? 'photo' : hasVideo ? 'video' : 'text',\n      raw: rawMsg,\n      provider: 'android_webview',\n      tenant_id: body.tenant_id\n    },\n\n    prefilled_data: {\n      model: null,\n      parts_owner: null\n    }\n  };"
       },
-      "id": "normalize-message",
+      "id": "1418f70e-19b9-4902-8db9-7900685c50c2",
       "name": "Normalize Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, -100]
+      "position": [
+        -320,
+        -64
+      ]
     },
     {
       "parameters": {
         "operation": "push",
-        "list": "queue:incoming:universal",
+        "list": "queue:incoming",
         "messageData": "={{ JSON.stringify($json) }}",
         "tail": true
       },
-      "id": "push-to-queue",
+      "id": "11bc4c08-4404-4a10-b998-173aed4e5538",
       "name": "Push to Universal Queue",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [660, -100],
+      "position": [
+        16,
+        -64
+      ],
       "credentials": {
         "redis": {
-          "id": "redis-n8n",
-          "name": "Redis n8n"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO elo_t_events (tenant_id, event_type, payload, created_at)\nVALUES (\n  '{{ $json.tenant_id }}'::uuid,\n  'incoming_message',\n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb,\n  NOW()\n)\nRETURNING id;",
-        "options": {}
-      },
-      "id": "log-event",
-      "name": "Log Event",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [880, -100],
-      "credentials": {
-        "postgres": {
-          "id": "postgres-main",
-          "name": "PostgreSQL Main"
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
         }
       }
     },
@@ -101,11 +102,14 @@
           "responseCode": 200
         }
       },
-      "id": "response-ok",
+      "id": "45fcd11d-d4cc-43e9-9ba3-713d50681e68",
       "name": "Response OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1100, -100]
+      "position": [
+        352,
+        -64
+      ]
     },
     {
       "parameters": {
@@ -115,11 +119,14 @@
           "responseCode": 400
         }
       },
-      "id": "response-error",
+      "id": "603778af-35e2-48e4-82d7-71ce51bd068c",
       "name": "Response Error",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [440, 100]
+      "position": [
+        -320,
+        144
+      ]
     }
   ],
   "connections": {
@@ -167,17 +174,6 @@
       "main": [
         [
           {
-            "node": "Log Event",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Log Event": {
-      "main": [
-        [
-          {
             "node": "Response OK",
             "type": "main",
             "index": 0
@@ -189,12 +185,309 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "tags": [
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook - Avito Incoming": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.n8nsrv.ru",
+            "user-agent": "Dalvik/2.1.0 (Linux; U; Android 15; SM-A145F Build/AP3A.240905.015.A2)",
+            "content-length": "964",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "195.54.40.108",
+            "x-forwarded-host": "n8n.n8nsrv.ru",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "channel_account_id": "default",
+            "tenant_id": "11111111-1111-1111-1111-111111111111",
+            "channel_type": "avito",
+            "external_chat_id": "u2i-PJIRB81Ps9iX81CSTNUgPw",
+            "external_message_id": "e20ef834ac709006e06fa18095458eab",
+            "message_type": "text",
+            "message_text": "12345",
+            "sender_id": "b5b928d9b300d15526cf829b93962213",
+            "message_date": "1970-07-24T11:08:01.756Z",
+            "received_at": "2025-12-24T09:22:55.726Z",
+            "source": "android_webview",
+            "raw_message": {
+              "seq": "7756",
+              "id": 10,
+              "type": "Message",
+              "type_v2": "messenger.Message",
+              "value": {
+                "id": "e20ef834ac709006e06fa18095458eab",
+                "body": {
+                  "randomId": "js:2540ad4c-5bd2-4b43-a21e-eec06df81f40",
+                  "text": "12345"
+                },
+                "channelId": "u2i-PJIRB81Ps9iX81CSTNUgPw",
+                "type": "text",
+                "created": 17665681756252042,
+                "isDeleted": false,
+                "isRead": false,
+                "isSpam": false,
+                "delivered": 17665681756252042,
+                "chatType": "u2i",
+                "channel": {
+                  "updated": 17665681756252042
+                },
+                "uid": "4c48533419806d790635e8565693e5c2",
+                "fromUid": "b5b928d9b300d15526cf829b93962213",
+                "initActionTimestamp": 1766568175091
+              }
+            }
+          },
+          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/avito/incoming",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "a66b24ce-6bc9-4b5f-9f9c-d236fe097b7b",
+  "activeVersionId": "a66b24ce-6bc9-4b5f-9f9c-d236fe097b7b",
+  "versionCounter": 22,
+  "triggerCount": 1,
+  "shared": [
     {
-      "name": "ELO"
-    },
-    {
-      "name": "In"
+      "updatedAt": "2025-12-23T19:02:59.337Z",
+      "createdAt": "2025-12-23T19:02:59.337Z",
+      "role": "workflow:owner",
+      "workflowId": "1Fcexk3PCvHwE2nE",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-24T06:45:04.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-23",
+              "isPending": false
+            }
+          }
+        ]
+      }
     }
-  ]
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2025-12-24T09:23:36.020Z",
+    "createdAt": "2025-12-24T09:23:36.020Z",
+    "versionId": "a66b24ce-6bc9-4b5f-9f9c-d236fe097b7b",
+    "workflowId": "1Fcexk3PCvHwE2nE",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "avito/incoming",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "d48933b4-7941-4853-b387-a74cea268ac2",
+        "name": "Webhook - Avito Incoming",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -768,
+          48
+        ],
+        "webhookId": "avito-incoming",
+        "notes": "Receives messages from avito-listener Python service"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "has-message",
+                "leftValue": "={{ $json.body.external_chat_id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "55bd3791-a450-463c-a0fb-ac2d5f6a334d",
+        "name": "IF Valid Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -544,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "  // Extract and normalize message from webhook (Avito)\n  const body = $json.body;\n  const rawMsg = body.raw_message || {};\n  const msg = rawMsg.value || rawMsg.message || rawMsg;\n\n  // Extract message body\n  const msgBody = msg.body || {};\n\n  // Determine media\n  let hasVoice = false;\n  let hasImages = false;\n  let hasVideo = false;\n  let hasDocument = false;\n  let images = [];\n  let videos = [];\n\n  if (msgBody.image) {\n    hasImages = true;\n    images.push({ url: msgBody.image.url || msgBody.image.imageUrl });\n  } else if (msgBody.voice) {\n    hasVoice = true;\n  } else if (msgBody.video) {\n    hasVideo = true;\n    videos.push({ url: msgBody.video.url });\n  } else if (msgBody.file) {\n    hasDocument = true;\n  }\n\n  // Convert timestamp (Avito uses nanoseconds)\n  const timestamp = msg.created\n    ? new Date(msg.created / 1000000).toISOString()\n    : body.received_at;\n\n  return {\n    // Standard fields\n    channel: 'avito',\n    user_id: 'default',\n    profile_id: body.channel_account_id || 'default',\n    external_user_id: body.sender_id || msg.fromUid,\n    external_chat_id: body.external_chat_id || msg.channelId,\n\n    text: body.message_text || msgBody.text,\n    timestamp: timestamp,\n\n    // Client info\n    client_phone: null,\n    client_name: rawMsg.userName || null,\n    client_email: null,\n\n    // Media\n    media: {\n      has_voice: hasVoice,\n      voice_transcribed_text: null,\n      has_images: hasImages,\n      images: images,\n      has_video: hasVideo,\n      videos: videos,\n      has_document: hasDocument\n    },\n\n    // Meta\n    meta: {\n      external_message_id: body.external_message_id || msg.id,\n      ad_channel: 'avito',\n      ad_id: msg.channelId,\n      original_media_type: hasVoice ? 'voice' : hasImages ? 'photo' : hasVideo ? 'video' : 'text',\n      raw: rawMsg,\n      provider: 'android_webview',\n      tenant_id: body.tenant_id\n    },\n\n    prefilled_data: {\n      model: null,\n      parts_owner: null\n    }\n  };"
+        },
+        "id": "1418f70e-19b9-4902-8db9-7900685c50c2",
+        "name": "Normalize Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -320,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "queue:incoming",
+          "messageData": "={{ JSON.stringify($json) }}",
+          "tail": true
+        },
+        "id": "11bc4c08-4404-4a10-b998-173aed4e5538",
+        "name": "Push to Universal Queue",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          16,
+          -64
+        ],
+        "credentials": {
+          "redis": {
+            "id": "7FQcEivUY94atW24",
+            "name": "Redis account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\n  \"success\": true,\n  \"event_id\": \"{{ $json.id }}\"\n}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "id": "45fcd11d-d4cc-43e9-9ba3-713d50681e68",
+        "name": "Response OK",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\n  \"success\": false,\n  \"error\": \"Invalid message format\"\n}",
+          "options": {
+            "responseCode": 400
+          }
+        },
+        "id": "603778af-35e2-48e4-82d7-71ce51bd068c",
+        "name": "Response Error",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          -320,
+          144
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook - Avito Incoming": {
+        "main": [
+          [
+            {
+              "node": "IF Valid Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Valid Message": {
+        "main": [
+          [
+            {
+              "node": "Normalize Message",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Response Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Message": {
+        "main": [
+          [
+            {
+              "node": "Push to Universal Queue",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Universal Queue": {
+        "main": [
+          [
+            {
+              "node": "Response OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Dmitriy Remacs",
+    "name": null,
+    "description": null
+  }
 }

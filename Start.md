@@ -1,35 +1,23 @@
 # Start Session - План на следующую сессию
 
-## Приоритет 1: n8n доработки для Avito
+## Приоритет 1: Тестирование Avito
 
-### 1.1 Normalize Message
-- [ ] Добавить `client_name: $json.sender_name || $json.sender_id`
-- [ ] Проверить что `propertyName` не null для Cache Get Tenant
-
-### 1.2 ELO_Client_Resolve
-- [ ] Искать клиента: `WHERE external_id = sender_id AND channel_type = 'avito'`
-- [ ] Если не найден → создать:
-  - `name` = sender_name
-  - `external_id` = sender_id
-  - `channel_type` = 'avito'
-- [ ] Вернуть `client_id`
+- [ ] Проверить стабильность WakeLock (нет disconnect 1006)
+- [ ] Проверить создание клиента в elo_t_clients
+- [ ] Проверить client_name в сообщениях
 
 ---
 
-## Приоритет 2: Авторизация других каналов
+## Приоритет 2: Другие каналы
 
-### 2.1 MAX - QR авторизация
-- [ ] WebSocket endpoint для QR авторизации
-- [ ] opcode 20 (QR_LOGIN) из MAX User API
-- [ ] Android: QR код → сканирование → connected
+### MAX - QR авторизация
+- [ ] WebSocket endpoint для QR
+- [ ] opcode 20 (QR_LOGIN)
+- [ ] Android: показать QR → сканирование → connected
 
-### 2.2 Telegram Bot
-- [ ] Endpoint для регистрации по токену (@BotFather)
+### Telegram Bot
+- [ ] Endpoint для регистрации по токену
 - [ ] Android: ввод токена → getMe → сохранение
-
-### 2.3 Telegram User (позже)
-- [ ] SMS авторизация
-- [ ] api_id/api_hash в .env сервера
 
 ---
 
@@ -41,7 +29,26 @@
 | WhatsApp | ✅ Baileys | ✅ | ✅ QR код |
 | MAX | ⏳ | ⏳ | ⏳ QR код |
 | Telegram Bot | ⏳ | ⏳ | ⏳ Token |
-| Telegram User | ⏳ | ⏳ | ⏳ SMS |
+
+---
+
+## n8n изменения (применить в UI)
+
+### ELO_In_Avito_User → Normalize Message
+Добавить:
+```javascript
+external_user_id: body.sender_id || msg.fromUid,
+client_name: body.sender_name || rawMsg.userName || null,
+```
+
+### ELO_Client_Resolve → Validate Input
+Полный код в 123.md
+
+### ELO_Client_Resolve → Prepare Client Cache Key
+```javascript
+const clientExternalId = data.external_user_id || data.external_chat_id;
+return { ...data, client_cache_key, client_external_id: clientExternalId };
+```
 
 ---
 
@@ -49,44 +56,29 @@
 
 | Сервер | IP | Сервисы |
 |--------|-----|---------|
-| MessagerOne | 155.212.221.189 | WhatsApp (8769), MAX (8768), Telegram (8761, 8762) |
+| MessagerOne | 155.212.221.189 | WhatsApp, MAX, Telegram |
 | n8n | 185.221.214.83 | n8n, PostgreSQL, Redis |
-| Android | Mobile IP | Avito WebSocket (обход QRATOR) |
+| Android | Mobile IP | Avito WebSocket |
 
 ---
 
-## Важно!
+## Важно
 
 - **Avito работает только с мобильного IP** — VPN отключать!
-- `sender_id` — уникальный идентификатор (для БД)
-- `sender_name` — имя для отображения (может повторяться у разных клиентов)
+- `sender_id` — уникальный ID клиента в Avito
+- `sender_name` — имя для отображения
+- WakeLock держит WebSocket активным в sleep
 
 ---
 
-## Полезные команды
+## Файлы
 
-```bash
-# Проверка сервисов
-ssh root@155.212.221.189 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
-
-# Логи WhatsApp
-ssh root@155.212.221.189 "docker logs mcp-whatsapp-arceos --tail 20"
-
-# PostgreSQL
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_clients LIMIT 5;'"
-```
-
----
-
-## Файлы проекта
-
-### Android Avito
-- `app/src/main/java/com/eldoleado/app/channels/avito/AvitoWebViewClient.kt`
-- `app/src/main/java/com/eldoleado/app/channels/setup/AvitoSetupActivity.kt`
-
-### Документация
-- `123.md` — подробный отчёт по реализации
-- `CLAUDE.md` — основной контекст проекта
+| Файл | Описание |
+|------|----------|
+| `AvitoWebViewClient.kt` | WebSocket через WebView |
+| `ChannelMonitorService.kt` | Foreground service + WakeLock |
+| `123.md` | Подробный отчёт |
+| `DATABASE_ANALYSIS.md` | Схема БД |
 
 ---
 

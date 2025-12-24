@@ -3,103 +3,78 @@
 ## Что сделано сегодня
 
 ### 1. Avito WebSocket через Android WebView
+- WebSocket через WebView (обход QRATOR)
+- Мобильный IP телефона, VPN отключать!
+- `AvitoWebViewClient.kt` — основной файл
 
-**Проблема:** Python avito-listener на сервере блокируется QRATOR (anti-bot)
+### 2. sender_name — имя контакта
+- Получение через `getChannels` API
+- `fetchContactName(channelId)` → "Дмитрий"
+- Кэширование в `channelNameCache`
 
-**Решение:** WebSocket через Android WebView
-- Используется мобильный IP телефона
-- QRATOR пропускает мобильные устройства
-- VPN должен быть ОТКЛЮЧЕН!
+### 3. WakeLock — стабильность соединения
+- `PowerManager.PARTIAL_WAKE_LOCK`
+- Предотвращает disconnect при sleep телефона
+- Добавлен в `ChannelMonitorService.kt`
 
-**Ключевой файл:**
-`app/src/main/java/com/eldoleado/app/channels/avito/AvitoWebViewClient.kt`
+### 4. n8n исправления
 
-### 2. sender_name - получение имени контакта
-
-Добавлено получение имени отправителя через `getChannels` API:
-
-```kotlin
-fetchContactName(channelId) → "Дмитрий"
+**ELO_In_Avito_User → Normalize Message:**
+```javascript
+external_user_id: body.sender_id || msg.fromUid,
+client_name: body.sender_name || rawMsg.userName || null,
 ```
 
-**Логика:**
-- `sender_id` = уникальный хэш пользователя (для БД lookup)
-- `sender_name` = имя для отображения (может повторяться)
-
-### 3. Webhook payload (работает!)
-
-```json
-{
-  "channel_account_id": "default",
-  "tenant_id": "11111111-1111-1111-1111-111111111111",
-  "channel_type": "avito",
-  "external_chat_id": "u2i-PJIRB81Ps9iX81CSTNUgPw",
-  "external_message_id": "be83190f7db4b85b8b53dc281f91eb96",
-  "message_type": "text",
-  "message_text": "Здравствуйте",
-  "sender_id": "b5b928d9b300d15526cf829b93962213",
-  "sender_name": "Дмитрий",
-  "source": "android_webview"
-}
+**ELO_Client_Resolve → Validate Input:**
+```javascript
+const required = ['channel', 'external_chat_id'];  // убрали 'text'
+case 'avito': credential = input.profile_id || input.user_id;
+if (!credential) credential = 'default';
 ```
+
+**ELO_Client_Resolve → Prepare Client Cache Key:**
+```javascript
+const clientExternalId = data.external_user_id || data.external_chat_id;
+```
+
+### 5. Синхронизация
+- 23 ELO workflows синхронизированы из n8n
+- DATABASE_ANALYSIS.md создан
+- Redis очищен (n8n server)
 
 ---
 
-## Текущая архитектура Avito
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Android Phone                             │
-│                    (Mobile IP - no VPN!)                     │
-├─────────────────────────────────────────────────────────────┤
-│  AvitoWebViewClient                                          │
-│  ├── WebView with cookies                                    │
-│  ├── JavaScript WebSocket to socket.avito.ru                │
-│  ├── fetchContactName() → getChannels API                   │
-│  └── Forward to n8n webhook                                  │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           │ POST /avito/incoming
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    n8n (185.221.214.83)                      │
-│  ELO_In_Avito_User → queue:incoming:universal               │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Что осталось сделать
-
-### n8n доработки
-
-1. **Normalize Message** — добавить `client_name`:
-   ```javascript
-   client_name: $json.sender_name || $json.sender_id
-   ```
-
-2. **ELO_Client_Resolve** — создание клиента:
-   - Искать: `WHERE external_id = sender_id AND channel_type = 'avito'`
-   - Если не найден → создать нового клиента
-
----
-
-## Серверы
-
-| Сервер | IP | Роль |
-|--------|-----|------|
-| MessagerOne | 155.212.221.189 | MCP сервисы (WhatsApp, MAX, Telegram) |
-| n8n | 185.221.214.83 | n8n, PostgreSQL, Redis |
-| Android | Mobile IP | Avito WebSocket (обход QRATOR) |
-
----
-
-## Коммиты сегодня
+## Коммиты
 
 ```
 3cc20cd7d feat: Avito WebSocket via Android WebView + sender_name
+9410d0b53 docs: update Stop.md and Start.md
++ WakeLock commit (pending)
 ```
 
 ---
 
-*Сессия завершена: 2025-12-24 14:40 MSK*
+## Архитектура Avito
+
+```
+Android Phone (Mobile IP)
+    │
+    ├── AvitoWebViewClient (WebSocket)
+    │   ├── fetchContactName() → getChannels API
+    │   └── WakeLock (prevent sleep)
+    │
+    │ POST /avito/incoming
+    ▼
+n8n (185.221.214.83)
+    │
+    ├── ELO_In_Avito_User
+    │   └── Normalize Message (external_user_id, client_name)
+    │
+    └── ELO_Client_Resolve
+        ├── Validate Input (credential = profile_id)
+        └── DB Create Client (client_external_id)
+```
+
+---
+
+*Сессия завершена: 2025-12-24 16:15 MSK*

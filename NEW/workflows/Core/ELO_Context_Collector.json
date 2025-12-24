@@ -1,0 +1,347 @@
+{
+  "updatedAt": "2025-12-17T08:58:32.503Z",
+  "createdAt": "2025-12-15T17:24:29.950Z",
+  "id": "KkCXa38EDLKJwy4i",
+  "name": "ELO_Context_Collector",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "elo-context-collector",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "36e1350b-f1bd-4443-96ac-8c87aa026961",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -208
+      ],
+      "webhookId": "elo-context-collector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\n// Validate required fields\nconst required = ['tenant_id', 'client_id', 'dialog_id', 'text'];\nfor (const field of required) {\n  if (!input[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\n// Prepare input for AI Agent\nreturn {\n  input: input,\n  agent_input: `Collect context for this message:\n\nMessage: \"${input.text}\"\nClient ID: ${input.client_id}\nDialog ID: ${input.dialog_id}\nTenant ID: ${input.tenant_id}\nVertical ID: ${input.vertical_id || 1}\nChannel: ${input.channel_id || 'unknown'}\n\nTasks:\n1. Extract entities (device, symptom, intent, owner) from the message\n2. Load existing client context if available\n3. If symptom found - derive diagnosis, repair type and price\n4. Check for applicable triggers\n\nReturn complete context object.`\n};"
+      },
+      "id": "59a31ed9-c2bc-4978-8b6e-9575dda959bc",
+      "name": "Prepare Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a context collector for a phone repair service chatbot.\n\nYour job is to gather all relevant information about the customer's request using the available tools.\n\nAvailable tools:\n- extract_entities: Extract device, symptom, intent from customer message\n- load_client_context: Load client history from Neo4j\n- derive_chain: Get diagnosis, repair type and price for a symptom\n- check_triggers: Check for applicable triggers (discounts, info)\n\nAlways:\n1. First extract entities from the message\n2. Load client context if client_id provided\n3. If symptom extracted - run derive_chain\n4. Check triggers at the end\n\nReturn a complete context object with all collected data."
+        }
+      },
+      "id": "b33ae204-9ae0-4207-a2f9-390b60833ffd",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -176,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-30b-a3b",
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.1
+        }
+      },
+      "id": "a5ff0999-a45a-4207-8fd8-beac20dbd809",
+      "name": "OpenRouter LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        48
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "ameOTCcGgTm3hbtM",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-ai-extract",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $fromAI('message', 'The customer message to analyze') }) }}"
+      },
+      "id": "a9f328e7-d655-4d4f-848e-ea2bdc9a428b",
+      "name": "Extract Entities Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-ai-derive",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ symptom: $fromAI('symptom', 'The symptom text'), device_brand: $fromAI('device_brand', 'Device brand like Apple, Samsung'), device_model: $fromAI('device_model', 'Device model like iPhone 14') }) }}"
+      },
+      "id": "02f8075b-1a51-4ac8-b893-a0f01aa663c8",
+      "name": "Derive Chain Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-triggers-checker",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ context: $fromAI('context', 'Current context object') }) }}"
+      },
+      "id": "a2d2799d-6262-4eaf-bf4d-773d58b3963f",
+      "name": "Check Triggers Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-core-context-builder",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'get_context', client_id: $fromAI('client_id', 'The client UUID') }) }}"
+      },
+      "id": "af32c19b-c138-4fea-b944-583f669eb9ec",
+      "name": "Load Client Context Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const agentOutput = $input.first().json;\nconst inputData = $('Prepare Input').first().json.input;\n\n// Parse agent output and build final context\nlet context = {\n  tenant_id: inputData.tenant_id,\n  client_id: inputData.client_id,\n  dialog_id: inputData.dialog_id,\n  vertical_id: inputData.vertical_id || 1,\n  channel_id: inputData.channel_id,\n  external_chat_id: inputData.external_chat_id,\n  \n  message: {\n    text: inputData.text,\n    timestamp: inputData.timestamp || new Date().toISOString()\n  },\n  \n  // From agent\n  entities: agentOutput.entities || [],\n  client: agentOutput.client || {},\n  derived: agentOutput.derived || {},\n  triggers_fired: agentOutput.triggers_fired || [],\n  \n  // Lines structure\n  lines: [],\n  focus_line_id: null,\n  \n  // Stage (default)\n  current_stage: 'data_collection',\n  \n  trace_id: inputData.trace_id || `trace_${Date.now()}`\n};\n\n// Build lines from entities\nconst devices = context.entities.filter(e => e.type === 'device');\nconst symptoms = context.entities.filter(e => e.type === 'symptom');\n\ndevices.forEach((device, i) => {\n  const symptom = symptoms[i] || symptoms[0];\n  context.lines.push({\n    id: `line_${i}`,\n    status: i === 0 ? 'active' : 'waiting',\n    cursor: symptom ? 2 : 1,\n    slots: {\n      device: device,\n      symptom: symptom?.text || null,\n      diagnosis: context.derived?.diagnosis || null,\n      repair_type: context.derived?.repair_type || null,\n      price: context.derived?.price || null\n    }\n  });\n});\n\nif (context.lines.length > 0) {\n  context.focus_line_id = 'line_0';\n}\n\nreturn { context };"
+      },
+      "id": "b82a84ad-29d4-4fa3-9e59-107f645a88c6",
+      "name": "Build Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "8d967923-d8f6-4aa1-89f6-c5db07ebbf08",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        -208
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Entities Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derive Chain Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Triggers Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Client Context Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Context": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "839c698b-ab6f-4ef4-86d3-dba41c19a431",
+  "activeVersionId": null,
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-15T17:24:29.959Z",
+      "createdAt": "2025-12-15T17:24:29.959Z",
+      "role": "workflow:owner",
+      "workflowId": "KkCXa38EDLKJwy4i",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-24T06:45:04.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-23",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-12-12T08:39:41.170Z",
+      "createdAt": "2025-12-12T08:39:41.170Z",
+      "id": "8dihLRJvdhkW2kZ1",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2025-12-09T18:50:08.518Z",
+      "createdAt": "2025-12-09T18:50:08.518Z",
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ],
+  "activeVersion": null
+}

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-22T19:24:16.887Z",
+  "updatedAt": "2025-12-24T09:34:11.925Z",
   "createdAt": "2025-12-14T07:11:27.172Z",
   "id": "3AfObE32mua4kLmr",
   "name": "ELO_Input_Batcher",
@@ -80,7 +80,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
@@ -415,16 +415,16 @@
     "Schedule Trigger": [
       {
         "json": {
-          "timestamp": "2025-12-22T23:21:03.001+04:00",
-          "Readable date": "December 22nd 2025, 11:21:03 pm",
-          "Readable time": "11:21:03 pm",
-          "Day of week": "Monday",
+          "timestamp": "2025-12-23T12:08:51.002+04:00",
+          "Readable date": "December 23rd 2025, 12:08:51 pm",
+          "Readable time": "12:08:51 pm",
+          "Day of week": "Tuesday",
           "Year": "2025",
           "Month": "December",
-          "Day of month": "22",
-          "Hour": "23",
-          "Minute": "21",
-          "Second": "03",
+          "Day of month": "23",
+          "Hour": "12",
+          "Minute": "08",
+          "Second": "51",
           "Timezone": "Europe/Samara (UTC+04:00)"
         },
         "pairedItem": {
@@ -433,9 +433,9 @@
       }
     ]
   },
-  "versionId": "c4a281b9-d301-4a05-8b44-b9bdd1085905",
+  "versionId": "c1f48afe-a46d-4ad9-a897-72c9e0128ec4",
   "activeVersionId": null,
-  "versionCounter": 97,
+  "versionCounter": 152,
   "triggerCount": 1,
   "shared": [
     {
@@ -459,7 +459,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-23T08:01:19.000Z",
+              "updatedAt": "2025-12-24T06:45:04.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -474,7 +474,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-22",
+              "lastActiveAt": "2025-12-23",
               "isPending": false
             }
           }

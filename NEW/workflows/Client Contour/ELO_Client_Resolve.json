@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-20T17:12:31.679Z",
+  "updatedAt": "2025-12-24T11:34:08.123Z",
   "createdAt": "2025-12-11T17:11:03.016Z",
   "id": "OHjjTQDguN2G6xin",
   "name": "ELO_Client_Resolve",
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Config - mirrors MCP config.py\n  const CONFIG = {\n    CACHE_TTL_TENANT: 86400,\n    CACHE_TTL_CLIENT: 3600,\n    CACHE_TTL_DIALOG: 1800,\n    CORE_URL: 'https://n8n.n8nsrv.ru/webhook/elo-core-ingest',\n    GRAPH_URL: 'http://45.144.177.128:8773/query'\n  };\n\n  const raw = $input.first().json;\n  const input = raw.payload || raw;\n\n  // Required fields check\n  const required = ['channel', 'external_chat_id', 'text'];\n  for (const field of required) {\n    if (!input[field]) {\n      throw new Error(`Missing required field: ${field}`);\n    }\n  }\n\n  // Extract credential based on channel\n  let credential = null;\n  switch (input.channel) {\n    case 'telegram': credential = input.bot_token; break;\n    case 'whatsapp': credential = input.profile_id; break;\n    case 'vk': credential = input.group_id; break;\n    case 'avito': credential = input.user_id; break;\n    case 'max': credential = input.bot_id; break;\n  }\n\n  // Generate trace_id if not provided\n  const trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n  // Cache keys - mirrors MCP resolvers\n  const tenant_cache_key = `cache:tenant:${input.channel}:${credential}`;\n\n  return {\n    ...input,\n    credential,\n    trace_id,\n    tenant_cache_key,\n    config: CONFIG,\n    received_at: new Date().toISOString()\n  };"
+        "jsCode": "// Config - mirrors MCP config.py\n  const CONFIG = {\n    CACHE_TTL_TENANT: 86400,\n    CACHE_TTL_CLIENT: 3600,\n    CACHE_TTL_DIALOG: 1800,\n    CORE_URL: 'https://n8n.n8nsrv.ru/webhook/elo-core-ingest',\n    GRAPH_URL: 'http://45.144.177.128:8773/query'\n  };\n\n  const raw = $input.first().json;\n  const input = raw.payload || raw;\n\n  // Required fields check\n  const required = ['channel', 'external_chat_id', 'text'];\n  for (const field of required) {\n    if (!input[field]) {\n      throw new Error(`Missing required field: ${field}`);\n    }\n  }\n\n  // Extract credential based on channel\n  let credential = null;\n  switch (input.channel) {\n    case 'telegram': credential = input.bot_token || input.meta?.raw?.botId; break;\n    case 'whatsapp': credential = input.meta?.raw?.sessionId; break;  // FIXED\n    case 'vk': credential = input.group_id || input.meta?.raw?.groupId; break;\n    case 'avito': credential = input.user_id || input.meta?.raw?.userId; break;\n    case 'max': credential = input.bot_id || input.meta?.raw?.botId; break;\n  }\n\n  // Generate trace_id if not provided\n  const trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n  // Cache keys - mirrors MCP resolvers\n  const tenant_cache_key = `cache:tenant:${input.channel}:${credential}`;\n\n  return {\n    ...input,\n    credential,\n    trace_id,\n    tenant_cache_key,\n    config: CONFIG,\n    received_at: new Date().toISOString()\n  };"
       },
       "id": "50fcd8f4-a1d5-443a-b5cf-4f5eddfd1a8a",
       "name": "Validate Input",
@@ -108,7 +108,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": " SELECT\n    t.id as tenant_id,\n    t.domain_id,\n    ca.id as channel_account_id,\n    ca.channel_id\n  FROM elo_t_tenants t\n  JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id\n  JOIN elo_channels c ON c.id = ca.channel_id\n  WHERE ca.account_id = '{{ $('Validate Input').item.json.meta.raw.sessionId }}'\n    AND c.code = '{{ $('Validate Input').first().json.channel }}'\n    AND ca.is_active = true\n    AND t.is_active = true\n  LIMIT 1;",
+        "query": " SELECT\n    t.id as tenant_id,\n    t.domain_id,\n    ca.id as channel_account_id,\n    ca.channel_id,\n    ca.ip_node_id,\n    ca.session_id,\n    n.server_host,\n    n.ip_address,\n    CASE\n      WHEN c.code = 'whatsapp' THEN n.port_whatsapp\n      WHEN c.code = 'telegram' THEN n.port_telegram_user\n      WHEN c.code = 'max' THEN n.port_max\n      WHEN c.code = 'avito' THEN n.port_avito\n      WHEN c.code = 'vk' THEN n.port_vk_user\n    END as channel_port\n  FROM elo_t_tenants t\n  JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id\n  JOIN elo_channels c ON c.id = ca.channel_id\n  LEFT JOIN elo_ip_nodes n ON n.id = ca.ip_node_id\n  WHERE ca.session_id = '{{ $('Validate Input').first().json.credential }}'\n    AND c.code = '{{ $('Validate Input').first().json.channel }}'\n    AND ca.is_active = true\n    AND t.is_active = true\n  LIMIT 1;",
         "options": {}
       },
       "id": "b9999445-ff96-48a8-8419-efbccc86d84d",
@@ -594,21 +594,8 @@
     },
     {
       "parameters": {
-        "jsCode": "// Merge existing dialog\nconst data = $('Prepare Dialog Cache Key').first().json;\nconst dialog = $('DB Get Dialog').first().json;\n\nreturn {\n  ...data,\n  dialog_id: String(dialog.dialog_id),\n  dialog_status: dialog.status,\n  is_new_dialog: false,\n  dialog_from_cache: false,\n  should_cache_dialog: true\n};"
-      },
-      "id": "458d0faa-14f5-4f55-90cd-8d51daeae58e",
-      "name": "Merge Existing Dialog",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4384,
-        96
-      ]
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
-        "query": "  INSERT INTO elo_t_dialogs (tenant_id, client_id, channel_id, status_id)\n  VALUES (\n    '{{ $('Prepare Dialog Cache Key').first().json.tenant_id }}'::uuid,\n    '{{ $('Prepare Dialog Cache Key').first().json.client_id }}'::uuid,\n    {{ $('Prepare Dialog Cache Key').first().json.channel_id }},\n    1\n  )\n  RETURNING id as dialog_id;",
+        "query": "INSERT INTO elo_t_dialogs (tenant_id, client_id, channel_id, status_id, external_chat_id)\n  VALUES (\n    '{{ $('Prepare Dialog Cache Key').first().json.tenant_id }}'::uuid,\n    '{{ $('Prepare Dialog Cache Key').first().json.client_id }}'::uuid,\n    {{ $('Prepare Dialog Cache Key').first().json.channel_id }},\n    1,\n    '{{ $('Prepare Dialog Cache Key').first().json.external_chat_id }}'\n  )\n  RETURNING id as dialog_id;",
         "options": {}
       },
       "id": "86891c18-4c13-4979-af8f-4efcf0282edb",
@@ -700,8 +687,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        5264,
-        -16
+        5296,
+        96
       ],
       "continueOnFail": true
     },
@@ -716,8 +703,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        5504,
-        -16
+        5760,
+        96
       ]
     },
     {
@@ -732,6 +719,27 @@
       ],
       "id": "07ca004c-c10c-4471-ab16-64758c207716",
       "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "  INSERT INTO elo_t_messages (\n      tenant_id,\n      dialog_id,\n      client_id,\n      direction_id,\n      actor_type,\n      actor_id,\n      content,\n      external_message_id,\n      created_at\n    ) VALUES (\n      '{{ $('Build Output').item.json.tenant_id }}'::uuid,\n      '{{ $('Build Output').item.json.dialog_id }}'::uuid,\n      '{{ $('Build Output').item.json.client_id }}'::uuid,\n      1,\n      'client',\n      '{{ $('Build Output').item.json.client_id }}'::uuid,\n      '{{ ($('Build Output').item.json.text || '').replace(/'/g, \"''\") }}',\n      '{{ $('Build Output').item.json.trace_id }}',\n      NOW()\n    )\n    RETURNING id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5536,
+        96
+      ],
+      "id": "3d3770b5-f99e-4d1b-90e3-5fa3001ecf10",
+      "name": "Save Incoming Message",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "connections": {
@@ -1060,7 +1068,7 @@
       "main": [
         [
           {
-            "node": "Merge Existing Dialog",
+            "node": "Cache Set Dialog",
             "type": "main",
             "index": 0
           }
@@ -1068,17 +1076,6 @@
         [
           {
             "node": "DB Create Dialog",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Existing Dialog": {
-      "main": [
-        [
-          {
-            "node": "Cache Set Dialog",
             "type": "main",
             "index": 0
           }
@@ -1133,7 +1130,7 @@
       "main": [
         [
           {
-            "node": "Respond Success",
+            "node": "Save Incoming Message",
             "type": "main",
             "index": 0
           }
@@ -1145,6 +1142,17 @@
         [
           {
             "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Incoming Message": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
             "type": "main",
             "index": 0
           }
@@ -1164,94 +1172,70 @@
       {
         "json": {
           "skip": false,
-          "batch_key": "whatsapp:79997253777@s.whatsapp.net",
+          "batch_key": "avito:u2i-PJIRB81Ps9iX81CSTNUgPw",
           "payload": {
-            "channel": "whatsapp",
-            "external_user_id": "79997253777",
-            "external_chat_id": "79997253777@s.whatsapp.net",
-            "client_name": "Дмитрий",
-            "client_phone": "+79997253777",
-            "text": "Привет\n\nПривет\n\nПривет дима\n\nПриветик",
-            "timestamp": "2025-12-20T12:57:12.000Z",
+            "channel": "avito",
+            "external_user_id": "b5b928d9b300d15526cf829b93962213",
+            "external_chat_id": "u2i-PJIRB81Ps9iX81CSTNUgPw",
+            "client_name": null,
+            "client_phone": null,
+            "text": "12345",
+            "timestamp": "1970-07-24T11:08:06.376Z",
             "message_ids": [
-              "3AB23934273B57FAFD9A",
-              "3A1674CF3D3ADAE60995",
-              "3A62B9EE319E400AABCB",
-              "3A6D159F06FD965F7A55"
+              "d7145570afbb5cda4bb1259828b77cb1"
             ],
-            "trace_id": "trace_1766235467898",
+            "trace_id": "trace_1766568864075",
             "media": {
-              "items": [
-                {
-                  "has_voice": false,
-                  "voice_transcribed_text": null,
-                  "has_images": false,
-                  "images": [],
-                  "has_video": false,
-                  "videos": [],
-                  "has_document": false
-                },
-                {
-                  "has_voice": false,
-                  "voice_transcribed_text": null,
-                  "has_images": false,
-                  "images": [],
-                  "has_video": false,
-                  "videos": [],
-                  "has_document": false
-                },
-                {
-                  "has_voice": false,
-                  "voice_transcribed_text": null,
-                  "has_images": false,
-                  "images": [],
-                  "has_video": false,
-                  "videos": [],
-                  "has_document": false
-                },
-                {
-                  "has_voice": false,
-                  "voice_transcribed_text": null,
-                  "has_images": false,
-                  "images": [],
-                  "has_video": false,
-                  "videos": [],
-                  "has_document": false
-                }
-              ]
+              "has_voice": false,
+              "voice_transcribed_text": null,
+              "has_images": false,
+              "images": [],
+              "has_video": false,
+              "videos": [],
+              "has_document": false
             },
             "meta": {
-              "external_message_id": "3A6D159F06FD965F7A55",
-              "ad_channel": "whatsapp",
-              "ad_id": null,
+              "external_message_id": "d7145570afbb5cda4bb1259828b77cb1",
+              "ad_channel": "avito",
+              "ad_id": "u2i-PJIRB81Ps9iX81CSTNUgPw",
               "original_media_type": "text",
               "raw": {
-                "event": "message",
-                "sessionId": "eldoleado_main",
-                "sessionHash": "f209755183150c5a",
-                "timestamp": 1766235432802,
-                "data": {
-                  "sessionId": "eldoleado_main",
-                  "sessionHash": "f209755183150c5a",
-                  "messageId": "3A6D159F06FD965F7A55",
-                  "from": "79997253777",
-                  "fromName": "Дмитрий",
-                  "to": "79997253777",
-                  "isGroup": false,
-                  "timestamp": 1766235432000,
+                "seq": "7758",
+                "id": 2,
+                "type": "Message",
+                "type_v2": "messenger.Message",
+                "value": {
+                  "id": "d7145570afbb5cda4bb1259828b77cb1",
+                  "body": {
+                    "randomId": "js:eee0ee18-eded-4cd6-b948-6d2c0b942652",
+                    "text": "12345"
+                  },
+                  "channelId": "u2i-PJIRB81Ps9iX81CSTNUgPw",
                   "type": "text",
-                  "text": "Приветик"
+                  "created": 17665686376775456,
+                  "isDeleted": false,
+                  "isRead": false,
+                  "isSpam": false,
+                  "delivered": 17665686376775456,
+                  "chatType": "u2i",
+                  "channel": {
+                    "updated": 17665686376775456
+                  },
+                  "uid": "4c48533419806d790635e8565693e5c2",
+                  "fromUid": "b5b928d9b300d15526cf829b93962213",
+                  "initActionTimestamp": 1766568637151
                 }
               },
-              "provider": "baileys",
-              "batched": true,
-              "batch_size": 4,
+              "provider": "android_webview",
+              "tenant_id": "11111111-1111-1111-1111-111111111111",
+              "batched": false,
+              "batch_size": 1,
               "batch_reason": "orphan"
             }
           },
-          "batch_list_key": "batch:whatsapp:79997253777@s.whatsapp.net",
-          "deadline_key": "deadline:whatsapp:79997253777@s.whatsapp.net",
-          "first_seen_key": "first_seen:whatsapp:79997253777@s.whatsapp.net"
+          "batch_list_key": "batch:avito:u2i-PJIRB81Ps9iX81CSTNUgPw",
+          "deadline_key": "deadline:avito:u2i-PJIRB81Ps9iX81CSTNUgPw",
+          "first_seen_key": "first_seen:avito:u2i-PJIRB81Ps9iX81CSTNUgPw"
         },
         "pairedItem": {
           "item": 0
@@ -1259,9 +1243,9 @@
       }
     ]
   },
-  "versionId": "b9a11ae3-845b-4442-a17d-04874058ed49",
-  "activeVersionId": "b9a11ae3-845b-4442-a17d-04874058ed49",
-  "versionCounter": 40,
+  "versionId": "d2030388-5c4f-492c-86c5-cc84b10cd137",
+  "activeVersionId": "d2030388-5c4f-492c-86c5-cc84b10cd137",
+  "versionCounter": 79,
   "triggerCount": 1,
   "shared": [
     {
@@ -1285,7 +1269,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-20T04:36:02.000Z",
+              "updatedAt": "2025-12-24T06:45:04.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -1300,7 +1284,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-19",
+              "lastActiveAt": "2025-12-23",
               "isPending": false
             }
           }
@@ -1308,24 +1292,11 @@
       }
     }
   ],
-  "tags": [
-    {
-      "updatedAt": "2025-12-20T17:12:27.278Z",
-      "createdAt": "2025-12-20T17:12:27.278Z",
-      "id": "RYXzLDkQipUjDssU",
-      "name": "ClientCore"
-    },
-    {
-      "updatedAt": "2025-12-09T18:50:08.518Z",
-      "createdAt": "2025-12-09T18:50:08.518Z",
-      "id": "tMSCjbvPU3xrNUqz",
-      "name": "ELO"
-    }
-  ],
+  "tags": [],
   "activeVersion": {
-    "updatedAt": "2025-12-20T17:12:31.680Z",
-    "createdAt": "2025-12-20T17:12:31.680Z",
-    "versionId": "b9a11ae3-845b-4442-a17d-04874058ed49",
+    "updatedAt": "2025-12-24T11:34:08.126Z",
+    "createdAt": "2025-12-24T11:34:08.126Z",
+    "versionId": "d2030388-5c4f-492c-86c5-cc84b10cd137",
     "workflowId": "OHjjTQDguN2G6xin",
     "nodes": [
       {
@@ -1347,7 +1318,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Config - mirrors MCP config.py\n  const CONFIG = {\n    CACHE_TTL_TENANT: 86400,\n    CACHE_TTL_CLIENT: 3600,\n    CACHE_TTL_DIALOG: 1800,\n    CORE_URL: 'https://n8n.n8nsrv.ru/webhook/elo-core-ingest',\n    GRAPH_URL: 'http://45.144.177.128:8773/query'\n  };\n\n  const raw = $input.first().json;\n  const input = raw.payload || raw;\n\n  // Required fields check\n  const required = ['channel', 'external_chat_id', 'text'];\n  for (const field of required) {\n    if (!input[field]) {\n      throw new Error(`Missing required field: ${field}`);\n    }\n  }\n\n  // Extract credential based on channel\n  let credential = null;\n  switch (input.channel) {\n    case 'telegram': credential = input.bot_token; break;\n    case 'whatsapp': credential = input.profile_id; break;\n    case 'vk': credential = input.group_id; break;\n    case 'avito': credential = input.user_id; break;\n    case 'max': credential = input.bot_id; break;\n  }\n\n  // Generate trace_id if not provided\n  const trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n  // Cache keys - mirrors MCP resolvers\n  const tenant_cache_key = `cache:tenant:${input.channel}:${credential}`;\n\n  return {\n    ...input,\n    credential,\n    trace_id,\n    tenant_cache_key,\n    config: CONFIG,\n    received_at: new Date().toISOString()\n  };"
+          "jsCode": "// Config - mirrors MCP config.py\n  const CONFIG = {\n    CACHE_TTL_TENANT: 86400,\n    CACHE_TTL_CLIENT: 3600,\n    CACHE_TTL_DIALOG: 1800,\n    CORE_URL: 'https://n8n.n8nsrv.ru/webhook/elo-core-ingest',\n    GRAPH_URL: 'http://45.144.177.128:8773/query'\n  };\n\n  const raw = $input.first().json;\n  const input = raw.payload || raw;\n\n  // Required fields check\n  const required = ['channel', 'external_chat_id', 'text'];\n  for (const field of required) {\n    if (!input[field]) {\n      throw new Error(`Missing required field: ${field}`);\n    }\n  }\n\n  // Extract credential based on channel\n  let credential = null;\n  switch (input.channel) {\n    case 'telegram': credential = input.bot_token || input.meta?.raw?.botId; break;\n    case 'whatsapp': credential = input.meta?.raw?.sessionId; break;  // FIXED\n    case 'vk': credential = input.group_id || input.meta?.raw?.groupId; break;\n    case 'avito': credential = input.user_id || input.meta?.raw?.userId; break;\n    case 'max': credential = input.bot_id || input.meta?.raw?.botId; break;\n  }\n\n  // Generate trace_id if not provided\n  const trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n  // Cache keys - mirrors MCP resolvers\n  const tenant_cache_key = `cache:tenant:${input.channel}:${credential}`;\n\n  return {\n    ...input,\n    credential,\n    trace_id,\n    tenant_cache_key,\n    config: CONFIG,\n    received_at: new Date().toISOString()\n  };"
         },
         "id": "50fcd8f4-a1d5-443a-b5cf-4f5eddfd1a8a",
         "name": "Validate Input",
@@ -1429,7 +1400,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": " SELECT\n    t.id as tenant_id,\n    t.domain_id,\n    ca.id as channel_account_id,\n    ca.channel_id\n  FROM elo_t_tenants t\n  JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id\n  JOIN elo_channels c ON c.id = ca.channel_id\n  WHERE ca.account_id = '{{ $('Validate Input').item.json.meta.raw.sessionId }}'\n    AND c.code = '{{ $('Validate Input').first().json.channel }}'\n    AND ca.is_active = true\n    AND t.is_active = true\n  LIMIT 1;",
+          "query": " SELECT\n    t.id as tenant_id,\n    t.domain_id,\n    ca.id as channel_account_id,\n    ca.channel_id,\n    ca.ip_node_id,\n    ca.session_id,\n    n.server_host,\n    n.ip_address,\n    CASE\n      WHEN c.code = 'whatsapp' THEN n.port_whatsapp\n      WHEN c.code = 'telegram' THEN n.port_telegram_user\n      WHEN c.code = 'max' THEN n.port_max\n      WHEN c.code = 'avito' THEN n.port_avito\n      WHEN c.code = 'vk' THEN n.port_vk_user\n    END as channel_port\n  FROM elo_t_tenants t\n  JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id\n  JOIN elo_channels c ON c.id = ca.channel_id\n  LEFT JOIN elo_ip_nodes n ON n.id = ca.ip_node_id\n  WHERE ca.session_id = '{{ $('Validate Input').first().json.credential }}'\n    AND c.code = '{{ $('Validate Input').first().json.channel }}'\n    AND ca.is_active = true\n    AND t.is_active = true\n  LIMIT 1;",
           "options": {}
         },
         "id": "b9999445-ff96-48a8-8419-efbccc86d84d",
@@ -1915,21 +1886,8 @@
       },
       {
         "parameters": {
-          "jsCode": "// Merge existing dialog\nconst data = $('Prepare Dialog Cache Key').first().json;\nconst dialog = $('DB Get Dialog').first().json;\n\nreturn {\n  ...data,\n  dialog_id: String(dialog.dialog_id),\n  dialog_status: dialog.status,\n  is_new_dialog: false,\n  dialog_from_cache: false,\n  should_cache_dialog: true\n};"
-        },
-        "id": "458d0faa-14f5-4f55-90cd-8d51daeae58e",
-        "name": "Merge Existing Dialog",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          4384,
-          96
-        ]
-      },
-      {
-        "parameters": {
           "operation": "executeQuery",
-          "query": "  INSERT INTO elo_t_dialogs (tenant_id, client_id, channel_id, status_id)\n  VALUES (\n    '{{ $('Prepare Dialog Cache Key').first().json.tenant_id }}'::uuid,\n    '{{ $('Prepare Dialog Cache Key').first().json.client_id }}'::uuid,\n    {{ $('Prepare Dialog Cache Key').first().json.channel_id }},\n    1\n  )\n  RETURNING id as dialog_id;",
+          "query": "INSERT INTO elo_t_dialogs (tenant_id, client_id, channel_id, status_id, external_chat_id)\n  VALUES (\n    '{{ $('Prepare Dialog Cache Key').first().json.tenant_id }}'::uuid,\n    '{{ $('Prepare Dialog Cache Key').first().json.client_id }}'::uuid,\n    {{ $('Prepare Dialog Cache Key').first().json.channel_id }},\n    1,\n    '{{ $('Prepare Dialog Cache Key').first().json.external_chat_id }}'\n  )\n  RETURNING id as dialog_id;",
           "options": {}
         },
         "id": "86891c18-4c13-4979-af8f-4efcf0282edb",
@@ -2021,8 +1979,8 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          5264,
-          -16
+          5296,
+          96
         ],
         "continueOnFail": true
       },
@@ -2037,8 +1995,8 @@
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.1,
         "position": [
-          5504,
-          -16
+          5760,
+          96
         ]
       },
       {
@@ -2053,6 +2011,27 @@
         ],
         "id": "07ca004c-c10c-4471-ab16-64758c207716",
         "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "  INSERT INTO elo_t_messages (\n      tenant_id,\n      dialog_id,\n      client_id,\n      direction_id,\n      actor_type,\n      actor_id,\n      content,\n      external_message_id,\n      created_at\n    ) VALUES (\n      '{{ $('Build Output').item.json.tenant_id }}'::uuid,\n      '{{ $('Build Output').item.json.dialog_id }}'::uuid,\n      '{{ $('Build Output').item.json.client_id }}'::uuid,\n      1,\n      'client',\n      '{{ $('Build Output').item.json.client_id }}'::uuid,\n      '{{ ($('Build Output').item.json.text || '').replace(/'/g, \"''\") }}',\n      '{{ $('Build Output').item.json.trace_id }}',\n      NOW()\n    )\n    RETURNING id;",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          5536,
+          96
+        ],
+        "id": "3d3770b5-f99e-4d1b-90e3-5fa3001ecf10",
+        "name": "Save Incoming Message",
+        "credentials": {
+          "postgres": {
+            "id": "n2SyhP9QhMnp1ryk",
+            "name": "Postgres account"
+          }
+        }
       }
     ],
     "connections": {
@@ -2381,7 +2360,7 @@
         "main": [
           [
             {
-              "node": "Merge Existing Dialog",
+              "node": "Cache Set Dialog",
               "type": "main",
               "index": 0
             }
@@ -2389,17 +2368,6 @@
           [
             {
               "node": "DB Create Dialog",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Merge Existing Dialog": {
-        "main": [
-          [
-            {
-              "node": "Cache Set Dialog",
               "type": "main",
               "index": 0
             }
@@ -2454,7 +2422,7 @@
         "main": [
           [
             {
-              "node": "Respond Success",
+              "node": "Save Incoming Message",
               "type": "main",
               "index": 0
             }
@@ -2466,6 +2434,17 @@
           [
             {
               "node": "Validate Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Incoming Message": {
+        "main": [
+          [
+            {
+              "node": "Respond Success",
               "type": "main",
               "index": 0
             }

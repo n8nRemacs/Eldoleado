@@ -16,6 +16,7 @@ import android.net.NetworkRequest
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.eldoleado.app.MainActivity
@@ -74,6 +75,9 @@ class ChannelMonitorService : Service() {
 
     // Avito WebSocket client
     private var avitoClient: AvitoWebViewClient? = null
+
+    // WakeLock to prevent CPU sleep during WebSocket connections
+    private var wakeLock: PowerManager.WakeLock? = null
 
     // State tracking
     private var lastBatteryLevel: Int = 100
@@ -182,6 +186,9 @@ class ChannelMonitorService : Service() {
     private fun startMonitoring() {
         Log.i(TAG, "Starting channel monitoring")
 
+        // Acquire WakeLock to prevent CPU sleep
+        acquireWakeLock()
+
         // Register battery receiver
         registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
@@ -210,6 +217,9 @@ class ChannelMonitorService : Service() {
     private fun stopMonitoring() {
         Log.i(TAG, "Stopping channel monitoring")
         monitorJob?.cancel()
+
+        // Release WakeLock
+        releaseWakeLock()
 
         // Stop Avito WebSocket
         stopAvitoWebSocket()
@@ -277,6 +287,36 @@ class ChannelMonitorService : Service() {
     private fun stopAvitoWebSocket() {
         avitoClient?.disconnect()
         avitoClient = null
+    }
+
+    // ==================== WakeLock ====================
+
+    private fun acquireWakeLock() {
+        if (wakeLock == null) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "Eldoleado::ChannelMonitor"
+            ).apply {
+                setReferenceCounted(false)
+            }
+        }
+        wakeLock?.let {
+            if (!it.isHeld) {
+                it.acquire()
+                Log.i(TAG, "WakeLock acquired")
+            }
+        }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+                Log.i(TAG, "WakeLock released")
+            }
+        }
+        wakeLock = null
     }
 
     private fun updateNotification(status: String) {
