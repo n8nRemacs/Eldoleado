@@ -64,3 +64,4 @@ workflows_backup/
 node_modules
 .dev_credentials
 temp_workflows.json
+cookies
