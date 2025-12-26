@@ -1,0 +1,290 @@
+{
+  "name": "ELO_Unifier",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-001",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ELO_Unifier - Validate Input & Normalize Phone\n// Input: tenant_id, client_id, phone, source\n\nconst input = $input.first().json;\n\n// Required fields\nif (!input.tenant_id) throw new Error('Missing tenant_id');\nif (!input.client_id) throw new Error('Missing client_id');\nif (!input.phone) throw new Error('Missing phone');\n\n// Normalize phone (Russian format)\nfunction normalizePhone(phone) {\n  // Remove all non-digits\n  let digits = phone.replace(/\\D/g, '');\n  \n  // Handle Russian formats\n  if (digits.length === 11) {\n    // 89991234567 → 79991234567\n    if (digits.startsWith('8')) {\n      digits = '7' + digits.slice(1);\n    }\n  } else if (digits.length === 10) {\n    // 9991234567 → 79991234567\n    digits = '7' + digits;\n  }\n  \n  // Return with + prefix\n  return '+' + digits;\n}\n\nconst normalizedPhone = normalizePhone(input.phone);\n\n// Validate phone length (should be 11-15 digits)\nconst phoneDigits = normalizedPhone.replace(/\\D/g, '');\nif (phoneDigits.length < 10 || phoneDigits.length > 15) {\n  throw new Error(`Invalid phone format: ${input.phone}`);\n}\n\n// Generate trace_id\nconst trace_id = input.trace_id || `unify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  tenant_id: input.tenant_id,\n  client_id: input.client_id,\n  original_phone: input.phone,\n  phone: normalizedPhone,\n  source: input.source || 'unknown',  // resolver, ai, manual\n  trace_id,\n  started_at: new Date().toISOString()\n};"
+      },
+      "id": "validate-001",
+      "name": "Validate & Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Check current client's phone\nSELECT id, phone\nFROM elo_t_clients\nWHERE id = '{{ $json.client_id }}'\n  AND tenant_id = '{{ $json.tenant_id }}';",
+        "options": {}
+      },
+      "id": "db-current-client",
+      "name": "Get Current Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if current client already has this phone\nconst input = $('Validate & Normalize').first().json;\nconst currentClient = $json;\n\nif (!currentClient.id) {\n  throw new Error(`Client not found: ${input.client_id}`);\n}\n\n// If current client already has this phone - nothing to do\nif (currentClient.phone === input.phone) {\n  return {\n    ...input,\n    action: 'none',\n    reason: 'Client already has this phone',\n    result_client_id: input.client_id,\n    was_merged: false\n  };\n}\n\n// Need to search for other clients with this phone\nreturn {\n  ...input,\n  current_client_phone: currentClient.phone,\n  action: 'search'\n};"
+      },
+      "id": "check-current",
+      "name": "Check Current Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 1 },
+          "conditions": [
+            {
+              "id": "need-search",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "search",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-need-search",
+      "name": "Need Search?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Find existing client with same phone in same tenant\nSELECT id as existing_client_id, name, phone\nFROM elo_t_clients\nWHERE tenant_id = '{{ $('Validate & Normalize').first().json.tenant_id }}'\n  AND phone = '{{ $('Validate & Normalize').first().json.phone }}'\n  AND id != '{{ $('Validate & Normalize').first().json.client_id }}'\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "db-search-phone",
+      "name": "Search by Phone",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1100, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 1 },
+          "conditions": [
+            {
+              "id": "found-existing",
+              "leftValue": "={{ $json.existing_client_id }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-found-existing",
+      "name": "Found Existing?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1320, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare merge operation\nconst input = $('Check Current Client').first().json;\nconst existing = $json;\n\nreturn {\n  ...input,\n  existing_client_id: existing.existing_client_id,\n  existing_client_name: existing.name,\n  action: 'merge'\n};"
+      },
+      "id": "prepare-merge",
+      "name": "Prepare Merge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- MERGE: Move all channels from current client to existing client\n-- Step 1: Update client_channels to point to existing client\nUPDATE elo_t_client_channels\nSET client_id = '{{ $json.existing_client_id }}'\nWHERE client_id = '{{ $json.client_id }}'\n  AND NOT EXISTS (\n    -- Don't move if existing client already has this channel+external_id\n    SELECT 1 FROM elo_t_client_channels ec\n    WHERE ec.client_id = '{{ $json.existing_client_id }}'\n      AND ec.channel_id = elo_t_client_channels.channel_id\n      AND ec.external_id = elo_t_client_channels.external_id\n  );\n\n-- Step 2: Update dialogs to point to existing client\nUPDATE elo_t_dialogs\nSET client_id = '{{ $json.existing_client_id }}'\nWHERE client_id = '{{ $json.client_id }}';\n\n-- Step 3: Update messages to point to existing client\nUPDATE elo_t_messages\nSET client_id = '{{ $json.existing_client_id }}'\nWHERE client_id = '{{ $json.client_id }}';\n\n-- Step 4: Delete orphaned current client (no more channels)\nDELETE FROM elo_t_clients\nWHERE id = '{{ $json.client_id }}'\n  AND NOT EXISTS (\n    SELECT 1 FROM elo_t_client_channels\n    WHERE client_id = '{{ $json.client_id }}'\n  );\n\n-- Return merged client\nSELECT '{{ $json.existing_client_id }}' as result_client_id, true as was_merged;",
+        "options": {}
+      },
+      "id": "db-merge",
+      "name": "Execute Merge",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1760, 100],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge completed\nconst input = $('Prepare Merge').first().json;\n\nreturn {\n  ...input,\n  result_client_id: input.existing_client_id,\n  was_merged: true,\n  merged_from: input.client_id,\n  merged_to: input.existing_client_id,\n  action: 'merged'\n};"
+      },
+      "id": "merge-result",
+      "name": "Merge Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- No existing client found - just update phone on current client\nUPDATE elo_t_clients\nSET phone = '{{ $('Validate & Normalize').first().json.phone }}',\n    updated_at = NOW()\nWHERE id = '{{ $('Validate & Normalize').first().json.client_id }}';\n\nSELECT '{{ $('Validate & Normalize').first().json.client_id }}' as result_client_id, false as was_merged;",
+        "options": {}
+      },
+      "id": "db-update-phone",
+      "name": "Update Phone",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1540, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phone updated on current client\nconst input = $('Check Current Client').first().json;\n\nreturn {\n  ...input,\n  result_client_id: input.client_id,\n  was_merged: false,\n  action: 'phone_updated'\n};"
+      },
+      "id": "update-result",
+      "name": "Update Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "merge-all-results",
+      "name": "Merge All Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=cache:client:phone:{{ $json.tenant_id }}:{{ $json.phone }}",
+        "value": "={{ JSON.stringify({ client_id: $json.result_client_id }) }}",
+        "expire": true,
+        "ttl": 3600,
+        "options": {}
+      },
+      "id": "redis-cache-phone",
+      "name": "Cache Phone Mapping",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2420, 300],
+      "credentials": {
+        "redis": {
+          "id": "redis-n8n",
+          "name": "Redis n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final response\nconst data = $('Merge All Results').first().json;\n\nreturn {\n  // Result\n  success: true,\n  result_client_id: data.result_client_id,\n  was_merged: data.was_merged || false,\n  action: data.action,\n  \n  // Details\n  phone: data.phone,\n  original_phone: data.original_phone,\n  source: data.source,\n  \n  // Merge info (if merged)\n  merged_from: data.merged_from || null,\n  merged_to: data.merged_to || null,\n  \n  // Tracing\n  trace_id: data.trace_id,\n  completed_at: new Date().toISOString()\n};"
+      },
+      "id": "build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No search needed - return early result\nconst data = $json;\n\nreturn {\n  success: true,\n  result_client_id: data.result_client_id,\n  was_merged: data.was_merged || false,\n  action: data.action,\n  reason: data.reason,\n  phone: data.phone,\n  trace_id: data.trace_id,\n  completed_at: new Date().toISOString()\n};"
+      },
+      "id": "early-return",
+      "name": "Early Return",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [[{ "node": "Validate & Normalize", "type": "main", "index": 0 }]]
+    },
+    "Validate & Normalize": {
+      "main": [[{ "node": "Get Current Client", "type": "main", "index": 0 }]]
+    },
+    "Get Current Client": {
+      "main": [[{ "node": "Check Current Client", "type": "main", "index": 0 }]]
+    },
+    "Check Current Client": {
+      "main": [[{ "node": "Need Search?", "type": "main", "index": 0 }]]
+    },
+    "Need Search?": {
+      "main": [
+        [{ "node": "Search by Phone", "type": "main", "index": 0 }],
+        [{ "node": "Early Return", "type": "main", "index": 0 }]
+      ]
+    },
+    "Search by Phone": {
+      "main": [[{ "node": "Found Existing?", "type": "main", "index": 0 }]]
+    },
+    "Found Existing?": {
+      "main": [
+        [{ "node": "Prepare Merge", "type": "main", "index": 0 }],
+        [{ "node": "Update Phone", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Merge": {
+      "main": [[{ "node": "Execute Merge", "type": "main", "index": 0 }]]
+    },
+    "Execute Merge": {
+      "main": [[{ "node": "Merge Result", "type": "main", "index": 0 }]]
+    },
+    "Merge Result": {
+      "main": [[{ "node": "Merge All Results", "type": "main", "index": 0 }]]
+    },
+    "Update Phone": {
+      "main": [[{ "node": "Update Result", "type": "main", "index": 0 }]]
+    },
+    "Update Result": {
+      "main": [[{ "node": "Merge All Results", "type": "main", "index": 1 }]]
+    },
+    "Merge All Results": {
+      "main": [[{ "node": "Cache Phone Mapping", "type": "main", "index": 0 }]]
+    },
+    "Cache Phone Mapping": {
+      "main": [[{ "node": "Build Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "ELO" },
+    { "name": "Core" }
+  ]
+}

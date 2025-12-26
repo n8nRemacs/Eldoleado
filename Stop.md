@@ -1,48 +1,85 @@
-# Stop Session - 2025-12-26
+# Stop Session - 2025-12-26 (вечер)
 
 ## Что сделано сегодня
 
-### 1. Telegram Bot Integration
+### 1. ELO_Resolver — Новый Unified Resolver
 
-- ✅ Подключен бот @remacsbot через Android приложение
-- ✅ Исправлен MCP webhook URL: `telegram-incoming` → `telegram-in`
-- ✅ Добавлена регистрация бота в MCP из Android приложения
-- ✅ Исправлено поле credentials: `token` → `bot_token`
-- ✅ MCP успешно пересылает сообщения в n8n (200 OK)
+Создан новый модуль резолвинга `ELO_Resolver` который объединяет:
+- Tenant Resolution (по channel + credential)
+- Client Resolution (по tenant + channel + external_id)
+- Dialog Resolution (по tenant + client + channel)
 
-### 2. HTTPS Gateway
+**Файл:** `NEW/workflows/ELO_Resolver_v2.json`
 
-Настроен nginx + Let's Encrypt на msg.eldoleado.ru:
-- https://msg.eldoleado.ru/telegram/
-- https://msg.eldoleado.ru/whatsapp/
-- https://msg.eldoleado.ru/avito/
-- https://msg.eldoleado.ru/max/
-- https://msg.eldoleado.ru/vk/
+### 2. ELO_Unifier — Модуль объединения клиентов
 
-### 3. Документация
+Создан модуль для объединения клиентов по номеру телефона:
+- WhatsApp и MAX имеют телефон в external_chat_id
+- Если найден существующий клиент с таким телефоном — merge
 
-Создан `NEW/DOCS/NEW_Channel_Add.md` — полное руководство по добавлению новых каналов.
+**Файл:** `NEW/workflows/ELO_Unifier.json`
+
+### 3. Интеграция в ELO_Input_Processor
+
+Изменён вызов resolver'а:
+- Было: `ELO_Client_Resolve`
+- Стало: `ELO_Resolver`
+
+### 4. Исправление данных
+
+- Исправлен `external_id` для клиента Дмитрий: `79997253777` → `79997253777@s.whatsapp.net`
+- Очищен Redis кеш для чистого тестирования
 
 ---
 
-## Нерешённые проблемы
+## Нерешённая проблема: n8n IF nodes
 
-### Проблема 1: Неактивный Tenant Resolver
+### Описание
 
-`ELO_In_Telegram_Bot` вызывает `BAT_Tenant_Resolver` (ID: `rRO6sxLqiCdgvLZz`), но он **неактивен**.
+n8n IF node v2 неправильно обрабатывает условия с `undefined`/`null`:
 
-**Решение (выбрать одно):**
-- A: Активировать `BAT_Tenant_Resolver` в n8n UI
-- B: Изменить `ELO_In_Telegram_Bot` — вызывать `ELO_Client_Resolve` (ID: `OHjjTQDguN2G6xin`)
+```
+Данные: { tenant_id: undefined }
+Условие: tenant_id exists
+Ожидание: FALSE branch
+Реальность: TRUE branch
+```
 
-### Проблема 2: WhatsApp credential маппинг
+### Что пробовали
 
-В `ELO_Client_Resolve` → `Validate Input`:
-```javascript
-// Сейчас:
-case 'whatsapp': credential = input.profile_id || input.meta?.raw?.sessionId; break;
-// Нужно:
-case 'whatsapp': credential = input.session_id || input.profile_id || input.meta?.raw?.sessionId; break;
+| Условие | Результат |
+|---------|-----------|
+| `_tenant_from_cache === true` | `false` идёт в TRUE |
+| `tenant_id isNotEmpty` | `undefined` идёт в TRUE |
+| `tenant_id isEmpty` | `undefined` идёт в TRUE |
+| `tenant_id exists` | `undefined` идёт в TRUE |
+
+### Рекомендуемое решение
+
+Использовать `!!` в expression:
+```json
+{
+  "leftValue": "={{ !!$json.tenant_id }}",
+  "rightValue": true,
+  "operator": { "type": "boolean", "operation": "equals" }
+}
+```
+
+**Подробный анализ:** `123.md`
+
+---
+
+## Текущее состояние данных
+
+### Redis
+```
+cache:tenant:whatsapp:wa_22222222-... = {"tenant_id":"11111111-...","channel_account_id":"f9f4d6e9-...","channel_id":2}
+```
+
+### PostgreSQL - Клиенты
+```
+Дмитрий | +79997253777 | 79997253777@s.whatsapp.net | channel_id=2
+Ремакс  | +79171708077 | 79171708077@s.whatsapp.net | channel_id=2
 ```
 
 ---
@@ -51,33 +88,24 @@ case 'whatsapp': credential = input.session_id || input.profile_id || input.meta
 
 | Компонент | Статус |
 |-----------|--------|
-| MCP Telegram | ✅ 155.212.221.189:8761 |
-| HTTPS Gateway | ✅ msg.eldoleado.ru |
-| ELO_In_Telegram_Bot | ✅ Active |
-| ELO_Client_Resolve | ✅ Active |
-| BAT_Tenant_Resolver | ❌ Inactive |
+| Messenger Server | 155.212.221.189 |
+| n8n Server | 185.221.214.83 |
+| HTTPS Gateway | msg.eldoleado.ru |
+| WhatsApp MCP | :8769 |
+| Telegram MCP | :8761 |
+| Avito MCP | :8793 |
 
 ---
 
-## Файлы изменены
+## Файлы созданы/изменены
 
 ```
-app/src/main/java/com/eldoleado/app/channels/
-├── ChannelRegistrationService.kt     # bot_token field
-├── setup/TelegramSetupActivity.kt    # MCP registration
-NEW/DOCS/
-├── NEW_Channel_Add.md                # Новое руководство
+NEW/workflows/
+├── ELO_Resolver_v2.json    # Новый unified resolver
+├── ELO_Unifier.json        # Модуль объединения клиентов
+123.md                       # Анализ проблемы с IF nodes
 ```
 
 ---
 
-## Следующие шаги
-
-1. [ ] Активировать resolver (вариант A или B)
-2. [ ] Тест Telegram бота
-3. [ ] Проверить WhatsApp
-4. [ ] Исправить credential маппинг если нужно
-
----
-
-*Сессия завершена: 2025-12-26*
+*Сессия завершена: 2025-12-26 22:45*
