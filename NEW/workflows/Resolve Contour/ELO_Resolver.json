@@ -1,0 +1,632 @@
+{
+  "name": "ELO_Resolver",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-001",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ELO_Resolver - Validate & Normalize Input\nconst raw = $input.first().json;\nconst input = raw.payload || raw;\n\nlet credential = input.credential || input.meta?.raw?.sessionId || input.meta?.raw?.botId || input.session_id || input.bot_token;\n\nif (!input.channel) throw new Error('Missing: channel');\nif (!credential) throw new Error('Missing: credential');\nif (!input.external_chat_id) throw new Error('Missing: external_chat_id');\n\nconst channel = input.channel.toLowerCase();\nconst validChannels = ['telegram', 'whatsapp', 'avito', 'vk', 'max', 'form', 'phone'];\nif (!validChannels.includes(channel)) throw new Error(`Invalid channel: ${channel}`);\n\nconst phoneChannels = ['whatsapp', 'max'];\nconst hasPhoneInExternalId = phoneChannels.includes(channel);\nlet phoneFromExternalId = null;\nif (channel === 'whatsapp') phoneFromExternalId = input.external_chat_id.split('@')[0];\nelse if (channel === 'max') phoneFromExternalId = input.external_user_id || input.external_chat_id;\n\nconst trace_id = input.trace_id || `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  ...input,\n  channel,\n  credential,\n  external_chat_id: input.external_chat_id,\n  sender_name: input.client_name || input.sender_name || 'Unknown',\n  sender_username: input.client_username || input.sender_username || '',\n  text: input.text || '',\n  hasPhoneInExternalId,\n  phoneFromExternalId,\n  trace_id,\n  _cache: { tenant: `cache:tenant:${channel}:${credential}` }\n};"
+      },
+      "id": "validate-001",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json._cache.tenant }}"
+      },
+      "id": "redis-tenant-get",
+      "name": "Cache Get Tenant",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [440, 300],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge Redis result with input data\nconst input = $('Validate Input').first().json;\nconst redis = $json;\nconst cachedValue = redis.propertyName || redis.value || null;\n\nlet parsed = null;\nif (cachedValue && cachedValue !== 'null' && cachedValue !== '') {\n  try {\n    parsed = JSON.parse(cachedValue);\n    if (!parsed || !parsed.tenant_id) parsed = null;\n  } catch (e) {\n    parsed = null;\n  }\n}\n\nreturn {\n  ...input,\n  _tenant_cached: parsed\n};"
+      },
+      "id": "merge-tenant-redis",
+      "name": "Merge Tenant Redis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json._tenant_cached?.tenant_id || '' }}", "rightValue": "", "operator": { "type": "string", "operation": "notEquals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-tenant-cache",
+      "name": "Tenant Cached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use tenant from cache\nconst data = $json;\nconst cached = data._tenant_cached;\n\nif (!cached || !cached.tenant_id) {\n  throw new Error(`Invalid tenant cache: ${JSON.stringify(cached)}`);\n}\n\nreturn {\n  ...data,\n  tenant_id: cached.tenant_id,\n  channel_account_id: cached.channel_account_id,\n  channel_id: cached.channel_id,\n  _cache: { \n    ...data._cache, \n    client: `cache:client:${cached.tenant_id}:${data.channel}:${data.external_chat_id}` \n  }\n};"
+      },
+      "id": "use-cached-tenant",
+      "name": "Use Cached Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ca.tenant_id, ca.id as channel_account_id, ca.channel_id\nFROM elo_t_channel_accounts ca\nJOIN elo_channels c ON c.id = ca.channel_id\nWHERE c.code = '{{ $json.channel }}'\n  AND ca.session_id = '{{ $json.credential }}'\n  AND ca.is_active = true\nLIMIT 1;"
+      },
+      "id": "db-tenant-query",
+      "name": "DB Get Tenant",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1100, 400],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge DB result with input data\nconst input = $('Merge Tenant Redis').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...input,\n  _db_tenant: dbResult.tenant_id ? dbResult : null\n};"
+      },
+      "id": "merge-db-tenant",
+      "name": "Merge DB Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ !!$json._db_tenant }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-tenant-found",
+      "name": "Tenant Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1540, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "throw new Error(`Channel not registered: ${$json.channel}:${$json.credential}`);"
+      },
+      "id": "error-no-tenant",
+      "name": "Error: No Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 500]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use tenant from DB and prepare for cache\nconst data = $json;\nconst tenant = data._db_tenant;\n\nreturn {\n  ...data,\n  tenant_id: tenant.tenant_id,\n  channel_account_id: tenant.channel_account_id,\n  channel_id: tenant.channel_id,\n  _cache: {\n    ...data._cache,\n    client: `cache:client:${tenant.tenant_id}:${data.channel}:${data.external_chat_id}`,\n    tenantValue: JSON.stringify({ \n      tenant_id: tenant.tenant_id, \n      channel_account_id: tenant.channel_account_id, \n      channel_id: tenant.channel_id \n    })\n  }\n};"
+      },
+      "id": "use-db-tenant",
+      "name": "Use DB Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json._cache.tenant }}",
+        "value": "={{ $json._cache.tenantValue }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "redis-tenant-set",
+      "name": "Cache Tenant",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1980, 300],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after Redis SET (Redis returns OK, not our data)\nreturn $('Use DB Tenant').first().json;"
+      },
+      "id": "restore-tenant",
+      "name": "Restore Tenant",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json._cache.client }}"
+      },
+      "id": "redis-client-get",
+      "name": "Cache Get Client",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2420, 300],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge Redis result with tenant data\n// Get previous data from whichever path we came\nlet prevData;\ntry {\n  prevData = $('Use Cached Tenant').first().json;\n} catch {\n  prevData = $('Restore Tenant').first().json;\n}\n\nconst redis = $json;\nconst cachedValue = redis.propertyName || redis.value || null;\n\nlet parsed = null;\nif (cachedValue && cachedValue !== 'null' && cachedValue !== '') {\n  try {\n    parsed = JSON.parse(cachedValue);\n    if (!parsed || !parsed.client_id) parsed = null;\n  } catch (e) {\n    parsed = null;\n  }\n}\n\nreturn {\n  ...prevData,\n  _client_cached: parsed\n};"
+      },
+      "id": "merge-client-redis",
+      "name": "Merge Client Redis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json._client_cached?.client_id || '' }}", "rightValue": "", "operator": { "type": "string", "operation": "notEquals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-client-cache",
+      "name": "Client Cached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2860, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use client from cache\nconst data = $json;\nconst cached = data._client_cached;\n\nif (!cached || !cached.client_id) {\n  throw new Error(`Invalid client cache: ${JSON.stringify(cached)}`);\n}\n\nreturn {\n  ...data,\n  client_id: cached.client_id,\n  is_new_client: false,\n  _cache: { \n    ...data._cache, \n    dialog: `cache:dialog:${data.tenant_id}:${cached.client_id}` \n  }\n};"
+      },
+      "id": "use-cached-client",
+      "name": "Use Cached Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3080, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.id as client_id\nFROM elo_t_clients c\nJOIN elo_t_client_channels cc ON cc.client_id = c.id\nWHERE c.tenant_id = '{{ $json.tenant_id }}'\n  AND cc.channel_id = {{ $json.channel_id }}\n  AND cc.external_id = '{{ $json.external_chat_id }}'\nLIMIT 1;"
+      },
+      "id": "db-client-query",
+      "name": "DB Get Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [3080, 400],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge DB result with previous data\nconst prevData = $('Merge Client Redis').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...prevData,\n  _db_client_id: dbResult.client_id || null\n};"
+      },
+      "id": "merge-db-client",
+      "name": "Merge DB Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ !!$json._db_client_id }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-client-found",
+      "name": "Client Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3520, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use existing client from DB\nconst data = $json;\n\nreturn {\n  ...data,\n  client_id: data._db_client_id,\n  is_new_client: false,\n  _cache: { \n    ...data._cache, \n    dialog: `cache:dialog:${data.tenant_id}:${data._db_client_id}`,\n    clientValue: JSON.stringify({ client_id: data._db_client_id })\n  }\n};"
+      },
+      "id": "use-existing-client",
+      "name": "Use Existing Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3740, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH new_client AS (\n  INSERT INTO elo_t_clients (tenant_id, name)\n  VALUES ('{{ $json.tenant_id }}', '{{ $json.sender_name }}')\n  RETURNING id\n)\nINSERT INTO elo_t_client_channels (client_id, channel_id, external_id, external_username)\nSELECT id, {{ $json.channel_id }}, '{{ $json.external_chat_id }}', '{{ $json.sender_username }}'\nFROM new_client\nRETURNING client_id;"
+      },
+      "id": "db-client-create",
+      "name": "DB Create Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [3740, 500],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use new client\nconst prevData = $('Merge DB Client').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...prevData,\n  client_id: dbResult.client_id,\n  is_new_client: true,\n  _cache: { \n    ...prevData._cache, \n    dialog: `cache:dialog:${prevData.tenant_id}:${dbResult.client_id}`,\n    clientValue: JSON.stringify({ client_id: dbResult.client_id })\n  }\n};"
+      },
+      "id": "use-new-client",
+      "name": "Use New Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3960, 500]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json._cache.client }}",
+        "value": "={{ $json._cache.clientValue }}",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "redis-client-set",
+      "name": "Cache Client",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [4180, 400],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after Redis SET\nlet data;\ntry {\n  data = $('Use Existing Client').first().json;\n} catch {\n  data = $('Use New Client').first().json;\n}\nreturn data;"
+      },
+      "id": "restore-client",
+      "name": "Restore Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4400, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json.hasPhoneInExternalId === true }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-has-phone",
+      "name": "Has Phone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [4620, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Prepare data for Unifier\nconst data = $json;\nreturn {\n  tenant_id: data.tenant_id,\n  client_id: data.client_id,\n  phone: data.phoneFromExternalId,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  _resolver_data: data\n};"
+      },
+      "id": "prepare-unifier",
+      "name": "Prepare Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4840, 200]
+    },
+    {
+      "parameters": {
+        "workflowId": { "mode": "name", "value": "ELO_Unifier" }
+      },
+      "id": "call-unifier",
+      "name": "Call Unifier",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [5060, 200]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// After Unifier - restore data and apply unifier result\nconst base = $('Prepare Unifier').first().json._resolver_data;\nconst unifierResult = $json;\nconst finalClientId = unifierResult.result_client_id || base.client_id;\n\nreturn {\n  ...base,\n  client_id: finalClientId,\n  was_unified: unifierResult.was_merged || false,\n  _cache: { \n    ...base._cache, \n    dialog: `cache:dialog:${base.tenant_id}:${finalClientId}` \n  }\n};"
+      },
+      "id": "after-unifier",
+      "name": "After Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5280, 200]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Skip unifier - just pass data through\nreturn { ...$json, was_unified: false };"
+      },
+      "id": "skip-unifier",
+      "name": "Skip Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4840, 400]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json._cache.dialog }}"
+      },
+      "id": "redis-dialog-get",
+      "name": "Cache Get Dialog",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [5500, 300],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge Redis result with client data\nlet prevData;\ntry {\n  prevData = $('After Unifier').first().json;\n} catch {\n  prevData = $('Skip Unifier').first().json;\n}\n\nconst redis = $json;\nconst cachedValue = redis.propertyName || redis.value || null;\n\nlet parsed = null;\nif (cachedValue && cachedValue !== 'null' && cachedValue !== '') {\n  try {\n    parsed = JSON.parse(cachedValue);\n    if (!parsed || !parsed.dialog_id) parsed = null;\n  } catch (e) {\n    parsed = null;\n  }\n}\n\nreturn {\n  ...prevData,\n  _dialog_cached: parsed\n};"
+      },
+      "id": "merge-dialog-redis",
+      "name": "Merge Dialog Redis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5720, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json._dialog_cached?.dialog_id || '' }}", "rightValue": "", "operator": { "type": "string", "operation": "notEquals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-dialog-cache",
+      "name": "Dialog Cached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [5940, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use dialog from cache\nconst data = $json;\nconst cached = data._dialog_cached;\n\nif (!cached || !cached.dialog_id) {\n  throw new Error(`Invalid dialog cache: ${JSON.stringify(cached)}`);\n}\n\nreturn {\n  ...data,\n  dialog_id: cached.dialog_id,\n  is_new_dialog: false,\n  last_client_channel_id: data.channel_id\n};"
+      },
+      "id": "use-cached-dialog",
+      "name": "Use Cached Dialog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6160, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs SET last_client_channel_id = {{ $json.last_client_channel_id }}, last_message_at = NOW(), last_client_message_at = NOW() WHERE id = '{{ $json.dialog_id }}';"
+      },
+      "id": "update-dialog-cached",
+      "name": "Update Dialog (cached)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [6380, 200],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after UPDATE\nreturn $('Use Cached Dialog').first().json;"
+      },
+      "id": "restore-cached-dialog",
+      "name": "Restore (cached)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6600, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id as dialog_id FROM elo_t_dialogs WHERE tenant_id = '{{ $json.tenant_id }}' AND client_id = '{{ $json.client_id }}' LIMIT 1;"
+      },
+      "id": "db-dialog-query",
+      "name": "DB Get Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [6160, 400],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge DB result with previous data\nconst prevData = $('Merge Dialog Redis').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...prevData,\n  _db_dialog_id: dbResult.dialog_id || null\n};"
+      },
+      "id": "merge-db-dialog",
+      "name": "Merge DB Dialog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6380, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ !!$json._db_dialog_id }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-dialog-found",
+      "name": "Dialog Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [6600, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use existing dialog\nconst data = $json;\n\nreturn {\n  ...data,\n  dialog_id: data._db_dialog_id,\n  is_new_dialog: false,\n  last_client_channel_id: data.channel_id,\n  _cache: { \n    ...data._cache, \n    dialogValue: JSON.stringify({ dialog_id: data._db_dialog_id })\n  }\n};"
+      },
+      "id": "use-existing-dialog",
+      "name": "Use Existing Dialog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6820, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs SET last_client_channel_id = {{ $json.last_client_channel_id }}, last_message_at = NOW(), last_client_message_at = NOW() WHERE id = '{{ $json.dialog_id }}';"
+      },
+      "id": "update-dialog-db",
+      "name": "Update Dialog (db)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [7040, 300],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after UPDATE\nreturn $('Use Existing Dialog').first().json;"
+      },
+      "id": "restore-existing-dialog",
+      "name": "Restore (existing)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [7260, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_dialogs (tenant_id, client_id, channel_id, first_contact_channel_id, last_client_channel_id, status_id)\nVALUES ('{{ $json.tenant_id }}', '{{ $json.client_id }}', {{ $json.channel_id }}, {{ $json.channel_id }}, {{ $json.channel_id }}, 1)\nRETURNING id as dialog_id;"
+      },
+      "id": "db-dialog-create",
+      "name": "DB Create Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [6820, 500],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use new dialog\nconst prevData = $('Merge DB Dialog').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...prevData,\n  dialog_id: dbResult.dialog_id,\n  is_new_dialog: true,\n  last_client_channel_id: prevData.channel_id,\n  _cache: { \n    ...prevData._cache, \n    dialogValue: JSON.stringify({ dialog_id: dbResult.dialog_id })\n  }\n};"
+      },
+      "id": "use-new-dialog",
+      "name": "Use New Dialog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [7040, 500]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json._cache.dialog }}",
+        "value": "={{ $json._cache.dialogValue }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "redis-dialog-set",
+      "name": "Cache Dialog",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [7480, 400],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after Redis SET\nlet data;\ntry {\n  data = $('Use Existing Dialog').first().json;\n} catch {\n  data = $('Use New Dialog').first().json;\n}\nreturn data;"
+      },
+      "id": "restore-dialog",
+      "name": "Restore Dialog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [7700, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Final response - clean output\nconst data = $json;\n\nreturn {\n  tenant_id: data.tenant_id,\n  client_id: data.client_id,\n  dialog_id: data.dialog_id,\n  channel_id: data.channel_id,\n  channel_account_id: data.channel_account_id,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  last_client_channel_id: data.last_client_channel_id,\n  is_new_client: data.is_new_client || false,\n  is_new_dialog: data.is_new_dialog || false,\n  was_unified: data.was_unified || false,\n  sender_name: data.sender_name,\n  text: data.text,\n  trace_id: data.trace_id\n};"
+      },
+      "id": "build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [7920, 300]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Validate Input", "type": "main", "index": 0 }]] },
+    "Validate Input": { "main": [[{ "node": "Cache Get Tenant", "type": "main", "index": 0 }]] },
+    "Cache Get Tenant": { "main": [[{ "node": "Merge Tenant Redis", "type": "main", "index": 0 }]] },
+    "Merge Tenant Redis": { "main": [[{ "node": "Tenant Cached?", "type": "main", "index": 0 }]] },
+    "Tenant Cached?": { "main": [
+      [{ "node": "Use Cached Tenant", "type": "main", "index": 0 }],
+      [{ "node": "DB Get Tenant", "type": "main", "index": 0 }]
+    ]},
+    "Use Cached Tenant": { "main": [[{ "node": "Cache Get Client", "type": "main", "index": 0 }]] },
+    "DB Get Tenant": { "main": [[{ "node": "Merge DB Tenant", "type": "main", "index": 0 }]] },
+    "Merge DB Tenant": { "main": [[{ "node": "Tenant Found?", "type": "main", "index": 0 }]] },
+    "Tenant Found?": { "main": [
+      [{ "node": "Use DB Tenant", "type": "main", "index": 0 }],
+      [{ "node": "Error: No Tenant", "type": "main", "index": 0 }]
+    ]},
+    "Use DB Tenant": { "main": [[{ "node": "Cache Tenant", "type": "main", "index": 0 }]] },
+    "Cache Tenant": { "main": [[{ "node": "Restore Tenant", "type": "main", "index": 0 }]] },
+    "Restore Tenant": { "main": [[{ "node": "Cache Get Client", "type": "main", "index": 0 }]] },
+    "Cache Get Client": { "main": [[{ "node": "Merge Client Redis", "type": "main", "index": 0 }]] },
+    "Merge Client Redis": { "main": [[{ "node": "Client Cached?", "type": "main", "index": 0 }]] },
+    "Client Cached?": { "main": [
+      [{ "node": "Use Cached Client", "type": "main", "index": 0 }],
+      [{ "node": "DB Get Client", "type": "main", "index": 0 }]
+    ]},
+    "Use Cached Client": { "main": [[{ "node": "Has Phone?", "type": "main", "index": 0 }]] },
+    "DB Get Client": { "main": [[{ "node": "Merge DB Client", "type": "main", "index": 0 }]] },
+    "Merge DB Client": { "main": [[{ "node": "Client Found?", "type": "main", "index": 0 }]] },
+    "Client Found?": { "main": [
+      [{ "node": "Use Existing Client", "type": "main", "index": 0 }],
+      [{ "node": "DB Create Client", "type": "main", "index": 0 }]
+    ]},
+    "Use Existing Client": { "main": [[{ "node": "Cache Client", "type": "main", "index": 0 }]] },
+    "DB Create Client": { "main": [[{ "node": "Use New Client", "type": "main", "index": 0 }]] },
+    "Use New Client": { "main": [[{ "node": "Cache Client", "type": "main", "index": 0 }]] },
+    "Cache Client": { "main": [[{ "node": "Restore Client", "type": "main", "index": 0 }]] },
+    "Restore Client": { "main": [[{ "node": "Has Phone?", "type": "main", "index": 0 }]] },
+    "Has Phone?": { "main": [
+      [{ "node": "Prepare Unifier", "type": "main", "index": 0 }],
+      [{ "node": "Skip Unifier", "type": "main", "index": 0 }]
+    ]},
+    "Prepare Unifier": { "main": [[{ "node": "Call Unifier", "type": "main", "index": 0 }]] },
+    "Call Unifier": { "main": [[{ "node": "After Unifier", "type": "main", "index": 0 }]] },
+    "After Unifier": { "main": [[{ "node": "Cache Get Dialog", "type": "main", "index": 0 }]] },
+    "Skip Unifier": { "main": [[{ "node": "Cache Get Dialog", "type": "main", "index": 0 }]] },
+    "Cache Get Dialog": { "main": [[{ "node": "Merge Dialog Redis", "type": "main", "index": 0 }]] },
+    "Merge Dialog Redis": { "main": [[{ "node": "Dialog Cached?", "type": "main", "index": 0 }]] },
+    "Dialog Cached?": { "main": [
+      [{ "node": "Use Cached Dialog", "type": "main", "index": 0 }],
+      [{ "node": "DB Get Dialog", "type": "main", "index": 0 }]
+    ]},
+    "Use Cached Dialog": { "main": [[{ "node": "Update Dialog (cached)", "type": "main", "index": 0 }]] },
+    "Update Dialog (cached)": { "main": [[{ "node": "Restore (cached)", "type": "main", "index": 0 }]] },
+    "Restore (cached)": { "main": [[{ "node": "Build Response", "type": "main", "index": 0 }]] },
+    "DB Get Dialog": { "main": [[{ "node": "Merge DB Dialog", "type": "main", "index": 0 }]] },
+    "Merge DB Dialog": { "main": [[{ "node": "Dialog Found?", "type": "main", "index": 0 }]] },
+    "Dialog Found?": { "main": [
+      [{ "node": "Use Existing Dialog", "type": "main", "index": 0 }],
+      [{ "node": "DB Create Dialog", "type": "main", "index": 0 }]
+    ]},
+    "Use Existing Dialog": { "main": [[{ "node": "Update Dialog (db)", "type": "main", "index": 0 }]] },
+    "Update Dialog (db)": { "main": [[{ "node": "Restore (existing)", "type": "main", "index": 0 }]] },
+    "Restore (existing)": { "main": [[{ "node": "Cache Dialog", "type": "main", "index": 0 }]] },
+    "DB Create Dialog": { "main": [[{ "node": "Use New Dialog", "type": "main", "index": 0 }]] },
+    "Use New Dialog": { "main": [[{ "node": "Cache Dialog", "type": "main", "index": 0 }]] },
+    "Cache Dialog": { "main": [[{ "node": "Restore Dialog", "type": "main", "index": 0 }]] },
+    "Restore Dialog": { "main": [[{ "node": "Build Response", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "ELO" }, { "name": "Core" }]
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  avito-plus:
+    build: .
+    container_name: avito-plus
+    restart: unless-stopped
+    ports:
+      - "8794:8794"
+    volumes:
+      # Persistent data (fingerprints, profiles, state)
+      - /data/avito-plus:/data/avito-plus
+      # Config (can override defaults)
+      - ./config:/app/config:ro
+    environment:
+      - TZ=Europe/Moscow
+      - PYTHONUNBUFFERED=1
+    # For browser to work properly
+    shm_size: '2gb'
+    # Security - run as non-root (optional, may need adjustments)
+    # user: "1000:1000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8794/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - avito-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  avito-network:
+    driver: bridge

@@ -13,6 +13,12 @@
       "port": 22,
       "password": "Mi31415926pS",
       "description": "n8n + PostgreSQL"
+    },
+    "messager": {
+      "host": "85.198.86.96",
+      "user": "root",
+      "port": 22,
+      "password": "Mi31415926pSss!"
     }
   }
 }

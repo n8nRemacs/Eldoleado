@@ -1,0 +1,32 @@
+# Avito-Plus Proxy Configuration
+
+proxies:
+  # === CLIENT PC (MVP) ===
+  - id: client_test_pc
+    type: client_pc
+    transport: wireguard
+    wireguard_ip: 10.0.10.2
+    socks_port: 1080
+    client_name: "Test PC"
+    location: "Moscow"
+    isp: "Unknown"
+    priority: 1
+    enabled: true
+
+  # === Дополнительные прокси добавляются здесь ===
+  # - id: client_remaks_pc
+  #   type: client_pc
+  #   transport: wireguard
+  #   wireguard_ip: 10.0.10.3
+  #   socks_port: 1080
+  #   client_name: "РемАкс"
+  #   location: "Ростов-на-Дону"
+  #   isp: "Ростелеком"
+  #   priority: 1
+  #   enabled: true
+
+# WireGuard server info (for generating client configs)
+wireguard_server:
+  public_key: "ClU4YWGgH3pX967UVZGnD1owwB0tW4yQu4v38gTaVBE="
+  endpoint: "155.212.221.189:51820"
+  subnet: "10.0.10.0/24"

@@ -1,111 +1,102 @@
-# Stop Session - 2025-12-26 (вечер)
+# Stop Session - 2025-12-27
 
 ## Что сделано сегодня
 
-### 1. ELO_Resolver — Новый Unified Resolver
+### 1. Полная переработка ELO_Resolver
 
-Создан новый модуль резолвинга `ELO_Resolver` который объединяет:
-- Tenant Resolution (по channel + credential)
-- Client Resolution (по tenant + channel + external_id)
-- Dialog Resolution (по tenant + client + channel)
+Создан новый ELO_Resolver с **47 нодами** и правильным потоком данных:
+- Tenant → Client → Dialog resolution
+- ONE dialog per client (channel-agnostic)
+- Добавлены колонки `first_contact_channel_id` и `last_client_channel_id`
 
-**Файл:** `NEW/workflows/ELO_Resolver_v2.json`
+**Файл:** `NEW/workflows/Resolve Contour/ELO_Resolver.json`
 
-### 2. ELO_Unifier — Модуль объединения клиентов
+### 2. Исправлена потеря данных между нодами
 
-Создан модуль для объединения клиентов по номеру телефона:
-- WhatsApp и MAX имеют телефон в external_chat_id
-- Если найден существующий клиент с таким телефоном — merge
+**Проблема:** Redis GET возвращает только `{propertyName: value}`, каждая нода получает только output предыдущей.
 
-**Файл:** `NEW/workflows/ELO_Unifier.json`
+**Решение:** Добавлены 6 Merge нод:
+- `Merge Tenant Redis` - input + redis
+- `Merge DB Tenant` - prev + db
+- `Merge Client Redis` - tenant data + redis
+- `Merge DB Client` - prev + db
+- `Merge Dialog Redis` - client data + redis
+- `Merge DB Dialog` - prev + db
 
-### 3. Интеграция в ELO_Input_Processor
+### 3. Исправлен парсинг Redis
 
-Изменён вызов resolver'а:
-- Было: `ELO_Client_Resolve`
-- Стало: `ELO_Resolver`
+**Проблема:** Redis в n8n возвращает значение в `propertyName`, не `value`.
 
-### 4. Исправление данных
+**Решение:**
+```javascript
+const cachedValue = redis.propertyName || redis.value || null;
+```
 
-- Исправлен `external_id` для клиента Дмитрий: `79997253777` → `79997253777@s.whatsapp.net`
-- Очищен Redis кеш для чистого тестирования
+### 4. Добавлена валидация парсинга
+
+Merge ноды проверяют распарсенные данные:
+```javascript
+if (!parsed || !parsed.client_id) parsed = null;
+```
+
+### 5. Исправлены IF ноды (ПОСЛЕДНЕЕ)
+
+**Проблема:** `!!$json._client_cached` пропускал null в TRUE ветку.
+
+**Решение:** Optional chaining + string comparison:
+```
+Tenant Cached?:  $json._tenant_cached?.tenant_id || ''  notEquals  ''
+Client Cached?:  $json._client_cached?.client_id || ''  notEquals  ''
+Dialog Cached?:  $json._dialog_cached?.dialog_id || ''  notEquals  ''
+```
+
+### 6. Restore ноды
+
+Добавлены после Redis SET и DB UPDATE (возвращают "OK", не данные).
 
 ---
 
-## Нерешённая проблема: n8n IF nodes
+## НЕ протестировано
 
-### Описание
-
-n8n IF node v2 неправильно обрабатывает условия с `undefined`/`null`:
-
-```
-Данные: { tenant_id: undefined }
-Условие: tenant_id exists
-Ожидание: FALSE branch
-Реальность: TRUE branch
-```
-
-### Что пробовали
-
-| Условие | Результат |
-|---------|-----------|
-| `_tenant_from_cache === true` | `false` идёт в TRUE |
-| `tenant_id isNotEmpty` | `undefined` идёт в TRUE |
-| `tenant_id isEmpty` | `undefined` идёт в TRUE |
-| `tenant_id exists` | `undefined` идёт в TRUE |
-
-### Рекомендуемое решение
-
-Использовать `!!` в expression:
-```json
-{
-  "leftValue": "={{ !!$json.tenant_id }}",
-  "rightValue": true,
-  "operator": { "type": "boolean", "operation": "equals" }
-}
-```
-
-**Подробный анализ:** `123.md`
+1. **IF ноды** - последнее исправление (optional chaining) НЕ ТЕСТИРОВАЛОСЬ
+2. **Полный флоу** - не завершён ни один успешный прогон
+3. **Call Unifier** - вызов ELO_Unifier
+4. **Кеширование** - сохранение/чтение Redis
 
 ---
 
-## Текущее состояние данных
+## Известные проблемы n8n IF node v2
 
-### Redis
-```
-cache:tenant:whatsapp:wa_22222222-... = {"tenant_id":"11111111-...","channel_account_id":"f9f4d6e9-...","channel_id":2}
-```
+| Что пробовали | Результат |
+|---------------|-----------|
+| `!!$json.field` | null идёт в TRUE |
+| `exists` оператор | ненадёжен |
+| `isEmpty` | неожиданные результаты |
 
-### PostgreSQL - Клиенты
-```
-Дмитрий | +79997253777 | 79997253777@s.whatsapp.net | channel_id=2
-Ремакс  | +79171708077 | 79171708077@s.whatsapp.net | channel_id=2
-```
+**Рабочее решение:** `$json.field?.id || '' notEquals ''`
 
 ---
 
-## Инфраструктура
-
-| Компонент | Статус |
-|-----------|--------|
-| Messenger Server | 155.212.221.189 |
-| n8n Server | 185.221.214.83 |
-| HTTPS Gateway | msg.eldoleado.ru |
-| WhatsApp MCP | :8769 |
-| Telegram MCP | :8761 |
-| Avito MCP | :8793 |
-
----
-
-## Файлы созданы/изменены
+## Структура данных в workflow
 
 ```
-NEW/workflows/
-├── ELO_Resolver_v2.json    # Новый unified resolver
-├── ELO_Unifier.json        # Модуль объединения клиентов
-123.md                       # Анализ проблемы с IF nodes
+_tenant_cached  → {tenant_id, channel_account_id, channel_id}
+_client_cached  → {client_id}
+_dialog_cached  → {dialog_id}
+_db_tenant      → tenant object from DB
+_db_client_id   → client_id from DB
+_db_dialog_id   → dialog_id from DB
 ```
 
 ---
 
-*Сессия завершена: 2025-12-26 22:45*
+## Файлы изменены
+
+```
+NEW/workflows/Resolve Contour/ELO_Resolver.json  # Полная переработка
+123.md                                            # Статус работы
+```
+
+---
+
+*Сессия завершена: 2025-12-27*

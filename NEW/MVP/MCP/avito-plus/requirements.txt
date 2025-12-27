@@ -1,0 +1,34 @@
+# Avito-Plus dependencies
+
+# Web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Browser automation
+camoufox>=0.4.0
+playwright>=1.40.0
+
+# Data validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Configuration
+pyyaml>=6.0
+
+# HTTP client
+aiohttp>=3.9.0
+httpx>=0.25.0
+
+# WebSocket
+websockets>=12.0
+
+# Proxy support
+python-socks[asyncio]>=2.4.0
+aiohttp-socks>=0.8.0
+
+# Logging
+structlog>=23.2.0
+
+# Utils
+python-dateutil>=2.8.0

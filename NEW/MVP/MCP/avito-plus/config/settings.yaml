@@ -1,0 +1,26 @@
+# Avito-Plus Settings
+
+server:
+  host: "0.0.0.0"
+  port: 8794
+
+# Data directory for accounts (fingerprints, profiles, state)
+data_dir: "/data/avito-plus"
+
+# Webhook for incoming messages
+webhook:
+  url: "https://n8n.n8nsrv.ru/webhook/avito-plus"
+  enabled: true
+
+# Browser settings
+browser:
+  headless: true
+  # Timeout for page operations (ms)
+  timeout: 30000
+  # User agent prefix (will be extended with version)
+  user_agent_base: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "json"

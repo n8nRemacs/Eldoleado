@@ -10,46 +10,55 @@
 
 ---
 
-## Приоритет 1: Исправить IF nodes в ELO_Resolver
+## Приоритет 1: Протестировать ELO_Resolver
 
-n8n IF node v2 неправильно обрабатывает `undefined`. Нужно изменить условия.
+Workflow полностью переписан, но **не протестирован**.
 
-### Текущая проблема
+### Что сделано
+- 47 нод с правильным потоком данных
+- Merge ноды после Redis/DB операций
+- IF ноды с optional chaining: `$json._cached?.id || '' notEquals ''`
+
+### Шаги тестирования
+
+1. Импортировать `NEW/workflows/Resolve Contour/ELO_Resolver.json` в n8n
+2. Очистить Redis: `ssh root@185.221.214.83 "docker exec n8n-redis redis-cli FLUSHALL"`
+3. Отправить сообщение в WhatsApp
+4. Проверить execution в n8n
+
+### Ожидаемый поток (первое сообщение)
 
 ```
-Данные: { tenant_id: undefined }
-Условие: tenant_id exists
-Результат: TRUE (должен быть FALSE)
+Validate Input
+    ↓
+Cache Get Tenant → null
+    ↓
+Merge Tenant Redis → _tenant_cached: null
+    ↓
+Tenant Cached? → FALSE
+    ↓
+DB Get Tenant → {tenant_id, channel_account_id, channel_id}
+    ↓
+Merge DB Tenant → _db_tenant: {...}
+    ↓
+Tenant Found? → TRUE
+    ↓
+Use DB Tenant
+    ↓
+Cache Tenant (SET)
+    ↓
+Restore Tenant
+    ↓
+Cache Get Client → null
+    ↓
+... (аналогично для Client и Dialog)
+    ↓
+Build Response
 ```
 
-### Решение
+### Если ошибка в IF ноде
 
-Изменить все IF nodes на использование `!!` в expression:
-
-```json
-{
-  "leftValue": "={{ !!$json.tenant_id }}",
-  "rightValue": true,
-  "operator": { "type": "boolean", "operation": "equals" }
-}
-```
-
-### IF nodes для исправления
-
-| Node | Условие | Файл |
-|------|---------|------|
-| `Tenant Cached?` | `!!$json.tenant_id === true` | ELO_Resolver_v2.json |
-| `Client Cached?` | `!!$json.client_id === true` | ELO_Resolver_v2.json |
-| `Need Create?` | `!!$json.client_id === false` | ELO_Resolver_v2.json |
-| `Dialog Cached?` | `!!$json.dialog_id === true` | ELO_Resolver_v2.json |
-| `Need Dialog?` | `!!$json.dialog_id === false` | ELO_Resolver_v2.json |
-
-### Тестирование
-
-После исправления:
-1. Очистить Redis: `docker exec n8n-redis redis-cli FLUSHALL`
-2. Отправить сообщение в WhatsApp
-3. Проверить что поток идёт: Validate → Redis Get → Check Cache → **DB Get** → Merge → Redis Set
+Проверить execution, найти где данные теряются. Возможно нужно другое условие.
 
 ---
 
@@ -70,8 +79,8 @@ Webhook от Avito не работает без платной подписки.
 
 | Workflow | Файл | Статус |
 |----------|------|--------|
-| ELO_Resolver | `NEW/workflows/ELO_Resolver_v2.json` | Импортирован, IF nodes баг |
-| ELO_Unifier | `NEW/workflows/ELO_Unifier.json` | Готов к импорту |
+| ELO_Resolver | `NEW/workflows/Resolve Contour/ELO_Resolver.json` | Переписан, не тестирован |
+| ELO_Unifier | `NEW/workflows/Resolve Contour/ELO_Unifier.json` | Готов |
 | ELO_Input_Processor | n8n | Вызывает ELO_Resolver |
 
 ---
@@ -124,11 +133,23 @@ ssh root@155.212.221.189 "docker logs whatsapp-mcp --tail 50"
 
 | Файл | Описание |
 |------|----------|
-| `123.md` | Подробный анализ проблемы с IF nodes |
+| `123.md` | Статус работы, что сделано/не сделано |
 | `Stop.md` | Что сделано в прошлой сессии |
-| `NEW/workflows/ELO_Resolver_v2.json` | Unified resolver |
-| `NEW/workflows/ELO_Unifier.json` | Модуль объединения клиентов |
+| `NEW/workflows/Resolve Contour/ELO_Resolver.json` | Unified resolver (47 нод) |
+| `NEW/workflows/Resolve Contour/ELO_Unifier.json` | Модуль объединения клиентов |
 
 ---
 
-*Последнее обновление: 2025-12-26*
+## Известные баги n8n IF node v2
+
+| Условие | Результат |
+|---------|-----------|
+| `!!$json.field` boolean equals true | null идёт в TRUE |
+| `field exists` | undefined идёт в TRUE |
+| `field isEmpty` | непредсказуемо |
+
+**Рабочее решение:** `$json.field?.id || '' notEquals ''`
+
+---
+
+*Последнее обновление: 2025-12-27*
