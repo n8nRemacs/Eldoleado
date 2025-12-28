@@ -1,0 +1,270 @@
+{
+  "name": "ELO_Client_Resolver",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-001",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Validate Input for Client Resolver\nconst raw = $input.first().json;\nconst input = raw.payload || raw;\n\nif (!input.tenant_id) throw new Error('Missing: tenant_id');\nif (!input.channel_id) throw new Error('Missing: channel_id');\nif (!input.channel) throw new Error('Missing: channel');\nif (!input.external_chat_id) throw new Error('Missing: external_chat_id');\n\nconst phoneChannels = ['whatsapp', 'max'];\nconst hasPhoneInExternalId = phoneChannels.includes(input.channel.toLowerCase());\nlet phoneFromExternalId = null;\nif (input.channel === 'whatsapp') phoneFromExternalId = input.external_chat_id.split('@')[0];\nelse if (input.channel === 'max') phoneFromExternalId = input.external_user_id || input.external_chat_id;\n\nconst trace_id = input.trace_id || `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  tenant_id: input.tenant_id,\n  channel_id: input.channel_id,\n  channel: input.channel.toLowerCase(),\n  external_chat_id: input.external_chat_id,\n  sender_name: input.sender_name || input.client_name || 'Unknown',\n  sender_username: input.sender_username || input.client_username || '',\n  hasPhoneInExternalId,\n  phoneFromExternalId,\n  trace_id,\n  _cache_key: `cache:client:${input.tenant_id}:${input.channel}:${input.external_chat_id}`,\n  _original_input: input\n};"
+      },
+      "id": "validate-001",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json._cache_key }}"
+      },
+      "id": "redis-client-get",
+      "name": "Cache Get Client",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [440, 300],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge Redis result with input\nconst input = $('Validate Input').first().json;\nconst redis = $json;\nconst cachedValue = redis.propertyName || redis.value || null;\n\nlet parsed = null;\nif (cachedValue && cachedValue !== 'null' && cachedValue !== '') {\n  try {\n    parsed = JSON.parse(cachedValue);\n    if (!parsed || !parsed.client_id) parsed = null;\n  } catch (e) {\n    parsed = null;\n  }\n}\n\nreturn {\n  ...input,\n  _client_cached: parsed\n};"
+      },
+      "id": "merge-client-redis",
+      "name": "Merge Client Redis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json._client_cached?.client_id || '' }}", "rightValue": "", "operator": { "type": "string", "operation": "notEquals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-client-cache",
+      "name": "Client Cached?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use client from cache\nconst data = $json;\nconst cached = data._client_cached;\n\nif (!cached || !cached.client_id) {\n  throw new Error(`Invalid client cache: ${JSON.stringify(cached)}`);\n}\n\nreturn {\n  tenant_id: data.tenant_id,\n  channel_id: data.channel_id,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  client_id: cached.client_id,\n  is_new_client: false,\n  hasPhoneInExternalId: data.hasPhoneInExternalId,\n  phoneFromExternalId: data.phoneFromExternalId,\n  trace_id: data.trace_id,\n  _source: 'cache',\n  _original_input: data._original_input\n};"
+      },
+      "id": "use-cached-client",
+      "name": "Use Cached Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.id as client_id\nFROM elo_t_clients c\nJOIN elo_t_client_channels cc ON cc.client_id = c.id\nWHERE c.tenant_id = '{{ $json.tenant_id }}'\n  AND cc.channel_id = {{ $json.channel_id }}\n  AND cc.external_id = '{{ $json.external_chat_id }}'\nLIMIT 1;"
+      },
+      "id": "db-client-query",
+      "name": "DB Get Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1100, 400],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Merge DB result with previous data\nconst prevData = $('Merge Client Redis').first().json;\nconst dbResult = $json;\n\nreturn {\n  ...prevData,\n  _db_client_id: dbResult.client_id || null\n};"
+      },
+      "id": "merge-db-client",
+      "name": "Merge DB Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ !!$json._db_client_id }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-client-found",
+      "name": "Client Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1540, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use existing client from DB\nconst data = $json;\n\nreturn {\n  tenant_id: data.tenant_id,\n  channel_id: data.channel_id,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  client_id: data._db_client_id,\n  is_new_client: false,\n  hasPhoneInExternalId: data.hasPhoneInExternalId,\n  phoneFromExternalId: data.phoneFromExternalId,\n  trace_id: data.trace_id,\n  _source: 'database',\n  _cache_key: data._cache_key,\n  _cache_value: JSON.stringify({ client_id: data._db_client_id }),\n  _original_input: data._original_input\n};"
+      },
+      "id": "use-existing-client",
+      "name": "Use Existing Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH new_client AS (\n  INSERT INTO elo_t_clients (tenant_id, name)\n  VALUES ('{{ $json.tenant_id }}', '{{ $json.sender_name }}')\n  RETURNING id\n)\nINSERT INTO elo_t_client_channels (client_id, channel_id, external_id, external_username)\nSELECT id, {{ $json.channel_id }}, '{{ $json.external_chat_id }}', '{{ $json.sender_username }}'\nFROM new_client\nRETURNING client_id;"
+      },
+      "id": "db-client-create",
+      "name": "DB Create Client",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1760, 500],
+      "credentials": { "postgres": { "id": "postgres-main", "name": "PostgreSQL Main" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Use new client\nconst prevData = $('Merge DB Client').first().json;\nconst dbResult = $json;\n\nreturn {\n  tenant_id: prevData.tenant_id,\n  channel_id: prevData.channel_id,\n  channel: prevData.channel,\n  external_chat_id: prevData.external_chat_id,\n  client_id: dbResult.client_id,\n  is_new_client: true,\n  hasPhoneInExternalId: prevData.hasPhoneInExternalId,\n  phoneFromExternalId: prevData.phoneFromExternalId,\n  trace_id: prevData.trace_id,\n  _source: 'created',\n  _cache_key: prevData._cache_key,\n  _cache_value: JSON.stringify({ client_id: dbResult.client_id }),\n  _original_input: prevData._original_input\n};"
+      },
+      "id": "use-new-client",
+      "name": "Use New Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 500]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json._cache_key }}",
+        "value": "={{ $json._cache_value }}",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "redis-client-set",
+      "name": "Cache Client",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2200, 400],
+      "credentials": { "redis": { "id": "redis-n8n", "name": "Redis n8n" } }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Restore data after Redis SET\nlet data;\ntry {\n  data = $('Use Existing Client').first().json;\n} catch {\n  data = $('Use New Client').first().json;\n}\nreturn data;"
+      },
+      "id": "restore-client",
+      "name": "Restore Client",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 1, "looseTypeValidation": true },
+          "conditions": [{ "leftValue": "={{ $json.hasPhoneInExternalId === true }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+        },
+        "options": { "looseTypeValidation": true }
+      },
+      "id": "if-has-phone",
+      "name": "Has Phone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2640, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Prepare data for Unifier\nconst data = $json;\nreturn {\n  tenant_id: data.tenant_id,\n  client_id: data.client_id,\n  phone: data.phoneFromExternalId,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  _resolver_data: data\n};"
+      },
+      "id": "prepare-unifier",
+      "name": "Prepare Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2860, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": { "mode": "name", "value": "ELO_Unifier" }
+      },
+      "id": "call-unifier",
+      "name": "Call Unifier",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [3080, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// After Unifier - restore data and apply unifier result\nconst base = $('Prepare Unifier').first().json._resolver_data;\nconst unifierResult = $json;\nconst finalClientId = unifierResult.result_client_id || base.client_id;\n\nreturn {\n  tenant_id: base.tenant_id,\n  channel_id: base.channel_id,\n  channel: base.channel,\n  external_chat_id: base.external_chat_id,\n  client_id: finalClientId,\n  is_new_client: base.is_new_client,\n  was_unified: unifierResult.was_merged || false,\n  trace_id: base.trace_id,\n  _source: base._source,\n  _original_input: base._original_input\n};"
+      },
+      "id": "after-unifier",
+      "name": "After Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Skip unifier - just pass data through\nconst data = $json;\nreturn {\n  tenant_id: data.tenant_id,\n  channel_id: data.channel_id,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  client_id: data.client_id,\n  is_new_client: data.is_new_client,\n  was_unified: false,\n  trace_id: data.trace_id,\n  _source: data._source,\n  _original_input: data._original_input\n};"
+      },
+      "id": "skip-unifier",
+      "name": "Skip Unifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2860, 500]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Build final response\nconst data = $json;\n\nreturn {\n  tenant_id: data.tenant_id,\n  channel_id: data.channel_id,\n  channel: data.channel,\n  external_chat_id: data.external_chat_id,\n  client_id: data.client_id,\n  is_new_client: data.is_new_client,\n  was_unified: data.was_unified,\n  trace_id: data.trace_id,\n  _source: data._source,\n  _original_input: data._original_input\n};"
+      },
+      "id": "build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 400]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Validate Input", "type": "main", "index": 0 }]] },
+    "Validate Input": { "main": [[{ "node": "Cache Get Client", "type": "main", "index": 0 }]] },
+    "Cache Get Client": { "main": [[{ "node": "Merge Client Redis", "type": "main", "index": 0 }]] },
+    "Merge Client Redis": { "main": [[{ "node": "Client Cached?", "type": "main", "index": 0 }]] },
+    "Client Cached?": { "main": [
+      [{ "node": "Use Cached Client", "type": "main", "index": 0 }],
+      [{ "node": "DB Get Client", "type": "main", "index": 0 }]
+    ]},
+    "Use Cached Client": { "main": [[{ "node": "Has Phone?", "type": "main", "index": 0 }]] },
+    "DB Get Client": { "main": [[{ "node": "Merge DB Client", "type": "main", "index": 0 }]] },
+    "Merge DB Client": { "main": [[{ "node": "Client Found?", "type": "main", "index": 0 }]] },
+    "Client Found?": { "main": [
+      [{ "node": "Use Existing Client", "type": "main", "index": 0 }],
+      [{ "node": "DB Create Client", "type": "main", "index": 0 }]
+    ]},
+    "Use Existing Client": { "main": [[{ "node": "Cache Client", "type": "main", "index": 0 }]] },
+    "DB Create Client": { "main": [[{ "node": "Use New Client", "type": "main", "index": 0 }]] },
+    "Use New Client": { "main": [[{ "node": "Cache Client", "type": "main", "index": 0 }]] },
+    "Cache Client": { "main": [[{ "node": "Restore Client", "type": "main", "index": 0 }]] },
+    "Restore Client": { "main": [[{ "node": "Has Phone?", "type": "main", "index": 0 }]] },
+    "Has Phone?": { "main": [
+      [{ "node": "Prepare Unifier", "type": "main", "index": 0 }],
+      [{ "node": "Skip Unifier", "type": "main", "index": 0 }]
+    ]},
+    "Prepare Unifier": { "main": [[{ "node": "Call Unifier", "type": "main", "index": 0 }]] },
+    "Call Unifier": { "main": [[{ "node": "After Unifier", "type": "main", "index": 0 }]] },
+    "After Unifier": { "main": [[{ "node": "Build Response", "type": "main", "index": 0 }]] },
+    "Skip Unifier": { "main": [[{ "node": "Build Response", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "ELO" }, { "name": "Resolve" }, { "name": "Client" }]
+}
