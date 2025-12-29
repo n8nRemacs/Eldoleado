@@ -1,92 +1,83 @@
-# Stop Session - 2025-12-28
+# Stop Session - 2025-12-29
 
-## УСПЕХ: Messenger -> Batcher -> Resolver работает!
+## УСПЕХ: Web App + MAX User MCP + Channel Setup
 
-Полный pipeline входящих сообщений наконец-то работает end-to-end.
+Добавлено веб-приложение для операторов и настройка каналов.
 
 ---
 
 ## Что сделано сегодня
 
-### 1. Синхронизация n8n workflows
+### 1. Web App (React + Vite + TailwindCSS)
 
-- Скачано **45 workflows** с тегом ELO из n8n
-- Распределены по папкам согласно тегам
-- Обновлен WORKFLOWS_ANALYSIS.md
+- Страницы: Login, Dialogs, Chat, Settings
+- Компоненты для работы с диалогами и сообщениями
+- API клиент для работы с n8n webhooks
+- Zustand store для auth и UI state
 
-### 2. Исправлен ELO_Resolver
+### 2. Channel Setup Modals
 
-**Проблема:** Нода Forward to Core ссылалась на несуществующую ноду Validate Input.
+- WhatsApp: QR-код подключение
+- Telegram Bot: токен подключение
+- Telegram User: SMS-код подключение
+- MAX User: SMS-код подключение
 
-**Решение:**
-- Переименована Prepare Input -> Validate Input
-- Добавлен CONFIG с CORE_URL
+### 3. MAX User MCP Server
 
-### 3. Исправлен порядок нод в ELO_Resolver
+**Проблемы и решения:**
 
-**Было:**
-Dialog Resolver -> Forward to Core -> Save Message -> Build Response
-(Save Message ссылался на Build Output которого нет!)
+1. **Squid proxy блокировал порт 8771**
+   - Добавлен `acl Safe_ports port 8771` в squid.conf
 
-**Стало:**
-Dialog Resolver -> Build Response -> Forward to Core -> Save Message
-(Build Response собирает все данные, остальные ноды используют его)
+2. **Invalid API key**
+   - Добавлен X-API-Key header во все запросы
 
-### 4. ELO_Dialog_Resolver добавлен в n8n
+3. **websockets extra_headers error**
+   - Изменен `extra_headers` на `additional_headers` (websockets 15.x)
 
-Workflow был только локально, теперь импортирован в n8n.
+4. **MAX phone-auth-enabled:false с location:US**
+   - Изменен `deviceType` с "WEB" на "ANDROID" - обход гео-ограничения
 
----
+5. **n8n webhook URL некорректный**
+   - URL был `/webhook/{webhookId}/{path}` вместо `/webhook/{path}`
+   - Удалены все `webhookId` из webhook нод в ELO_API_Channel_Setup.json
 
-## Рабочий pipeline
+### 4. n8n Workflows
 
-```
-WhatsApp/Telegram -> ELO_In_* -> Redis batch:*
-                                      |
-                            ELO_Input_Batcher
-                                      |
-                            ELO_Input_Processor
-                                      |
-                               ELO_Resolver
-                                      |
-                 +--------------------+--------------------+
-                 |                    |                    |
-         ELO_Tenant_          ELO_Client_          ELO_Dialog_
-         Resolver             Resolver             Resolver
-                 +--------------------+--------------------+
-                                      |
-                               Build Response
-                                      |
-                               Forward to Core
-                                      |
-                       ELO_Core_AI_Test_Stub (webhook)
-                                      |
-                            Save Incoming Message
-```
+- Добавлен ELO_API_Channel_Setup (WhatsApp, Telegram, MAX)
+- Добавлен ELO_API_Channels_Status
+- Исправлены URL и API ключи для MAX User
 
 ---
 
-## Workflows в n8n
+## Файлы
 
-| Категория | Активных | Всего |
-|-----------|----------|-------|
-| Channel In | 5 | 8 |
-| Channel Out | 2 | 6 |
-| API | 7 | 7 |
-| AI Contour | 1 | 10 |
-| Resolve Contour | 0 | 5 |
-| Input Contour | 0 | 3 |
-| **Итого** | **14** | **45** |
+| Путь | Описание |
+|------|----------|
+| web-app/ | React веб-приложение |
+| NEW/MVP/MCP/Max-user/ | MAX User MCP сервер |
+| NEW/workflows/API/ELO_API_Channel_Setup.json | Workflow настройки каналов |
+| NEW/workflows/API/ELO_API_Channels_Status.json | Workflow статуса каналов |
+
+---
+
+## Сервисы
+
+| Сервис | Порт | Статус |
+|--------|------|--------|
+| mcp-max-user | 8771 | Работает (нужно переимпортировать workflow) |
+| mcp-whatsapp | 8769 | Работает |
+| mcp-telegram | 8767 | Работает |
 
 ---
 
 ## Следующие шаги
 
-1. Активировать Resolve Contour
-2. Активировать Input Contour
-3. Тестировать AI ответы
-4. Подключить Out для отправки ответов
+1. Переимпортировать ELO_API_Channel_Setup в n8n (удалить старый, импортировать новый)
+2. Тестировать MAX User подключение
+3. Развернуть web-app на сервере
+4. Тестировать остальные каналы через web-app
 
 ---
 
-*Сессия завершена: 2025-12-28*
+*Сессия завершена: 2025-12-29*

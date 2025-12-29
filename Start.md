@@ -1,8 +1,8 @@
-# Start Session - 2025-12-29
+# Start Session - 2025-12-30
 
-## Текущий статус: Pipeline РАБОТАЕТ
+## Текущий статус: Web App готов к деплою
 
-Messenger -> Batcher -> Resolver -> AI Stub -> Save Message
+Pipeline работает, добавлен web-app для операторов.
 
 ---
 
@@ -16,7 +16,54 @@ Messenger -> Batcher -> Resolver -> AI Stub -> Save Message
 
 ---
 
-## Активные workflows (14/45)
+## Что готово
+
+### Web App (web-app/)
+- Login страница
+- Dialogs список
+- Chat страница
+- Settings с подключением каналов
+- Channel Setup Modals (WhatsApp, Telegram, MAX)
+
+### MCP Servers
+- mcp-whatsapp :8769
+- mcp-telegram :8767
+- mcp-avito :8793
+- mcp-max-user :8771
+
+---
+
+## ВАЖНО: Нужно сделать
+
+### 1. Переимпортировать workflow в n8n
+
+Файл: `NEW/workflows/API/ELO_API_Channel_Setup.json`
+
+1. Открыть n8n: https://n8n.n8nsrv.ru
+2. Удалить старый workflow ELO_API_Channel_Setup
+3. Импортировать новый файл
+4. Активировать workflow
+
+### 2. Тестировать MAX User
+
+После импорта workflow:
+1. Открыть web-app Settings
+2. Добавить MAX User канал
+3. Ввести телефон, получить SMS, ввести код
+
+### 3. Деплой web-app
+
+```bash
+# На сервере 155.212.221.189
+cd /opt/eldoleado/web-app
+npm install
+npm run build
+# Настроить nginx для статики
+```
+
+---
+
+## Активные workflows (14+)
 
 ### Channel In (5 ON)
 - ELO_In_WhatsApp
@@ -29,7 +76,7 @@ Messenger -> Batcher -> Resolver -> AI Stub -> Save Message
 - ELO_Out_Telegram_Bot
 - ELO_Out_WhatsApp
 
-### API (7 ON)
+### API (7+ ON)
 - ELO_API_Android_Auth
 - ELO_API_Android_Dialogs
 - ELO_API_Android_Messages
@@ -37,42 +84,8 @@ Messenger -> Batcher -> Resolver -> AI Stub -> Save Message
 - ELO_API_Android_Logout
 - ELO_API_Android_Register_FCM
 - ELO_API_Android_Normalize
-
-### AI (1 ON)
-- ELO_Core_AI_Test_Stub
-
----
-
-## Следующие задачи
-
-### Приоритет 1: Активировать pipeline
-
-1. Активировать ELO_Input_Batcher
-2. Активировать ELO_Input_Processor  
-3. Активировать ELO_Resolver
-4. Активировать ELO_Tenant_Resolver
-5. Активировать ELO_Client_Resolver
-6. Активировать ELO_Dialog_Resolver
-
-### Приоритет 2: Тестирование
-
-1. Отправить сообщение в WhatsApp
-2. Проверить что сообщение проходит весь pipeline
-3. Проверить сохранение в elo_t_messages
-4. Проверить вызов ELO_Core_AI_Test_Stub
-
-### Приоритет 3: AI ответы
-
-1. Заменить Test Stub на реальный AI
-2. Подключить ELO_Out_Router
-3. Отправлять ответы обратно клиенту
-
----
-
-## Ключевые URLs
-
-- n8n: https://n8n.n8nsrv.ru
-- AI Webhook: https://n8n.n8nsrv.ru/webhook/elo-core-ingest
+- ELO_API_Channel_Setup (нужно импортировать!)
+- ELO_API_Channels_Status (нужно импортировать!)
 
 ---
 
@@ -88,14 +101,14 @@ ssh root@185.221.214.83   # n8n
 ## Полезные команды
 
 ```bash
-# Очистить Redis кеш
-ssh root@185.221.214.83 "docker exec n8n-redis redis-cli FLUSHALL"
+# Логи MAX User MCP
+ssh root@155.212.221.189 "docker logs mcp-max-user --tail 50"
 
-# Проверить кеш
-ssh root@185.221.214.83 "docker exec n8n-redis redis-cli KEYS 'cache:*'"
+# Проверить сессии MAX
+curl -H "X-API-Key: eldoleado_mcp_2024" http://155.212.221.189:8771/sessions
 
-# Посмотреть сообщения
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT id, content, created_at FROM elo_t_messages ORDER BY created_at DESC LIMIT 5;'"
+# Проверить статус каналов
+curl https://n8n.n8nsrv.ru/webhook/v1/channels/status
 ```
 
 ---
@@ -104,10 +117,9 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT id,
 
 | Файл | Описание |
 |------|----------|
-| Stop.md | Что сделано в прошлой сессии |
+| Stop.md | Что сделано в прошлой сессии (29.12) |
+| web-app/README.md | Документация web-app |
 | NEW/DOCS/WORKFLOWS_ANALYSIS.md | Анализ всех workflows |
-| NEW/DOCS/DATABASE_ANALYSIS.md | Структура БД |
-| NEW/DOCS/SYNC_AND_ANALYZE.md | Инструкция синхронизации |
 
 ---
 
