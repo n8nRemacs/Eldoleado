@@ -1,11 +1,14 @@
 /**
  * Session Manager - handles multiple WhatsApp sessions
+ * With PostgreSQL backup for session recovery
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { execSync } from 'child_process';
 import Redis from 'ioredis';
+import { Pool } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 import { BaileysClient, BaileysClientOptions } from './baileys';
 import {
@@ -26,6 +29,8 @@ const logger = {
 export interface SessionManagerOptions {
   sessionsDir: string;
   redisUrl?: string;
+  databaseUrl?: string;
+  ipNodeId?: number;
   defaultWebhookUrl?: string;
   defaultProxyUrl?: string;
 }
@@ -36,6 +41,8 @@ export class SessionManager {
   private sessionCreatedAt: Map<string, number> = new Map(); // sessionId -> timestamp
   private sessionsDir: string;
   private redis: Redis | null = null;
+  private pg: Pool | null = null;
+  private ipNodeId: number;
   private defaultWebhookUrl?: string;
   private defaultProxyUrl?: string;
   private cleanupInterval: NodeJS.Timeout | null = null;
@@ -44,11 +51,14 @@ export class SessionManager {
   private static readonly QR_TIMEOUT_MS = 10 * 60 * 1000;
   // Cleanup check interval: 60 seconds
   private static readonly CLEANUP_INTERVAL_MS = 60 * 1000;
+  // Session archive backup interval: 5 minutes
+  private static readonly BACKUP_INTERVAL_MS = 5 * 60 * 1000;
 
   constructor(options: SessionManagerOptions) {
     this.sessionsDir = options.sessionsDir;
     this.defaultWebhookUrl = options.defaultWebhookUrl;
     this.defaultProxyUrl = options.defaultProxyUrl;
+    this.ipNodeId = options.ipNodeId || 1;
 
     // Create sessions directory
     if (!fs.existsSync(this.sessionsDir)) {
@@ -63,6 +73,18 @@ export class SessionManager {
       });
       this.redis.on('connect', () => logger.info('Redis connected'));
       this.redis.on('error', (err) => logger.error('Redis error:', err.message));
+    }
+
+    // Connect to PostgreSQL if URL provided
+    if (options.databaseUrl) {
+      this.pg = new Pool({
+        connectionString: options.databaseUrl,
+        max: 5,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+      });
+      this.pg.on('connect', () => logger.info('PostgreSQL connected'));
+      this.pg.on('error', (err) => logger.error('PostgreSQL error:', err.message));
     }
 
     // Start cleanup interval for stale QR sessions
@@ -116,6 +138,107 @@ export class SessionManager {
 
     if (staleSessionIds.length > 0) {
       logger.info(`Cleaned up ${staleSessionIds.length} stale QR session(s)`);
+    }
+  }
+
+  // Archive session folder to base64 tar.gz
+  private async createSessionArchive(sessionId: string): Promise<string | null> {
+    const sessionPath = path.join(this.sessionsDir, sessionId);
+    if (!fs.existsSync(sessionPath)) {
+      logger.warn(`Session folder not found: ${sessionPath}`);
+      return null;
+    }
+
+    try {
+      // Create tar.gz archive and encode to base64
+      const tarCommand = `cd "${this.sessionsDir}" && tar -czf - "${sessionId}" | base64 -w 0`;
+      const archive = execSync(tarCommand, { maxBuffer: 50 * 1024 * 1024 }).toString();
+      logger.info(`Created archive for session ${sessionId} (${Math.round(archive.length / 1024)}KB)`);
+      return archive;
+    } catch (err: any) {
+      logger.error(`Failed to create archive for session ${sessionId}:`, err.message);
+      return null;
+    }
+  }
+
+  // Restore session from base64 tar.gz archive
+  private async restoreSessionArchive(sessionId: string, archive: string): Promise<boolean> {
+    const sessionPath = path.join(this.sessionsDir, sessionId);
+    const tempArchivePath = path.join(this.sessionsDir, `${sessionId}.tar.gz.b64`);
+
+    try {
+      // Remove existing session folder if exists
+      if (fs.existsSync(sessionPath)) {
+        fs.rmSync(sessionPath, { recursive: true, force: true });
+      }
+
+      // Write base64 archive to temp file (avoid E2BIG for large archives)
+      fs.writeFileSync(tempArchivePath, archive);
+
+      // Decode base64 and extract tar.gz from file
+      const tarCommand = `cd "${this.sessionsDir}" && base64 -d "${tempArchivePath}" | tar -xzf -`;
+      execSync(tarCommand, { maxBuffer: 50 * 1024 * 1024 });
+
+      // Clean up temp file
+      fs.unlinkSync(tempArchivePath);
+
+      // Verify creds.json exists
+      const credsPath = path.join(sessionPath, 'creds.json');
+      if (!fs.existsSync(credsPath)) {
+        throw new Error('creds.json not found after extraction');
+      }
+
+      logger.info(`Restored archive for session ${sessionId}`);
+      return true;
+    } catch (err: any) {
+      // Clean up temp file on error
+      if (fs.existsSync(tempArchivePath)) {
+        fs.unlinkSync(tempArchivePath);
+      }
+      logger.error(`Failed to restore archive for session ${sessionId}:`, err.message);
+      return false;
+    }
+  }
+
+  // Backup session to PostgreSQL
+  async backupSessionToDatabase(sessionId: string): Promise<boolean> {
+    if (!this.pg) {
+      logger.warn('PostgreSQL not configured, skipping backup');
+      return false;
+    }
+
+    const archive = await this.createSessionArchive(sessionId);
+    if (!archive) return false;
+
+    try {
+      await this.pg.query(
+        `UPDATE elo_t_channel_accounts
+         SET session_archive = $1, updated_at = NOW()
+         WHERE session_id = $2`,
+        [archive, sessionId]
+      );
+      logger.info(`Backed up session ${sessionId} to PostgreSQL`);
+      return true;
+    } catch (err: any) {
+      logger.error(`Failed to backup session ${sessionId} to PostgreSQL:`, err.message);
+      return false;
+    }
+  }
+
+  // Clear session archive from PostgreSQL (on logout)
+  private async clearSessionArchive(sessionId: string): Promise<void> {
+    if (!this.pg) return;
+
+    try {
+      await this.pg.query(
+        `UPDATE elo_t_channel_accounts
+         SET session_archive = NULL, session_status = 'disconnected', updated_at = NOW()
+         WHERE session_id = $1`,
+        [sessionId]
+      );
+      logger.info(`Cleared session archive for ${sessionId}`);
+    } catch (err: any) {
+      logger.error(`Failed to clear session archive for ${sessionId}:`, err.message);
     }
   }
 
@@ -191,10 +314,16 @@ export class SessionManager {
           tenantId: request.tenantId,
           lastConnected: new Date().toISOString(),
         });
+        // Backup session to PostgreSQL after successful connection
+        // Wait a bit for Baileys to write all session files
+        setTimeout(async () => {
+          await this.backupSessionToDatabase(sessionId);
+        }, 5000);
       },
       onDisconnected: async (reason) => {
         logger.info(`Session ${sessionId} disconnected: ${reason}`);
         if (reason === 'logged_out') {
+          await this.clearSessionArchive(sessionId);
           await this.deleteSession(sessionId);
         } else {
           await this.updateSessionStatus(sessionId, 'disconnected');
@@ -260,15 +389,79 @@ export class SessionManager {
     }
   }
 
-  // Restore sessions from disk on startup
+  // Restore sessions from PostgreSQL on startup
   async restoreSessions(): Promise<void> {
+    // First, try to restore from PostgreSQL (source of truth)
+    if (this.pg) {
+      await this.restoreSessionsFromDatabase();
+      return;
+    }
+
+    // Fallback: restore from filesystem
+    await this.restoreSessionsFromFilesystem();
+  }
+
+  // Restore sessions from PostgreSQL database
+  private async restoreSessionsFromDatabase(): Promise<void> {
+    if (!this.pg) return;
+
+    try {
+      // Get all connected sessions for this IP node
+      const result = await this.pg.query(
+        `SELECT session_id, session_archive, webhook_url
+         FROM elo_t_channel_accounts
+         WHERE ip_node_id = $1
+           AND session_status IN ('connected', 'disconnected')
+           AND session_archive IS NOT NULL
+           AND channel_id = 2`,  // WhatsApp channel
+        [this.ipNodeId]
+      );
+
+      logger.info(`Found ${result.rows.length} sessions in PostgreSQL to restore`);
+
+      // If no sessions with archives, fallback to filesystem
+      if (result.rows.length === 0) {
+        logger.info('No sessions with archives in PostgreSQL, falling back to filesystem');
+        await this.restoreSessionsFromFilesystem();
+        return;
+      }
+
+      for (const row of result.rows) {
+        const sessionId = row.session_id;
+        const archive = row.session_archive;
+        const webhookUrl = row.webhook_url || this.defaultWebhookUrl;
+
+        try {
+          // Restore session files from archive
+          const restored = await this.restoreSessionArchive(sessionId, archive);
+          if (!restored) {
+            logger.warn(`Failed to restore archive for ${sessionId}, skipping`);
+            continue;
+          }
+
+          // Create and connect Baileys client
+          await this.startRestoredSession(sessionId, webhookUrl);
+          logger.info(`Session ${sessionId} restored from PostgreSQL`);
+        } catch (err: any) {
+          logger.error(`Failed to restore session ${sessionId}:`, err.message);
+        }
+      }
+    } catch (err: any) {
+      logger.error('Failed to query PostgreSQL for sessions:', err.message);
+      // Fallback to filesystem
+      await this.restoreSessionsFromFilesystem();
+    }
+  }
+
+  // Restore sessions from filesystem (fallback)
+  private async restoreSessionsFromFilesystem(): Promise<void> {
     if (!fs.existsSync(this.sessionsDir)) return;
 
     const sessionDirs = fs.readdirSync(this.sessionsDir, { withFileTypes: true })
       .filter(d => d.isDirectory())
       .map(d => d.name);
 
-    logger.info(`Found ${sessionDirs.length} sessions to restore`);
+    logger.info(`Found ${sessionDirs.length} sessions on disk to restore`);
 
     for (const sessionId of sessionDirs) {
       try {
@@ -289,39 +482,49 @@ export class SessionManager {
           }
         }
 
-        const hash = this.generateHash(sessionId);
-
-        const client = new BaileysClient({
-          sessionId,
-          sessionsDir: this.sessionsDir,
-          webhookUrl,
-          proxyUrl: this.defaultProxyUrl,
-          onConnected: async (info) => {
-            logger.info(`Restored session ${sessionId} connected`);
-            await this.saveSessionToRedis(sessionId, info);
-          },
-          onDisconnected: async (reason) => {
-            if (reason === 'logged_out') {
-              await this.deleteSession(sessionId);
-            }
-          },
-          onMessage: async (message) => {
-            logger.info(`Message received in restored session ${sessionId} from ${message.from}`);
-          },
-          onCall: async (call) => {
-            logger.info(`Call received in restored session ${sessionId} from ${call.from}`);
-          },
-        });
-
-        this.sessions.set(sessionId, client);
-        this.sessionsByHash.set(hash, sessionId);
-
-        await client.connect();
-        logger.info(`Session ${sessionId} restored`);
+        await this.startRestoredSession(sessionId, webhookUrl);
+        logger.info(`Session ${sessionId} restored from disk`);
       } catch (err: any) {
         logger.error(`Failed to restore session ${sessionId}:`, err.message);
       }
     }
+  }
+
+  // Start a restored session with Baileys client
+  private async startRestoredSession(sessionId: string, webhookUrl?: string): Promise<void> {
+    const hash = this.generateHash(sessionId);
+
+    const client = new BaileysClient({
+      sessionId,
+      sessionsDir: this.sessionsDir,
+      webhookUrl,
+      proxyUrl: this.defaultProxyUrl,
+      onConnected: async (info) => {
+        logger.info(`Restored session ${sessionId} connected`);
+        await this.saveSessionToRedis(sessionId, info);
+        // Update archive after restore connection
+        setTimeout(async () => {
+          await this.backupSessionToDatabase(sessionId);
+        }, 5000);
+      },
+      onDisconnected: async (reason) => {
+        if (reason === 'logged_out') {
+          await this.clearSessionArchive(sessionId);
+          await this.deleteSession(sessionId);
+        }
+      },
+      onMessage: async (message) => {
+        logger.info(`Message received in restored session ${sessionId} from ${message.from}`);
+      },
+      onCall: async (call) => {
+        logger.info(`Call received in restored session ${sessionId} from ${call.from}`);
+      },
+    });
+
+    this.sessions.set(sessionId, client);
+    this.sessionsByHash.set(hash, sessionId);
+
+    await client.connect();
   }
 
   // Redis helpers
@@ -397,6 +600,10 @@ export class SessionManager {
     }
     if (this.redis) {
       await this.redis.quit();
+    }
+    if (this.pg) {
+      await this.pg.end();
+      logger.info('PostgreSQL connection closed');
     }
   }
 }

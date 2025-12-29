@@ -35,6 +35,11 @@ const config = {
   host: process.env.HOST || '0.0.0.0',
   sessionsDir: process.env.SESSIONS_DIR || path.join(__dirname, '../sessions'),
   redisUrl: process.env.REDIS_URL,
+  // PostgreSQL connection - use domain name to allow easy server migration
+  // Example: postgresql://user:pass@pg.eldoleado.ru:6544/postgres
+  databaseUrl: process.env.DATABASE_URL,
+  // IP node ID for this server instance (from elo_ip_nodes table)
+  ipNodeId: parseInt(process.env.IP_NODE_ID || '1'),
   defaultWebhookUrl: process.env.DEFAULT_WEBHOOK_URL,
   defaultProxyUrl: process.env.DEFAULT_PROXY_URL,
   apiKey: process.env.API_KEY,
@@ -62,6 +67,8 @@ const serverStartTime = Date.now();
 const sessionManager = new SessionManager({
   sessionsDir: config.sessionsDir,
   redisUrl: config.redisUrl,
+  databaseUrl: config.databaseUrl,
+  ipNodeId: config.ipNodeId,
   defaultWebhookUrl: config.defaultWebhookUrl,
   defaultProxyUrl: config.defaultProxyUrl,
 });
@@ -756,8 +763,12 @@ async function start() {
   app.listen(config.port, config.host, () => {
     logger.info(`mcp-whatsapp-baileys running on http://${config.host}:${config.port}`);
     logger.info(`Sessions directory: ${config.sessionsDir}`);
+    logger.info(`IP Node ID: ${config.ipNodeId}`);
     if (config.redisUrl) {
       logger.info('Redis: connected');
+    }
+    if (config.databaseUrl) {
+      logger.info('PostgreSQL: configured');
     }
   });
 }
