@@ -1,1 +1,771 @@
-{"updatedAt":"2025-12-26T10:23:53.608Z","createdAt":"2025-12-10T10:01:22.747Z","id":"GrChisyOV9ajgBDX","name":"ELO_Out_Telegram_Bot","description":null,"active":true,"isArchived":false,"nodes":[{"parameters":{"rule":{"interval":[{"field":"seconds","secondsInterval":3}]}},"id":"d563b0f1-cc09-4698-a1b3-8cc686f16832","name":"Schedule Trigger","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[-1616,48]},{"parameters":{"operation":"pop","list":"queue:outgoing:telegram","options":{}},"id":"48c6ab95-6ded-47fa-b83f-9c19a9d38051","name":"Redis Pop Message","type":"n8n-nodes-base.redis","typeVersion":1,"position":[-1392,48],"credentials":{"redis":{"id":"7FQcEivUY94atW24","name":"Redis account"}}},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"strict","version":1},"conditions":[{"id":"has-message","leftValue":"={{ $json.message_json }}","rightValue":"","operator":{"type":"string","operation":"exists","singleValue":true}}],"combinator":"and"},"options":{}},"id":"eca098e2-47b1-443b-a883-1dda540be795","name":"IF Has Message","type":"n8n-nodes-base.if","typeVersion":2,"position":[-1168,48]},{"parameters":{"jsCode":"const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\n// Normalize chat_id - remove tg_ prefix if present\nlet chatId = message.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);\n}\n\nreturn {\n  out_message: message,\n  chat_id: chatId,\n  text: message.message_text,\n  tenant_id: message.tenant_id\n};"},"id":"d232df8b-2ab9-45e4-a82e-c0d9b7bb4586","name":"Parse Message","type":"n8n-nodes-base.code","typeVersion":2,"position":[-944,-48]},{"parameters":{"operation":"executeQuery","query":"SELECT \n  ca.credentials->>'bot_token' as bot_token,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND ca.channel_id = 1\n  AND ca.is_active = true\nLIMIT 1;","options":{}},"id":"80d4d08c-7623-4d15-a6cc-250f71f55768","name":"Get Bot Token","type":"n8n-nodes-base.postgres","typeVersion":2.6,"position":[-720,-48],"alwaysOutputData":true,"credentials":{"postgres":{"id":"n2SyhP9QhMnp1ryk","name":"Postgres account"}}},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"strict","version":1},"conditions":[{"id":"has-token","leftValue":"={{ $json.bot_token }}","rightValue":"","operator":{"type":"string","operation":"exists","singleValue":true}}],"combinator":"and"},"options":{}},"id":"93976e95-786f-4c9c-90be-ecc69a21e923","name":"IF Token Exists","type":"n8n-nodes-base.if","typeVersion":2,"position":[-496,-48]},{"parameters":{"method":"POST","url":"=https://api.telegram.org/bot{{ $json.bot_token }}/sendMessage","sendHeaders":true,"headerParameters":{"parameters":[{"name":"Content-Type","value":"application/json"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={\n  \"chat_id\": \"{{ $('Parse Message').item.json.chat_id }}\",\n  \"text\": {{ JSON.stringify($('Parse Message').item.json.text) }},\n  \"parse_mode\": \"Markdown\"\n}","options":{"timeout":30000}},"id":"125b3b2c-d7af-4570-bafd-8e140b4d8562","name":"Send via Telegram API","type":"n8n-nodes-base.httpRequest","typeVersion":4.1,"position":[-272,-144]},{"parameters":{"jsCode":"const parsed = $('Parse Message').first().json;\nconst response = $input.first().json;\n\nconst success = response.ok === true;\nconst messageId = response.result?.message_id?.toString() || Date.now().toString();\n\nreturn {\n  ...parsed,\n  telegram_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success\n};"},"id":"14211a09-016a-4052-a1a3-228a304b6656","name":"Process Telegram Response","type":"n8n-nodes-base.code","typeVersion":2,"position":[-48,-144]},{"parameters":{"operation":"executeQuery","query":"UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;","options":{}},"id":"3b4cf12b-dc9c-40ab-8c39-cbf222dba995","name":"Update Dialog Timestamp","type":"n8n-nodes-base.postgres","typeVersion":2.6,"position":[176,-144],"credentials":{"postgres":{"id":"n2SyhP9QhMnp1ryk","name":"Postgres account"}}},{"parameters":{"jsCode":"// No token found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No Telegram bot token found for tenant:', parsed.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No Telegram bot token found for tenant',\n  tenant_id: parsed.tenant_id,\n  out_message: parsed.out_message\n};"},"id":"54e9ef15-1e65-4578-bcd5-9e98e90ea0fc","name":"No Token Error","type":"n8n-nodes-base.code","typeVersion":2,"position":[-272,48]},{"parameters":{"jsCode":"// No message in queue - just return\nreturn { empty: true };"},"id":"68af35e8-ea8a-401b-9e3f-0fd60a320dd7","name":"No Message","type":"n8n-nodes-base.code","typeVersion":2,"position":[-944,144]}],"connections":{"Schedule Trigger":{"main":[[{"node":"Redis Pop Message","type":"main","index":0}]]},"Redis Pop Message":{"main":[[{"node":"IF Has Message","type":"main","index":0}]]},"IF Has Message":{"main":[[{"node":"Parse Message","type":"main","index":0}],[{"node":"No Message","type":"main","index":0}]]},"Parse Message":{"main":[[{"node":"Get Bot Token","type":"main","index":0}]]},"Get Bot Token":{"main":[[{"node":"IF Token Exists","type":"main","index":0}]]},"IF Token Exists":{"main":[[{"node":"Send via Telegram API","type":"main","index":0}],[{"node":"No Token Error","type":"main","index":0}]]},"Send via Telegram API":{"main":[[{"node":"Process Telegram Response","type":"main","index":0}]]},"Process Telegram Response":{"main":[[{"node":"Update Dialog Timestamp","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"},"staticData":{"node:Schedule Trigger":{"recurrenceRules":[]}},"meta":{"templateCredsSetupCompleted":true},"pinData":{},"versionId":"2502449f-7944-41bf-862f-9747c60f02fe","activeVersionId":"2502449f-7944-41bf-862f-9747c60f02fe","versionCounter":9,"triggerCount":1,"shared":[{"updatedAt":"2025-12-10T10:01:22.752Z","createdAt":"2025-12-10T10:01:22.752Z","role":"workflow:owner","workflowId":"GrChisyOV9ajgBDX","projectId":"x7frUSUEowDAk8Dt","project":{"updatedAt":"2025-08-25T18:57:22.218Z","createdAt":"2025-08-25T08:16:18.805Z","id":"x7frUSUEowDAk8Dt","name":"Dmitriy Remacs <dk@n8nsrv.ru>","type":"personal","icon":null,"description":null,"projectRelations":[{"updatedAt":"2025-08-25T08:16:18.805Z","createdAt":"2025-08-25T08:16:18.805Z","userId":"1d5222a1-8f53-4940-b7de-93daeae04393","projectId":"x7frUSUEowDAk8Dt","user":{"updatedAt":"2025-12-27T08:39:03.000Z","createdAt":"2025-08-25T08:16:17.784Z","id":"1d5222a1-8f53-4940-b7de-93daeae04393","email":"dk@n8nsrv.ru","firstName":"Dmitriy","lastName":"Remacs","personalizationAnswers":null,"settings":{"userActivated":true,"easyAIWorkflowOnboarded":true,"firstSuccessfulWorkflowId":"RbSUhceYc7q41M5j","userActivatedAt":1756286438389},"disabled":false,"mfaEnabled":false,"lastActiveAt":"2025-12-26","isPending":false}}]}}],"tags":[{"updatedAt":"2025-11-23T04:03:34.766Z","createdAt":"2025-11-23T04:03:34.766Z","id":"IbDkJphbr4EygdRZ","name":"Out"},{"updatedAt":"2025-12-09T18:50:08.518Z","createdAt":"2025-12-09T18:50:08.518Z","id":"tMSCjbvPU3xrNUqz","name":"ELO"}],"activeVersion":{"updatedAt":"2025-12-26T10:23:53.610Z","createdAt":"2025-12-26T10:23:53.610Z","versionId":"2502449f-7944-41bf-862f-9747c60f02fe","workflowId":"GrChisyOV9ajgBDX","nodes":[{"parameters":{"rule":{"interval":[{"field":"seconds","secondsInterval":3}]}},"id":"d563b0f1-cc09-4698-a1b3-8cc686f16832","name":"Schedule Trigger","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[-1616,48]},{"parameters":{"operation":"pop","list":"queue:outgoing:telegram","options":{}},"id":"48c6ab95-6ded-47fa-b83f-9c19a9d38051","name":"Redis Pop Message","type":"n8n-nodes-base.redis","typeVersion":1,"position":[-1392,48],"credentials":{"redis":{"id":"7FQcEivUY94atW24","name":"Redis account"}}},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"strict","version":1},"conditions":[{"id":"has-message","leftValue":"={{ $json.message_json }}","rightValue":"","operator":{"type":"string","operation":"exists","singleValue":true}}],"combinator":"and"},"options":{}},"id":"eca098e2-47b1-443b-a883-1dda540be795","name":"IF Has Message","type":"n8n-nodes-base.if","typeVersion":2,"position":[-1168,48]},{"parameters":{"jsCode":"const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\n// Normalize chat_id - remove tg_ prefix if present\nlet chatId = message.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);\n}\n\nreturn {\n  out_message: message,\n  chat_id: chatId,\n  text: message.message_text,\n  tenant_id: message.tenant_id\n};"},"id":"d232df8b-2ab9-45e4-a82e-c0d9b7bb4586","name":"Parse Message","type":"n8n-nodes-base.code","typeVersion":2,"position":[-944,-48]},{"parameters":{"operation":"executeQuery","query":"SELECT \n  ca.credentials->>'bot_token' as bot_token,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND ca.channel_id = 1\n  AND ca.is_active = true\nLIMIT 1;","options":{}},"id":"80d4d08c-7623-4d15-a6cc-250f71f55768","name":"Get Bot Token","type":"n8n-nodes-base.postgres","typeVersion":2.6,"position":[-720,-48],"alwaysOutputData":true,"credentials":{"postgres":{"id":"n2SyhP9QhMnp1ryk","name":"Postgres account"}}},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"strict","version":1},"conditions":[{"id":"has-token","leftValue":"={{ $json.bot_token }}","rightValue":"","operator":{"type":"string","operation":"exists","singleValue":true}}],"combinator":"and"},"options":{}},"id":"93976e95-786f-4c9c-90be-ecc69a21e923","name":"IF Token Exists","type":"n8n-nodes-base.if","typeVersion":2,"position":[-496,-48]},{"parameters":{"method":"POST","url":"=https://api.telegram.org/bot{{ $json.bot_token }}/sendMessage","sendHeaders":true,"headerParameters":{"parameters":[{"name":"Content-Type","value":"application/json"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={\n  \"chat_id\": \"{{ $('Parse Message').item.json.chat_id }}\",\n  \"text\": {{ JSON.stringify($('Parse Message').item.json.text) }},\n  \"parse_mode\": \"Markdown\"\n}","options":{"timeout":30000}},"id":"125b3b2c-d7af-4570-bafd-8e140b4d8562","name":"Send via Telegram API","type":"n8n-nodes-base.httpRequest","typeVersion":4.1,"position":[-272,-144]},{"parameters":{"jsCode":"const parsed = $('Parse Message').first().json;\nconst response = $input.first().json;\n\nconst success = response.ok === true;\nconst messageId = response.result?.message_id?.toString() || Date.now().toString();\n\nreturn {\n  ...parsed,\n  telegram_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success\n};"},"id":"14211a09-016a-4052-a1a3-228a304b6656","name":"Process Telegram Response","type":"n8n-nodes-base.code","typeVersion":2,"position":[-48,-144]},{"parameters":{"operation":"executeQuery","query":"UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;","options":{}},"id":"3b4cf12b-dc9c-40ab-8c39-cbf222dba995","name":"Update Dialog Timestamp","type":"n8n-nodes-base.postgres","typeVersion":2.6,"position":[176,-144],"credentials":{"postgres":{"id":"n2SyhP9QhMnp1ryk","name":"Postgres account"}}},{"parameters":{"jsCode":"// No token found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No Telegram bot token found for tenant:', parsed.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No Telegram bot token found for tenant',\n  tenant_id: parsed.tenant_id,\n  out_message: parsed.out_message\n};"},"id":"54e9ef15-1e65-4578-bcd5-9e98e90ea0fc","name":"No Token Error","type":"n8n-nodes-base.code","typeVersion":2,"position":[-272,48]},{"parameters":{"jsCode":"// No message in queue - just return\nreturn { empty: true };"},"id":"68af35e8-ea8a-401b-9e3f-0fd60a320dd7","name":"No Message","type":"n8n-nodes-base.code","typeVersion":2,"position":[-944,144]}],"connections":{"Schedule Trigger":{"main":[[{"node":"Redis Pop Message","type":"main","index":0}]]},"Redis Pop Message":{"main":[[{"node":"IF Has Message","type":"main","index":0}]]},"IF Has Message":{"main":[[{"node":"Parse Message","type":"main","index":0}],[{"node":"No Message","type":"main","index":0}]]},"Parse Message":{"main":[[{"node":"Get Bot Token","type":"main","index":0}]]},"Get Bot Token":{"main":[[{"node":"IF Token Exists","type":"main","index":0}]]},"IF Token Exists":{"main":[[{"node":"Send via Telegram API","type":"main","index":0}],[{"node":"No Token Error","type":"main","index":0}]]},"Send via Telegram API":{"main":[[{"node":"Process Telegram Response","type":"main","index":0}]]},"Process Telegram Response":{"main":[[{"node":"Update Dialog Timestamp","type":"main","index":0}]]}},"authors":"Dmitriy Remacs","name":null,"description":null}}
+{
+  "updatedAt": "2025-12-26T10:23:53.608Z",
+  "createdAt": "2025-12-10T10:01:22.747Z",
+  "id": "GrChisyOV9ajgBDX",
+  "name": "ELO_Out_Telegram_Bot",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "d563b0f1-cc09-4698-a1b3-8cc686f16832",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1616,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:outgoing:telegram",
+        "options": {}
+      },
+      "id": "48c6ab95-6ded-47fa-b83f-9c19a9d38051",
+      "name": "Redis Pop Message",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        48
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-message",
+              "leftValue": "={{ $json.message_json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eca098e2-47b1-443b-a883-1dda540be795",
+      "name": "IF Has Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\n// Normalize chat_id - remove tg_ prefix if present\nlet chatId = message.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);\n}\n\nreturn {\n  out_message: message,\n  chat_id: chatId,\n  text: message.message_text,\n  tenant_id: message.tenant_id\n};"
+      },
+      "id": "d232df8b-2ab9-45e4-a82e-c0d9b7bb4586",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  ca.credentials->>'bot_token' as bot_token,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND ca.channel_id = 1\n  AND ca.is_active = true\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "80d4d08c-7623-4d15-a6cc-250f71f55768",
+      "name": "Get Bot Token",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -720,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-token",
+              "leftValue": "={{ $json.bot_token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "93976e95-786f-4c9c-90be-ecc69a21e923",
+      "name": "IF Token Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.bot_token }}/sendMessage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $('Parse Message').item.json.chat_id }}\",\n  \"text\": {{ JSON.stringify($('Parse Message').item.json.text) }},\n  \"parse_mode\": \"Markdown\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "125b3b2c-d7af-4570-bafd-8e140b4d8562",
+      "name": "Send via Telegram API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -272,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = $('Parse Message').first().json;\nconst response = $input.first().json;\n\nconst success = response.ok === true;\nconst messageId = response.result?.message_id?.toString() || Date.now().toString();\n\nreturn {\n  ...parsed,\n  telegram_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success\n};"
+      },
+      "id": "14211a09-016a-4052-a1a3-228a304b6656",
+      "name": "Process Telegram Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;",
+        "options": {}
+      },
+      "id": "3b4cf12b-dc9c-40ab-8c39-cbf222dba995",
+      "name": "Update Dialog Timestamp",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        176,
+        -144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// No token found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No Telegram bot token found for tenant:', parsed.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No Telegram bot token found for tenant',\n  tenant_id: parsed.tenant_id,\n  out_message: parsed.out_message\n};"
+      },
+      "id": "54e9ef15-1e65-4578-bcd5-9e98e90ea0fc",
+      "name": "No Token Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No message in queue - just return\nreturn { empty: true };"
+      },
+      "id": "68af35e8-ea8a-401b-9e3f-0fd60a320dd7",
+      "name": "No Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        144
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis Pop Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Pop Message": {
+      "main": [
+        [
+          {
+            "node": "IF Has Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Message": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Get Bot Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bot Token": {
+      "main": [
+        [
+          {
+            "node": "IF Token Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Token Exists": {
+      "main": [
+        [
+          {
+            "node": "Send via Telegram API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Token Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send via Telegram API": {
+      "main": [
+        [
+          {
+            "node": "Process Telegram Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Telegram Response": {
+      "main": [
+        [
+          {
+            "node": "Update Dialog Timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "2502449f-7944-41bf-862f-9747c60f02fe",
+  "activeVersionId": "2502449f-7944-41bf-862f-9747c60f02fe",
+  "versionCounter": 9,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-10T10:01:22.752Z",
+      "createdAt": "2025-12-10T10:01:22.752Z",
+      "role": "workflow:owner",
+      "workflowId": "GrChisyOV9ajgBDX",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-29T05:00:09.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T04:03:34.766Z",
+      "createdAt": "2025-11-23T04:03:34.766Z",
+      "id": "IbDkJphbr4EygdRZ",
+      "name": "Out"
+    },
+    {
+      "updatedAt": "2025-12-09T18:50:08.518Z",
+      "createdAt": "2025-12-09T18:50:08.518Z",
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2025-12-26T10:23:53.610Z",
+    "createdAt": "2025-12-26T10:23:53.610Z",
+    "versionId": "2502449f-7944-41bf-862f-9747c60f02fe",
+    "workflowId": "GrChisyOV9ajgBDX",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "seconds",
+                "secondsInterval": 3
+              }
+            ]
+          }
+        },
+        "id": "d563b0f1-cc09-4698-a1b3-8cc686f16832",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -1616,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "pop",
+          "list": "queue:outgoing:telegram",
+          "options": {}
+        },
+        "id": "48c6ab95-6ded-47fa-b83f-9c19a9d38051",
+        "name": "Redis Pop Message",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          -1392,
+          48
+        ],
+        "credentials": {
+          "redis": {
+            "id": "7FQcEivUY94atW24",
+            "name": "Redis account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "has-message",
+                "leftValue": "={{ $json.message_json }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "eca098e2-47b1-443b-a883-1dda540be795",
+        "name": "IF Has Message",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -1168,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const messageJson = $json.message_json;\nconst message = JSON.parse(messageJson);\n\n// Normalize chat_id - remove tg_ prefix if present\nlet chatId = message.external_chat_id || '';\nif (chatId.startsWith('tg_')) {\n  chatId = chatId.substring(3);\n}\n\nreturn {\n  out_message: message,\n  chat_id: chatId,\n  text: message.message_text,\n  tenant_id: message.tenant_id\n};"
+        },
+        "id": "d232df8b-2ab9-45e4-a82e-c0d9b7bb4586",
+        "name": "Parse Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -944,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT \n  ca.credentials->>'bot_token' as bot_token,\n  ca.account_id,\n  ca.account_name\nFROM elo_t_channel_accounts ca\nWHERE ca.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND ca.channel_id = 1\n  AND ca.is_active = true\nLIMIT 1;",
+          "options": {}
+        },
+        "id": "80d4d08c-7623-4d15-a6cc-250f71f55768",
+        "name": "Get Bot Token",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          -720,
+          -48
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "n2SyhP9QhMnp1ryk",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "has-token",
+                "leftValue": "={{ $json.bot_token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "93976e95-786f-4c9c-90be-ecc69a21e923",
+        "name": "IF Token Exists",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -496,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://api.telegram.org/bot{{ $json.bot_token }}/sendMessage",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"chat_id\": \"{{ $('Parse Message').item.json.chat_id }}\",\n  \"text\": {{ JSON.stringify($('Parse Message').item.json.text) }},\n  \"parse_mode\": \"Markdown\"\n}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "125b3b2c-d7af-4570-bafd-8e140b4d8562",
+        "name": "Send via Telegram API",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          -272,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const parsed = $('Parse Message').first().json;\nconst response = $input.first().json;\n\nconst success = response.ok === true;\nconst messageId = response.result?.message_id?.toString() || Date.now().toString();\n\nreturn {\n  ...parsed,\n  telegram_response: response,\n  message_id: messageId,\n  sent_at: new Date().toISOString(),\n  send_success: success\n};"
+        },
+        "id": "14211a09-016a-4052-a1a3-228a304b6656",
+        "name": "Process Telegram Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -48,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE elo_t_dialogs SET\n  last_message_at = NOW(),\n  last_operator_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = '{{ $json.out_message.dialog_id }}'::uuid;",
+          "options": {}
+        },
+        "id": "3b4cf12b-dc9c-40ab-8c39-cbf222dba995",
+        "name": "Update Dialog Timestamp",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          176,
+          -144
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "n2SyhP9QhMnp1ryk",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// No token found - log error\nconst parsed = $('Parse Message').first().json;\n\nconsole.error('No Telegram bot token found for tenant:', parsed.tenant_id);\n\nreturn {\n  success: false,\n  error: 'No Telegram bot token found for tenant',\n  tenant_id: parsed.tenant_id,\n  out_message: parsed.out_message\n};"
+        },
+        "id": "54e9ef15-1e65-4578-bcd5-9e98e90ea0fc",
+        "name": "No Token Error",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -272,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// No message in queue - just return\nreturn { empty: true };"
+        },
+        "id": "68af35e8-ea8a-401b-9e3f-0fd60a320dd7",
+        "name": "No Message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -944,
+          144
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Redis Pop Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis Pop Message": {
+        "main": [
+          [
+            {
+              "node": "IF Has Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Has Message": {
+        "main": [
+          [
+            {
+              "node": "Parse Message",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Message": {
+        "main": [
+          [
+            {
+              "node": "Get Bot Token",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Bot Token": {
+        "main": [
+          [
+            {
+              "node": "IF Token Exists",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Token Exists": {
+        "main": [
+          [
+            {
+              "node": "Send via Telegram API",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No Token Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send via Telegram API": {
+        "main": [
+          [
+            {
+              "node": "Process Telegram Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Telegram Response": {
+        "main": [
+          [
+            {
+              "node": "Update Dialog Timestamp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Dmitriy Remacs",
+    "name": null,
+    "description": null
+  }
+}

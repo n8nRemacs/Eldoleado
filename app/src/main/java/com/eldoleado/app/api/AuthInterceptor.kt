@@ -8,7 +8,7 @@ class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val url = request.url.toString()
-        if (url.contains("/android/auth/login")) {
+        if (url.contains("/v1/auth/login")) {
             return chain.proceed(request)
         }
         val sessionToken = sessionManager.getSessionToken()

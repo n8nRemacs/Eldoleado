@@ -1,0 +1,73 @@
+{
+  "name": "ELO_API_Channels_Status",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "v1/channels/status",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "channels-status"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  ca.id,\n  ca.tenant_id,\n  c.code as channel_type,\n  c.name as channel_name,\n  ca.account_id,\n  ca.account_name,\n  ca.session_status,\n  ca.is_active,\n  ca.is_official,\n  n.ip_address\nFROM elo_t_channel_accounts ca\nJOIN elo_channels c ON ca.channel_id = c.id\nLEFT JOIN elo_ip_nodes n ON ca.ip_node_id = n.id\nWHERE ca.is_active = true\nORDER BY c.id, ca.account_name;",
+        "options": {}
+      },
+      "id": "postgres",
+      "name": "Get Channel Accounts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [220, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(item => item.json);\n\nconst channels = rows.map(row => {\n  let status = 'not_configured';\n  \n  if (row.session_status === 'connected') {\n    status = 'connected';\n  } else if (row.session_status === 'active') {\n    status = 'connected';\n  } else if (row.session_status === 'pending') {\n    status = 'checking';\n  } else if (row.session_status === 'error') {\n    status = 'error';\n  }\n  \n  return {\n    id: row.id,\n    type: row.channel_type,\n    channel_name: row.channel_name,\n    status: status,\n    name: row.account_name || row.account_id,\n    account_id: row.account_id,\n    is_official: row.is_official || false,\n    ip_address: row.ip_address\n  };\n});\n\nreturn { success: true, channels };"
+      },
+      "id": "code",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "response",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Get Channel Accounts", "type": "main", "index": 0 }]] },
+    "Get Channel Accounts": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] },
+    "Format Response": { "main": [[{ "node": "Response", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

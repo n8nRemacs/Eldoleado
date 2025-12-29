@@ -1,0 +1,475 @@
+{
+  "name": "ELO_API_Channel_Setup",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "=POST",
+        "path": "v1/channels/whatsapp/sessions",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "wa-create",
+      "name": "WA Create Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://155.212.221.189:8769/sessions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sessionId: $json.body.sessionId, webhookUrl: 'https://n8n.n8nsrv.ru/webhook/whatsapp/incoming' }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wa-create-req",
+      "name": "WA Create Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst body = $('WA Create Session').first().json.body;\n\nif (response.success && response.data) {\n  // Save to database\n  return {\n    success: true,\n    data: {\n      sessionId: response.data.sessionId,\n      hash: response.data.hash,\n      status: response.data.status || 'connecting',\n      qr: response.data.qr,\n      qrImage: response.data.qrImage\n    }\n  };\n}\n\nreturn { success: false, error: response.error || 'Failed to create session' };"
+      },
+      "id": "wa-create-format",
+      "name": "WA Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "wa-create-respond",
+      "name": "WA Create Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "v1/channels/whatsapp/sessions/:sessionId/qr",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "wa-qr",
+      "name": "WA Get QR",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://155.212.221.189:8769/sessions/{{ $json.params.sessionId }}/qr",
+        "options": { "timeout": 10000 }
+      },
+      "id": "wa-qr-req",
+      "name": "WA QR Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "wa-qr-respond",
+      "name": "WA QR Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/channels/telegram-bot/register",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "tg-register",
+      "name": "TG Bot Register",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://155.212.221.189:8761/bots/register",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "tg-register-req",
+      "name": "TG Register Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "tg-register-respond",
+      "name": "TG Register Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 400]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/channels/telegram-bot/validate",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "tg-validate",
+      "name": "TG Bot Validate",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 600]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/bot{{ $json.body.botToken }}/getMe",
+        "options": { "timeout": 10000 }
+      },
+      "id": "tg-validate-req",
+      "name": "TG Validate Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nif (response.ok && response.result) {\n  return { success: true, valid: true, botInfo: response.result };\n}\nreturn { success: true, valid: false, error: response.description || 'Invalid token' };"
+      },
+      "id": "tg-validate-format",
+      "name": "TG Validate Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "tg-validate-respond",
+      "name": "TG Validate Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 600]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/channels/max-user/sessions/create",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "max-create",
+      "name": "MAX Create Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 800]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://155.212.221.189:8771/sessions/create",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "eldoleado_mcp_2024" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "max-create-req",
+      "name": "MAX Create Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 800]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nif (response.session_id) {\n  return { success: true, data: response };\n}\nreturn { success: false, error: response.detail || response.error || 'Failed to create session' };"
+      },
+      "id": "max-create-format",
+      "name": "MAX Create Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 800]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "max-create-respond",
+      "name": "MAX Create Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 800]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/channels/max-user/sessions/:sessionId/verify",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "max-verify",
+      "name": "MAX Verify Code",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 1000]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://155.212.221.189:8771/sessions/{{ $json.params.sessionId }}/verify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "eldoleado_mcp_2024" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "max-verify-req",
+      "name": "MAX Verify Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nif (response.session_id) {\n  return { success: true, data: response };\n}\nreturn { success: false, error: response.detail || response.error || 'Verification failed' };"
+      },
+      "id": "max-verify-format",
+      "name": "MAX Verify Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 1000]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "max-verify-respond",
+      "name": "MAX Verify Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 1000]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "v1/channels/max-user/sessions/:sessionId",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "max-get",
+      "name": "MAX Get Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 1200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://155.212.221.189:8771/sessions/{{ $json.params.sessionId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "eldoleado_mcp_2024" }
+          ]
+        },
+        "options": { "timeout": 10000 }
+      },
+      "id": "max-get-req",
+      "name": "MAX Get Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nif (response.session_id) {\n  return { success: true, data: response };\n}\nreturn { success: false, error: response.detail || 'Session not found' };"
+      },
+      "id": "max-get-format",
+      "name": "MAX Get Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 1200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "max-get-respond",
+      "name": "MAX Get Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 1200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "v1/channels/max-user/sessions/:sessionId",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "max-delete",
+      "name": "MAX Delete Session",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 1400]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=http://155.212.221.189:8771/sessions/{{ $json.params.sessionId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "eldoleado_mcp_2024" }
+          ]
+        },
+        "options": { "timeout": 10000 }
+      },
+      "id": "max-delete-req",
+      "name": "MAX Delete Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 1400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true }) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "max-delete-respond",
+      "name": "MAX Delete Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [440, 1400]
+    }
+  ],
+  "connections": {
+    "WA Create Session": { "main": [[{ "node": "WA Create Request", "type": "main", "index": 0 }]] },
+    "WA Create Request": { "main": [[{ "node": "WA Format Response", "type": "main", "index": 0 }]] },
+    "WA Format Response": { "main": [[{ "node": "WA Create Respond", "type": "main", "index": 0 }]] },
+    "WA Get QR": { "main": [[{ "node": "WA QR Request", "type": "main", "index": 0 }]] },
+    "WA QR Request": { "main": [[{ "node": "WA QR Respond", "type": "main", "index": 0 }]] },
+    "TG Bot Register": { "main": [[{ "node": "TG Register Request", "type": "main", "index": 0 }]] },
+    "TG Register Request": { "main": [[{ "node": "TG Register Respond", "type": "main", "index": 0 }]] },
+    "TG Bot Validate": { "main": [[{ "node": "TG Validate Request", "type": "main", "index": 0 }]] },
+    "TG Validate Request": { "main": [[{ "node": "TG Validate Format", "type": "main", "index": 0 }]] },
+    "TG Validate Format": { "main": [[{ "node": "TG Validate Respond", "type": "main", "index": 0 }]] },
+    "MAX Create Session": { "main": [[{ "node": "MAX Create Request", "type": "main", "index": 0 }]] },
+    "MAX Create Request": { "main": [[{ "node": "MAX Create Format", "type": "main", "index": 0 }]] },
+    "MAX Create Format": { "main": [[{ "node": "MAX Create Respond", "type": "main", "index": 0 }]] },
+    "MAX Verify Code": { "main": [[{ "node": "MAX Verify Request", "type": "main", "index": 0 }]] },
+    "MAX Verify Request": { "main": [[{ "node": "MAX Verify Format", "type": "main", "index": 0 }]] },
+    "MAX Verify Format": { "main": [[{ "node": "MAX Verify Respond", "type": "main", "index": 0 }]] },
+    "MAX Get Session": { "main": [[{ "node": "MAX Get Request", "type": "main", "index": 0 }]] },
+    "MAX Get Request": { "main": [[{ "node": "MAX Get Format", "type": "main", "index": 0 }]] },
+    "MAX Get Format": { "main": [[{ "node": "MAX Get Respond", "type": "main", "index": 0 }]] },
+    "MAX Delete Session": { "main": [[{ "node": "MAX Delete Request", "type": "main", "index": 0 }]] },
+    "MAX Delete Request": { "main": [[{ "node": "MAX Delete Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

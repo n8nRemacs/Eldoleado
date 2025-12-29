@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  max-user:
+    build: .
+    container_name: max-user-mcp
+    restart: unless-stopped
+    ports:
+      - "8771:8771"
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8771
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - API_KEY=${API_KEY}
+      - HUMANIZED_ENABLED=true
+    depends_on:
+      - redis
+    networks:
+      - mcp-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: max-user-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  redis-data:

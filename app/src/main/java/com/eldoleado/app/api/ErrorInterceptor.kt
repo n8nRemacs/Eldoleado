@@ -24,7 +24,7 @@ class ErrorInterceptor(private val context: Context) : Interceptor {
         if (response.code == 401) {
             val url = request.url.toString()
             // Не обрабатываем 401 для логина и logout, чтобы не было рекурсии
-            if (!url.contains("/api/auth/login") && !url.contains("/api/auth/logout")) {
+            if (!url.contains("/v1/auth/login") && !url.contains("/v1/auth/logout")) {
                 // Защита от множественных вызовов
                 if (!isHandlingUnauthorized) {
                     isHandlingUnauthorized = true

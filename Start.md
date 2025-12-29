@@ -1,4 +1,4 @@
-# Start Session - 2025-12-28
+# Start Session - 2025-12-29
 
 ## Текущий статус: Pipeline РАБОТАЕТ
 
@@ -10,7 +10,7 @@ Messenger -> Batcher -> Resolver -> AI Stub -> Save Message
 
 | Сервер | IP | Сервисы |
 |--------|-----|---------|
-| **Messenger** | 155.212.221.189 | MCP: telegram :8767, whatsapp :8769, avito :8793 |
+| **Messenger** | 155.212.221.189 | MCP: telegram :8767, whatsapp :8769, avito :8793, max-user :8771 |
 | **n8n** | 185.221.214.83 | n8n, PostgreSQL, Redis |
 | **HTTPS Gateway** | msg.eldoleado.ru | nginx + Let's Encrypt |
 
@@ -111,4 +111,4 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT id,
 
 ---
 
-*Последнее обновление: 2025-12-28*
+*Последнее обновление: 2025-12-29*

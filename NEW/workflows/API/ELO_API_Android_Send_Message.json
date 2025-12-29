@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-12-21T11:29:39.856Z",
+  "updatedAt": "2025-12-29T05:27:39.341Z",
   "createdAt": "2025-12-19T08:32:18.873Z",
   "id": "6twQI6tVin73BcN1",
   "name": "ELO_API_Android_Send_Message",
@@ -10,7 +10,7 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "android/messages/send",
+        "path": "v1/messages/send",
         "responseMode": "responseNode",
         "options": {
           "allowedOrigins": "*"
@@ -314,9 +314,9 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "eb9236f5-e102-48ca-9add-2708a47e94f8",
-  "activeVersionId": "eb9236f5-e102-48ca-9add-2708a47e94f8",
-  "versionCounter": 17,
+  "versionId": "76c3d777-8025-47d6-82e0-c331e28027d8",
+  "activeVersionId": "76c3d777-8025-47d6-82e0-c331e28027d8",
+  "versionCounter": 19,
   "triggerCount": 1,
   "shared": [
     {
@@ -340,7 +340,7 @@
             "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
             "projectId": "x7frUSUEowDAk8Dt",
             "user": {
-              "updatedAt": "2025-12-28T09:13:23.000Z",
+              "updatedAt": "2025-12-29T05:00:09.000Z",
               "createdAt": "2025-08-25T08:16:17.784Z",
               "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
               "email": "dk@n8nsrv.ru",
@@ -355,7 +355,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2025-12-27",
+              "lastActiveAt": "2025-12-28",
               "isPending": false
             }
           }
@@ -378,15 +378,15 @@
     }
   ],
   "activeVersion": {
-    "updatedAt": "2025-12-21T11:29:39.858Z",
-    "createdAt": "2025-12-21T11:29:39.858Z",
-    "versionId": "eb9236f5-e102-48ca-9add-2708a47e94f8",
+    "updatedAt": "2025-12-29T05:27:39.342Z",
+    "createdAt": "2025-12-29T05:27:39.342Z",
+    "versionId": "76c3d777-8025-47d6-82e0-c331e28027d8",
     "workflowId": "6twQI6tVin73BcN1",
     "nodes": [
       {
         "parameters": {
           "httpMethod": "POST",
-          "path": "android/messages/send",
+          "path": "v1/messages/send",
           "responseMode": "responseNode",
           "options": {
             "allowedOrigins": "*"

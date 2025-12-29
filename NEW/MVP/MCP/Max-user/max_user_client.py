@@ -120,7 +120,7 @@ class MaxUserClient:
 
         self._ws = await websockets.connect(
             self.WS_URL,
-            extra_headers=headers,
+            additional_headers=headers,  # websockets 14+ uses additional_headers instead of extra_headers
             ping_interval=None,  # We handle keepalive ourselves
             ping_timeout=None
         )
@@ -249,7 +249,7 @@ class MaxUserClient:
         """Send Hello packet to initialize device."""
         payload = {
             "userAgent": {
-                "deviceType": "WEB",
+                "deviceType": "ANDROID",
                 "locale": "ru_RU",
                 "osVersion": "Windows",
                 "deviceName": "Eldoleado Client",

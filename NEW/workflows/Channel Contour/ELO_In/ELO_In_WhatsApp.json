@@ -1,1 +1,859 @@
-{"updatedAt":"2025-12-22T19:19:14.786Z","createdAt":"2025-12-11T17:21:02.716Z","id":"PrsqCxCgoZuxnKus","name":"ELO_In_WhatsApp","description":null,"active":true,"isArchived":false,"nodes":[{"parameters":{"httpMethod":"POST","path":"whatsapp-incoming","responseMode":"responseNode","options":{}},"id":"21e3b107-fdf9-4909-9a45-e12f2ade948e","name":"WhatsApp Trigger","type":"n8n-nodes-base.webhook","typeVersion":1.1,"position":[-1456,320],"webhookId":"whatsapp-webhook"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"loose","version":1},"conditions":[{"id":"is-message","leftValue":"={{ $json.body.type }}","rightValue":"notify","operator":{"type":"string","operation":"equals"}}],"combinator":"and"},"options":{"looseTypeValidation":true}},"id":"2c993461-e0e7-464b-acb1-7b8c59bc3530","name":"Is Message?","type":"n8n-nodes-base.if","typeVersion":2,"position":[-1264,320]},{"parameters":{"respondWith":"json","responseBody":"={{ { \"success\": true, \"skipped\": true, \"event\": $json.event } }}","options":{}},"id":"b8878308-0611-4d2d-a851-67876bca3998","name":"Skip Non-Message","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[-1072,512]},{"parameters":{"jsCode":"const input = $input.first().json;\n  const event = input.body || input;\n  const msg = event.message || {};\n  const key = msg.key || {};\n  const content = msg.message || {};\n\n  const chatId = key.remoteJid || '';\n\n  // Только входящие от клиентов (@s.whatsapp.net)\n  const isClient = chatId.endsWith('@s.whatsapp.net') && !key.fromMe;\n\n  if (!isClient) {\n    return [];\n  }\n\n  // Has content?\n  const hasText = !!(content.conversation || content.extendedTextMessage?.text);\n  const hasMedia = !!(content.imageMessage || content.videoMessage || content.audioMessage || content.documentMessage);\n\n  if (!hasText && !hasMedia) {\n    return [];\n  }\n\n  const phone = '+' + chatId.replace('@s.whatsapp.net', '');\n\n  const messageText = content.conversation\n    || content.extendedTextMessage?.text\n    || content.imageMessage?.caption\n    || content.videoMessage?.caption\n    || '';\n\n  const timestamp = msg.messageTimestamp\n    ? new Date(msg.messageTimestamp * 1000).toISOString()\n    : new Date().toISOString();\n\n  return {\n    session_id: event.sessionId,\n    chat_id: chatId,\n    phone: phone,\n    message_text: messageText,\n    message_id: key.id,\n    timestamp: timestamp,\n    sender_name: msg.pushName || msg.verifiedBizName || null,\n    has_photo: !!content.imageMessage,\n    has_voice: !!content.audioMessage,\n    has_video: !!content.videoMessage,\n    has_document: !!content.documentMessage,\n    raw_event: event\n  };"},"id":"4d4a2c74-554f-492d-8b53-f4e660931ee1","name":"Extract WhatsApp Data","type":"n8n-nodes-base.code","typeVersion":2,"position":[-1072,320]},{"parameters":{"conditions":{"boolean":[{"value1":"={{ $json.has_voice }}","value2":true}]}},"id":"e8a40277-bf28-4f53-b12f-44900a16209f","name":"Has Voice?","type":"n8n-nodes-base.if","typeVersion":1,"position":[-848,320]},{"parameters":{"url":"={{ $json.voice_url }}","options":{"response":{"response":{"responseFormat":"file"}}}},"id":"e95b8580-c6fc-41ca-941d-48510ba29f6c","name":"Download Voice","type":"n8n-nodes-base.httpRequest","typeVersion":4.1,"position":[-624,208]},{"parameters":{"resource":"audio","operation":"transcribe","options":{}},"type":"@n8n/n8n-nodes-langchain.openAi","typeVersion":1.8,"position":[-400,208],"id":"8b7db0dc-4ed9-4329-9f77-6b998a5317f5","name":"Transcribe Voice","credentials":{"openAiApi":{"id":"ptoy1RvCOn39G0Af","name":"OpenAi account"}}},{"parameters":{"jsCode":"const data = $('Extract WhatsApp Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"},"id":"07d603d1-8064-4f9a-a4d1-212084ccefbd","name":"Normalize with Voice","type":"n8n-nodes-base.code","typeVersion":2,"position":[-176,208]},{"parameters":{"jsCode":"const data = $input.first().json;\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : 'text',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"},"id":"31069778-bedf-4f95-aa65-d853247c74cc","name":"Normalize without Voice","type":"n8n-nodes-base.code","typeVersion":2,"position":[-624,416]},{"parameters":{"jsCode":"// Prepare message for Redis queue (batcher will handle DB writes)\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"},"id":"997f29f3-a685-49de-99a4-71a500494dd7","name":"Prepare for Queue","type":"n8n-nodes-base.code","typeVersion":2,"position":[48,320]},{"parameters":{"operation":"push","list":"queue:incoming","messageData":"={{ $json.message_json }}","tail":true},"id":"31e9b30b-cdcf-45ec-b46d-5d1a0100d152","name":"Push to Queue","type":"n8n-nodes-base.redis","typeVersion":1,"position":[272,320],"credentials":{"redis":{"id":"7FQcEivUY94atW24","name":"Redis account"}}},{"parameters":{"respondWith":"json","responseBody":"={{ { \"success\": true, \"queued\": true, \"batch_key\": $json.batch_key } }}","options":{}},"id":"bf22acf6-bb9e-4fb1-9b99-8df286a96893","name":"Respond Success","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[496,320]}],"connections":{"WhatsApp Trigger":{"main":[[{"node":"Is Message?","type":"main","index":0}]]},"Is Message?":{"main":[[{"node":"Extract WhatsApp Data","type":"main","index":0}],[{"node":"Skip Non-Message","type":"main","index":0}]]},"Extract WhatsApp Data":{"main":[[{"node":"Has Voice?","type":"main","index":0}]]},"Has Voice?":{"main":[[{"node":"Download Voice","type":"main","index":0}],[{"node":"Normalize without Voice","type":"main","index":0}]]},"Download Voice":{"main":[[{"node":"Transcribe Voice","type":"main","index":0}]]},"Transcribe Voice":{"main":[[{"node":"Normalize with Voice","type":"main","index":0}]]},"Normalize with Voice":{"main":[[{"node":"Prepare for Queue","type":"main","index":0}]]},"Normalize without Voice":{"main":[[{"node":"Prepare for Queue","type":"main","index":0}]]},"Prepare for Queue":{"main":[[{"node":"Push to Queue","type":"main","index":0}]]},"Push to Queue":{"main":[[{"node":"Respond Success","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"},"staticData":null,"meta":null,"pinData":{"WhatsApp Trigger":[{"json":{"headers":{"host":"n8n.n8nsrv.ru","user-agent":"node","content-length":"4175","accept":"*/*","accept-encoding":"br, gzip, deflate","accept-language":"*","content-type":"application/json","sec-fetch-mode":"cors","via":"1.1 Caddy","x-forwarded-for":"155.212.221.189","x-forwarded-host":"n8n.n8nsrv.ru","x-forwarded-proto":"https"},"params":{},"query":{},"body":{"sessionId":"eldoleado_arceos","message":{"key":{"remoteJid":"status@broadcast","fromMe":false,"id":"3A75B8271D932087B08D","participant":"79275852829@s.whatsapp.net","participantLid":"79275852829@lid","remoteLid":"status@lid","remoteJidNormalized":"status@broadcast"},"messageTimestamp":1766430180,"pushName":"Али","broadcast":true,"message":{"senderKeyDistributionMessage":{"groupId":"status@broadcast","axolotlSenderKeyDistributionMessage":"Mwi+m5OCARAAGiAr6QiRy9NvayFWms4MTJKwWH0Vh0FbMyk4eADDfw5nKCIhBdCmFOEIE9Tdo8BCmdNU73W/cpEJ09RmSmbrcbLCz+Bw"},"videoMessage":{"url":"https://mmg.whatsapp.net/v/t62.7161-24/557416401_921276850222204_2821392706377997194_n.enc?ccb=11-4&oh=01_Q5Aa3QFNzLvjAgiyprug4Ags-RviIx68zvHSegtqSP_X3fcrsg&oe=69711E51&_nc_sid=5e03e0&mms3=true","mimetype":"video/mp4","fileSha256":"QzdV7skJrRhohAriZyteNCxMuQ66njj1zpZCZxH559U=","fileLength":"4702780","seconds":29,"mediaKey":"1Y+1x+lHY8ElLg/EMurTGQVCkoI0WE1OgTaAoeoJDLE=","caption":"😔","height":848,"width":464,"fileEncSha256":"bK3F4rA+jpJbHeRbVqrbgtBStdcFQvo2xE5ckiAbO/4=","directPath":"/v/t62.7161-24/557416401_921276850222204_2821392706377997194_n.enc?ccb=11-4&oh=01_Q5Aa3QFNzLvjAgiyprug4Ags-RviIx68zvHSegtqSP_X3fcrsg&oe=69711E51&_nc_sid=5e03e0","mediaKeyTimestamp":"1766430034","jpegThumbnail":"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABEMDQ8NCxEPDg8TEhEUGSocGRcXGTQlJx8qPTZBQDw2OzpETGJTREhcSTo7VXRWXGVobW5tQlJ4gHdqf2JrbWn/2wBDARITExkWGTIcHDJpRjtGaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWn/wgARCABgADUDASIAAhEBAxEB/8QAGwAAAgMBAQEAAAAAAAAAAAAAAwQAAgUBBgf/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAABbGWgfYX4eht570JJIeB1sbTNNdUwt6jB2xuVh8+cDc0ODsNa+HqmjOQyfNdGGOlcdFUZqTNhYTAwq76w0jUhaUhztBj1wkBV7YFDQ/8QAFBEBAAAAAAAAAAAAAAAAAAAAQP/aAAgBAgEBPwBH/8QAFBEBAAAAAAAAAAAAAAAAAAAAQP/aAAgBAwEBPwBH/8QALxAAAgEDAwIFAgUFAAAAAAAAAQIDAAQREiExQVEFEBMiYTJxBkJSwdEUJIGCof/aAAgBAQABPwC98ZSIlLcB2/V0FTTyztrmYk/JqO+eBh6UjAjoKs/GkkYJONDHqeDSuGGRx5hyd+f3pI3nfBJ09qhto0XaMD71cRJOhXSAw4NeB3kkc5s5jt+TJ4PbzDkkfNWYWPGRua3PPFTTpF8sdgBVzqDC4QnWnOBj7VY3AubSOX9Q3+9ZFQ7yAnpUcmEzkbV6853I9vWhCsoEuCRjGx4qK3VMgLkHY/NeHQLb2UcanIAznyjJWQVGGYgdKVQsLYzv3O9QXQgOk7hhwOhpJARqGATyAeK8Pk1waf0nyvbdrW4aKT6huCOoqCbSAaS4DAjHSgY2UBl3+Oa0OFzpEcfzya8I3ic/IHl4gfDc/wB5oL6f9sf4ovGXYRBggPt1nfFI4FJOy/Tpz3p7rIy7l2qG/uUdjDIyjO6g1D+IJ0BWVVc9CRg1O2snG57nrVvEZXKKcPj2jue1BcnY4PavSkqC3PqBn6dKI03LkcZzUkSuc8U8asNQ2oD0pcN/yri2MsTTp9abyAdQfzfzUMpRgsm6d+1BVVCynIxzUK62mPOF/eugoIVVkJ4GQe4ph6kYPVSRXhswikXXgrnDA9VOx/mry2/p7yW3PCN7T3HSlDRMdJODyO9Q+1X0n6iAakOnAzUD6kMbHLKMqfirZhrdG2Db16S5YBidPG3Iq5Jn9OR31Mq6c6eQO9MF1DBJHfFAYc44YUVyTmpkNvLkgh1PuBqU6ZQVqKXUgbtsaHxTbAfepfbGxHIqMK6Bh1r//gADAP/Z","contextInfo":{"featureEligibilities":{"canBeReshared":false},"statusSourceType":"VIDEO"},"streamingSidecar":"4XcXGjlpiKqBREPDGJZgnPlTUI1jON6xZ0pahgRWjorPF1ZeOGd2jJUtyBXOIu7gqtA35NSsb8ld7Al+3JfZqy6PzXTFr+EuVhXxD4Hokwa/Uo3CRnkBnOkbGFwvSOmjMSxeagt0nfYi58VKWd5VQIvcp6L2rWJxrCxuozLRGbLXMYLb/yImk1ugwv2wj/Bd8IhNlRr3VWi7La57YTJi8QE2eOJ9Job8/qhReqOUmyY4z4K/qUURCauYZESmnRZGSr8KYfF6ztYnBTvto3EisEQH+Ejzmt8OCv/gdcACgO0Ql1VhLuSEiAL+Xo4hG/9FdaukjZdxCIY432v3Ri9VAH4XKmiGY5epszstsextNkc5xWuv57LMWypEn/eUEKu6E+qB3skTu5to1ZKIqQ8nYOxxUr6j6YCXTfqwVAYnudxyps1qjS5zoJ+7gUMqLAEP0KNKuspqfCPp9turSvG0YDzPuZXbfJsyQkCjAytWE6fPTJ6ZvMRFsv4M8sctTN6K7/kHXdyKt+3Fssqa4C+nll9I8IUNrT7CrFPfM3vxO+EO9LG0qPS+hG1OdqjYr8nzqonleaekI8a3VsZafUSOOQ8A6PSdFle/f0I2ctjh4K7xmnQiLe+vJSSH3ZV7ZnUGigrkXqahZF52KIFY2vtOx7jG2nGXcrkNLTHdBl0FVJFMsSyMUkAxgW0qtqfw36Acm8b/0rcXp6ffKrqitDd3lvrOJOAEZMvyDginOr8baoCuJQTj+VnF1w9tRzjQTZILti6RbExavX+CKzAzq4yYvcqjP8qrlY4vavZjNb6Q4geOQ9nciMv/CDjtLyURTgClLKfk7Zhv77ThrAKSUwCB/aYWOYCz2BvKnsnRZLzJVAryc/21mLijvl+XYZHqqKIHOAcHbxoH/i00yqVVwbEsVL7LSM46+ma4cNwJe9IR384bJXJUpNVyKpri+znxfM+t","thumbnailDirectPath":"/v/t62.36147-24/557836400_855471970422373_115496922653043052_n.enc?ccb=11-4&oh=01_Q5Aa3QHoO3hARYF6qPUN_22ohaPPUHH-4WZbPltD1vdJop1VbA&oe=69712200&_nc_sid=5e03e0","thumbnailSha256":"RP8EJlzTCz0T53oVO+/XNzj9XxXdFpDKP8saj66kJa8=","thumbnailEncSha256":"JzHvZ6Bmwus56el5ddzki0Yt1FDk9UqnbrjHWETFuk0=","metadataUrl":"","videoSourceType":"USER_VIDEO"},"messageContextInfo":{"messageSecret":"lH0UjVh0mWUAvWLdym9AW37/qeOekBQywjubA/LSl0c="}}},"type":"notify"},"webhookUrl":"https://n8n.n8nsrv.ru/webhook/whatsapp-incoming","executionMode":"production"},"pairedItem":{"item":0}}]},"versionId":"ecda806f-6b4e-4068-bf16-506262bb1099","activeVersionId":"ecda806f-6b4e-4068-bf16-506262bb1099","versionCounter":42,"triggerCount":1,"shared":[{"updatedAt":"2025-12-11T17:21:02.723Z","createdAt":"2025-12-11T17:21:02.723Z","role":"workflow:owner","workflowId":"PrsqCxCgoZuxnKus","projectId":"x7frUSUEowDAk8Dt","project":{"updatedAt":"2025-08-25T18:57:22.218Z","createdAt":"2025-08-25T08:16:18.805Z","id":"x7frUSUEowDAk8Dt","name":"Dmitriy Remacs <dk@n8nsrv.ru>","type":"personal","icon":null,"description":null,"projectRelations":[{"updatedAt":"2025-08-25T08:16:18.805Z","createdAt":"2025-08-25T08:16:18.805Z","userId":"1d5222a1-8f53-4940-b7de-93daeae04393","projectId":"x7frUSUEowDAk8Dt","user":{"updatedAt":"2025-12-27T08:39:03.000Z","createdAt":"2025-08-25T08:16:17.784Z","id":"1d5222a1-8f53-4940-b7de-93daeae04393","email":"dk@n8nsrv.ru","firstName":"Dmitriy","lastName":"Remacs","personalizationAnswers":null,"settings":{"userActivated":true,"easyAIWorkflowOnboarded":true,"firstSuccessfulWorkflowId":"RbSUhceYc7q41M5j","userActivatedAt":1756286438389},"disabled":false,"mfaEnabled":false,"lastActiveAt":"2025-12-26","isPending":false}}]}}],"tags":[{"updatedAt":"2025-11-23T04:03:40.721Z","createdAt":"2025-11-23T04:03:40.721Z","id":"nLdF41tEx70V7m3A","name":"In"},{"updatedAt":"2025-12-09T18:50:08.518Z","createdAt":"2025-12-09T18:50:08.518Z","id":"tMSCjbvPU3xrNUqz","name":"ELO"}],"activeVersion":{"updatedAt":"2025-12-22T19:19:14.790Z","createdAt":"2025-12-22T19:19:14.790Z","versionId":"ecda806f-6b4e-4068-bf16-506262bb1099","workflowId":"PrsqCxCgoZuxnKus","nodes":[{"parameters":{"httpMethod":"POST","path":"whatsapp-incoming","responseMode":"responseNode","options":{}},"id":"21e3b107-fdf9-4909-9a45-e12f2ade948e","name":"WhatsApp Trigger","type":"n8n-nodes-base.webhook","typeVersion":1.1,"position":[-1456,320],"webhookId":"whatsapp-webhook"},{"parameters":{"conditions":{"options":{"caseSensitive":true,"leftValue":"","typeValidation":"loose","version":1},"conditions":[{"id":"is-message","leftValue":"={{ $json.body.type }}","rightValue":"notify","operator":{"type":"string","operation":"equals"}}],"combinator":"and"},"options":{"looseTypeValidation":true}},"id":"2c993461-e0e7-464b-acb1-7b8c59bc3530","name":"Is Message?","type":"n8n-nodes-base.if","typeVersion":2,"position":[-1264,320]},{"parameters":{"respondWith":"json","responseBody":"={{ { \"success\": true, \"skipped\": true, \"event\": $json.event } }}","options":{}},"id":"b8878308-0611-4d2d-a851-67876bca3998","name":"Skip Non-Message","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[-1072,512]},{"parameters":{"jsCode":"const input = $input.first().json;\n  const event = input.body || input;\n  const msg = event.message || {};\n  const key = msg.key || {};\n  const content = msg.message || {};\n\n  const chatId = key.remoteJid || '';\n\n  // Только входящие от клиентов (@s.whatsapp.net)\n  const isClient = chatId.endsWith('@s.whatsapp.net') && !key.fromMe;\n\n  if (!isClient) {\n    return [];\n  }\n\n  // Has content?\n  const hasText = !!(content.conversation || content.extendedTextMessage?.text);\n  const hasMedia = !!(content.imageMessage || content.videoMessage || content.audioMessage || content.documentMessage);\n\n  if (!hasText && !hasMedia) {\n    return [];\n  }\n\n  const phone = '+' + chatId.replace('@s.whatsapp.net', '');\n\n  const messageText = content.conversation\n    || content.extendedTextMessage?.text\n    || content.imageMessage?.caption\n    || content.videoMessage?.caption\n    || '';\n\n  const timestamp = msg.messageTimestamp\n    ? new Date(msg.messageTimestamp * 1000).toISOString()\n    : new Date().toISOString();\n\n  return {\n    session_id: event.sessionId,\n    chat_id: chatId,\n    phone: phone,\n    message_text: messageText,\n    message_id: key.id,\n    timestamp: timestamp,\n    sender_name: msg.pushName || msg.verifiedBizName || null,\n    has_photo: !!content.imageMessage,\n    has_voice: !!content.audioMessage,\n    has_video: !!content.videoMessage,\n    has_document: !!content.documentMessage,\n    raw_event: event\n  };"},"id":"4d4a2c74-554f-492d-8b53-f4e660931ee1","name":"Extract WhatsApp Data","type":"n8n-nodes-base.code","typeVersion":2,"position":[-1072,320]},{"parameters":{"conditions":{"boolean":[{"value1":"={{ $json.has_voice }}","value2":true}]}},"id":"e8a40277-bf28-4f53-b12f-44900a16209f","name":"Has Voice?","type":"n8n-nodes-base.if","typeVersion":1,"position":[-848,320]},{"parameters":{"url":"={{ $json.voice_url }}","options":{"response":{"response":{"responseFormat":"file"}}}},"id":"e95b8580-c6fc-41ca-941d-48510ba29f6c","name":"Download Voice","type":"n8n-nodes-base.httpRequest","typeVersion":4.1,"position":[-624,208]},{"parameters":{"resource":"audio","operation":"transcribe","options":{}},"type":"@n8n/n8n-nodes-langchain.openAi","typeVersion":1.8,"position":[-400,208],"id":"8b7db0dc-4ed9-4329-9f77-6b998a5317f5","name":"Transcribe Voice","credentials":{"openAiApi":{"id":"ptoy1RvCOn39G0Af","name":"OpenAi account"}}},{"parameters":{"jsCode":"const data = $('Extract WhatsApp Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"},"id":"07d603d1-8064-4f9a-a4d1-212084ccefbd","name":"Normalize with Voice","type":"n8n-nodes-base.code","typeVersion":2,"position":[-176,208]},{"parameters":{"jsCode":"const data = $input.first().json;\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : 'text',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"},"id":"31069778-bedf-4f95-aa65-d853247c74cc","name":"Normalize without Voice","type":"n8n-nodes-base.code","typeVersion":2,"position":[-624,416]},{"parameters":{"jsCode":"// Prepare message for Redis queue (batcher will handle DB writes)\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"},"id":"997f29f3-a685-49de-99a4-71a500494dd7","name":"Prepare for Queue","type":"n8n-nodes-base.code","typeVersion":2,"position":[48,320]},{"parameters":{"operation":"push","list":"queue:incoming","messageData":"={{ $json.message_json }}","tail":true},"id":"31e9b30b-cdcf-45ec-b46d-5d1a0100d152","name":"Push to Queue","type":"n8n-nodes-base.redis","typeVersion":1,"position":[272,320],"credentials":{"redis":{"id":"7FQcEivUY94atW24","name":"Redis account"}}},{"parameters":{"respondWith":"json","responseBody":"={{ { \"success\": true, \"queued\": true, \"batch_key\": $json.batch_key } }}","options":{}},"id":"bf22acf6-bb9e-4fb1-9b99-8df286a96893","name":"Respond Success","type":"n8n-nodes-base.respondToWebhook","typeVersion":1,"position":[496,320]}],"connections":{"WhatsApp Trigger":{"main":[[{"node":"Is Message?","type":"main","index":0}]]},"Is Message?":{"main":[[{"node":"Extract WhatsApp Data","type":"main","index":0}],[{"node":"Skip Non-Message","type":"main","index":0}]]},"Extract WhatsApp Data":{"main":[[{"node":"Has Voice?","type":"main","index":0}]]},"Has Voice?":{"main":[[{"node":"Download Voice","type":"main","index":0}],[{"node":"Normalize without Voice","type":"main","index":0}]]},"Download Voice":{"main":[[{"node":"Transcribe Voice","type":"main","index":0}]]},"Transcribe Voice":{"main":[[{"node":"Normalize with Voice","type":"main","index":0}]]},"Normalize with Voice":{"main":[[{"node":"Prepare for Queue","type":"main","index":0}]]},"Normalize without Voice":{"main":[[{"node":"Prepare for Queue","type":"main","index":0}]]},"Prepare for Queue":{"main":[[{"node":"Push to Queue","type":"main","index":0}]]},"Push to Queue":{"main":[[{"node":"Respond Success","type":"main","index":0}]]}},"authors":"Dmitriy Remacs","name":null,"description":null}}
+{
+  "updatedAt": "2025-12-27T13:16:55.641Z",
+  "createdAt": "2025-12-11T17:21:02.716Z",
+  "id": "PrsqCxCgoZuxnKus",
+  "name": "ELO_In_WhatsApp",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-incoming",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "21e3b107-fdf9-4909-9a45-e12f2ade948e",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1456,
+        320
+      ],
+      "webhookId": "whatsapp-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "is-message",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "notify",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "looseTypeValidation": true
+        }
+      },
+      "id": "2c993461-e0e7-464b-acb1-7b8c59bc3530",
+      "name": "Is Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"skipped\": true, \"event\": $json.event } }}",
+        "options": {}
+      },
+      "id": "b8878308-0611-4d2d-a851-67876bca3998",
+      "name": "Skip Non-Message",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n  const event = input.body || input;\n  const msg = event.message || {};\n  const key = msg.key || {};\n  const content = msg.message || {};\n\n  const chatId = key.remoteJid || '';\n\n  // Только входящие от клиентов (@s.whatsapp.net)\n  const isClient = chatId.endsWith('@s.whatsapp.net') && !key.fromMe;\n\n  if (!isClient) {\n    return [];\n  }\n\n  // Has content?\n  const hasText = !!(content.conversation || content.extendedTextMessage?.text);\n  const hasMedia = !!(content.imageMessage || content.videoMessage || content.audioMessage || content.documentMessage);\n\n  if (!hasText && !hasMedia) {\n    return [];\n  }\n\n  const phone = '+' + chatId.replace('@s.whatsapp.net', '');\n\n  const messageText = content.conversation\n    || content.extendedTextMessage?.text\n    || content.imageMessage?.caption\n    || content.videoMessage?.caption\n    || '';\n\n  const timestamp = msg.messageTimestamp\n    ? new Date(msg.messageTimestamp * 1000).toISOString()\n    : new Date().toISOString();\n\n  return {\n    session_id: event.sessionId,\n    chat_id: chatId,\n    phone: phone,\n    message_text: messageText,\n    message_id: key.id,\n    timestamp: timestamp,\n    sender_name: msg.pushName || msg.verifiedBizName || null,\n    has_photo: !!content.imageMessage,\n    has_voice: !!content.audioMessage,\n    has_video: !!content.videoMessage,\n    has_document: !!content.documentMessage,\n    raw_event: event\n  };"
+      },
+      "id": "4d4a2c74-554f-492d-8b53-f4e660931ee1",
+      "name": "Extract WhatsApp Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_voice }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "e8a40277-bf28-4f53-b12f-44900a16209f",
+      "name": "Has Voice?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.voice_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "e95b8580-c6fc-41ca-941d-48510ba29f6c",
+      "name": "Download Voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -624,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -400,
+        208
+      ],
+      "id": "8b7db0dc-4ed9-4329-9f77-6b998a5317f5",
+      "name": "Transcribe Voice",
+      "credentials": {
+        "openAiApi": {
+          "id": "ptoy1RvCOn39G0Af",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Extract WhatsApp Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "07d603d1-8064-4f9a-a4d1-212084ccefbd",
+      "name": "Normalize with Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : 'text',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+      },
+      "id": "31069778-bedf-4f95-aa65-d853247c74cc",
+      "name": "Normalize without Voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare message for Redis queue (batcher will handle DB writes)\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
+      },
+      "id": "997f29f3-a685-49de-99a4-71a500494dd7",
+      "name": "Prepare for Queue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "queue:incoming",
+        "messageData": "={{ $json.message_json }}",
+        "tail": true
+      },
+      "id": "31e9b30b-cdcf-45ec-b46d-5d1a0100d152",
+      "name": "Push to Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        272,
+        320
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"queued\": true, \"batch_key\": $json.batch_key } }}",
+        "options": {}
+      },
+      "id": "bf22acf6-bb9e-4fb1-9b99-8df286a96893",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        496,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Is Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Message?": {
+      "main": [
+        [
+          {
+            "node": "Extract WhatsApp Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Non-Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract WhatsApp Data": {
+      "main": [
+        [
+          {
+            "node": "Has Voice?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Voice?": {
+      "main": [
+        [
+          {
+            "node": "Download Voice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize without Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Voice": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Voice": {
+      "main": [
+        [
+          {
+            "node": "Normalize with Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize with Voice": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize without Voice": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Queue": {
+      "main": [
+        [
+          {
+            "node": "Push to Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Queue": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "WhatsApp Trigger": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.n8nsrv.ru",
+            "user-agent": "node",
+            "content-length": "4175",
+            "accept": "*/*",
+            "accept-encoding": "br, gzip, deflate",
+            "accept-language": "*",
+            "content-type": "application/json",
+            "sec-fetch-mode": "cors",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "155.212.221.189",
+            "x-forwarded-host": "n8n.n8nsrv.ru",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "sessionId": "eldoleado_arceos",
+            "message": {
+              "key": {
+                "remoteJid": "status@broadcast",
+                "fromMe": false,
+                "id": "3A75B8271D932087B08D",
+                "participant": "79275852829@s.whatsapp.net",
+                "participantLid": "79275852829@lid",
+                "remoteLid": "status@lid",
+                "remoteJidNormalized": "status@broadcast"
+              },
+              "messageTimestamp": 1766430180,
+              "pushName": "Али",
+              "broadcast": true,
+              "message": {
+                "senderKeyDistributionMessage": {
+                  "groupId": "status@broadcast",
+                  "axolotlSenderKeyDistributionMessage": "Mwi+m5OCARAAGiAr6QiRy9NvayFWms4MTJKwWH0Vh0FbMyk4eADDfw5nKCIhBdCmFOEIE9Tdo8BCmdNU73W/cpEJ09RmSmbrcbLCz+Bw"
+                },
+                "videoMessage": {
+                  "url": "https://mmg.whatsapp.net/v/t62.7161-24/557416401_921276850222204_2821392706377997194_n.enc?ccb=11-4&oh=01_Q5Aa3QFNzLvjAgiyprug4Ags-RviIx68zvHSegtqSP_X3fcrsg&oe=69711E51&_nc_sid=5e03e0&mms3=true",
+                  "mimetype": "video/mp4",
+                  "fileSha256": "QzdV7skJrRhohAriZyteNCxMuQ66njj1zpZCZxH559U=",
+                  "fileLength": "4702780",
+                  "seconds": 29,
+                  "mediaKey": "1Y+1x+lHY8ElLg/EMurTGQVCkoI0WE1OgTaAoeoJDLE=",
+                  "caption": "😔",
+                  "height": 848,
+                  "width": 464,
+                  "fileEncSha256": "bK3F4rA+jpJbHeRbVqrbgtBStdcFQvo2xE5ckiAbO/4=",
+                  "directPath": "/v/t62.7161-24/557416401_921276850222204_2821392706377997194_n.enc?ccb=11-4&oh=01_Q5Aa3QFNzLvjAgiyprug4Ags-RviIx68zvHSegtqSP_X3fcrsg&oe=69711E51&_nc_sid=5e03e0",
+                  "mediaKeyTimestamp": "1766430034",
+                  "jpegThumbnail": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABEMDQ8NCxEPDg8TEhEUGSocGRcXGTQlJx8qPTZBQDw2OzpETGJTREhcSTo7VXRWXGVobW5tQlJ4gHdqf2JrbWn/2wBDARITExkWGTIcHDJpRjtGaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWn/wgARCABgADUDASIAAhEBAxEB/8QAGwAAAgMBAQEAAAAAAAAAAAAAAwQAAgUBBgf/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAABbGWgfYX4eht570JJIeB1sbTNNdUwt6jB2xuVh8+cDc0ODsNa+HqmjOQyfNdGGOlcdFUZqTNhYTAwq76w0jUhaUhztBj1wkBV7YFDQ/8QAFBEBAAAAAAAAAAAAAAAAAAAAQP/aAAgBAgEBPwBH/8QAFBEBAAAAAAAAAAAAAAAAAAAAQP/aAAgBAwEBPwBH/8QALxAAAgEDAwIFAgUFAAAAAAAAAQIDAAQREiExQVEFEBMiYTJxBkJSwdEUJIGCof/aAAgBAQABPwC98ZSIlLcB2/V0FTTyztrmYk/JqO+eBh6UjAjoKs/GkkYJONDHqeDSuGGRx5hyd+f3pI3nfBJ09qhto0XaMD71cRJOhXSAw4NeB3kkc5s5jt+TJ4PbzDkkfNWYWPGRua3PPFTTpF8sdgBVzqDC4QnWnOBj7VY3AubSOX9Q3+9ZFQ7yAnpUcmEzkbV6853I9vWhCsoEuCRjGx4qK3VMgLkHY/NeHQLb2UcanIAznyjJWQVGGYgdKVQsLYzv3O9QXQgOk7hhwOhpJARqGATyAeK8Pk1waf0nyvbdrW4aKT6huCOoqCbSAaS4DAjHSgY2UBl3+Oa0OFzpEcfzya8I3ic/IHl4gfDc/wB5oL6f9sf4ovGXYRBggPt1nfFI4FJOy/Tpz3p7rIy7l2qG/uUdjDIyjO6g1D+IJ0BWVVc9CRg1O2snG57nrVvEZXKKcPj2jue1BcnY4PavSkqC3PqBn6dKI03LkcZzUkSuc8U8asNQ2oD0pcN/yri2MsTTp9abyAdQfzfzUMpRgsm6d+1BVVCynIxzUK62mPOF/eugoIVVkJ4GQe4ph6kYPVSRXhswikXXgrnDA9VOx/mry2/p7yW3PCN7T3HSlDRMdJODyO9Q+1X0n6iAakOnAzUD6kMbHLKMqfirZhrdG2Db16S5YBidPG3Iq5Jn9OR31Mq6c6eQO9MF1DBJHfFAYc44YUVyTmpkNvLkgh1PuBqU6ZQVqKXUgbtsaHxTbAfepfbGxHIqMK6Bh1r//gADAP/Z",
+                  "contextInfo": {
+                    "featureEligibilities": {
+                      "canBeReshared": false
+                    },
+                    "statusSourceType": "VIDEO"
+                  },
+                  "streamingSidecar": "4XcXGjlpiKqBREPDGJZgnPlTUI1jON6xZ0pahgRWjorPF1ZeOGd2jJUtyBXOIu7gqtA35NSsb8ld7Al+3JfZqy6PzXTFr+EuVhXxD4Hokwa/Uo3CRnkBnOkbGFwvSOmjMSxeagt0nfYi58VKWd5VQIvcp6L2rWJxrCxuozLRGbLXMYLb/yImk1ugwv2wj/Bd8IhNlRr3VWi7La57YTJi8QE2eOJ9Job8/qhReqOUmyY4z4K/qUURCauYZESmnRZGSr8KYfF6ztYnBTvto3EisEQH+Ejzmt8OCv/gdcACgO0Ql1VhLuSEiAL+Xo4hG/9FdaukjZdxCIY432v3Ri9VAH4XKmiGY5epszstsextNkc5xWuv57LMWypEn/eUEKu6E+qB3skTu5to1ZKIqQ8nYOxxUr6j6YCXTfqwVAYnudxyps1qjS5zoJ+7gUMqLAEP0KNKuspqfCPp9turSvG0YDzPuZXbfJsyQkCjAytWE6fPTJ6ZvMRFsv4M8sctTN6K7/kHXdyKt+3Fssqa4C+nll9I8IUNrT7CrFPfM3vxO+EO9LG0qPS+hG1OdqjYr8nzqonleaekI8a3VsZafUSOOQ8A6PSdFle/f0I2ctjh4K7xmnQiLe+vJSSH3ZV7ZnUGigrkXqahZF52KIFY2vtOx7jG2nGXcrkNLTHdBl0FVJFMsSyMUkAxgW0qtqfw36Acm8b/0rcXp6ffKrqitDd3lvrOJOAEZMvyDginOr8baoCuJQTj+VnF1w9tRzjQTZILti6RbExavX+CKzAzq4yYvcqjP8qrlY4vavZjNb6Q4geOQ9nciMv/CDjtLyURTgClLKfk7Zhv77ThrAKSUwCB/aYWOYCz2BvKnsnRZLzJVAryc/21mLijvl+XYZHqqKIHOAcHbxoH/i00yqVVwbEsVL7LSM46+ma4cNwJe9IR384bJXJUpNVyKpri+znxfM+t",
+                  "thumbnailDirectPath": "/v/t62.36147-24/557836400_855471970422373_115496922653043052_n.enc?ccb=11-4&oh=01_Q5Aa3QHoO3hARYF6qPUN_22ohaPPUHH-4WZbPltD1vdJop1VbA&oe=69712200&_nc_sid=5e03e0",
+                  "thumbnailSha256": "RP8EJlzTCz0T53oVO+/XNzj9XxXdFpDKP8saj66kJa8=",
+                  "thumbnailEncSha256": "JzHvZ6Bmwus56el5ddzki0Yt1FDk9UqnbrjHWETFuk0=",
+                  "metadataUrl": "",
+                  "videoSourceType": "USER_VIDEO"
+                },
+                "messageContextInfo": {
+                  "messageSecret": "lH0UjVh0mWUAvWLdym9AW37/qeOekBQywjubA/LSl0c="
+                }
+              }
+            },
+            "type": "notify"
+          },
+          "webhookUrl": "https://n8n.n8nsrv.ru/webhook/whatsapp-incoming",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "ecda806f-6b4e-4068-bf16-506262bb1099",
+  "activeVersionId": "ecda806f-6b4e-4068-bf16-506262bb1099",
+  "versionCounter": 45,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-11T17:21:02.723Z",
+      "createdAt": "2025-12-11T17:21:02.723Z",
+      "role": "workflow:owner",
+      "workflowId": "PrsqCxCgoZuxnKus",
+      "projectId": "x7frUSUEowDAk8Dt",
+      "project": {
+        "updatedAt": "2025-08-25T18:57:22.218Z",
+        "createdAt": "2025-08-25T08:16:18.805Z",
+        "id": "x7frUSUEowDAk8Dt",
+        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-08-25T08:16:18.805Z",
+            "createdAt": "2025-08-25T08:16:18.805Z",
+            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
+            "projectId": "x7frUSUEowDAk8Dt",
+            "user": {
+              "updatedAt": "2025-12-29T05:00:09.000Z",
+              "createdAt": "2025-08-25T08:16:17.784Z",
+              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
+              "email": "dk@n8nsrv.ru",
+              "firstName": "Dmitriy",
+              "lastName": "Remacs",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
+                "userActivatedAt": 1756286438389
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2025-12-28",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2025-11-23T04:03:40.721Z",
+      "createdAt": "2025-11-23T04:03:40.721Z",
+      "id": "nLdF41tEx70V7m3A",
+      "name": "In"
+    },
+    {
+      "updatedAt": "2025-12-09T18:50:08.518Z",
+      "createdAt": "2025-12-09T18:50:08.518Z",
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2025-12-22T19:19:14.790Z",
+    "createdAt": "2025-12-22T19:19:14.790Z",
+    "versionId": "ecda806f-6b4e-4068-bf16-506262bb1099",
+    "workflowId": "PrsqCxCgoZuxnKus",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-incoming",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "21e3b107-fdf9-4909-9a45-e12f2ade948e",
+        "name": "WhatsApp Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1.1,
+        "position": [
+          -1456,
+          320
+        ],
+        "webhookId": "whatsapp-webhook"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "is-message",
+                "leftValue": "={{ $json.body.type }}",
+                "rightValue": "notify",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {
+            "looseTypeValidation": true
+          }
+        },
+        "id": "2c993461-e0e7-464b-acb1-7b8c59bc3530",
+        "name": "Is Message?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -1264,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { \"success\": true, \"skipped\": true, \"event\": $json.event } }}",
+          "options": {}
+        },
+        "id": "b8878308-0611-4d2d-a851-67876bca3998",
+        "name": "Skip Non-Message",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          -1072,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\n  const event = input.body || input;\n  const msg = event.message || {};\n  const key = msg.key || {};\n  const content = msg.message || {};\n\n  const chatId = key.remoteJid || '';\n\n  // Только входящие от клиентов (@s.whatsapp.net)\n  const isClient = chatId.endsWith('@s.whatsapp.net') && !key.fromMe;\n\n  if (!isClient) {\n    return [];\n  }\n\n  // Has content?\n  const hasText = !!(content.conversation || content.extendedTextMessage?.text);\n  const hasMedia = !!(content.imageMessage || content.videoMessage || content.audioMessage || content.documentMessage);\n\n  if (!hasText && !hasMedia) {\n    return [];\n  }\n\n  const phone = '+' + chatId.replace('@s.whatsapp.net', '');\n\n  const messageText = content.conversation\n    || content.extendedTextMessage?.text\n    || content.imageMessage?.caption\n    || content.videoMessage?.caption\n    || '';\n\n  const timestamp = msg.messageTimestamp\n    ? new Date(msg.messageTimestamp * 1000).toISOString()\n    : new Date().toISOString();\n\n  return {\n    session_id: event.sessionId,\n    chat_id: chatId,\n    phone: phone,\n    message_text: messageText,\n    message_id: key.id,\n    timestamp: timestamp,\n    sender_name: msg.pushName || msg.verifiedBizName || null,\n    has_photo: !!content.imageMessage,\n    has_voice: !!content.audioMessage,\n    has_video: !!content.videoMessage,\n    has_document: !!content.documentMessage,\n    raw_event: event\n  };"
+        },
+        "id": "4d4a2c74-554f-492d-8b53-f4e660931ee1",
+        "name": "Extract WhatsApp Data",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1072,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{ $json.has_voice }}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "e8a40277-bf28-4f53-b12f-44900a16209f",
+        "name": "Has Voice?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          -848,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.voice_url }}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "file"
+              }
+            }
+          }
+        },
+        "id": "e95b8580-c6fc-41ca-941d-48510ba29f6c",
+        "name": "Download Voice",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          -624,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "audio",
+          "operation": "transcribe",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 1.8,
+        "position": [
+          -400,
+          208
+        ],
+        "id": "8b7db0dc-4ed9-4329-9f77-6b998a5317f5",
+        "name": "Transcribe Voice",
+        "credentials": {
+          "openAiApi": {
+            "id": "ptoy1RvCOn39G0Af",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $('Extract WhatsApp Data').first().json;\nconst transcription = $input.first().json.text;\n\nlet messageText = data.message_text;\nif (transcription) {\n  messageText = (messageText ? messageText + '\\n\\n' : '') + transcription;\n}\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: messageText,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: true,\n    voice_transcribed_text: transcription,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: 'voice',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+        },
+        "id": "07d603d1-8064-4f9a-a4d1-212084ccefbd",
+        "name": "Normalize with Voice",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -176,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const data = $input.first().json;\n\nreturn {\n  channel: 'whatsapp',\n  profile_id: data.session_id,\n  external_user_id: data.phone?.replace(/\\+/g, ''),\n  external_chat_id: data.chat_id,\n  \n  text: data.message_text,\n  timestamp: data.timestamp,\n  \n  client_phone: data.phone,\n  client_name: data.sender_name,\n  client_email: null,\n  \n  media: {\n    has_voice: false,\n    voice_transcribed_text: null,\n    has_images: data.has_photo,\n    images: data.has_photo ? [{ url: data.photo_url }] : [],\n    has_video: data.has_video,\n    videos: data.has_video ? [{ url: data.video_url }] : [],\n    has_document: data.has_document\n  },\n  \n  meta: {\n    external_message_id: data.message_id,\n    ad_channel: 'whatsapp',\n    ad_id: null,\n    original_media_type: data.has_photo ? 'photo' : data.has_video ? 'video' : 'text',\n    raw: data.raw_event,\n    provider: data.provider || 'baileys'\n  },\n  \n  prefilled_data: {\n    model: null,\n    parts_owner: null\n  }\n};"
+        },
+        "id": "31069778-bedf-4f95-aa65-d853247c74cc",
+        "name": "Normalize without Voice",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -624,
+          416
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepare message for Redis queue (batcher will handle DB writes)\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
+        },
+        "id": "997f29f3-a685-49de-99a4-71a500494dd7",
+        "name": "Prepare for Queue",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          48,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "push",
+          "list": "queue:incoming",
+          "messageData": "={{ $json.message_json }}",
+          "tail": true
+        },
+        "id": "31e9b30b-cdcf-45ec-b46d-5d1a0100d152",
+        "name": "Push to Queue",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          272,
+          320
+        ],
+        "credentials": {
+          "redis": {
+            "id": "7FQcEivUY94atW24",
+            "name": "Redis account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { \"success\": true, \"queued\": true, \"batch_key\": $json.batch_key } }}",
+          "options": {}
+        },
+        "id": "bf22acf6-bb9e-4fb1-9b99-8df286a96893",
+        "name": "Respond Success",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          496,
+          320
+        ]
+      }
+    ],
+    "connections": {
+      "WhatsApp Trigger": {
+        "main": [
+          [
+            {
+              "node": "Is Message?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Is Message?": {
+        "main": [
+          [
+            {
+              "node": "Extract WhatsApp Data",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Skip Non-Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract WhatsApp Data": {
+        "main": [
+          [
+            {
+              "node": "Has Voice?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Voice?": {
+        "main": [
+          [
+            {
+              "node": "Download Voice",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Normalize without Voice",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Voice": {
+        "main": [
+          [
+            {
+              "node": "Transcribe Voice",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Transcribe Voice": {
+        "main": [
+          [
+            {
+              "node": "Normalize with Voice",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize with Voice": {
+        "main": [
+          [
+            {
+              "node": "Prepare for Queue",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize without Voice": {
+        "main": [
+          [
+            {
+              "node": "Prepare for Queue",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare for Queue": {
+        "main": [
+          [
+            {
+              "node": "Push to Queue",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Queue": {
+        "main": [
+          [
+            {
+              "node": "Respond Success",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Dmitriy Remacs",
+    "name": null,
+    "description": null
+  }
+}
