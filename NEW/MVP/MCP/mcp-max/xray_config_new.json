@@ -1,0 +1,205 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "dns": {
+    "servers": [
+      {
+        "address": "1.1.1.1",
+        "domains": [
+          "geosite:google",
+          "geosite:youtube",
+          "geosite:facebook",
+          "geosite:twitter",
+          "geosite:instagram",
+          "geosite:telegram",
+          "geosite:openai",
+          "geosite:github"
+        ]
+      },
+      {
+        "address": "77.88.8.8",
+        "domains": ["geosite:category-ru"],
+        "expectIPs": ["geoip:ru"]
+      },
+      "8.8.8.8",
+      "localhost"
+    ]
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "BLOCK"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:youtube",
+          "geosite:google",
+          "geosite:facebook",
+          "geosite:twitter",
+          "geosite:instagram",
+          "geosite:telegram",
+          "geosite:openai",
+          "geosite:github",
+          "domain:youtube.com",
+          "domain:googlevideo.com",
+          "domain:ytimg.com",
+          "domain:ggpht.com",
+          "domain:youtu.be",
+          "domain:gemini.google.com",
+          "domain:bard.google.com",
+          "domain:ai.google.com",
+          "domain:veo.google.com",
+          "domain:aistudio.google.com",
+          "domain:openai.com",
+          "domain:chat.openai.com",
+          "domain:api.openai.com",
+          "domain:chatgpt.com",
+          "domain:oaiusercontent.com",
+          "domain:anthropic.com",
+          "domain:claude.ai",
+          "domain:api.anthropic.com",
+          "domain:instagram.com",
+          "domain:cdninstagram.com",
+          "domain:facebook.com",
+          "domain:fbcdn.net",
+          "domain:twitter.com",
+          "domain:x.com",
+          "domain:twimg.com",
+          "domain:tiktok.com",
+          "domain:tiktokcdn.com",
+          "domain:telegram.org",
+          "domain:t.me",
+          "domain:telegram.me",
+          "domain:telegra.ph",
+          "domain:whatsapp.com",
+          "domain:whatsapp.net",
+          "domain:discord.com",
+          "domain:discordapp.com",
+          "domain:discord.gg",
+          "domain:midjourney.com",
+          "domain:linkedin.com",
+          "domain:github.com",
+          "domain:githubusercontent.com",
+          "domain:github.io",
+          "domain:githubassets.com",
+          "domain:figma.com",
+          "domain:cursor.sh",
+          "domain:cursor.com",
+          "domain:linear.app",
+          "domain:cloudflare.com",
+          "domain:vercel.com",
+          "domain:netlify.com",
+          "domain:npmjs.com",
+          "domain:docker.com",
+          "domain:docker.io"
+        ],
+        "outboundTag": "finland"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "91.108.4.0/22",
+          "91.108.8.0/22",
+          "91.108.12.0/22",
+          "91.108.16.0/22",
+          "91.108.56.0/22",
+          "149.154.160.0/20",
+          "160.79.104.0/24",
+          "104.18.0.0/16",
+          "172.64.0.0/16"
+        ],
+        "outboundTag": "finland"
+      },
+      {
+        "type": "field",
+        "network": "tcp,udp",
+        "outboundTag": "direct"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "tag": "VLESS TCP",
+      "listen": "0.0.0.0",
+      "port": 8443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none"
+      }
+    },
+    {
+      "tag": "Shadowsocks TCP",
+      "listen": "0.0.0.0",
+      "port": 1080,
+      "protocol": "shadowsocks",
+      "settings": {
+        "clients": [],
+        "network": "tcp,udp"
+      }
+    },
+    {
+      "tag": "VMess TCP",
+      "listen": "0.0.0.0",
+      "port": 8880,
+      "protocol": "vmess",
+      "settings": {
+        "clients": []
+      },
+      "streamSettings": {
+        "network": "tcp"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "finland",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "31.57.108.168",
+            "port": 443,
+            "users": [
+              {
+                "id": "e4ff90cd-1a65-441b-a854-d9075f751fb0",
+                "encryption": "none",
+                "flow": "xtls-rprx-vision"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "www.google.com",
+          "fingerprint": "chrome",
+          "publicKey": "iwtv4m2dI9Dw9q-bYZB0BuA7NohZq1U47pF1R3aKxW0",
+          "shortId": "0123456789abcdef"
+        }
+      }
+    },
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP"
+      }
+    },
+    {
+      "tag": "BLOCK",
+      "protocol": "blackhole"
+    }
+  ]
+}

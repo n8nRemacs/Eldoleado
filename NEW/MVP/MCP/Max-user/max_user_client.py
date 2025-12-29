@@ -180,7 +180,7 @@ class MaxUserClient:
 
         try:
             await self._ws.send(json.dumps(packet))
-            logger.debug(f"Sent opcode {opcode}, seq {seq}")
+            logger.info(f"SEND: opcode={opcode}, seq={seq}, payload_keys={list(payload.keys()) if payload else []}")
 
             # Wait for response (timeout 30s)
             response = await asyncio.wait_for(future, timeout=30.0)
@@ -217,6 +217,20 @@ class MaxUserClient:
         opcode = packet.get("opcode")
         payload = packet.get("payload", {})
 
+        # Debug: log all incoming packets
+        logger.info(f"RECV: cmd={cmd}, seq={seq}, opcode={opcode}, payload_keys={list(payload.keys()) if payload else []}")
+
+        # Handle error responses (cmd=3)
+        if cmd == 3:
+            error_msg = payload.get("message") or payload.get("localizedMessage") or payload.get("description") or "Unknown error"
+            error_code = payload.get("error", "")
+            logger.error(f"MAX API Error: {error_msg} (code: {error_code}), full_payload={payload}")
+            if seq in self._pending:
+                future = self._pending.pop(seq)
+                if not future.done():
+                    future.set_exception(MaxUserAPIError(error_msg, code=error_code, payload=payload))
+            return
+
         if cmd == 1:  # Response
             # Check if this is a response to our request
             if seq in self._pending:
@@ -249,17 +263,18 @@ class MaxUserClient:
         """Send Hello packet to initialize device."""
         payload = {
             "userAgent": {
-                "deviceType": "ANDROID",
+                "deviceType": "WEB",
                 "locale": "ru_RU",
-                "osVersion": "Windows",
-                "deviceName": "Eldoleado Client",
+                "osVersion": "Windows 10",
+                "deviceName": "Chrome",
                 "appVersion": "25.12.1",
                 "screen": "1920x1080",
                 "timezone": "Europe/Moscow"
             },
             "deviceId": self._device_id
         }
-        await self._send(Opcodes.HELLO, payload)
+        response = await self._send(Opcodes.HELLO, payload)
+        logger.info(f"HELLO response: {response}")
 
     # ========== Auth Methods ==========
 

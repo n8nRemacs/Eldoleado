@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mcp-max:
+    build: .
+    container_name: mcp-max
+    restart: unless-stopped
+    ports:
+      - "8768:8768"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8768
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/4}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+    networks:
+      - mcp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8768/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: mcp-max-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - mcp-network
+
+volumes:
+  redis-data:
+
+networks:
+  mcp-network:
+    driver: bridge
