@@ -33,10 +33,17 @@ export interface SessionManagerOptions {
 export class SessionManager {
   private sessions: Map<string, BaileysClient> = new Map();
   private sessionsByHash: Map<string, string> = new Map(); // hash -> sessionId
+  private sessionCreatedAt: Map<string, number> = new Map(); // sessionId -> timestamp
   private sessionsDir: string;
   private redis: Redis | null = null;
   private defaultWebhookUrl?: string;
   private defaultProxyUrl?: string;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+
+  // QR session timeout: 10 minutes
+  private static readonly QR_TIMEOUT_MS = 10 * 60 * 1000;
+  // Cleanup check interval: 60 seconds
+  private static readonly CLEANUP_INTERVAL_MS = 60 * 1000;
 
   constructor(options: SessionManagerOptions) {
     this.sessionsDir = options.sessionsDir;
@@ -56,6 +63,59 @@ export class SessionManager {
       });
       this.redis.on('connect', () => logger.info('Redis connected'));
       this.redis.on('error', (err) => logger.error('Redis error:', err.message));
+    }
+
+    // Start cleanup interval for stale QR sessions
+    this.startCleanupInterval();
+  }
+
+  // Start periodic cleanup of stale QR sessions
+  private startCleanupInterval(): void {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupStaleQRSessions();
+    }, SessionManager.CLEANUP_INTERVAL_MS);
+
+    logger.info('QR session cleanup interval started (check every 60s, timeout 10min)');
+  }
+
+  // Clean up sessions stuck in QR state for too long
+  private cleanupStaleQRSessions(): void {
+    const now = Date.now();
+    const staleSessionIds: string[] = [];
+
+    for (const [sessionId, client] of this.sessions) {
+      const createdAt = this.sessionCreatedAt.get(sessionId);
+      if (!createdAt) continue;
+
+      const status = client.getStatus();
+      const age = now - createdAt;
+
+      // Only clean up sessions in 'qr' or 'connecting' state
+      if ((status === 'qr' || status === 'connecting') && age > SessionManager.QR_TIMEOUT_MS) {
+        staleSessionIds.push(sessionId);
+      }
+    }
+
+    // Delete stale sessions
+    for (const sessionId of staleSessionIds) {
+      const age = Math.round((now - (this.sessionCreatedAt.get(sessionId) || 0)) / 1000 / 60);
+      logger.info(`Removing stale QR session: ${sessionId} (age: ${age} min)`);
+
+      // Remove from maps without calling logout (no credentials to clear)
+      const client = this.sessions.get(sessionId);
+      if (client) {
+        client.disconnect().catch(() => {}); // Ignore errors
+      }
+
+      const hash = this.generateHash(sessionId);
+      this.sessions.delete(sessionId);
+      this.sessionsByHash.delete(hash);
+      this.sessionCreatedAt.delete(sessionId);
+      this.deleteSessionFromRedis(sessionId).catch(() => {});
+    }
+
+    if (staleSessionIds.length > 0) {
+      logger.info(`Cleaned up ${staleSessionIds.length} stale QR session(s)`);
     }
   }
 
@@ -124,6 +184,8 @@ export class SessionManager {
       },
       onConnected: async (info) => {
         logger.info(`Session ${sessionId} connected as ${info.phone}`);
+        // Clear createdAt timestamp - session is now connected, no cleanup needed
+        this.sessionCreatedAt.delete(sessionId);
         await this.saveSessionToRedis(sessionId, {
           ...info,
           tenantId: request.tenantId,
@@ -148,6 +210,7 @@ export class SessionManager {
 
     this.sessions.set(sessionId, client);
     this.sessionsByHash.set(hash, sessionId);
+    this.sessionCreatedAt.set(sessionId, Date.now());
 
     // Start connection
     await client.connect();
@@ -174,6 +237,7 @@ export class SessionManager {
       const hash = this.generateHash(sessionId);
       this.sessions.delete(sessionId);
       this.sessionsByHash.delete(hash);
+      this.sessionCreatedAt.delete(sessionId);
       await this.deleteSessionFromRedis(sessionId);
       logger.info(`Session ${sessionId} deleted`);
     }
@@ -316,6 +380,14 @@ export class SessionManager {
   // Shutdown all sessions
   async shutdown(): Promise<void> {
     logger.info('Shutting down all sessions...');
+
+    // Stop cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+      logger.info('QR session cleanup interval stopped');
+    }
+
     for (const [sessionId, client] of this.sessions) {
       try {
         await client.disconnect();

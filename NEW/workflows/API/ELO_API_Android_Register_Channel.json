@@ -92,7 +92,25 @@
     },
     {
       "parameters": {
-        "jsCode": "// Check ownership and decide action\nconst input = $('Validate Input').first().json;\nconst operator = $('Get Operator by Token').first().json;\nconst existing = $('Check Existing Channel').first().json;\n\nconst tenantId = operator.tenant_id;\nconst operatorId = operator.operator_id;\n\n// Check if channel already exists\nif (existing && existing.id) {\n  // Channel exists\n  if (existing.tenant_id === tenantId) {\n    // Same tenant - allow update\n    return {\n      action: 'update',\n      channel_account_id: existing.id,\n      tenant_id: tenantId,\n      operator_id: operatorId,\n      ...input\n    };\n  } else {\n    // Different tenant - REJECT\n    return {\n      action: 'reject',\n      error: 'CHANNEL_ALREADY_REGISTERED',\n      message: 'Этот канал уже зарегистрирован другой компанией'\n    };\n  }\n} else {\n  // New channel - allow insert\n  return {\n    action: 'insert',\n    tenant_id: tenantId,\n    operator_id: operatorId,\n    ...input\n  };\n}"
+        "operation": "executeQuery",
+        "query": "SELECT \n  (t.channel_limits->>'{{ $('Validate Input').first().json.channel }}')::int as limit_value,\n  COUNT(ca.id) as current_count\nFROM elo_t_tenants t\nLEFT JOIN elo_t_channel_accounts ca ON ca.tenant_id = t.id\n  AND ca.channel_id = {{ $('Validate Input').first().json.channel_id }}\n  AND ca.session_status IN ('connected', 'qr')\n  AND ca.is_active = true\nWHERE t.id = '{{ $('Get Operator by Token').first().json.tenant_id }}'\nGROUP BY t.id;",
+        "options": {}
+      },
+      "id": "check-limit-001",
+      "name": "Check Channel Limit",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [880, -200],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check ownership, limits, and decide action\nconst input = $('Validate Input').first().json;\nconst operator = $('Get Operator by Token').first().json;\nconst existing = $('Check Existing Channel').first().json;\nconst limitData = $('Check Channel Limit').first().json;\n\nconst tenantId = operator.tenant_id;\nconst operatorId = operator.operator_id;\n\n// Channel names for user-friendly messages\nconst channelNames = {\n  'whatsapp': 'WhatsApp',\n  'telegram': 'Telegram',\n  'avito': 'Avito',\n  'vk': 'ВКонтакте',\n  'max': 'MAX'\n};\nconst channelName = channelNames[input.channel] || input.channel;\n\n// Check if channel already exists\nif (existing && existing.id) {\n  // Channel exists\n  if (existing.tenant_id === tenantId) {\n    // Same tenant - allow update (no limit check needed for update)\n    return {\n      action: 'update',\n      channel_account_id: existing.id,\n      tenant_id: tenantId,\n      operator_id: operatorId,\n      ...input\n    };\n  } else {\n    // Different tenant - REJECT\n    return {\n      action: 'reject',\n      error: 'CHANNEL_ALREADY_REGISTERED',\n      message: 'Этот канал уже зарегистрирован другой компанией'\n    };\n  }\n} else {\n  // New channel - check limit before insert\n  const limitValue = limitData.limit_value || 1;\n  const currentCount = parseInt(limitData.current_count || 0);\n  \n  if (currentCount >= limitValue) {\n    return {\n      action: 'reject',\n      error: 'CHANNEL_LIMIT_EXCEEDED',\n      message: `Превышен лимит подключений ${channelName}. Отключите активный аккаунт, чтобы подключить новый.`\n    };\n  }\n  \n  return {\n    action: 'insert',\n    tenant_id: tenantId,\n    operator_id: operatorId,\n    ...input\n  };\n}"
       },
       "id": "decide-action-001",
       "name": "Decide Action",
@@ -285,6 +303,9 @@
       ]
     },
     "Check Existing Channel": {
+      "main": [[{ "node": "Check Channel Limit", "type": "main", "index": 0 }]]
+    },
+    "Check Channel Limit": {
       "main": [[{ "node": "Decide Action", "type": "main", "index": 0 }]]
     },
     "Decide Action": {
