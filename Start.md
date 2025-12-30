@@ -1,41 +1,101 @@
 # Start Session - 2025-12-31
 
-## Текущий статус: WhatsApp работает, нужно исправить Android App
+## Текущий статус: Исправлен формат push-уведомлений
 
-WhatsApp webhook работает, push-уведомления доходят, но в приложении есть проблемы.
+WhatsApp webhook работает, push-уведомления доходят. Исправлен формат message объекта для real-time обновления в Android приложении.
 
 ---
 
-## ИЗВЕСТНЫЕ ПРОБЛЕМЫ (приоритет)
+## ЧТО СДЕЛАНО 2025-12-31
 
-### 1. Android App - Сообщения не обновляются в открытом диалоге
+### 1. ELO_Core_AI_Test_Stub_WS - Исправлен формат push
 
-**Симптом:** Когда открыт диалог, новые входящие сообщения не отображаются. Нужно выйти и зайти обратно.
+**Проблема:** Сообщения не обновлялись в открытом диалоге Android приложения
 
-**Файлы для исследования:**
-- `app/.../operator/ChatFragment.kt` - слушает `BROADCAST_NEW_MESSAGE`
-- `app/.../operator/ChatsRepository.kt` - `addIncomingMessage()`, `getMessagesLiveData()`
-- `app/.../operator/OperatorWebSocketService.kt` - `broadcastNewMessage()`
-- `app/.../operator/models/ChatModels.kt` - `ChatMessage.fromJson()` ожидает snake_case поля
+**Причина:** Workflow отправлял:
+- `type` вместо `action`
+- данные вложенные в `data` объект
+- отсутствовал `message` объект с snake_case полями
 
-**Формат message от сервера должен быть:**
+**Решение:** Обновлён `Build WS Push Requests` node:
+```javascript
+// ВАЖНО: message fields ДОЛЖНЫ быть snake_case для Android app
+{
+  operator_id: op.json.operator_id,
+  action: 'new_message',
+  dialog_id: String(testResponse.dialog_id || ''),
+  title: 'Новое сообщение',
+  body: testResponse.message?.text || 'У вас новое сообщение',
+  message: {
+    id: 'msg_' + Date.now(),
+    chat_id: String(testResponse.external_chat_id || ''),
+    channel: String(testResponse.channel_id || ''),
+    text: testResponse.message?.text || '',
+    sender_name: testResponse.client?.name || 'Клиент',
+    sender_phone: testResponse.client?.phone || '',
+    server_id: ''
+  }
+}
+```
+
+**Файл:** `NEW/workflows/Core/ELO_Core_AI_Test_Stub_WS.json`
+
+---
+
+## ДЕЙСТВИЯ В n8n (вручную)
+
+### 1. Импортировать обновлённый ELO_Core_AI_Test_Stub_WS
+
+1. Открыть n8n UI: https://n8n.n8nsrv.ru
+2. Импортировать: `NEW/workflows/Core/ELO_Core_AI_Test_Stub_WS.json`
+3. Активировать workflow
+
+### 2. Send WebSocket Push - включить Continue On Fail
+
+В ноде `Send WebSocket Push` включить **Settings → Continue On Fail** (иногда timeout)
+
+---
+
+## Формат message для Android App
+
+Android `ChatMessage.fromJson()` ожидает snake_case:
 ```json
 {
   "id": "msg_123",
-  "chat_id": "79997253777",
+  "chat_id": "79997253777@s.whatsapp.net",
   "channel": "whatsapp",
-  "text": "...",
+  "text": "Текст сообщения",
   "sender_name": "Клиент",
-  "sender_phone": "79997253777",
+  "sender_phone": "+79997253777",
   "server_id": ""
 }
 ```
 
-### 2. Дублирование уведомлений
+---
+
+## ИЗВЕСТНЫЕ ПРОБЛЕМЫ
+
+### 1. Дублирование уведомлений
 
 **Симптом:** Иногда приходит 2 одинаковых push-уведомления
 
 **Где искать:** BAT Debouncer в n8n workflows
+
+### 2. ELO_In_WhatsApp - два формата webhook
+
+Текущий workflow использует старый Baileys формат:
+```javascript
+event.message.key.remoteJid
+event.message.message.conversation
+```
+
+mcp-whatsapp-arceos может отправлять новый формат:
+```javascript
+body.data.from
+body.data.text
+```
+
+Нужно проверить какой формат реально приходит и обновить при необходимости.
 
 ---
 
@@ -59,27 +119,6 @@ WhatsApp webhook работает, push-уведомления доходят, �
 
 ---
 
-## Что было сделано 2025-12-30
-
-1. **mcp-whatsapp-arceos** - исправлен webhook (читал неправильную env переменную)
-2. **api-android** - добавлен internal API key для n8n (`X-Internal-Key: elo-internal-2024`)
-3. **api-android** - добавлена передача `message` объекта в WebSocket push
-
----
-
-## n8n Workflows - нужно обновить
-
-### ELO_In_WhatsApp - Extract WhatsApp Data
-
-Код в Stop.md, нужно обновить в n8n UI под новый формат webhook от mcp-whatsapp-arceos.
-
-### ELO_Core_AI_Test_Stub_WS
-
-- `Send WebSocket Push` - включить **Continue On Fail**
-- `Build WS Push Requests` - использовать snake_case для message полей
-
----
-
 ## SSH
 
 ```bash
@@ -99,7 +138,7 @@ ssh root@155.212.221.189 "docker logs mcp-whatsapp-ip1 --tail 50"
 ssh root@155.212.221.189 "docker logs android-api --tail 50"
 
 # Проверить WebSocket соединения
-curl -s http://155.212.221.189:8780/api/push/connections -H "Authorization: <token>"
+curl -s http://155.212.221.189:8780/api/push/connections -H "X-Internal-Key: elo-internal-2024"
 
 # Health checks
 curl http://155.212.221.189:8769/health
@@ -112,9 +151,9 @@ curl http://155.212.221.189:8780/health
 
 | Файл | Описание |
 |------|----------|
-| Stop.md | Детали изменений 30.12 + код для n8n |
+| Stop.md | Детали изменений 30.12 |
 | CLAUDE.md | Основная документация проекта |
 
 ---
 
-*Последнее обновление: 2025-12-30*
+*Последнее обновление: 2025-12-31*
