@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/vertical_search_filter_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/vertical_search_filter_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

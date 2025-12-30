@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/bx_content_fragment_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/bx_content_fragment_root"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <include layout="@layout/bx_app_bar"/>
+        <ViewStub
+            android:id="@+id/map"
+            android:visibility="gone"
+            android:layout="@layout/bx_map_feature"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <include layout="@layout/bx_content_feature"/>
+        <FrameLayout
+            android:id="@+id/search_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <include layout="@layout/edge_to_edge_fake_status_bar"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <include layout="@layout/search_map_additional_buttons"/>
+</LinearLayout>

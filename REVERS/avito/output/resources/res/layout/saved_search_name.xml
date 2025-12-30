@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/saved_search_name_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_titleAppearance="?attr/textH5"
+    app:componentContainer_titleSpacing="8dp">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/name_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLength="50"
+        android:inputType="textCapSentences"
+        android:imeOptions="flagNoExtractUi|actionDone"
+        app:input_clearButton="true"
+        app:input_clearButtonUnfocused="true"
+        app:input_focusByClearButton="true"
+        style="?attr/input"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

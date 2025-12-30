@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/verification_item_input_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/verification_item_input_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:componentContainer_messageAppearance="?attr/textS10"
+        app:componentContainer_subtitleAppearance="?attr/textH50"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/verification_item_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/input"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bx_content_fragment_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/hero_banner_shadow"
+        android:visibility="gone"
+        android:fitsSystemWindows="true"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
+    <include layout="@layout/bx_app_bar"/>
+    <ViewStub
+        android:id="@+id/map"
+        android:visibility="gone"
+        android:layout="@layout/bx_map_feature"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <include layout="@layout/bx_content_feature"/>
+    <FrameLayout
+        android:id="@+id/search_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <include layout="@layout/edge_to_edge_fake_status_bar"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

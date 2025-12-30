@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/difference_imv_avg_price_param_margin_bottom">
+    <ImageView
+        android:id="@+id/param_icon"
+        android:layout_width="@dimen/difference_imv_avg_price_param_icon_size"
+        android:layout_height="@dimen/difference_imv_avg_price_param_icon_size"
+        android:layout_marginTop="@dimen/difference_imv_avg_price_param_icon_margin"
+        android:layout_marginBottom="@dimen/difference_imv_avg_price_param_icon_margin_bottom"
+        android:layout_marginEnd="@dimen/difference_imv_avg_price_param_icon_margin"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/param_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

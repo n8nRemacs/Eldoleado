@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/loyalty_entry_view_container"
+    android:background="@drawable/bg_btn_flat_toolbar_action"
+    android:clipChildren="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingEnd="6dp"
+    android:layout_marginHorizontal="6dp">
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_gravity="center"
+        android:id="@+id/loyalty_entry_button"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginVertical="6dp"
+        app:srcCompat="?attr/ic_buyerBonuses24"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:layout_gravity="center"
+        android:id="@+id/loyalty_entry_button_skeleton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginVertical="6dp"
+        style="?attr/shimmerDefault">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:skeleton_radius="16dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+    <TextView
+        android:textColor="?attr/black"
+        android:layout_gravity="center"
+        android:id="@+id/loyalty_entry_bonuses_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:layout_marginStart="4dp"
+        style="?attr/textM20"/>
+</LinearLayout>

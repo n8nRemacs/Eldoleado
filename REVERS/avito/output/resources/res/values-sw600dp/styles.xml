@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PlanCalendarBottomSheetDialogStyle" parent="@style/Design.Widget.BottomSheetDialog">
+        <item name="bottomSheet_style">@style/PlanCalendarBottomSheetDialogStyle.Modal</item>
+    </style>
+    <style name="PlanCalendarBottomSheetDialogStyle.Modal" parent="@style/Design.Widget.BottomSheetDialog.Modal">
+        <item name="android:maxHeight">512dp</item>
+    </style>
+    <style name="Theme.ThemeOnboarding.Notch" parent="">
+        <item name="android:visibility">2</item>
+    </style>
+    <style name="Widget.Avito.AdvertXlPager" parent="">
+        <item name="android:layout_width">-1</item>
+        <item name="android:layout_height">-1</item>
+        <item name="android:minWidth">426dp</item>
+        <item name="android:minHeight">240dp</item>
+        <item name="android:overScrollMode">2</item>
+    </style>
+    <style name="Widget.Avito.SimpleDraweeView.Serp.Item.Image.XlAdvert" parent="@style/Widget.Avito.SimpleDraweeView.Serp.Item.Image">
+        <item name="android:layout_width">-2</item>
+        <item name="android:layout_height">-1</item>
+        <item name="android:minWidth">426dp</item>
+        <item name="android:minHeight">240dp</item>
+        <item name="actualImageScaleType">centerCrop</item>
+        <item name="overlayImage">?attr/blackAlpha8</item>
+    </style>
+    <style name="Widget.Design.TabLayout" parent="@style/Base.Widget.Design.TabLayout">
+        <item name="tabGravity">center</item>
+        <item name="tabMode">fixed</item>
+    </style>
+</resources>

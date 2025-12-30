@@ -13,7 +13,7 @@ pool: Optional[asyncpg.Pool] = None
 
 
 async def init_db():
-    """Initialize database connection pool."""
+    """Initialize database connection pool. Optional - WebSocket works without DB."""
     global pool
     try:
         pool = await asyncpg.create_pool(
@@ -24,8 +24,8 @@ async def init_db():
         )
         logger.info("Database pool created")
     except Exception as e:
-        logger.error(f"Failed to create database pool: {e}")
-        raise
+        logger.warning(f"Database connection failed: {e}. Channel auth disabled, WebSocket OK.")
+        pool = None
 
 
 async def close_db():

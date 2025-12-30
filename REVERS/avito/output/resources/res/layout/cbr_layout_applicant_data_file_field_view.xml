@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ru.cyberity.cbr.core.widget.CBRSubtitle1TextView
+        android:id="@+id/cbr_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_medium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRSubtitle2TextView
+        android:id="@+id/cbr_example"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cbr_label"/>
+    <ru.cyberity.cbr.core.widget.CBRCheckGroup
+        android:orientation="vertical"
+        android:id="@+id/cbr_data_file"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_medium"
+        android:divider="@drawable/cbr_file_items_separator"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cbr_example"/>
+    <ru.cyberity.cbr.core.widget.CBRTextView
+        android:id="@+id/cbr_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cbr_textColor="?attr/colorOnError"
+        app:layout_constraintTop_toBottomOf="@+id/cbr_data_file"/>
+</merge>

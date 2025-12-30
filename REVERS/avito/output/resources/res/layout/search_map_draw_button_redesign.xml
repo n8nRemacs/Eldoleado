@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_width="@dimen/search_map_controls_size"
+    android:layout_height="@dimen/search_map_controls_size">
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/search_map_draw_button_image"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        app:srcCompat="@drawable/ic_drawing_touch"/>
+</FrameLayout>

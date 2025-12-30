@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/str_seller_orders_important_to_note_buyer_avatar_background"/>
+    <item>
+        <inset android:inset="2dp">
+            <shape android:shape="oval">
+                <solid android:color="?attr/warmGray8"/>
+                <corners android:radius="@dimen/str_seller_orders_important_to_note_buyer_avatar_image_radius"/>
+            </shape>
+        </inset>
+    </item>
+</layer-list>

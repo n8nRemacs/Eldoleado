@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/seller_carousel_item_overlay_bg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:textColor="?attr/white"
+        android:id="@+id/overlay_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/textXl10"/>
+    <TextView
+        android:textColor="?attr/white"
+        android:id="@+id/overlay_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/textMicro"/>
+</LinearLayout>

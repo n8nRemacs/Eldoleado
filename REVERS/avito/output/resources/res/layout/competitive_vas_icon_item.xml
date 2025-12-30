@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.drawee.view.SimpleDraweeView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/icon"
+    android:layout_width="@dimen/competitive_vas_icon_size"
+    android:layout_height="@dimen/competitive_vas_icon_size"
+    android:layout_marginHorizontal="@dimen/competitive_icon_padding"/>

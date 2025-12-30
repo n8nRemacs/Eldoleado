@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.shadow_layout.ShadowLinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    style="@style/MapPinShadowLayout">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingVertical="8dp"
+        app:layout_shadowEnabled="true">
+        <androidx.constraintlayout.widget.Guideline
+            android:orientation="horizontal"
+            android:id="@+id/middle_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintGuide_percent="0.5"/>
+        <TextView
+            android:textAppearance="?attr/textH70"
+            android:id="@+id/price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            app:layout_constraintBottom_toTopOf="@+id/middle_guideline"
+            app:layout_constraintStart_toStartOf="parent"/>
+        <TextView
+            android:textAppearance="?attr/textS20"
+            android:id="@+id/development"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/middle_guideline"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <View
+        android:layout_gravity="center"
+        android:background="@drawable/circle_point_pin"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginTop="2dp"/>
+</com.avito.android.lib.design.shadow_layout.ShadowLinearLayout>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/redesign_checkbox_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_contentPaddingTop="12dp"
+    app:componentContainer_textPaddingLeft="@dimen/filter_item_horizontal_padding"
+    app:componentContainer_textPaddingRight="@dimen/filter_item_horizontal_padding">
+    <com.avito.android.lib.design.list_item.ListItemCheckbox
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/filters_checkbox"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/filter_item_horizontal_padding"
+        style="?attr/listItemCheckboxDefaultMedium"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/item_geo_zone_margin_top"
+    android:paddingHorizontal="@dimen/map_bottom_sheet_recycler_view_margin"
+    style="?attr/shimmerDefault">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:id="@+id/skeleton_1"
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.6"
+            app:skeleton_radius="6dp"/>
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:id="@+id/skeleton_2"
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/skeleton_1"
+            app:skeleton_radius="6dp"/>
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:id="@+id/skeleton_3"
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/skeleton_2"
+            app:skeleton_radius="6dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.select.collapsable_chips.CollapsableChips xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/collapsable_chips"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    app:collapse_button_title="@string/show_less"
+    app:expand_button_pattern="@string/show_more_pattern"
+    app:flexDirection="row"
+    app:flexWrap="wrap"
+    app:max_lines="3"/>

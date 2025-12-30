@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_black_alpha_32">
+    <item>
+        <inset
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp">
+            <shape android:shape="oval">
+                <size
+                    android:height="64dp"
+                    android:width="64dp"/>
+                <solid android:color="@color/expected_social_vk"/>
+            </shape>
+        </inset>
+    </item>
+</ripple>

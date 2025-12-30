@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_profile_change_specific_root"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.nav_bar.NavBar
+        android:id="@+id/change_specific_nav_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/change_specific_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/change_specific_continue_button"
+        app:layout_constraintTop_toBottomOf="@+id/change_specific_nav_bar"
+        app:layout_goneMarginBottom="36dp"/>
+    <View
+        android:background="?attr/white"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/change_specific_continue_button"/>
+    <com.avito.android.lib.design.button.Button
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/change_specific_continue_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/extended_profile_change_specific_continue"
+        android:layout_marginHorizontal="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_goneMarginBottom="32dp"
+        style="?attr/buttonPrimaryLarge"/>
+    <FrameLayout
+        android:id="@+id/change_specific_error_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/change_specific_nav_bar">
+        <include layout="@layout/error_and_progress_view_redesign"/>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

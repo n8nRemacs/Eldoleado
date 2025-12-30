@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:tag="images_groups_recommendations"
+    android:paddingTop="?attr/publish_componentContainer_paddingTop"
+    android:paddingBottom="?attr/publish_componentContainer_paddingBottom"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding">
+    <TextView
+        android:textAppearance="?attr/textH50"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:id="@+id/title_skeleton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/shimmerDefault">
+        <View
+            android:background="@drawable/bg_images_groups_recommendations_title_skeleton"
+            android:layout_width="315dp"
+            android:layout_height="10dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recommendation_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:nestedScrollingEnabled="false"
+        style="?attr/photoUploaderList"/>
+</LinearLayout>

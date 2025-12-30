@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/publish_fab_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/user_adverts_publish_advert"
+        android:contentDescription="@null"
+        style="?attr/buttonPrimaryLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/secondary_fab_button"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:contentDescription="@null"
+        style="?attr/buttonSecondaryLarge"/>
+</merge>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/notifications_settings_screen_screen_root"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.nav_bar.NavBar
+        android:id="@+id/nc_settings_nav_bar"
+        android:paddingTop="15dp"
+        android:paddingBottom="17dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"/>
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/content"
+            android:paddingBottom="4dp"
+            android:scrollbars="none"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+</LinearLayout>

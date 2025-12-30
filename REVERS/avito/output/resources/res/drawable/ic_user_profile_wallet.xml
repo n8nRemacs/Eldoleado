@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="48dp"
+    android:width="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <group>
+        <clip-path android:pathData="M12,0L36,0A12,12 0,0 1,48 12L48,36A12,12 0,0 1,36 48L12,48A12,12 0,0 1,0 36L0,12A12,12 0,0 1,12 0z"/>
+        <group>
+            <clip-path android:pathData="M12,0L36,0A12,12 0,0 1,48 12L48,36A12,12 0,0 1,36 48L12,48A12,12 0,0 1,0 36L0,12A12,12 0,0 1,12 0z"/>
+            <path
+                android:fillColor="#ffffff"
+                android:pathData="M12,0L36,0A12,12 0,0 1,48 12L48,36A12,12 0,0 1,36 48L12,48A12,12 0,0 1,0 36L0,12A12,12 0,0 1,12 0z"/>
+            <path
+                android:fillColor="@drawable/_ic_user_profile_wallet__0_res_0x7f080095"
+                android:pathData="M12,0L36,0A12,12 0,0 1,48 12L48,36A12,12 0,0 1,36 48L12,48A12,12 0,0 1,0 36L0,12A12,12 0,0 1,12 0z"/>
+            <path
+                android:fillColor="#ffffff"
+                android:pathData="M-2.286,13.143C-2.286,12.196 -1.518,11.429 -0.571,11.429H38.286C39.233,11.429 40,12.196 40,13.143V47.429C40,48.375 39.233,49.143 38.286,49.143H-0.571C-1.518,49.143 -2.286,48.375 -2.286,47.429V13.143Z"/>
+            <path
+                android:fillColor="@drawable/_ic_user_profile_wallet__1_res_0x7f080096"
+                android:pathData="M-2.286,13.143C-2.286,12.196 -1.518,11.429 -0.571,11.429H38.286C39.233,11.429 40,12.196 40,13.143V47.429C40,48.375 39.233,49.143 38.286,49.143H-0.571C-1.518,49.143 -2.286,48.375 -2.286,47.429V13.143Z"
+                android:fillAlpha="0.5"/>
+            <path
+                android:fillColor="#04e061"
+                android:pathData="M30.857,29.715m-3.429,0a3.429,3.429 0,1 1,6.857 0a3.429,3.429 0,1 1,-6.857 0"/>
+            <path
+                android:fillColor="@drawable/_ic_user_profile_wallet__2_res_0x7f080097"
+                android:pathData="M30.857,29.715m-3.429,0a3.429,3.429 0,1 1,6.857 0a3.429,3.429 0,1 1,-6.857 0"/>
+        </group>
+    </group>
+</vector>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/cv_phone_actualization_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/cv_phone_actualization_actions_container"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:dividerDrawable="@drawable/divider_16dp"
+        app:flexDirection="row"
+        app:flexWrap="wrap"
+        app:showDivider="middle"/>
+</LinearLayout>

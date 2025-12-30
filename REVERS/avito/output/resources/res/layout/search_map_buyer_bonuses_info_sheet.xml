@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.fresco.SimpleDraweeView
+            android:id="@+id/bonuses_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:actualImageScaleType="centerCrop"
+            app:placeholderImage="?attr/img_logoPhotoPlaceholder"
+            app:placeholderImageScaleType="centerCrop"
+            app:viewAspectRatio="1.93"/>
+        <TextView
+            android:textColor="?attr/black"
+            android:id="@+id/bonuses_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="24dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:id="@+id/bonuses_button"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            style="?attr/buttonPrimaryLarge"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

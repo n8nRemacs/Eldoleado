@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:top="@dimen/publish_appbar_popup_inner_vertical_padding"
+        android:bottom="@dimen/publish_appbar_popup_inner_vertical_padding">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/publish_appbar_popup_corner_radius"/>
+            <solid android:color="@color/legacy_gray_84"/>
+        </shape>
+    </item>
+</layer-list>

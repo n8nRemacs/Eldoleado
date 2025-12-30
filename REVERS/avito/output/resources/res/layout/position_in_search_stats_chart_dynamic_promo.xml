@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/position_in_search_stats_chart_promo">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/sdv_position_chart_dynamic_promo"
+        android:visibility="gone"
+        android:layout_width="@dimen/position_in_search_stats_chart_promo"
+        android:layout_height="@dimen/position_in_search_stats_chart_promo"
+        app:roundedCornerRadius="@dimen/position_in_search_stats_chart_promo"/>
+</FrameLayout>

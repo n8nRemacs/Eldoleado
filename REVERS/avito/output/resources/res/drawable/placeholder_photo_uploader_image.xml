@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:gravity="center"
+        android:drawable="@drawable/ic_stub_grey"
+        android:left="42dp"
+        android:top="42dp"
+        android:right="42dp"
+        android:bottom="42dp"/>
+</layer-list>

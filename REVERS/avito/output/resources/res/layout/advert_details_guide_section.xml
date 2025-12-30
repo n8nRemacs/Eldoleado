@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/section_container"
+    android:padding="16dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="@dimen/guide_section_max_height"
+    android:minHeight="@dimen/guide_section_min_height">
+    <TextView
+        android:textAppearance="?attr/textHeadingSmall"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:textColor="@color/design_text_color_black_selector"
+        android:ellipsize="end"
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="3"/>
+</LinearLayout>

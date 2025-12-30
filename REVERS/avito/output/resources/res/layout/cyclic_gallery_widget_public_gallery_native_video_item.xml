@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.RatioFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/gallery_native_video_root"
+    android:background="@drawable/gallery_item_bg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:foreground="@drawable/native_video_foreground">
+    <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:resize_mode="zoom"
+        app:shutter_background_color="@color/legacy_white"
+        app:surface_type="texture_view"
+        app:use_controller="false"/>
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/thumbnail_view"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:overlayImage="@color/expected_advert_overlay"
+        app:roundedCornerRadius="@dimen/serp_gallery_item_radius"
+        style="@style/Widget.Avito.SimpleDraweeView.Serp.Item.Image"/>
+</com.avito.android.lib.util.layout.RatioFrameLayout>

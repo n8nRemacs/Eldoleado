@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/web_payment_root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/toolbar"/>
+    <FrameLayout
+        android:id="@+id/web_payment_content_holder"
+        android:background="?attr/constantWhite"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        style="@style/ContentHolder">
+        <com.yatatsu.powerwebview.PowerWebView
+            android:id="@+id/web_payment_webview"
+            android:background="?attr/transparentBlack"
+            android:paddingTop="8dp"
+            android:scrollbars="none"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:dom_storage_enabled="true"/>
+    </FrameLayout>
+</FrameLayout>

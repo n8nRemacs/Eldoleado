@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/cpt_button_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="20dp">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/cpt_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        style="?attr/buttonPrimaryLarge"/>
+    <TextView
+        android:textAppearance="?attr/textS2"
+        android:textColor="?attr/gray48"
+        android:id="@+id/cpt_text_agreement"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

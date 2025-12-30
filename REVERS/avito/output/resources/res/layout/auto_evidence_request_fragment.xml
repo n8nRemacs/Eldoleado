@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/auto_evidence_root"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ru.avito.component.toolbar.AppBarLayoutWithTextAction
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stateListAnimator="@drawable/appbar_allways_unelevated"
+        app:action_title="@string/auto_evidence_request_cancel_button"
+        app:layout="@layout/collapsing_title_appbar_layout"
+        app:titlesBottomPadding="0dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:paddingTop="8dp"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    <LinearLayout
+        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="vertical"
+        android:background="@drawable/bg_transparent_white_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp">
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="bottom|center_horizontal"
+            android:id="@+id/submit_button"
+            android:layout_width="match_parent"
+            android:layout_marginVertical="16dp"
+            style="?attr/buttonPrimaryLarge"/>
+        <TextView
+            android:textColor="?attr/gray54"
+            android:textColorLink="?attr/gray54"
+            android:id="@+id/disclaimer_text"
+            android:paddingBottom="16dp"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/textS20"/>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

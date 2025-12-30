@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:top="@dimen/timeslot_bg_vertical_padding"
+        android:bottom="@dimen/timeslot_bg_vertical_padding">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/orange50"/>
+            <corners android:radius="16dp"/>
+        </shape>
+    </item>
+</layer-list>

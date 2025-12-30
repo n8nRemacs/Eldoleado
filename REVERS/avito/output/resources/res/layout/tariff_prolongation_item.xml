@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItemSwitcher xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/prolongation_switcher"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:listItem_content="@layout/redesign_switcher_list_item"
+    app:listItem_messageAppearance="?attr/textM2"
+    app:listItem_messageColor="?attr/gray54"
+    app:listItem_switcherMarginTop="12dp"
+    app:listItem_switcherStyle="?attr/switcher"
+    app:listItem_textMarginBottom="0dp"
+    app:listItem_textMarginTop="10dp"
+    app:listItem_titleAppearance="?attr/textM1"
+    app:listItem_titleColor="?attr/black"/>

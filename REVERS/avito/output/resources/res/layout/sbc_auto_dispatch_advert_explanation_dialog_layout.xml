@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="16dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sbc_auto_dispatch_more_adverts_explanation"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="bottom"
+        android:id="@+id/sbc_advert_explanation_action_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Хорошо"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

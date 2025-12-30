@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="@dimen/docking_badge_small_size"
+    android:width="11dp"
+    android:viewportWidth="11"
+    android:viewportHeight="21">
+    <path
+        android:fillColor="#ebeae8"
+        android:pathData="M0,21V0H7.621C9.599,0 10.793,2.188 9.724,3.852L7.014,8.067C6.061,9.549 6.061,11.451 7.014,12.933L9.724,17.148C10.793,18.812 9.599,21 7.621,21H0Z"/>
+</vector>

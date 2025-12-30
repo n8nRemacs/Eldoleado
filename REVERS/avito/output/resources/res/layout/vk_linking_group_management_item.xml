@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vk_linking_group_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="19dp">
+    <com.avito.android.lib.design.toggle.RadioButton
+        android:id="@+id/vk_linking_group_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/vk_linking_group_image"
+        android:layout_width="47dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="12dp"
+        app:backgroundImage="?attr/gray4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/vk_linking_group_radio"
+        app:layout_constraintTop_toTopOf="parent"
+        app:overlayImage="@color/expected_black_alpha_4"
+        app:roundedCornerRadius="12dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/vk_linking_group_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/vk_linking_group_image"
+        app:layout_constraintTop_toTopOf="@+id/vk_linking_group_image"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:id="@+id/vk_linking_group_subtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/vk_linking_group_image"
+        app:layout_constraintTop_toBottomOf="@+id/vk_linking_group_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

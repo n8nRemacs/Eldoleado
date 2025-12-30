@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/picture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        app:actualImageScaleType="centerCrop"/>
+    <FrameLayout
+        android:background="@drawable/image_with_group_label_error_bg"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:minHeight="21dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+        <TextView
+            android:textAppearance="?attr/textXs10"
+            android:textColor="?attr/constantWhite"
+            android:layout_gravity="center"
+            android:id="@+id/label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_with_group_image_loading_failed_badge"/>
+    </FrameLayout>
+    <LinearLayout
+        android:layout_gravity="end|bottom"
+        android:orientation="horizontal"
+        android:id="@+id/actions"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</merge>

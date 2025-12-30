@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:height="128dp"
+        android:width="148dp"
+        android:drawable="@drawable/deal_item_digital_registration_shape"/>
+    <item
+        android:gravity="end|bottom"
+        android:height="63dp"
+        android:width="79dp"
+        android:drawable="@drawable/calculation"/>
+</layer-list>

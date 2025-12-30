@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="6dp"
+    android:paddingVertical="12dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/constantBlack"
+        android:id="@+id/toolbar_popup_item_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="12dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/constantBlack"
+        android:id="@+id/toolbar_popup_item_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

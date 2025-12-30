@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.drawee.view.SimpleDraweeView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_profile_premium_banner_image"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:actualImageScaleType="fitCenter"
+    app:overlayImage="@color/expected_black_alpha_4"
+    app:roundedCornerRadius="@dimen/extended_profile_premium_banner_corner_radius"/>

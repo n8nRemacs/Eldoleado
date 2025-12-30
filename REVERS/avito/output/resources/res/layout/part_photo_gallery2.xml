@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.photo_gallery.ui.PhotoGallery2 xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/gallery_holder"
+    android:background="?attr/gray8"
+    android:visibility="invisible"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/photo_pager"
+        android:background="?attr/transparentBlack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <View
+        android:layout_gravity="bottom"
+        android:id="@+id/bottom_divider"
+        android:background="@color/expected_black_alpha_10"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+</com.avito.android.photo_gallery.ui.PhotoGallery2>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textS1"
+    android:textColor="@color/redesigned_shortcut_text_color"
+    android:id="@+id/shortcut_button"
+    android:background="@drawable/redesigned_shortcut_bg"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/redesigned_horizontal_chips_button_height"
+    android:drawablePadding="@dimen/horizontal_chips_drawable_padding"
+    android:textAllCaps="false"
+    app:button_compoundDrawablePadding="5dp"
+    app:button_iconColor="@color/redesigned_shortcut_text_color"
+    app:button_iconPaddingLeft="@dimen/horizontal_chips_button_content_padding"
+    app:button_iconPaddingRight="@dimen/horizontal_chips_button_content_padding"
+    app:button_textPaddingLeft="@dimen/redesigned_horizontal_chips_button_content_padding"
+    app:button_textPaddingRight="@dimen/redesigned_horizontal_chips_button_content_padding"/>

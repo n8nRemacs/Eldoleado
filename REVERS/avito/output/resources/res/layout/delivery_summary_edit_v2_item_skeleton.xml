@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/delivery_summary_skeleton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:shimmer_animationDuration="3000"
+    app:shimmer_autostart="true">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:id="@+id/view_stub_1"
+            android:background="@drawable/bg_delivery_summary_text_stub"
+            android:layout_width="0dp"
+            android:layout_height="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.6"/>
+        <View
+            android:id="@+id/view_stub_2"
+            android:background="@drawable/bg_delivery_summary_text_stub"
+            android:layout_width="0dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/view_stub_1"/>
+        <View
+            android:id="@+id/view_stub_3"
+            android:background="@drawable/bg_delivery_summary_text_stub"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/view_stub_2"
+            app:layout_constraintWidth_percent="0.8"/>
+        <View
+            android:id="@+id/view_stub_4"
+            android:background="@drawable/bg_delivery_summary_text_stub"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/view_stub_3"
+            app:layout_constraintWidth_percent="0.5"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

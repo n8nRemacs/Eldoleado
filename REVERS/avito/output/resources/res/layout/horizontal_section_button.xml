@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/button_container"
+    android:background="@drawable/bg_warm_gray_4_rounded_16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="12dp">
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:textColor="?attr/black"
+        android:gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_all"
+        android:textAlignment="center"/>
+    <TextView
+        android:textAppearance="?attr/textH6"
+        android:textSize="15sp"
+        android:textColor="?attr/black"
+        android:gravity="center_horizontal"
+        android:id="@+id/header_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+</LinearLayout>

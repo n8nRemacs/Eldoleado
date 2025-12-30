@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:id="@+id/error_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:textAppearance="?attr/textHeadingLarge"
+        android:textColor="?attr/gray68"
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:id="@+id/message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="3"
+        android:paddingHorizontal="@dimen/standard_padding"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:textColor="?attr/gray68"
+        android:gravity="center_horizontal"
+        android:id="@+id/hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/profile_error_hint"
+        android:paddingHorizontal="@dimen/standard_padding"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/retry_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/profile_error_retry_button"
+        style="?attr/buttonSecondaryLarge"/>
+</LinearLayout>

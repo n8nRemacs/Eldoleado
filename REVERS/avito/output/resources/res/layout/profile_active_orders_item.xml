@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/user_profile_active_orders_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <com.avito.android.profile.horizontal_scroll_widget.HorizontalScrollView
+        android:id="@+id/widget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:horizontalScrollView_actionButtonTextStyle="@style/Deprecated.Theme.Internal.Button.Flat.Card"/>
+</FrameLayout>

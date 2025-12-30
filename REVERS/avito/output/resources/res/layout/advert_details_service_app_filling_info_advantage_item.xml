@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/leftDrawable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:src="?attr/ic_checkThin20"
+        android:layout_marginEnd="12dp"
+        app:tint="?attr/black"/>
+    <TextView
+        android:id="@+id/advantageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/textBody"/>
+</LinearLayout>

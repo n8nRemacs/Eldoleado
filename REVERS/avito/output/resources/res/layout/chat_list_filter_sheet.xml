@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/chats_filter_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:id="@+id/chats_filter_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/messenger_filter_chats"
+        style="?attr/textH5"/>
+    <com.avito.android.lib.design.segmented_control.SegmentedControl
+        android:id="@+id/chats_filter_control"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        style="?attr/segmentedControl"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/chats_filter_select_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/messenger_filter_select"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

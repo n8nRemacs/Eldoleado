@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/phone_reverification_point_text_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/container_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/phone_reverification_point_char"
+        android:layout_marginEnd="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:id="@+id/phone_reverification_point_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

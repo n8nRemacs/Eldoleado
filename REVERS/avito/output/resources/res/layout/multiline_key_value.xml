@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.advert_core.KeyValue xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/multiline_key_value_container"
+    android:paddingLeft="@dimen/content_horizontal_padding"
+    android:paddingRight="@dimen/content_horizontal_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textSize="12sp"
+        android:textColor="?attr/gray48"
+        android:ellipsize="end"
+        android:id="@+id/key_view"
+        android:paddingRight="16dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:maxLines="2"
+        android:layout_weight="1"
+        android:textIsSelectable="true"
+        app:fontFamily="?attr/fontHeavy"/>
+    <TextView
+        android:textSize="14sp"
+        android:textColor="?attr/black"
+        android:id="@+id/value_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight="1"
+        android:textIsSelectable="true"/>
+</com.avito.android.advert_core.KeyValue>

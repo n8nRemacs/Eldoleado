@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/development_offers_carousel_banner"
+    android:layout_width="@dimen/development_offers_carousel_banner_width"
+    android:layout_height="@dimen/development_offers_carousel_item_height"
+    app:cardBackgroundColor="?attr/gray4"
+    app:cardCornerRadius="@dimen/development_offers_carousel_item_corner_radius"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false"
+    app:contentPadding="@dimen/development_offers_carousel_item_content_padding"
+    style="@style/AvitoCardView">
+    <LinearLayout
+        android:layout_gravity="top|left"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textH4"
+            android:id="@+id/development_offers_carousel_banner_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textAppearance="?attr/textM1"
+            android:textColor="?attr/gray54"
+            android:id="@+id/development_offers_carousel_banner_description"
+            android:paddingTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

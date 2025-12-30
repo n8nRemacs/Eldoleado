@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/expert_reviews_item_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="textStart"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/expert_reviews_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+        <com.avito.android.fresco.SimpleDraweeView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/expert_reviews_avatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:roundAsCircle="true"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:textColor="?attr/gray64"
+            android:gravity="center_vertical"
+            android:id="@+id/expert_reviews_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"/>
+    </LinearLayout>
+</LinearLayout>

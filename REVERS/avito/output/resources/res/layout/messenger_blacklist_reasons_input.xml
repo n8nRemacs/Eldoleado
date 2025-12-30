@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.input.Input xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/messenger_blacklist_reasons_input"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:hint="@string/messenger_blacklist_reasons_custom_reason_hint"
+    android:minLines="3"
+    android:maxLength="1000"
+    style="?attr/textAreaDefaultM"/>

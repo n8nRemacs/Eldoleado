@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textSize="12sp"
+    android:textColor="@color/txt_raised_button"
+    android:gravity="center"
+    android:layout_gravity="bottom|center_horizontal"
+    android:id="@+id/payment_submit_button"
+    android:background="@drawable/bg_floating_add_advert"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:minWidth="160dp"
+    android:singleLine="true"
+    android:lineSpacingExtra="1sp"
+    android:textAllCaps="true"
+    app:fontFamily="?attr/fontHeavy"/>

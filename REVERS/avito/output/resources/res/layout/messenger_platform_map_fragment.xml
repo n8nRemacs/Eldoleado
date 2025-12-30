@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/messenger_platform_map_root"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.avito_map.AvitoMapView
+        android:id="@+id/messenger_platform_map_map_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="52dp"/>
+    <com.avito.android.lib.design.nav_bar.NavBar
+        android:layout_gravity="top"
+        android:id="@+id/navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="ru.avito.component.behaviors.MoveAboveSnackBarBehavior">
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:layout_gravity="end|center_vertical"
+                android:id="@+id/messenger_platform_map_location_button"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_width="@dimen/find_me_button_size"
+                android:layout_height="@dimen/find_me_button_size"
+                android:src="?attr/ic_location24"
+                android:tint="?attr/black"
+                android:layout_marginEnd="@dimen/find_me_margin_end"
+                android:backgroundTint="?attr/white"
+                app:backgroundTint="?attr/white"
+                app:fabCustomSize="@dimen/find_me_button_size"
+                app:layout_behavior="ru.avito.component.behaviors.MoveAboveSnackBarBehavior"/>
+            <include
+                android:id="@+id/messenger_map_bottom_sheet_layout"
+                layout="@layout/avito_bottom_sheet"/>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

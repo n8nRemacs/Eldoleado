@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.input.Input xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/input"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:input_clearButton="true"
+    app:input_clearButtonIgnoresRightIcon="true"
+    app:input_formatterType="not_editable"
+    style="?attr/baseSelectDefaultL">
+    <TextView
+        android:ellipsize="end"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/input_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        style="?attr/textM20"/>
+</com.avito.android.lib.design.input.Input>

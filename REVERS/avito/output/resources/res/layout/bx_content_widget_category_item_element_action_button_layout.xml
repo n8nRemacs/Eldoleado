@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/serp_vertical_category_item_chips_top_padding">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/category_action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/serp_vertical_category_item_chips_end_padding"
+        app:button_backgroundColor="@color/look_and_feel_warm_gray_4"
+        app:button_backgroundRipple="@color/look_and_feel_warm_gray_36"
+        app:button_cornerRadius="12dp"
+        app:button_textPaddingLeft="14dp"
+        app:button_textPaddingRight="15dp"
+        style="?attr/buttonBeigeTag"/>
+    <View
+        android:layout_gravity="end|top"
+        android:id="@+id/category_action_button_dot"
+        android:background="@drawable/category_widget_dot"
+        android:visibility="gone"
+        android:layout_width="@dimen/serp_vertical_category_action_item_dot_size"
+        android:layout_height="@dimen/serp_vertical_category_action_item_dot_size"
+        android:layout_marginEnd="@dimen/serp_vertical_category_action_item_dot_padding"/>
+</FrameLayout>

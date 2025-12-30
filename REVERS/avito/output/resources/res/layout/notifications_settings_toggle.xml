@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/notifications_settings_toggle"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItemSwitcher
+        android:id="@+id/nc_settings_switch_list_element"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        app:listItem_switcherStyle="?attr/switcherDefaultMedium"
+        app:listItem_titleAppearance="?attr/textM20"/>
+</FrameLayout>

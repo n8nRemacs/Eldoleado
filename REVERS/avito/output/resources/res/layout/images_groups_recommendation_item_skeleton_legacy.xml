@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:id="@+id/picture_skeleton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        style="?attr/shimmerDefault">
+        <View
+            android:id="@+id/picture_skeleton_view"
+            android:background="@drawable/publish_image_with_label_picture_skeleton_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+    <View
+        android:background="@drawable/publish_image_with_label_label_skeleton_bg"
+        android:layout_width="52dp"
+        android:layout_height="21dp"
+        android:layout_margin="12dp"/>
+    <View
+        android:layout_gravity="end|bottom"
+        android:background="@drawable/publish_image_with_label_action_skeleton_bg"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="12dp"/>
+</com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout>

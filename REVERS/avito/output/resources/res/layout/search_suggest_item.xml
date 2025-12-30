@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="start|center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/search_view_item"
+    android:background="@drawable/suggest_selector"
+    android:paddingLeft="16dp"
+    android:paddingTop="@dimen/suggest_item_default_vertical_padding"
+    android:paddingRight="12dp"
+    android:paddingBottom="@dimen/suggest_item_default_vertical_padding"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/icon"
+        android:visibility="gone"
+        android:layout_width="@dimen/text_suggest_icon_default_size"
+        android:layout_height="@dimen/text_suggest_icon_default_size"
+        android:layout_marginRight="16dp"
+        app:actualImageScaleType="fitXY"
+        app:fadeDuration="0"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textSize="@dimen/big_text_size"
+            android:textColor="?attr/black"
+            android:ellipsize="end"
+            android:id="@+id/suggest_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:lineSpacingExtra="3sp"
+            style="?attr/textM20"/>
+        <TextView
+            android:textSize="@dimen/regular_text_size"
+            android:textColor="?attr/gray48"
+            android:id="@+id/suggest_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="3sp"
+            style="?attr/textS20"/>
+    </LinearLayout>
+</LinearLayout>

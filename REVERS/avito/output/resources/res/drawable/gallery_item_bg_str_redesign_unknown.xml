@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners
+        android:topLeftRadius="@dimen/serp_gallery_item_radius_str_redesign_small"
+        android:topRightRadius="@dimen/serp_gallery_item_radius_str_redesign_small"
+        android:bottomLeftRadius="@dimen/serp_gallery_item_radius_str_redesign_small"
+        android:bottomRightRadius="@dimen/serp_gallery_item_radius_str_redesign_small"/>
+    <solid android:color="@color/legacy_gray_8"/>
+</shape>

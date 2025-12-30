@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/duration_discount_select"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/days_input_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/days_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/inputDefaultM"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/percent_input_container"
+        android:layout_width="@dimen/seller_edit_calendar_discount_percent_width"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/percent_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/inputDefaultM"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+    <FrameLayout
+        android:layout_gravity="top"
+        android:id="@+id/delete_icon_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="16dp"
+        android:paddingVertical="12dp">
+        <ImageView
+            android:id="@+id/delete_icon_iv"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            app:srcCompat="?attr/ic_delete16"
+            app:tint="?attr/gray28"/>
+    </FrameLayout>
+</LinearLayout>

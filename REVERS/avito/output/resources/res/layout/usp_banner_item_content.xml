@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/usp_banner_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:actualImageScaleType="fitEnd"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="28dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp">
+        <TextView
+            android:ellipsize="end"
+            android:id="@+id/usp_banner_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="2"/>
+        <TextView
+            android:id="@+id/usp_banner_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"/>
+        <com.avito.android.lib.design.badge.Badge
+            android:id="@+id/usp_banner_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/usp_banner_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"/>
+    </LinearLayout>
+</FrameLayout>

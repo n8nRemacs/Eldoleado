@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/trx_promo_date_range_picker_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.chips.ui.Chips
+        android:id="@+id/trx_promo_date_range_picker_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        app:chips_childHorizontalSpacing="6dp"
+        app:chips_displayType="singleLineFixed"
+        app:chips_selectStrategy="single"/>
+    <FrameLayout
+        android:id="@+id/trx_promo_date_range_picker_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"/>
+</LinearLayout>

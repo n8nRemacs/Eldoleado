@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calendar_day_cell"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textXs"
+        android:gravity="center"
+        android:id="@+id/calendar_day_of_week_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <View
+        android:id="@+id/calendar_day_text_background"
+        android:layout_width="@dimen/calendar_month_day_item_size"
+        android:layout_height="@dimen/calendar_month_day_item_size"
+        android:layout_marginTop="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calendar_day_of_week_label"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/calendar_day_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="17dp"
+        android:layout_marginVertical="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calendar_day_of_week_label"/>
+    <View
+        android:id="@+id/calendar_day_dot"
+        android:background="@drawable/day_cell_dot"
+        android:layout_width="@dimen/day_dot_size"
+        android:layout_height="@dimen/day_dot_size"
+        android:layout_marginTop="2dp"
+        app:layout_constraintEnd_toEndOf="@+id/calendar_day_text"
+        app:layout_constraintStart_toStartOf="@+id/calendar_day_text"
+        app:layout_constraintTop_toBottomOf="@+id/calendar_day_text"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

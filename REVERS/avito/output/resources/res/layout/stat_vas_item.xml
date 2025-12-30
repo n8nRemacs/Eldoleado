@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="90dp">
+    <include layout="@layout/divider_1_0"/>
+    <RelativeLayout
+        android:id="@+id/vas_stat_container"
+        android:background="@drawable/bg_flat_button_primary"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="16dp"
+            android:layout_centerVertical="true"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="72dp"
+            android:layout_centerVertical="true">
+            <TextView
+                android:textSize="17sp"
+                android:textColor="?attr/black"
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:fontFamily="?attr/fontHeavy"/>
+            <TextView
+                android:textSize="@dimen/regular_text_size"
+                android:textColor="?attr/gray48"
+                android:ellipsize="end"
+                android:id="@+id/subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:maxLines="2"/>
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

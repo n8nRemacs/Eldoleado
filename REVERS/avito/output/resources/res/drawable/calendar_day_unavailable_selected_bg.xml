@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="?attr/warmGray8"/>
+            <stroke
+                android:width="0.5dp"
+                android:color="?attr/gray8"/>
+        </shape>
+    </item>
+    <item android:drawable="@drawable/calendar_day_unavailable_selected_stripes"/>
+</layer-list>

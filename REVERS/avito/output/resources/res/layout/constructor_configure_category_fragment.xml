@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/configure_category_page"
+    android:background="@drawable/constructor_configure_bg_bottom_sheet_rounded_new"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bottom_sheet_thumb"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"/>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:backgroundTint="?attr/transparentWhite"
+        app:navigationIcon="@drawable/ic_back_24_black"/>
+    <FrameLayout
+        android:id="@+id/progress_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+        <com.avito.android.lib.design.spinner.Spinner
+            android:layout_gravity="center"
+            android:id="@+id/progress_bar"
+            android:visibility="gone"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            style="?attr/spinnerDarkLarge"/>
+    </FrameLayout>
+</LinearLayout>

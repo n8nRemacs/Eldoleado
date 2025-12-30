@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/inn_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:singleLine="true"
+        android:maxLength="12"
+        app:input_formatterType="numeric"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/phone_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:singleLine="true"
+        app:input_formatterType="mobile_phone"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/gray54"
+        android:textColorLink="?attr/gray76"
+        android:id="@+id/agreement"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/send_button"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

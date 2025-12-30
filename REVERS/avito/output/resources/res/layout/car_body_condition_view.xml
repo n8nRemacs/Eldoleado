@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/car_body_condition_container"
+    android:paddingLeft="@dimen/publish_container_horizontal_padding"
+    android:paddingTop="10dp"
+    android:paddingRight="@dimen/publish_container_horizontal_padding"
+    android:paddingBottom="10dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <FrameLayout
+        android:id="@+id/side_container"
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp">
+        <com.avito.android.fresco.SimpleDraweeView
+            android:id="@+id/side_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:actualImageScaleType="fitCenter"/>
+        <FrameLayout
+            android:id="@+id/side_points_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+    <LinearLayout
+        android:gravity="start"
+        android:orientation="horizontal"
+        android:id="@+id/sides_pages_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

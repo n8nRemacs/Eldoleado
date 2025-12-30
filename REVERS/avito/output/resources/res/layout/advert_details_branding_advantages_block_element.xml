@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="start"
+    android:orientation="vertical"
+    android:id="@+id/advert_details_branding_advantages_block_element_container"
+    android:background="@drawable/advert_details_branding_advantages_block_element_container_bg"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/branding_advantages_icon"
+        android:duplicateParentState="true"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:actualImageScaleType="centerCrop"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:ellipsize="end"
+        android:gravity="bottom"
+        android:id="@+id/branding_advantages_element_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:maxLines="3"
+        android:lines="3"/>
+</LinearLayout>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/select_dialog_search_view_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/select_dialog_search_view"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:saveEnabled="false"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:hint="@string/search"
+        android:layout_weight="1"
+        android:inputType="textNoSuggestions"
+        app:layout_autoReset="never"
+        style="?attr/inputSearchDefaultL"/>
+    <com.avito.android.lib.design.button.Button
+        android:textAppearance="?attr/textM10"
+        android:textColor="?attr/blue"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/clear_button"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_search_cancel"/>
+</LinearLayout>

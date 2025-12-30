@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="avito_bottom_sheet_max_width">480dp</dimen>
+    <dimen name="avito_bottom_sheet_modal_max_width">366dp</dimen>
+    <dimen name="design_bottom_sheet_modal_max_width">480dp</dimen>
+</resources>

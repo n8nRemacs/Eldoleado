@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/shimmer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:shimmer_animationDuration="2000"
+    app:shimmer_autostart="true">
+    <FrameLayout
+        android:background="@drawable/bg_profile_pro_dashboard"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"/>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

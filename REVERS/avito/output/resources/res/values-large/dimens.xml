@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_config_prefDialogWidth">440dp</dimen>
+    <dimen name="abc_dialog_fixed_height_major">60%</dimen>
+    <dimen name="abc_dialog_fixed_height_minor">90%</dimen>
+    <dimen name="abc_dialog_fixed_width_major">60%</dimen>
+    <dimen name="abc_dialog_fixed_width_minor">90%</dimen>
+    <dimen name="abc_dialog_min_width_major">55%</dimen>
+    <dimen name="abc_dialog_min_width_minor">80%</dimen>
+    <dimen name="advert_details_equipment_tile_horizontal_padding">56dp</dimen>
+    <dimen name="advert_details_verification_block_horizontal_margin">50dp</dimen>
+    <dimen name="advert_safedeal_button_horizontal_padding">56dp</dimen>
+    <dimen name="auth_arc">72dp</dimen>
+    <dimen name="auto_catalog_selector_content_horizontal_padding">72dp</dimen>
+    <dimen name="brandspace_content_width">540dp</dimen>
+    <dimen name="complementary_content_horizontal_padding">46dp</dimen>
+    <dimen name="complementary_shortcut_content_horizontal_padding">52dp</dimen>
+    <dimen name="contact_bar_horizontal_padding">46dp</dimen>
+    <dimen name="content_button_horizontal_padding">50dp</dimen>
+    <dimen name="content_highlight_horizontal_padding">48dp</dimen>
+    <dimen name="content_horizontal_padding">56dp</dimen>
+    <dimen name="content_horizontal_padding_smaller">50dp</dimen>
+    <dimen name="developer_trust_cards_margin_horizontal">40dp</dimen>
+    <dimen name="guide_horizontal_margin">@dimen/content_horizontal_padding</dimen>
+    <dimen name="guide_horizontal_padding">0dp</dimen>
+    <dimen name="list_card_horizontal_padding">@dimen/content_horizontal_padding</dimen>
+    <dimen name="rds_content_horizontal_padding_left">52dp</dimen>
+    <dimen name="redesign_marketplace_advert_banner_horizontal_margin">56dp</dimen>
+    <dimen name="services_transportation_widget_banner_horizontal_margin">56dp</dimen>
+    <dimen name="shop_content_horizontal_padding">56dp</dimen>
+    <dimen name="shop_detailed_btn_padding">48dp</dimen>
+</resources>

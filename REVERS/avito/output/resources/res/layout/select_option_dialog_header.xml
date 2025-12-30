@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="bottom"
+    android:paddingTop="4dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/select_option_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="26dp"/>
+    <ImageView
+        android:id="@+id/bottom_sheet_close_button"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/design_icon_close_ripple"
+        android:scaleType="center"
+        android:layout_marginStart="?attr/bottomSheet_closeMarginLeft"
+        android:layout_marginEnd="24dp"/>
+</LinearLayout>

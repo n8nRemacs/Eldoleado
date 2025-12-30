@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/profile_pro_avatar_item_root"
+    android:paddingTop="12dp"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingStart="16dp">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/avatar"
+        android:layout_width="72dp"
+        android:layout_height="72dp"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/profile_pro_avatar_employee_badge"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/profile_pro_employee_badge_text"
+        app:badge_showAnimation_duration="0"
+        style="?attr/badgeTextBlackM"/>
+</FrameLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_selectable_price_list"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:listItem_content="@layout/item_selectable_price_list_layout_re23"
+    style="?attr/listItemDefaultMedium"/>

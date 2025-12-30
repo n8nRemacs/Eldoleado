@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:top="@dimen/shortcut_bar_blocks_titles_padding_top_redesigned"
+        android:bottom="@dimen/shortcut_bar_blocks_titles_padding_bottom_redesigned"
+        android:start="@dimen/shortcut_bar_blocks_titles_padding_start_redesigned">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/redesigned_filters_button_bg_pressed_radius"/>
+            <solid android:color="@color/redesigned_pressed_filters_color"/>
+        </shape>
+    </item>
+</layer-list>

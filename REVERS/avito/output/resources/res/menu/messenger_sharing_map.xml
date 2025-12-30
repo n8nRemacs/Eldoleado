@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:icon="?attr/ic_search24"
+        android:id="@+id/messenger_menu_geo_search"
+        android:title="@string/messsenger_share_map_search_menu_item"
+        android:iconTint="?attr/black"
+        app:showAsAction="always"/>
+</menu>

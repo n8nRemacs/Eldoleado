@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM10"
+    android:textColor="?attr/blue600"
+    android:gravity="start"
+    android:id="@+id/edit_address_location_add_more_link"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:text="@string/edit_address_add_schedule"/>

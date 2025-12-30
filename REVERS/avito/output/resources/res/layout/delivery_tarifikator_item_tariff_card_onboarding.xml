@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_tariff_card_onboarding_root"
+    android:layout_width="@dimen/tariff_card_width"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/tariff_card_margin_top">
+    <include
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        layout="@layout/item_tariff_card"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/item_tariff_card_onboarding_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="@dimen/default_horizontal_padding"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/item_tariff_card_onboarding_btn"
+        app:layout_constraintEnd_toStartOf="@+id/item_tariff_card_onboarding_badge"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_goneMarginEnd="@dimen/default_horizontal_padding"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:id="@+id/item_tariff_card_onboarding_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="@dimen/default_horizontal_padding"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        style="?attr/badgeTextRedS"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/item_tariff_card_onboarding_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/tariff_card_bottom_padding"
+        android:layout_marginHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintBottom_toBottomOf="parent"
+        style="?attr/buttonOverlaySecondarySmall"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_position_position_skeleton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.skeleton.Skeleton
+        android:layout_gravity="start"
+        android:layout_width="156dp"
+        android:layout_height="36dp"
+        app:skeleton_radius="12dp"/>
+    <com.avito.android.lib.design.skeleton.Skeleton
+        android:layout_gravity="end"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        app:skeleton_radius="12dp"/>
+</FrameLayout>

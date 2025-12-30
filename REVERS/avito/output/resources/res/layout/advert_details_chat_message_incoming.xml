@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/advert_chat_message_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:background="@drawable/bg_message_incoming"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingStart="16dp"
+        android:paddingEnd="24dp">
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/advert_chat_message_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            app:tint="?attr/black"/>
+        <TextView
+            android:textAppearance="?attr/textM2"
+            android:ellipsize="end"
+            android:id="@+id/advert_chat_message_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"/>
+    </LinearLayout>
+    <TextView
+        android:textAppearance="?attr/textS2"
+        android:textColor="?attr/gray54"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/advert_chat_message_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_weight="0"
+        android:layout_marginStart="12dp"/>
+</LinearLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/bed_type_row_container_legacy"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/select_legacy"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/sleeping_places_select_hint_legacy"
+        android:layout_weight="1"
+        style="?attr/baseSelect"/>
+    <com.avito.android.lib.design.stepper.Stepper
+        android:id="@+id/amount_legacy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        app:stepper_allowOverrideConstraints="false"
+        app:stepper_backgroundColor="?attr/gray4"
+        app:stepper_minValue="0"
+        style="?attr/stepperLarge"/>
+    <ImageView
+        android:id="@+id/delete_legacy"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="?attr/ic_delete24"
+        android:layout_marginStart="8dp"
+        app:tint="?attr/gray28"/>
+</LinearLayout>

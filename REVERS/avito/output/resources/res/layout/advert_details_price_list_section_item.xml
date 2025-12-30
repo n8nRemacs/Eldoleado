@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/advert_price_list_section_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:id="@+id/advert_price_list_section_title"
+        android:paddingBottom="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ImageView
+        android:id="@+id/advert_price_list_section_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?attr/ic_arrowExpandMore24"
+        app:layout_constraintBottom_toBottomOf="@+id/advert_price_list_section_title"
+        app:layout_constraintStart_toEndOf="@+id/advert_price_list_section_title"
+        app:layout_constraintTop_toTopOf="@+id/advert_price_list_section_title"
+        app:layout_constraintVertical_bias="0.3"
+        app:tint="?attr/black"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/advert_price_list_section_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hardwareAccelerated="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/advert_price_list_section_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

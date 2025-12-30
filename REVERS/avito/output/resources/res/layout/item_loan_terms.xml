@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/loan_terms_container"
+    android:background="@drawable/bg_bnpl_calculator"
+    android:paddingBottom="22dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:paddingHorizontal="20dp">
+    <TextView
+        android:id="@+id/loan_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+    <TextView
+        android:id="@+id/loan_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/loan_terms_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:chips_displayType="singleLineStretched"
+        app:chips_keepLastSelected="true"
+        app:chips_selectStrategy="single"
+        style="?attr/chipsOverlaySecondaryMedium"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/blocks_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

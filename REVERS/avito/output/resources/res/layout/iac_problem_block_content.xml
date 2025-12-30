@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/phone_list_iac_banner_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_iac_banner_title"
+        style="?attr/textH40"/>
+    <TextView
+        android:id="@+id/phone_list_iac_banner_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/numbers_and_calls_banner_info"
+        style="?attr/textM10"/>
+    <TextView
+        android:autoLink="all"
+        android:linksClickable="false"
+        android:id="@+id/phone_list_iac_time_redirect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_iac_banner_redirect_underline"
+        android:selectAllOnFocus="false"
+        style="?attr/textM10"/>
+</LinearLayout>

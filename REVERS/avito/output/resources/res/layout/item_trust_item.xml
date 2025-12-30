@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/trust_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="11dp">
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="@dimen/booking_form_icon_size"
+        android:layout_height="@dimen/booking_form_icon_size"
+        android:contentDescription="@null"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/text_primary"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/icon"
+        android:layout_marginStart="13dp"
+        android:layout_toEndOf="@+id/icon"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/text_secondary"
+        android:id="@+id/subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_below="@+id/title"
+        android:layout_alignStart="@+id/title"/>
+</RelativeLayout>

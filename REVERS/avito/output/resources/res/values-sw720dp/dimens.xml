@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="advert_details_feature_teaser_dialog_button_horizontal_padding">32dp</dimen>
+    <dimen name="advert_details_feature_teaser_dialog_content_horizontal_padding">32dp</dimen>
+    <dimen name="advert_details_feature_teaser_dialog_header_height">40dp</dimen>
+    <dimen name="advert_details_feature_teaser_link_top_padding">24dp</dimen>
+    <dimen name="advert_details_feature_teaser_options_container_top_padding">6dp</dimen>
+    <dimen name="advert_details_feature_teaser_subtitle_padding_top">0dp</dimen>
+    <dimen name="domoteka_teaser_button_margin_top">24dp</dimen>
+    <dimen name="safe_show_buttons_bottom_margin">@dimen/modal_padding</dimen>
+    <dimen name="safe_show_dialog_horizontal_padding">0dp</dimen>
+    <dimen name="safe_show_title_top_margin">0dp</dimen>
+</resources>

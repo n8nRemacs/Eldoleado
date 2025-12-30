@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="48dp"
+    android:width="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <group>
+        <clip-path android:pathData="M12.8,-0.001L35.2,-0.001A12.8,12.8 0,0 1,48 12.799L48,35.199A12.8,12.8 0,0 1,35.2 47.999L12.8,47.999A12.8,12.8 0,0 1,0 35.199L0,12.799A12.8,12.8 0,0 1,12.8 -0.001z"/>
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M0,13.999C0,6.267 6.268,-0.001 14,-0.001H34C41.732,-0.001 48,6.267 48,13.999V33.999C48,41.731 41.732,47.999 34,47.999H14C6.268,47.999 0,41.731 0,33.999V13.999Z"/>
+        <path
+            android:fillColor="@drawable/_ic_logo_avito__0_res_0x7f080067"
+            android:pathData="M0,13.999C0,6.267 6.268,-0.001 14,-0.001H34C41.732,-0.001 48,6.267 48,13.999V33.999C48,41.731 41.732,47.999 34,47.999H14C6.268,47.999 0,41.731 0,33.999V13.999Z"
+            android:fillAlpha="0.4"/>
+        <path
+            android:fillColor="@drawable/_ic_logo_avito__1_res_0x7f080068"
+            android:pathData="M9.22,47.998C14.311,47.998 18.439,43.837 18.439,38.703C18.439,33.57 14.311,29.408 9.22,29.408C4.128,29.408 0,33.57 0,38.703C0,43.837 4.128,47.998 9.22,47.998Z"/>
+        <path
+            android:fillColor="@drawable/_ic_logo_avito__2_res_0x7f080069"
+            android:pathData="M26.277,47.273C29.354,47.273 31.848,44.759 31.848,41.657C31.848,38.555 29.354,36.041 26.277,36.041C23.201,36.041 20.707,38.555 20.707,41.657C20.707,44.759 23.201,47.273 26.277,47.273Z"/>
+        <path
+            android:fillColor="@drawable/_ic_logo_avito__3_res_0x7f08006a"
+            android:pathData="M10.759,27.087C12.663,27.087 14.207,25.53 14.207,23.611C14.207,21.691 12.663,20.135 10.759,20.135C8.855,20.135 7.311,21.691 7.311,23.611C7.311,25.53 8.855,27.087 10.759,27.087Z"/>
+        <path
+            android:fillColor="@drawable/_ic_logo_avito__4_res_0x7f08006b"
+            android:pathData="M24.352,33.513C28.492,33.513 31.848,30.129 31.848,25.956C31.848,21.782 28.492,18.398 24.352,18.398C20.212,18.398 16.856,21.782 16.856,25.956C16.856,30.129 20.212,33.513 24.352,33.513Z"/>
+    </group>
+</vector>

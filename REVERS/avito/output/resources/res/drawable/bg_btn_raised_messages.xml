@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_black_alpha_32">
+    <item android:drawable="@drawable/design_system_bg_btn_raised_messages_normal"/>
+</ripple>

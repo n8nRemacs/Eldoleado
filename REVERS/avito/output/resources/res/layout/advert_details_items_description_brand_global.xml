@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.util.ExpandablePanelLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/description_root"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    app:contentId="@+id/expandable_panel_advert_description"
+    app:handleId="@+id/expandable_panel_expand_button"
+    app:topDividerId="@+id/expandable_panel_divider_top">
+    <View
+        android:id="@+id/expandable_panel_divider_top"
+        android:background="?attr/bg_default"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="22dp"
+        android:layout_marginStart="@dimen/content_horizontal_padding"
+        android:layout_marginEnd="@dimen/content_horizontal_padding"/>
+    <com.avito.android.advert_core.advert.NoScrollingTextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/text_primary"
+        android:ellipsize="end"
+        android:id="@+id/expandable_panel_advert_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="true"
+        android:paddingStart="@dimen/content_horizontal_padding"
+        android:paddingEnd="@dimen/content_horizontal_padding"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/components_link_accent"
+        android:gravity="center"
+        android:id="@+id/expandable_panel_expand_button"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:text="@string/advert_core_rds_show_full"
+        android:layout_marginStart="@dimen/rds_content_horizontal_padding_left"/>
+</com.avito.android.util.ExpandablePanelLayout>

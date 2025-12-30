@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/rich_snippet_info_badge_vertical_offset"
+    android:layout_marginStart="@dimen/rich_snippet_info_badge_horizontal_offset">
+    <TextView
+        android:textColor="?attr/constantWhite"
+        android:id="@+id/seller_online_badge"
+        android:background="@drawable/design_background_badge_viewed"
+        android:visibility="gone"
+        android:layout_marginEnd="5dp"
+        style="@style/Design.Widget.SnippetBadge.Common"/>
+    <TextView
+        android:id="@+id/card_info_badge"
+        android:visibility="gone"
+        style="@style/Design.Widget.SnippetBadge.Viewed"/>
+</LinearLayout>

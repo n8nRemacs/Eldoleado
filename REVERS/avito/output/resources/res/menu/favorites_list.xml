@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_remove_all"
+        android:title="@string/remove_all"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_remove_inactive"
+        android:title="@string/remove_inactive"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_cart_item"
+        android:title="@string/cart_menu_title"
+        app:actionLayout="@layout/cart_menu_icon"
+        app:showAsAction="always"/>
+</menu>

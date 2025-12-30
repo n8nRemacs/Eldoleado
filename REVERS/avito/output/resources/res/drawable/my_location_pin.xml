@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="30"
+    android:viewportHeight="30">
+    <path
+        android:fillColor="@color/pin_or_rash_background_selected_color"
+        android:pathData="M15,28.1C22.2349,28.1 28.1,22.2349 28.1,15C28.1,7.7651 22.2349,1.9 15,1.9C7.7651,1.9 1.9,7.7651 1.9,15C1.9,22.2349 7.7651,28.1 15,28.1Z"
+        android:strokeColor="@color/pin_outline_color"
+        android:strokeWidth="2.2"/>
+    <path
+        android:fillColor="@color/circle_inside_pin_color"
+        android:pathData="M15,15m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+</vector>

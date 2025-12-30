@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/sales_banner_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:banner_content="@layout/advert_details_marketplace_sales_banner_content"
+    app:banner_contentPaddingBottom="0dp"
+    app:banner_contentPaddingLeft="0dp"
+    app:banner_contentPaddingRight="0dp"
+    app:banner_contentPaddingTop="0dp"
+    app:banner_cornerRadius="20dp"
+    style="?attr/bannerViolet"/>

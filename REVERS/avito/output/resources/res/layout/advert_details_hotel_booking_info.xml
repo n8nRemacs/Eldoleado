@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_hotel_booking_info"
+    android:padding="10dp"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="20dp">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="start|top"
+        android:id="@+id/preview"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="8dp"
+        app:backgroundImage="?attr/gray4"
+        app:roundedCornerRadius="12dp"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/details_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginEnd="12dp">
+        <TextView
+            android:ellipsize="end"
+            android:id="@+id/price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"/>
+        <TextView
+            android:ellipsize="end"
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/buttonPayMedium"/>
+</LinearLayout>

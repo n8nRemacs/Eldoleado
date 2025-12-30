@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/load_more_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:text="@string/extended_profile_show_all_button"
+    android:layout_marginStart="@dimen/extended_profile_widget_horizontal_margin"
+    android:layout_marginEnd="@dimen/extended_profile_widget_horizontal_margin"
+    style="?attr/buttonSecondaryMedium"/>

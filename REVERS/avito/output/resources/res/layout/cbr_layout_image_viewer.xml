@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:transitionName="cbr_photo">
+    <ru.cyberity.cbr.core.widget.CBRRotationZoomableImageView
+        android:id="@+id/image_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:cbr_zoomEnabled="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRImageButton
+        android:id="@+id/cbr_rotate_cw"
+        android:layout_width="@dimen/cbr_min_button_size"
+        android:layout_height="@dimen/cbr_min_button_size"
+        android:layout_margin="@dimen/cbr_margin_medium"
+        android:src="@drawable/cbr_ic_rotate_cw"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRToolbarView
+        android:id="@+id/cbr_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRImageButton
+        android:id="@+id/cbr_rotate_ccw"
+        android:layout_width="@dimen/cbr_min_button_size"
+        android:layout_height="@dimen/cbr_min_button_size"
+        android:layout_margin="@dimen/cbr_margin_medium"
+        android:src="@drawable/cbr_ic_rotate_ccw"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

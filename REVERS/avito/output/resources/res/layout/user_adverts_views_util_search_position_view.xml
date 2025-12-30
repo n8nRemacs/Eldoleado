@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout
+        android:id="@+id/search_position_text_group"
+        android:background="@drawable/user_adverts_views_util_widget_bg"
+        android:paddingTop="3dp"
+        android:paddingBottom="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:textAppearance="?attr/textS20"
+            android:id="@+id/search_position_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+    <com.avito.android.user_adverts_views_util.position.BlinkOvalView
+        android:id="@+id/search_position_blink_image"
+        android:layout_width="37dp"
+        android:layout_height="37dp"/>
+</merge>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/sb_restrictions_wrapper"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp">
+    <TextView
+        android:id="@+id/sb_restrictions_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        style="?attr/textH50"/>
+    <com.avito.android.lib.design.select.BaseSelect
+        android:id="@+id/sb_restrictions_select"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="11dp"
+        android:drawableRight="?attr/ic_arrowDown20"
+        app:input_clearButton="true"
+        app:input_clearButtonIgnoresRightIcon="true"
+        app:input_componentType="select"
+        app:input_cornerRadius="12dp"
+        app:input_iconRightColor="?attr/black"
+        style="?attr/baseSelectDefaultM"/>
+    <TextView
+        android:textColor="?attr/gray54"
+        android:id="@+id/sb_restrictions_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        style="?attr/textS10"/>
+</LinearLayout>

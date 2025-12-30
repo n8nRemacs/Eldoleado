@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:layout_gravity="center"
+        android:id="@+id/color_preview"
+        android:background="@drawable/travel_guest_profile_statistics_stripe"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginTop="1dp"/>
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/dotted_text_parameter_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginVertical="6dp"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textM20"
+        app:descriptionParameterItem_rightTextAppearance="?attr/textM20"/>
+</LinearLayout>

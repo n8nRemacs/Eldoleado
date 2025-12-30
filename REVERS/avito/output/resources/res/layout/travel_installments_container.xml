@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textColor="?attr/white"
+        android:gravity="center"
+        android:id="@+id/installments_period_payment"
+        android:background="@drawable/bg_travel_installments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        style="?attr/textM20"/>
+    <TextView
+        android:id="@+id/installments_period_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        style="?attr/textM20"/>
+</LinearLayout>

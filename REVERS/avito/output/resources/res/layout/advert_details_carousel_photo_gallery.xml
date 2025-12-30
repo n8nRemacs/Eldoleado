@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/photo_carousel"
+    android:paddingLeft="@dimen/content_horizontal_padding"
+    android:paddingRight="@dimen/content_horizontal_padding"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/rich_snippet_gallery_height_small"
+    android:overScrollMode="never"/>

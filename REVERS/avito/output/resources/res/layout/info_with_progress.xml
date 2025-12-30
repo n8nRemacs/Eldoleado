@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_btn_flat"
+    android:paddingLeft="@dimen/component_horizontal_padding"
+    android:paddingTop="@dimen/standard_padding"
+    android:paddingRight="@dimen/component_horizontal_padding"
+    android:paddingBottom="@dimen/standard_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp">
+    <TextView
+        android:textColor="@color/text_primary_disabled"
+        android:gravity="center_vertical"
+        android:id="@+id/title"
+        android:duplicateParentState="true"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        style="?attr/textBody"/>
+    <com.avito.android.lib.design.spinner.Spinner
+        android:layout_gravity="center"
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/spinnerDarkMedium"/>
+</LinearLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="44dp"
+    android:width="44dp"
+    android:viewportWidth="44"
+    android:viewportHeight="44">
+    <group>
+        <clip-path android:pathData="M12,0L32,0A12,12 0,0 1,44 12L44,32A12,12 0,0 1,32 44L12,44A12,12 0,0 1,0 32L0,12A12,12 0,0 1,12 0z"/>
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M12,0L32,0A12,12 0,0 1,44 12L44,32A12,12 0,0 1,32 44L12,44A12,12 0,0 1,0 32L0,12A12,12 0,0 1,12 0z"/>
+        <path
+            android:fillColor="@drawable/_str_calendar_warning_dialog_condition_placeholder__0_res_0x7f0800c2"
+            android:pathData="M12,0L32,0A12,12 0,0 1,44 12L44,32A12,12 0,0 1,32 44L12,44A12,12 0,0 1,0 32L0,12A12,12 0,0 1,12 0z"/>
+        <path
+            android:fillColor="@drawable/_str_calendar_warning_dialog_condition_placeholder__1_res_0x7f0800c3"
+            android:pathData="M12,0L32,0A12,12 0,0 1,44 12L44,32A12,12 0,0 1,32 44L12,44A12,12 0,0 1,0 32L0,12A12,12 0,0 1,12 0z"/>
+        <path
+            android:fillColor="@drawable/_str_calendar_warning_dialog_condition_placeholder__2_res_0x7f0800c4"
+            android:pathData="M17.951,29.375m-22.031,0a22.031,22.031 0,1 1,44.062 0a22.031,22.031 0,1 1,-44.062 0"/>
+        <path
+            android:fillColor="@drawable/_str_calendar_warning_dialog_condition_placeholder__3_res_0x7f0800c5"
+            android:pathData="M17.951,29.375m-22.031,0a22.031,22.031 0,1 1,44.062 0a22.031,22.031 0,1 1,-44.062 0"
+            android:fillAlpha="0.2"/>
+        <path
+            android:fillColor="#ff4053"
+            android:pathData="M22.589,22.283C22.908,21.964 23.425,21.964 23.743,22.283L25.017,23.555C25.335,23.874 25.335,24.391 25.017,24.71L20.371,29.354L25.043,34.025C25.362,34.344 25.362,34.861 25.043,35.179L23.77,36.453C23.451,36.771 22.934,36.771 22.615,36.453L17.944,31.781L13.274,36.453C12.955,36.771 12.438,36.771 12.119,36.453L10.847,35.179C10.528,34.861 10.528,34.344 10.847,34.025L15.517,29.354L10.873,24.71C10.555,24.391 10.555,23.874 10.873,23.555L12.146,22.283C12.464,21.964 12.981,21.964 13.3,22.283L17.944,26.927L22.589,22.283Z"/>
+        <path
+            android:fillColor="@drawable/_str_calendar_warning_dialog_condition_placeholder__4_res_0x7f0800c6"
+            android:pathData="M22.589,22.283C22.908,21.964 23.425,21.964 23.743,22.283L25.017,23.555C25.335,23.874 25.335,24.391 25.017,24.71L20.371,29.354L25.043,34.025C25.362,34.344 25.362,34.861 25.043,35.179L23.77,36.453C23.451,36.771 22.934,36.771 22.615,36.453L17.944,31.781L13.274,36.453C12.955,36.771 12.438,36.771 12.119,36.453L10.847,35.179C10.528,34.861 10.528,34.344 10.847,34.025L15.517,29.354L10.873,24.71C10.555,24.391 10.555,23.874 10.873,23.555L12.146,22.283C12.464,21.964 12.981,21.964 13.3,22.283L17.944,26.927L22.589,22.283Z"/>
+    </group>
+</vector>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="36dp"
+    android:width="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <path
+        android:fillColor="@color/tab_bar_item_icon_color"
+        android:pathData="M13.286,8.5C15.241,8.5 16.96,9.459 18,10.935C19.04,9.459 20.759,8.5 22.714,8.5C26.24,8.5 29,11.392 29,14.786C29,16.564 28.237,18.059 27.269,19.148C27.254,19.165 27.238,19.182 27.222,19.198L18.736,27.579C18.328,27.982 17.672,27.982 17.264,27.579L8.774,19.193C7.741,18.161 7,16.533 7,14.786C7,11.26 9.892,8.5 13.286,8.5Z"/>
+</vector>

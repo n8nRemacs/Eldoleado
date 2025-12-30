@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="?attr/selectableItemBackground"
+    android:paddingRight="@dimen/inline_filter_select_item_horizontal_padding"
+    android:layout_width="match_parent"
+    android:layout_height="44dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:ellipsize="end"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_marginStart="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/gray54"
+        android:ellipsize="end"
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_marginStart="4dp"/>
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+    <com.avito.android.lib.design.toggle.Checkmark
+        android:id="@+id/checkmark"
+        android:saveEnabled="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input_metric_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/user_stats_search_by_metrics"
+        android:layout_marginHorizontal="16dp"
+        style="?attr/inputSearchDefaultL"/>
+    <androidx.core.widget.NestedScrollView
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.avito.android.lib.design.chips.Chips
+                android:id="@+id/chips_metrics"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:chips_displayType="multipleLines"
+                style="?attr/chipsSmall"/>
+            <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/ll_metric_dialog"
+                android:paddingTop="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/gray54"
+        android:gravity="center"
+        android:id="@+id/tv_metric_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="84dp"
+        android:text="@string/user_stats_metrics_not_found"/>
+</FrameLayout>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/send_esia_data_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.nav_bar.NavBar
+        android:id="@+id/send_esia_data_navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <LinearLayout
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:id="@+id/send_esia_data_loading"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.avito.android.lib.design.spinner.overlay.SpinnerOverlay
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/spinnerDarkMedium"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/send_esia_data_loading_text_margin_top"
+            android:text="@string/send_esia_data_loading_title"
+            style="?attr/textH50"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.content_placeholder.ContentPlaceholder
+        android:id="@+id/send_esia_data_error"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:contentPlaceholder_buttonStyle="?attr/buttonPrimaryMedium"
+        app:contentPlaceholder_imageContainerSize="@dimen/send_esia_data_error_image_size"
+        app:contentPlaceholder_textToButtonSpacing="@dimen/send_esia_data_error_text_to_button_space"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/calendar_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/redesign_calendar_view_header"/>
+    <include layout="@layout/redesign_calendar_week_days"/>
+    <FrameLayout
+        android:id="@+id/content_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="@dimen/calendar_recycler_view_padding"/>
+        <LinearLayout
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:id="@+id/calendar_buttons_root"
+            android:background="?attr/white"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.avito.android.lib.design.button.Button
+                android:id="@+id/button_select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/calendar_apply"
+                style="?attr/buttonPrimaryLarge"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

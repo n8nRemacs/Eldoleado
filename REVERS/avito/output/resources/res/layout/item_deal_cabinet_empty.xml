@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="24dp"
+    android:paddingVertical="48dp">
+    <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="?attr/textH20"
+        android:textColor="?attr/black"
+        android:gravity="center"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:gravity="center"
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="center"
+        android:id="@+id/action_button"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        style="?attr/buttonSecondaryMedium"/>
+</LinearLayout>

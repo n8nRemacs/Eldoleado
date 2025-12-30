@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textSize="16sp"
+    android:orientation="vertical"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/item_route_list_item_margin_top"
+    android:layout_marginBottom="@dimen/item_route_list_item_margin_bottom"
+    android:src="?attr/ic_auto16"
+    android:layout_marginEnd="2dp"
+    app:listItem_alignment="firstLineCenter"
+    app:listItem_iconLeftColor="?attr/black"
+    app:listItem_title="20 мин"/>

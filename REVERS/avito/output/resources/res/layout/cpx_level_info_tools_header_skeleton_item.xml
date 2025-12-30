@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:shimmer_animationDuration="3000"
+    app:shimmer_autostart="true">
+    <View
+        android:id="@+id/cpx_level_info_tools_header_item"
+        android:background="@drawable/shimmer_cpx_stub_text"
+        android:layout_width="256dp"
+        android:layout_height="22sp"/>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

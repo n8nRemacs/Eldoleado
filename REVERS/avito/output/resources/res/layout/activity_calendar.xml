@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calendar_booking_screen_root"
+    android:background="?attr/blackAlpha24"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.bottom_sheet.BoundedLinearLayout
+        android:layout_gravity="top|center_horizontal"
+        android:orientation="vertical"
+        android:id="@+id/bottom_sheet"
+        android:background="@drawable/bg_avito_bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </com.avito.android.lib.design.bottom_sheet.BoundedLinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

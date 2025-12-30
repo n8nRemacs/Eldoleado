@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.RatioLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/gallery_action_button_root"
+    android:background="@drawable/gallery_item_bg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/icon"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginBottom="4dp"
+        android:scaleType="center"/>
+    <TextView
+        android:textColor="?attr/black"
+        android:gravity="center"
+        android:id="@+id/action_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textBodySmall"/>
+</com.avito.android.lib.util.layout.RatioLinearLayout>

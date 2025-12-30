@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="@drawable/_ic_anim_sber_logo_26dp__0_res_0x7f080041">
+    <target
+        android:name="circle"
+        android:animation="@drawable/_ic_anim_sber_logo_26dp__1_res_0x7f080042"/>
+    <target
+        android:name="circle"
+        android:animation="@drawable/_ic_anim_sber_logo_26dp__2_res_0x7f080043"/>
+    <target
+        android:name="rotationGroup"
+        android:animation="@drawable/_ic_anim_sber_logo_26dp__3_res_0x7f080044"/>
+    <target
+        android:name="circle"
+        android:animation="@drawable/_ic_anim_sber_logo_26dp__4_res_0x7f080045"/>
+    <target
+        android:name="circle"
+        android:animation="@drawable/_ic_anim_sber_logo_26dp__5_res_0x7f080046"/>
+</animated-vector>

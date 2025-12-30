@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:shimmer="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/header_margin_top"
+    android:layout_marginBottom="8dp"
+    android:layout_marginHorizontal="16dp"
+    shimmer:shimmer_animationDuration="2500"
+    shimmer:shimmer_autostart="true">
+    <View
+        android:id="@+id/title_view"
+        android:background="@drawable/str_orders_stub_16dp_bg"
+        android:layout_width="match_parent"
+        android:layout_height="74dp"/>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

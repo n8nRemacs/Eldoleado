@@ -1,0 +1,191 @@
+{
+  "name": "ELO_Core_AI_Test_Stub_WS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-core-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "072c933e-b671-41cb-98d5-0c150bdce678",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-128, -128],
+      "webhookId": "elo-core-ingest"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nconst input = raw.body || raw;\n\nconsole.log('=== ELO_Core_AI_Test_Stub_WS ===');\nconsole.log('Received:', JSON.stringify(input, null, 2));\n\nconst response = {\n  tenant_id: input.tenant_id,\n  dialog_id: input.dialog_id,\n  channel_id: input.channel_id,\n  external_chat_id: input.external_chat_id,\n\n  message: {\n    text: `[TEST] Получено: \"${input.text || 'пусто'}\"`,\n    buttons: [],\n    attachments: []\n  },\n\n  context_updated: true,\n  trace_id: input.trace_id || `trace_${Date.now()}`,\n\n  _debug: {\n    received_at: new Date().toISOString(),\n    input_keys: Object.keys(input),\n    client: input.client,\n    meta: input.meta\n  }\n};\n\nreturn response;"
+      },
+      "id": "2bff4a53-efde-4ee3-93be-51b4df1180ac",
+      "name": "Build Test Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [96, -128]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  od.operator_id,\n  o.name as operator_name\nFROM elo_t_operator_devices od\nJOIN elo_t_operators o ON o.id = od.operator_id\nWHERE od.tenant_id = '{{ $json.tenant_id }}'::uuid\n  AND od.device_type = 'mobile'\n  AND o.is_active = true;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [304, -128],
+      "id": "7c1baaa1-84b6-4b09-9306-ee9c7e0b52da",
+      "name": "Get Active Operators",
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const operators = $input.all();\nconst testResponse = $('Build Test Response').first().json;\n\n// Build push requests for each operator\nconst pushRequests = operators.map(op => ({\n  json: {\n    operator_id: op.json.operator_id,\n    type: 'new_message',\n    data: {\n      dialog_id: String(testResponse.dialog_id || ''),\n      tenant_id: String(testResponse.tenant_id || ''),\n      channel_id: String(testResponse.channel_id || ''),\n      external_chat_id: String(testResponse.external_chat_id || ''),\n      title: 'Новое сообщение',\n      body: testResponse.message ? testResponse.message.text : 'У вас новое сообщение',\n      click_action: 'OPEN_DIALOG'\n    }\n  }\n}));\n\nreturn pushRequests;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [512, -128],
+      "id": "build-ws-push",
+      "name": "Build WS Push Requests"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://155.212.221.189:8780/api/push/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Internal-Key",
+              "value": "elo-internal-2024"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [720, -128],
+      "id": "send-ws-push",
+      "name": "Send WebSocket Push"
+    },
+    {
+      "parameters": {
+        "jsCode": "const testResponse = $('Build Test Response').first().json;\nconst pushResults = $input.all();\n\nconst successCount = pushResults.filter(r => r.json.success || r.json.delivered).length;\nconst failCount = pushResults.length - successCount;\n\nreturn {\n  json: {\n    ...testResponse,\n    push_status: {\n      total: pushResults.length,\n      success: successCount,\n      failed: failCount\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [928, -128],
+      "id": "build-response",
+      "name": "Build Final Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "1fa6d38f-1fcb-4999-b56b-ef02f9dad916",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1136, -128]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Test Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Test Response": {
+      "main": [
+        [
+          {
+            "node": "Get Active Operators",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Operators": {
+      "main": [
+        [
+          {
+            "node": "Build WS Push Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build WS Push Requests": {
+      "main": [
+        [
+          {
+            "node": "Send WebSocket Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WebSocket Push": {
+      "main": [
+        [
+          {
+            "node": "Build Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Final Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "tags": [
+    {
+      "name": "ELO"
+    },
+    {
+      "name": "OperatorCore"
+    }
+  ]
+}

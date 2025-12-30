@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/sbc_autodispatch_another_preset_background"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="112dp">
+    <ImageView
+        android:id="@+id/sbc_configurator_auto_dispatch_another_preset_icon"
+        android:background="@drawable/sbc_autodispatch_another_preset_edit_button_background"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
+        android:scaleType="center"
+        app:srcCompat="?attr/ic_editOutline16"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Другой вариант"/>
+</LinearLayout>

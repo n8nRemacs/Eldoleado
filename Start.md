@@ -1,8 +1,41 @@
-# Start Session - 2025-12-30
+# Start Session - 2025-12-31
 
-## Текущий статус: Web App готов к деплою
+## Текущий статус: WhatsApp работает, нужно исправить Android App
 
-Pipeline работает, добавлен web-app для операторов.
+WhatsApp webhook работает, push-уведомления доходят, но в приложении есть проблемы.
+
+---
+
+## ИЗВЕСТНЫЕ ПРОБЛЕМЫ (приоритет)
+
+### 1. Android App - Сообщения не обновляются в открытом диалоге
+
+**Симптом:** Когда открыт диалог, новые входящие сообщения не отображаются. Нужно выйти и зайти обратно.
+
+**Файлы для исследования:**
+- `app/.../operator/ChatFragment.kt` - слушает `BROADCAST_NEW_MESSAGE`
+- `app/.../operator/ChatsRepository.kt` - `addIncomingMessage()`, `getMessagesLiveData()`
+- `app/.../operator/OperatorWebSocketService.kt` - `broadcastNewMessage()`
+- `app/.../operator/models/ChatModels.kt` - `ChatMessage.fromJson()` ожидает snake_case поля
+
+**Формат message от сервера должен быть:**
+```json
+{
+  "id": "msg_123",
+  "chat_id": "79997253777",
+  "channel": "whatsapp",
+  "text": "...",
+  "sender_name": "Клиент",
+  "sender_phone": "79997253777",
+  "server_id": ""
+}
+```
+
+### 2. Дублирование уведомлений
+
+**Симптом:** Иногда приходит 2 одинаковых push-уведомления
+
+**Где искать:** BAT Debouncer в n8n workflows
 
 ---
 
@@ -10,82 +43,40 @@ Pipeline работает, добавлен web-app для операторов.
 
 | Сервер | IP | Сервисы |
 |--------|-----|---------|
-| **Messenger** | 155.212.221.189 | MCP: telegram :8767, whatsapp :8769, avito :8793, max-user :8771 |
+| **Messenger** | 155.212.221.189 | mcp-whatsapp :8769, api-android :8780 |
+| **Messenger IP2** | 217.114.14.17 | mcp-whatsapp :8769 |
 | **n8n** | 185.221.214.83 | n8n, PostgreSQL, Redis |
-| **HTTPS Gateway** | msg.eldoleado.ru | nginx + Let's Encrypt |
 
 ---
 
-## Что готово
+## Сервисы (работают)
 
-### Web App (web-app/)
-- Login страница
-- Dialogs список
-- Chat страница
-- Settings с подключением каналов
-- Channel Setup Modals (WhatsApp, Telegram, MAX)
-
-### MCP Servers
-- mcp-whatsapp :8769
-- mcp-telegram :8767
-- mcp-avito :8793
-- mcp-max-user :8771
+| Сервис | Порт | Версия | Статус |
+|--------|------|--------|--------|
+| mcp-whatsapp-ip1 | 155.212.221.189:8769 | v1.0.1 | OK |
+| mcp-whatsapp-ip2 | 217.114.14.17:8769 | v1.0.1 | OK |
+| api-android | 155.212.221.189:8780 | latest | OK |
 
 ---
 
-## ВАЖНО: Нужно сделать
+## Что было сделано 2025-12-30
 
-### 1. Переимпортировать workflow в n8n
-
-Файл: `NEW/workflows/API/ELO_API_Channel_Setup.json`
-
-1. Открыть n8n: https://n8n.n8nsrv.ru
-2. Удалить старый workflow ELO_API_Channel_Setup
-3. Импортировать новый файл
-4. Активировать workflow
-
-### 2. Тестировать MAX User
-
-После импорта workflow:
-1. Открыть web-app Settings
-2. Добавить MAX User канал
-3. Ввести телефон, получить SMS, ввести код
-
-### 3. Деплой web-app
-
-```bash
-# На сервере 155.212.221.189
-cd /opt/eldoleado/web-app
-npm install
-npm run build
-# Настроить nginx для статики
-```
+1. **mcp-whatsapp-arceos** - исправлен webhook (читал неправильную env переменную)
+2. **api-android** - добавлен internal API key для n8n (`X-Internal-Key: elo-internal-2024`)
+3. **api-android** - добавлена передача `message` объекта в WebSocket push
 
 ---
 
-## Активные workflows (14+)
+## n8n Workflows - нужно обновить
 
-### Channel In (5 ON)
-- ELO_In_WhatsApp
-- ELO_In_Telegram_Bot
-- ELO_In_Avito
-- ELO_In_App
-- ELO_Message_Router
+### ELO_In_WhatsApp - Extract WhatsApp Data
 
-### Channel Out (2 ON)
-- ELO_Out_Telegram_Bot
-- ELO_Out_WhatsApp
+Код в Stop.md, нужно обновить в n8n UI под новый формат webhook от mcp-whatsapp-arceos.
 
-### API (7+ ON)
-- ELO_API_Android_Auth
-- ELO_API_Android_Dialogs
-- ELO_API_Android_Messages
-- ELO_API_Android_Send_Message
-- ELO_API_Android_Logout
-- ELO_API_Android_Register_FCM
-- ELO_API_Android_Normalize
-- ELO_API_Channel_Setup (нужно импортировать!)
-- ELO_API_Channels_Status (нужно импортировать!)
+### ELO_Core_AI_Test_Stub_WS
+
+- `Send WebSocket Push` - включить **Continue On Fail**
+- `Build WS Push Requests` - использовать snake_case для message полей
 
 ---
 
@@ -101,14 +92,18 @@ ssh root@185.221.214.83   # n8n
 ## Полезные команды
 
 ```bash
-# Логи MAX User MCP
-ssh root@155.212.221.189 "docker logs mcp-max-user --tail 50"
+# Логи WhatsApp
+ssh root@155.212.221.189 "docker logs mcp-whatsapp-ip1 --tail 50"
 
-# Проверить сессии MAX
-curl -H "X-API-Key: eldoleado_mcp_2024" http://155.212.221.189:8771/sessions
+# Логи api-android
+ssh root@155.212.221.189 "docker logs android-api --tail 50"
 
-# Проверить статус каналов
-curl https://n8n.n8nsrv.ru/webhook/v1/channels/status
+# Проверить WebSocket соединения
+curl -s http://155.212.221.189:8780/api/push/connections -H "Authorization: <token>"
+
+# Health checks
+curl http://155.212.221.189:8769/health
+curl http://155.212.221.189:8780/health
 ```
 
 ---
@@ -117,10 +112,9 @@ curl https://n8n.n8nsrv.ru/webhook/v1/channels/status
 
 | Файл | Описание |
 |------|----------|
-| Stop.md | Что сделано в прошлой сессии (29.12) |
-| web-app/README.md | Документация web-app |
-| NEW/DOCS/WORKFLOWS_ANALYSIS.md | Анализ всех workflows |
+| Stop.md | Детали изменений 30.12 + код для n8n |
+| CLAUDE.md | Основная документация проекта |
 
 ---
 
-*Последнее обновление: 2025-12-29*
+*Последнее обновление: 2025-12-30*

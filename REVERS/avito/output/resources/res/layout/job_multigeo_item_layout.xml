@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:id="@+id/address_root"
+    android:background="?attr/selectableItemBackground"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="12dp">
+    <ImageView
+        android:layout_gravity="top"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        app:srcCompat="@drawable/ic_multigeo_pin"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:ellipsize="end"
+        android:id="@+id/address_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:layout_weight="1"
+        android:layout_marginHorizontal="8dp"/>
+    <ImageView
+        android:layout_gravity="top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_multigeo_arrow"/>
+</LinearLayout>

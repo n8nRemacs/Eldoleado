@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="12dp"/>
+    <size
+        android:height="@dimen/calendar_month_day_item_size_redesigned"
+        android:width="@dimen/calendar_month_day_item_size_redesigned"/>
+    <solid android:color="?attr/black"/>
+</shape>

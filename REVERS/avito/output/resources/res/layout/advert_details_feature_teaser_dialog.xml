@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/advert_details_feature_teaser_dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/advert_details_feature_teaser_dialog_content_horizontal_padding"
+        android:paddingRight="@dimen/advert_details_feature_teaser_dialog_content_horizontal_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <FrameLayout
+            android:id="@+id/apply_btn_container"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="80dp">
+            <com.avito.android.lib.design.button.Button
+                android:layout_gravity="center"
+                android:id="@+id/apply_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?attr/buttonSecondaryLarge"/>
+        </FrameLayout>
+    </LinearLayout>
+    <include layout="@layout/advert_details_feature_teaser_header"/>
+</FrameLayout>

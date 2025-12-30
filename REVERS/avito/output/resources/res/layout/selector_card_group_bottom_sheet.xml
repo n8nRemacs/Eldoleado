@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/innerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.selector_card.SelectorCardGroup
+        android:theme="@style/Re23.SelectorCard.Medium"
+        android:id="@+id/selector_cards_grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/selector_card_group_bottom_sheet_button_layout"
+        app:layout_constraintTop_toTopOf="parent"
+        app:selectorCardGroup_content="@layout/selector_card_group_bottom_sheet_item"
+        app:selectorCardGroup_gridSpanCount="2"
+        app:selectorCardGroup_horizontalPadding="12dp"
+        app:selectorCardGroup_keepLastSelected="true"
+        app:selectorCardGroup_orientation="grid"/>
+    <FrameLayout
+        android:id="@+id/selector_card_group_bottom_sheet_button_layout"
+        android:background="@drawable/background_selector_card_group_bottom_sheet_button_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:elevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <com.avito.android.lib.design.button.Button
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:id="@+id/selector_card_select_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginHorizontal="10dp"
+            style="?attr/buttonPrimaryLarge"/>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

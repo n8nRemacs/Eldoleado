@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/banner_auto_replies_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/banner_auto_replies_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:banner_closeVisible="false"
+        app:banner_content="@layout/banner_auto_replies_card_content"
+        app:banner_contentPaddingBottom="30dp"
+        app:banner_contentPaddingLeft="24dp"
+        app:banner_contentPaddingRight="0dp"
+        app:banner_contentPaddingTop="20dp"
+        style="?attr/bannerWarmgray"/>
+</FrameLayout>

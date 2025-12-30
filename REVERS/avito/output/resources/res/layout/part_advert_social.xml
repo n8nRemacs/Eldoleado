@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/part_advert_social_container"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/divider_1_0"/>
+    <TextView
+        android:paddingLeft="@dimen/content_horizontal_padding"
+        android:paddingRight="@dimen/content_horizontal_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/share"
+        style="@style/Widget.Avito.SubHeader"/>
+    <HorizontalScrollView
+        android:id="@+id/horizontal_scroll_view"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@+id/share_buttons_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"/>
+    </HorizontalScrollView>
+</LinearLayout>

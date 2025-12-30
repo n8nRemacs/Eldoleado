@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/video_upload_progress_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp">
+    <TextView
+        android:id="@+id/video_requirements_parameter_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textH4"/>
+    <TextView
+        android:id="@+id/video_requirements_parameter_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textM2"/>
+</LinearLayout>

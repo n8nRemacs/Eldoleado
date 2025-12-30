@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/referral_contacts_list_item_vertical_padding">
+    <com.avito.android.lib.design.skeleton.Skeleton
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/referral_contacts_list_item_name_skeleton_height"
+        app:skeleton_radius="@dimen/referral_contacts_list_item_skeleton_radius"/>
+    <com.avito.android.lib.design.skeleton.Skeleton
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/referral_contacts_list_item_phone_skeleton_height"
+        android:layout_marginTop="@dimen/referral_contacts_list_item_phone_margin_top"
+        app:skeleton_radius="@dimen/referral_contacts_list_item_skeleton_radius"/>
+</LinearLayout>

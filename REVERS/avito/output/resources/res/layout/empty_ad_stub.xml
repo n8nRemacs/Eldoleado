@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.ForegroundFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ad_empty"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/ad_empty_stub_height"
+    style="@style/Widget.Avito.Serp.Item.Card">
+    <TextView
+        android:textAppearance="?attr/textBodySmall"
+        android:textColor="?attr/gray44"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/ad_close_placeholder"/>
+</com.avito.android.lib.util.layout.ForegroundFrameLayout>

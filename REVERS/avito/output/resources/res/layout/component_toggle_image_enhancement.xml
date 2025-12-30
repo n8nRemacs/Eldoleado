@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:id="@+id/enhancement_container"
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/publish_container_horizontal_padding"
+    android:paddingVertical="12dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/enhancement_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawablePadding="4dp"
+        android:layout_weight="1"
+        android:paddingEnd="12dp"
+        app:drawableStartCompat="@drawable/ic_ai_tool_16"/>
+    <com.avito.android.lib.design.switcher.Switcher
+        android:id="@+id/switcher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/switcherDefaultMedium"/>
+</LinearLayout>

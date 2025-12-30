@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.shadow_layout.ShadowLinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/realty_verification_content_root"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/realty_verification_image"
+        android:layout_width="224dp"
+        android:layout_height="180dp"
+        android:layout_marginBottom="24dp"
+        app:srcCompat="@drawable/ic_owner_illustration"/>
+    <TextView
+        android:id="@+id/realty_verification_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textH3"/>
+    <TextView
+        android:id="@+id/realty_verification_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        style="?attr/textM1"/>
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/realty_verification_cadastral_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/realty_verification_cadastral"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableRight="?attr/ic_help24"
+            app:input_iconRightColor="?attr/gray28"
+            style="?attr/input"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/realty_verification_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        style="?attr/buttonPrimaryLarge"/>
+</com.avito.android.lib.design.shadow_layout.ShadowLinearLayout>

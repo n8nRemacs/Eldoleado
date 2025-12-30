@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_profiles_address_header_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp">
+    <TextView
+        android:textAppearance="?attr/textH50"
+        android:id="@+id/edit_address_location_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_address_location_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/edit_address_location_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/edit_address_location_hint"
+        android:singleLine="true"
+        app:input_clearButton="true"
+        app:input_clearButtonUnfocused="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_address_location_title"
+        style="?attr/baseSelect"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:textColor="?attr/red"
+        android:id="@+id/edit_address_location_error"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/edit_address_location_error"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_address_location_input"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

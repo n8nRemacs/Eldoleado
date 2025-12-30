@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/advertising_badge"
+        android:layout_marginTop="@dimen/ad_badges_margin"
+        android:text="@string/advertising_badge_name"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="@dimen/ad_badges_margin"
+        style="@style/Widget.Avito.TextView.Ad.Badge"/>
+</RelativeLayout>

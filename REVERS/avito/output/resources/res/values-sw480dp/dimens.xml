@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="switch_serp_map_button_height_with_floating_container">146dp</dimen>
+</resources>

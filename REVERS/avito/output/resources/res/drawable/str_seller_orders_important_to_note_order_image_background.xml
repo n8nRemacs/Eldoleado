@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="@dimen/str_seller_orders_important_to_note_order_image_radius"/>
+    <solid android:color="?attr/gray36"/>
+</shape>

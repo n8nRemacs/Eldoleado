@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <include
+            domain="sharedpref"
+            path="."/>
+        <exclude
+            domain="sharedpref"
+            path="session_store.xml"/>
+        <exclude
+            domain="sharedpref"
+            path="sberid.sdk.loginsession_store.xml"/>
+    </cloud-backup>
+    <device-transfer disableIfNoEncryptionCapabilities="true">
+        <include
+            domain="sharedpref"
+            path="."/>
+        <exclude
+            domain="sharedpref"
+            path="session_store.xml"/>
+        <exclude
+            domain="sharedpref"
+            path="sberid.sdk.loginsession_store.xml"/>
+        <exclude
+            domain="root"
+            path=""/>
+    </device-transfer>
+</data-extraction-rules>

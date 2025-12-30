@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/snippet_stepper_container"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.stepper.Stepper
+            android:id="@+id/snippet_stepper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:stepper_minValue="0"
+            style="?attr/stepperMedium"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+</merge>

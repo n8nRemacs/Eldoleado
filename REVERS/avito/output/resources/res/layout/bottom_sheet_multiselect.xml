@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/filters_inline_multiselect_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:id="@+id/multiselect_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"
+        android:paddingHorizontal="@dimen/filter_item_horizontal_padding"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/bottom_sheet_group_multiselect_items_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:textColor="?attr/black"
+        android:id="@+id/more_button"
+        android:paddingTop="14dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/filter_item_horizontal_padding"/>
+</LinearLayout>

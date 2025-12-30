@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:height="@dimen/calendar_recycler_view_day_size"
+                android:width="@dimen/calendar_recycler_view_day_size"/>
+            <solid android:color="@color/selected_date_color"/>
+            <corners
+                android:topLeftRadius="@dimen/seller_day_item_radius"
+                android:bottomLeftRadius="@dimen/seller_day_item_radius"/>
+        </shape>
+    </item>
+</selector>

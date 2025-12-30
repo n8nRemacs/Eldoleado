@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/str_orders_calendar_date_item_bg"
+    android:layout_width="@dimen/str_calendar_cell_size_redesign"
+    android:layout_height="@dimen/str_calendar_dates_height">
+    <View
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/str_orders_calendar_stub_3dp_bg"
+        android:layout_width="35dp"
+        android:layout_height="9dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginStart="7dp"/>
+</FrameLayout>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_settings_banner_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:id="@+id/extended_settings_banner_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/extended_settings_banner_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_settings_banner_title"/>
+    <com.avito.android.lib.design.photo_uploader_image.PhotoUploaderImage
+        android:id="@+id/extended_settings_banner_image_new"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintDimensionRatio="4:3"
+        app:layout_constraintEnd_toEndOf="@+id/extended_settings_guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_settings_banner_description"
+        app:photoUploaderImage_auxiliaryIcon="@drawable/ic_clock_hands_40"
+        app:photoUploaderImage_cornerRadius="16dp"/>
+    <com.avito.android.lib.design.photo_uploader_image.PhotoUploaderImage
+        android:id="@+id/extended_settings_banner_image_old"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintDimensionRatio="4:3"
+        app:layout_constraintEnd_toEndOf="@+id/extended_settings_guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_settings_banner_image_new"
+        app:photoUploaderImage_auxiliaryIcon="@drawable/ic_clock_hands_40"
+        app:photoUploaderImage_cornerRadius="16dp"/>
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/extended_settings_banner_barrier"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="extended_settings_banner_image_new, extended_settings_banner_image_old, extended_settings_banner_description"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/extended_settings_banner_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_settings_banner_barrier"
+        style="?attr/buttonDefaultSmall"/>
+    <androidx.constraintlayout.widget.Guideline
+        android:orientation="vertical"
+        android:id="@+id/extended_settings_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintGuide_percent="@dimen/extended_banner_image_width_percent"/>
+    <include layout="@layout/inactive_fill_constraint"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/folders_tabs"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Avito.Redesign.TabLayout"/>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/channels_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</merge>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.floating_container.FloatingContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/PublishObjectTheme"
+    android:layout_gravity="bottom|center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/buttons_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    app:floatingContainer_bottomPadding="0dp"
+    app:floatingContainer_horizontalPadding="0dp"
+    style="?attr/floatingContainerIncomplete">
+    <include layout="@layout/html_editor_panel"/>
+    <include layout="@layout/publish_button"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/navigation_buttons_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="?attr/publish_continueButton_sideMargin"
+        android:paddingVertical="@dimen/publish_continue_button_vertical_margin"/>
+</com.avito.android.lib.design.floating_container.FloatingContainer>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" style="@style/MTS.ModalCard.Container.Transparent">
+    <LinearLayout
+        android:id="@+id/mtsRootLayout"
+        style="@style/MTS.ModalCard.Container.Root">
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/mtsModalCardTitle"
+                style="@style/MTS.ModalCard.Title"/>
+            <TextView
+                android:id="@+id/mtsModalCardText"
+                android:layout_marginTop="8dp"
+                style="@style/MTS.ModalCard.Text"/>
+        </LinearLayout>
+        <ru.mts.biometry.sdk.view.SdkBioEditText
+            android:id="@+id/mtsModalCardInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="32dp"/>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ru.mts.biometry.sdk.view.SdkBioButton
+                android:id="@+id/mtsModalCardCancelButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sdkBioButtonType="secondary"/>
+            <ru.mts.biometry.sdk.view.SdkBioButton
+                android:id="@+id/mtsModalCardPrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sdkBioButtonType="primary"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

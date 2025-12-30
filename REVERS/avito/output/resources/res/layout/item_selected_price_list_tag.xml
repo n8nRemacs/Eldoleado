@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.publish.tag.OneLineTagView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/selected_price_list_tag"
+    android:tag="selected_price_list_tag"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:drawableEndCompat="?attr/ic_edit16"
+    app:drawableTint="?attr/black"
+    style="@style/OneLineTagView"/>

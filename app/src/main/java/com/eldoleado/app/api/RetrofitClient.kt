@@ -13,6 +13,12 @@ object RetrofitClient {
     // n8n webhook URL (production)
     private const val BASE_URL = "https://n8n.n8nsrv.ru/webhook/"
 
+    // WebSocket URL for push notifications (replaces FCM)
+    // Server: 155.212.221.189 / 217.114.14.17
+    const val WS_BASE_URL = "ws://155.212.221.189:8780"  // Production (no SSL)
+    // const val WS_BASE_URL = "ws://10.0.2.2:8780"      // Local emulator
+    // const val WS_BASE_URL = "wss://api.eldoleado.ru"  // Production with SSL (TODO)
+
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

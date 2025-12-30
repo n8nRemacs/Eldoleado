@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_blue_alpha_24">
+    <item android:drawable="@drawable/bg_message_suggest_element_normal"/>
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/message_suggest_element_corner_radius"/>
+            <solid android:color="@color/legacy_black"/>
+        </shape>
+    </item>
+</ripple>

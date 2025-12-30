@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="20dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/bottom_sheet_delete_address_text"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/delete_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/bottom_sheet_delete_address_confirm_button_text"
+        style="?attr/buttonPrimaryLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/cancel_dialog_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp"
+        android:text="@string/bottom_sheet_delete_address_cancel_button_text"
+        style="?attr/buttonSecondaryLarge"/>
+</LinearLayout>

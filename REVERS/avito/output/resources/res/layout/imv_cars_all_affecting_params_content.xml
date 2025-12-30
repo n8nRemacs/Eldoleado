@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/all_affecting_parameters_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/all_affecting_parameters_chips"
+        android:paddingTop="@dimen/imv_cars_vertical_tierce_padding"
+        android:paddingBottom="@dimen/imv_cars_vertical_padding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="@dimen/imv_cars_horizontal_padding"
+        app:chips_displayType="multipleLines"
+        app:chips_editable="false"
+        style="?attr/chipsSmall"/>
+</androidx.core.widget.NestedScrollView>

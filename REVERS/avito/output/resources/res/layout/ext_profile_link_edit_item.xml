@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_profile_link_edit_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:id="@+id/extended_profile_link_edit_item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        app:layout_constraintEnd_toStartOf="@+id/extended_profile_link_edit_item_actions_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:textColor="?attr/blue600"
+        android:ellipsize="end"
+        android:id="@+id/extended_profile_link_edit_item_link"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:maxLines="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_profile_link_edit_item_title"
+        app:layout_goneMarginEnd="0dp"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/extended_profile_link_edit_item_moderation_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/extended_profile_link_edit_item_link"
+        app:layout_goneMarginEnd="0dp"/>
+    <ImageView
+        android:id="@+id/extended_profile_link_edit_item_actions_button"
+        android:paddingBottom="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:src="?attr/ic_more20"
+        android:paddingStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/extended_profile_link_edit_item_title"
+        app:tint="?attr/black"/>
+    <include layout="@layout/inactive_fill_constraint"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

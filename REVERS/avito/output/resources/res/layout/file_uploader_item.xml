@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/publish_container_horizontal_padding"
+    android:paddingVertical="@dimen/publish_container_vertical_padding">
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        style="?attr/textM2"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/files"
+        android:background="@drawable/bg_files_list_uploader"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:divider="@drawable/divider_20_0"
+        android:showDividers="middle"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/upload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/buttonBeigeLarge"/>
+    <TextView
+        android:textColor="?attr/red600"
+        android:id="@+id/error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        style="?attr/textS2"/>
+</LinearLayout>

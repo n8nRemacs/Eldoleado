@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:gravity="center_vertical"
+        android:id="@+id/selection_create_menu_select_all_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="44dp"
+        android:text="@string/extended_profile_selection_create_menu_select_all"
+        android:layout_marginHorizontal="16dp"
+        style="?attr/textM20"/>
+    <TextView
+        android:gravity="center_vertical"
+        android:id="@+id/selection_create_menu_unselect_all_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="44dp"
+        android:text="@string/extended_profile_selection_create_menu_unselect_all"
+        android:layout_marginHorizontal="16dp"
+        style="?attr/textM20"/>
+</LinearLayout>

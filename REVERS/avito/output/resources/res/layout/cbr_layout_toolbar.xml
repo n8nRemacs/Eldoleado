@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize">
+    <ru.cyberity.cbr.core.widget.CBRImageButton
+        android:id="@+id/cbr_button_close"
+        android:padding="@dimen/cbr_image_button_padding"
+        android:layout_width="@dimen/cbr_min_button_size"
+        android:layout_height="@dimen/cbr_min_button_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRImageButton
+        android:id="@+id/cbr_button_option"
+        android:padding="@dimen/cbr_image_button_padding"
+        android:layout_width="@dimen/cbr_min_button_size"
+        android:layout_height="@dimen/cbr_min_button_size"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</merge>

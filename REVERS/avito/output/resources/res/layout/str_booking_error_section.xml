@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="top|center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/str_booking_error_block"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/str_booking_error_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:srcCompat="@drawable/str_booking_error"/>
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/str_booking_error_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/str_booking_error_title"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/str_booking_error_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/str_booking_error_subtitle"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/str_booking_reload_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/str_booking_reload_button"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

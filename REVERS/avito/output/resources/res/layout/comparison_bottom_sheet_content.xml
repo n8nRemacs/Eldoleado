@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/bottom_sheet_message_button"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/common_ic_message_16"
+        android:paddingHorizontal="24dp"
+        app:listItem_iconLeftColor="?attr/black"
+        app:listItem_messageAppearance="?attr/textM2"/>
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/bottom_sheet_remove_button"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/common_ic_delete_16"
+        android:paddingHorizontal="24dp"
+        app:listItem_iconLeftColor="?attr/black"
+        app:listItem_messageAppearance="?attr/textM2"/>
+</LinearLayout>

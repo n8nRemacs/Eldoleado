@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.serp.adapter.header.HeaderWidget xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/header"
+    android:paddingLeft="12dp"
+    android:paddingTop="16dp"
+    android:paddingRight="12dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>

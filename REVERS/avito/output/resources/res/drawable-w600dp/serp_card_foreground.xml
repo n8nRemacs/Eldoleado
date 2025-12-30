@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_blue_alpha_24">
+    <item android:id="@android:id/mask">
+        <layer-list>
+            <item
+                android:left="@dimen/serp_card_foreground_padding"
+                android:top="@dimen/serp_card_foreground_padding"
+                android:right="@dimen/serp_card_foreground_padding"
+                android:bottom="@dimen/serp_card_foreground_padding">
+                <shape>
+                    <corners android:radius="3dp"/>
+                    <solid android:color="@color/legacy_black"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>

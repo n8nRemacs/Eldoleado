@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/hotel_description_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"/>
+    <com.avito.android.util.ExpandablePanelLayout
+        android:orientation="vertical"
+        android:id="@+id/description_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:contentId="@+id/expandable_panel_hotel_description"
+        app:handleId="@+id/expandable_panel_expand_button">
+        <com.avito.android.advert_core.advert.NoScrollingTextView
+            android:textAppearance="?attr/textM10"
+            android:ellipsize="end"
+            android:id="@+id/expandable_panel_hotel_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"/>
+        <TextView
+            android:textColor="?attr/blue"
+            android:gravity="center"
+            android:id="@+id/expandable_panel_expand_button"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:text="@string/advert_core_rds_show_full"
+            style="@style/TextAppearance.Avito.AdvertDetails.Body.Blue"/>
+    </com.avito.android.util.ExpandablePanelLayout>
+</LinearLayout>

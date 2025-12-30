@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.input.Input xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/screen_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="@string/messenger_search_hint"
+    android:maxLength="255"
+    android:layout_weight="1"
+    android:transitionName="@string/messenger_transition_search_field"
+    app:input_iconLeftColor="?attr/gray54"
+    style="?attr/inputSearchDefaultM"/>

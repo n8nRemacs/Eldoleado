@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_enabled="false"
+        android:state_checked="true"
+        android:color="?attr/components_toggle_faint"/>
+    <item
+        android:state_checked="true"
+        android:state_pressed="true"
+        android:color="?attr/components_toggle_faint"/>
+    <item
+        android:state_checked="true"
+        android:color="?attr/components_toggle_faint"
+        app:state_error="true"/>
+    <item
+        android:state_checked="true"
+        android:color="?attr/components_toggle_faint"/>
+    <item
+        android:state_enabled="false"
+        android:color="?attr/components_toggle_faintUnckeckDisabled"/>
+    <item
+        android:state_pressed="true"
+        android:color="?attr/components_toggle_faintUnckeck"/>
+    <item
+        android:color="?attr/components_toggle_faintUnckeck"
+        app:state_error="true"/>
+    <item android:color="?attr/components_toggle_faintUnckeck"/>
+</selector>

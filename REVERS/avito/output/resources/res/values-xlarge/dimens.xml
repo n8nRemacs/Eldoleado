@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_dialog_fixed_width_major">50%</dimen>
+    <dimen name="abc_dialog_fixed_width_minor">70%</dimen>
+    <dimen name="abc_dialog_min_width_major">45%</dimen>
+    <dimen name="abc_dialog_min_width_minor">72%</dimen>
+    <dimen name="advert_details_equipment_tile_horizontal_padding">80dp</dimen>
+    <dimen name="advert_details_verification_block_horizontal_margin">74dp</dimen>
+    <dimen name="advert_safedeal_button_horizontal_padding">80dp</dimen>
+    <dimen name="auto_catalog_selector_content_horizontal_padding">96dp</dimen>
+    <dimen name="collapsing_search_bar_image_height_default">380dp</dimen>
+    <dimen name="complementary_content_horizontal_padding">76dp</dimen>
+    <dimen name="complementary_shortcut_content_horizontal_padding">76dp</dimen>
+    <dimen name="complementary_shortcut_title_padding">22dp</dimen>
+    <dimen name="contact_bar_horizontal_padding">70dp</dimen>
+    <dimen name="content_button_horizontal_padding">74dp</dimen>
+    <dimen name="content_highlight_horizontal_padding">72dp</dimen>
+    <dimen name="content_horizontal_padding">80dp</dimen>
+    <dimen name="content_horizontal_padding_smaller">74dp</dimen>
+    <dimen name="developer_trust_cards_margin_horizontal">64dp</dimen>
+    <dimen name="hotel_available_rooms_gallery_height">300dp</dimen>
+    <dimen name="rds_content_horizontal_padding_left">76dp</dimen>
+    <dimen name="redesign_marketplace_advert_banner_horizontal_margin">80dp</dimen>
+    <dimen name="services_transportation_widget_banner_horizontal_margin">80dp</dimen>
+    <dimen name="shop_content_horizontal_padding">80dp</dimen>
+    <dimen name="shop_detailed_btn_padding">72dp</dimen>
+</resources>

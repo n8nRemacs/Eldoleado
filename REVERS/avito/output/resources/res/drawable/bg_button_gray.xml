@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?attr/gray12">
+    <item>
+        <shape>
+            <corners android:radius="@dimen/delivery_type_button_corner_radius"/>
+            <solid android:color="?attr/gray4"/>
+        </shape>
+    </item>
+    <item android:id="@android:id/mask">
+        <shape>
+            <corners android:radius="@dimen/delivery_type_button_corner_radius"/>
+            <solid android:color="?attr/black"/>
+        </shape>
+    </item>
+</ripple>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.LookAndFeel"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/search"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:saveEnabled="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/search"
+        android:inputType="textNoSuggestions"
+        android:layout_marginHorizontal="24dp"
+        app:layout_autoReset="never"
+        style="?attr/inputSearch"/>
+    <FrameLayout
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:textAppearance="?attr/textM1"
+            android:gravity="center"
+            android:id="@+id/empty_stub"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:text="@string/no_found_response"
+            android:layout_marginHorizontal="24dp"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:paddingBottom="12dp"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="ifContentScrolls"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </FrameLayout>
+</LinearLayout>

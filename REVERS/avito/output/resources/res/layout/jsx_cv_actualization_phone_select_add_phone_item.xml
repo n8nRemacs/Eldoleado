@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textL20"
+    android:id="@+id/jsx_cv_actualization_add_phone_item"
+    android:background="@drawable/bg_jsx_cv_actualization_select_phone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="16dp"/>

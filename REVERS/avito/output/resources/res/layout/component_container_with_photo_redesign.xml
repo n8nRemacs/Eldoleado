@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/photo_param_container"
+    android:paddingBottom="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_contentPaddingTop="0dp"
+    app:componentContainer_contentSpacing="0dp"
+    app:componentContainer_textPaddingLeft="@dimen/redesign_photo_horizontal_padding"
+    app:componentContainer_textPaddingRight="@dimen/redesign_photo_horizontal_padding"
+    app:componentContainer_titleAppearance="?attr/textH50"
+    app:componentContainer_titleColor="?attr/black">
+    <include
+        android:id="@+id/enhancement_container"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        layout="@layout/component_toggle_image_enhancement"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/image_list_container"
+        android:paddingLeft="@dimen/redesign_photo_horizontal_padding"
+        android:paddingTop="10dp"
+        android:paddingRight="@dimen/redesign_photo_horizontal_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/enhancement_container"
+        style="?attr/photoUploaderList"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_add_item"
+    android:layout_width="@dimen/comparison_column_width"
+    android:layout_height="@dimen/comparison_expanded_header_item_height"
+    app:layoutDescription="@xml/comparison_add_more_item_scene">
+    <View
+        android:id="@+id/comparison_add_background"
+        android:background="@drawable/comparison_add_more_bg"
+        android:layout_width="@dimen/comparison_content_width"
+        android:layout_height="114dp"/>
+    <ImageView
+        android:id="@+id/plus_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?attr/ic_plus16"
+        android:contentDescription="@null"
+        app:tint="?attr/black"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/add_more_expanded_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/comparison_add_more_text"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:id="@+id/add_more_text_collapsed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/comparison_add_more_text"/>
+</androidx.constraintlayout.motion.widget.MotionLayout>

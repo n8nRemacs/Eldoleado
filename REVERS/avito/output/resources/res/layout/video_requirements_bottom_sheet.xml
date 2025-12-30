@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/video_requirements_root"
+    android:scrollbars="none"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:overScrollMode="always">
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <TextView
+                android:layout_gravity="start"
+                android:id="@+id/video_requirements_title"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?attr/textH20"/>
+            <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+                android:layout_gravity="start"
+                android:id="@+id/video_requirements_title_skeleton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="75dp"
+                style="?attr/shimmerDefault">
+                <com.avito.android.lib.design.skeleton.TextSkeleton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="?attr/textH2"/>
+            </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+            <ImageView
+                android:layout_gravity="end"
+                android:id="@+id/video_requirements_close"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="?attr/ic_close24"
+                android:importantForAccessibility="no"
+                android:layout_alignParentEnd="true"/>
+        </RelativeLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/video_requirements_parameters"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/video_requirements_parameters_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <include layout="@layout/video_requirements_parameter_skeleton"/>
+            <include layout="@layout/video_requirements_parameter_skeleton"/>
+            <include layout="@layout/video_requirements_parameter_skeleton"/>
+            <include layout="@layout/video_requirements_parameter_skeleton"/>
+            <include layout="@layout/video_requirements_parameter_skeleton"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

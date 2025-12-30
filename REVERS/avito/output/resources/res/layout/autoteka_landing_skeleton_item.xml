@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:shimmer="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center"
+    android:id="@+id/autoteka_landing_skeleton_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    shimmer:shimmer_duration="1000">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp">
+        <View
+            android:background="@drawable/background_stub_2_radius"
+            android:layout_width="match_parent"
+            android:layout_height="21dp"
+            android:layout_marginTop="38dp"/>
+        <View
+            android:background="@drawable/background_stub_2_radius"
+            android:layout_width="match_parent"
+            android:layout_height="21dp"
+            android:layout_marginTop="16dp"/>
+        <View
+            android:background="@drawable/background_stub_2_radius"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="24dp"/>
+        <View
+            android:background="@drawable/background_stub_2_radius"
+            android:layout_width="match_parent"
+            android:layout_height="342dp"
+            android:layout_marginTop="20dp"/>
+        <View
+            android:background="@drawable/background_stub_2_radius"
+            android:layout_width="match_parent"
+            android:layout_height="342dp"
+            android:layout_marginTop="32dp"/>
+    </LinearLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout>

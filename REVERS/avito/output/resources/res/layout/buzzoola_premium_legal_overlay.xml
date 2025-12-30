@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/premium_ad_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:id="@+id/legal_overlay"
+        android:background="@color/ad_legal_overlay_color"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/legal_close"
+            android:padding="4dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="4dp"
+            android:layout_alignParentEnd="true"
+            app:srcCompat="@drawable/ic_ad_close16"/>
+        <TextView
+            android:gravity="center"
+            android:id="@+id/legal_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_above="@+id/juristic_text"
+            android:layout_alignParentTop="true"
+            android:layout_marginHorizontal="8dp"
+            style="@style/Widget.Avito.TextView.Ad.Legal"/>
+        <TextView
+            android:gravity="center"
+            android:id="@+id/juristic_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_alignParentBottom="true"
+            style="@style/Widget.Avito.TextView.Ad.Juristic"/>
+    </RelativeLayout>
+</FrameLayout>

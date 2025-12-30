@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:id="@+id/advert_details_divider_view"
+        android:background="?attr/gray8"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="@dimen/content_horizontal_padding"
+        android:layout_marginRight="@dimen/content_horizontal_padding"/>
+</FrameLayout>

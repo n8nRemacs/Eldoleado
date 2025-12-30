@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textBody"
+    android:textColor="?attr/blue"
+    android:id="@+id/tv_dialog_link_item"
+    android:background="?attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/statistics_horizontal_padding"
+    android:paddingVertical="@dimen/advert_stats_vertical_padding"/>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/esia_redirect_content_requirement_margin_bottom">
+    <TextView
+        android:id="@+id/esia_redirect_content_requirement_marker"
+        android:layout_width="@dimen/esia_redirect_content_requirement_image_width"
+        android:layout_height="@dimen/esia_redirect_content_requirement_image_height"
+        android:text="@string/esia_redirect_esia_requirement_start_sign"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        style="?attr/textM10"/>
+    <TextView
+        android:id="@+id/esia_redirect_content_requirement"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/esia_redirect_content_requirement_text_margin_start"
+        app:layout_constraintStart_toEndOf="@+id/esia_redirect_content_requirement_marker"
+        app:layout_constraintTop_toTopOf="parent"
+        style="?attr/textM10"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

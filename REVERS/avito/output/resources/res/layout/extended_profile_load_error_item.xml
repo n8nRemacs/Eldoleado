@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginHorizontal="@dimen/extended_profile_widget_horizontal_margin">
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/extended_profile_load_error_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/extended_profile_load_error_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/extended_profile_retry_button"
+        android:layout_centerInParent="true"
+        style="?attr/buttonDefaultMedium"/>
+</LinearLayout>

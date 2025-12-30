@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/promo_snippet_list_root"
+    android:background="@drawable/gig_promo_snippet_public_list_white_bg"
+    android:paddingTop="16dp"
+    android:paddingBottom="22dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/promo_snippet_list_title"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.header_button.HeaderButton
+        android:id="@+id/click_marker"
+        android:focusable="false"
+        android:visibility="gone"
+        android:clickable="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="8dp"
+        app:headerButton_textIconStyleAttr="?attr/textIconHeaderbuttonArrow"
+        app:layout_constraintBottom_toBottomOf="@+id/promo_snippet_list_title"
+        app:layout_constraintStart_toEndOf="@+id/promo_snippet_list_title"
+        app:layout_constraintTop_toTopOf="@+id/promo_snippet_list_title"
+        style="?attr/headerButtonH30"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/promo_snippet_list"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/promo_snippet_list_title"
+        app:layout_goneMarginTop="0dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

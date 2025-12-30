@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vertical_search_filter_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:banner_content="@layout/main_vertical_search_filter_content"
+    app:banner_titleStyle="?attr/textH3"
+    style="?attr/bannerBlue"/>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/node_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItemCheckmark xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:textSize="16sp"
+        android:textColor="@color/design_text_color_black_selector"
+        android:id="@+id/node_item"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:listItem_subtitleColor="?attr/gray48"
+        style="?attr/listItemCheckmarkDefaultMedium"/>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="@+id/arrow"
+        android:visibility="gone"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="24dp"/>
+</FrameLayout>

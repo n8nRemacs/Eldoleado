@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/order_cancellation_reasons_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:background="@null"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize">
+        <TextView
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:id="@+id/toolbar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/delivery_order_cancel"
+            style="?attr/textHeadingSmall"/>
+    </androidx.appcompat.widget.Toolbar>
+    <FrameLayout
+        android:id="@+id/content_holder"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        style="@style/ContentHolder">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/reasons_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/order_cancellation_reasons_recycler_view_top_margin"/>
+    </FrameLayout>
+</LinearLayout>

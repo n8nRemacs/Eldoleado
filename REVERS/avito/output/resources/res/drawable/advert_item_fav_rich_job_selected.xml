@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/product_specific_ic_fav_shadow_36"/>
+    <item
+        android:drawable="@drawable/ic_fav_selected_24_blue"
+        android:left="6dp"
+        android:top="6dp"
+        android:right="6dp"
+        android:bottom="6dp"/>
+</layer-list>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="24dp"
+    app:layoutDescription="@xml/fragment_rating_form_select_item_scene">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/rating_form_search_items_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/rating_form_search_items_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/rating_form_search_items_input"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="@string/rating_form_search_items_input_hint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rating_form_search_items_title"
+        style="?attr/inputSearch"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rating_form_search_items_recycler"
+        android:paddingTop="22dp"
+        android:paddingBottom="24dp"
+        android:clipToPadding="false"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rating_form_search_items_input"
+        app:layout_goneMarginTop="20dp"/>
+</androidx.constraintlayout.motion.widget.MotionLayout>

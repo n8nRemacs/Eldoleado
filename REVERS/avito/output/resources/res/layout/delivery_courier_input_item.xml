@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/input_container"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/input_item_container_margin_top"
+    android:layout_marginHorizontal="@dimen/input_item_container_margin_horizontal">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

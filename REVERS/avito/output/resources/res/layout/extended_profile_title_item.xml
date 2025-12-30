@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textH30"
+    android:id="@+id/extended_title_text"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/extended_profile_widget_horizontal_margin"
+    android:layout_marginEnd="@dimen/extended_profile_widget_horizontal_margin"/>

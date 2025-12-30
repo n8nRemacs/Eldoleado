@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.chips.Chips xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/chips"
+    android:paddingTop="?attr/publish_componentContainer_paddingTop"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding"
+    app:chips_contentTopMargin="?attr/publish_chips_contentMarginTop"
+    app:chips_displayType="singleLineFixed"
+    app:chips_titleTextAppearance="?attr/publish_chips_titleTextAppearance"
+    app:chips_titleTipIcon="?attr/publish_chips_titleTipIcon"
+    app:chips_titleTipIconTint="?attr/publish_chips_titleTipIconTint"
+    style="?attr/chipsLarge"/>

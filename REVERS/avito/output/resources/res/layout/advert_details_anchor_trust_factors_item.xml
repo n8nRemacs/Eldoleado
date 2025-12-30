@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.advert.item.anchor_trust_factors.layout.AnchorsExpandContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/anchor_trust_factor_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding"/>

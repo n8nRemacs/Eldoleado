@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/close_icon"
+            android:background="?attr/selectableItemBackground"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="?attr/ic_close24"
+            android:scaleType="centerInside"
+            android:contentDescription="@null"
+            android:layout_marginStart="2dp"/>
+    </FrameLayout>
+    <include
+        android:id="@+id/invite_loading"
+        android:visibility="invisible"
+        layout="@layout/virtual_deal_room_invite_loading"/>
+    <include
+        android:id="@+id/invite_error"
+        android:visibility="invisible"
+        layout="@layout/virtual_deal_room_invite_error"/>
+    <include
+        android:id="@+id/invite_no_internet"
+        android:visibility="invisible"
+        layout="@layout/virtual_deal_room_invite_no_internet"/>
+    <include
+        android:id="@+id/invite_content"
+        android:visibility="invisible"
+        layout="@layout/virtual_deal_room_invite_content"/>
+</FrameLayout>

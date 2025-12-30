@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/award_banner_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:gravity="center"
+        android:id="@+id/banner_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:importantForAccessibility="no"
+        android:layout_marginHorizontal="32dp"
+        app:srcCompat="@drawable/deal_room_award_banner_image"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/award_amount_container"
+        android:padding="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-26dp">
+        <TextView
+            android:textAppearance="?attr/textH05"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:id="@+id/award_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:gravity="center"
+            android:id="@+id/award_amount_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+</LinearLayout>

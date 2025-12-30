@@ -121,6 +121,35 @@ async def get_optional_operator(
         return None
 
 
+async def get_internal_or_operator(
+    authorization: Optional[str] = Header(None),
+    x_internal_key: Optional[str] = Header(None, alias="X-Internal-Key")
+) -> Optional[TokenData]:
+    """Dependency for internal n8n calls or operator auth.
+
+    Accepts either:
+    - X-Internal-Key header with internal secret
+    - Authorization header with JWT token
+    """
+    # Check internal key first (for n8n workflows)
+    if x_internal_key == settings.internal_api_key:
+        # Return a system token for internal calls
+        return TokenData({
+            "sub": "system",
+            "tenant_id": "system",
+            "internal": True
+        })
+
+    # Fall back to JWT auth
+    if authorization:
+        return await get_current_operator(authorization)
+
+    raise HTTPException(
+        status_code=401,
+        detail="Authorization or X-Internal-Key header required"
+    )
+
+
 def require_tenant(tenant_id: str):
     """Dependency factory to require specific tenant.
 

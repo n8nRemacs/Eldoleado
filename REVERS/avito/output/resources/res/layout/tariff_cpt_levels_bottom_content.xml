@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/tariff_cpt_levels_bottom_content_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/tariff_cpt_levels_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/buttonPrimaryLarge"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:gravity="center_horizontal"
+        android:id="@+id/tariff_cpt_levels_extra_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+</LinearLayout>

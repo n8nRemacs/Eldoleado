@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.shadow_layout.ShadowFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="top"
+    android:id="@+id/overlay_container"
+    android:clickable="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/horizontalOffset"
+    android:paddingVertical="12dp">
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:id="@+id/overlay_label"
+        android:background="@drawable/map_overlay_label_background"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="13dp"
+        app:layout_shadowEnabled="true"/>
+</com.avito.android.lib.design.shadow_layout.ShadowFrameLayout>

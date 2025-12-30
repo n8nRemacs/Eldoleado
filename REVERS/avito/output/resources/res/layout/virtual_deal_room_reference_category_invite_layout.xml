@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/reference_invite_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="��"/>
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/reference_invite_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/virtual_deal_room_reference_category_category"/>
+</LinearLayout>

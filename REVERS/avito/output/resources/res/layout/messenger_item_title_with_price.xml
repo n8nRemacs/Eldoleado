@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:textColor="?attr/black"
+        android:ellipsize="end"
+        android:id="@+id/line1"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:singleLine="true"
+        style="?attr/textBodyDense"/>
+    <TextView
+        android:textColor="?attr/black"
+        android:ellipsize="end"
+        android:id="@+id/line2"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:singleLine="true"
+        style="?attr/textBodyDense"/>
+</merge>

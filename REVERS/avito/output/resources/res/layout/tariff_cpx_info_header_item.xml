@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/tariff_cpx_info_header_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/tariff_cpx_info_header_item_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp">
+        <TextView
+            android:textAppearance="?attr/textH10"
+            android:id="@+id/tariff_cpx_info_header_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/tariff_cpx_info_header_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            style="?attr/buttonSecondarySmall"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.tab_group.TabGroup
+        android:id="@+id/tabs_navigation"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabGroup_horizontalPadding="0dp"
+        style="?attr/tabGroupL"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/tariff_cpx_info_header_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

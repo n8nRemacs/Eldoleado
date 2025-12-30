@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.LookAndFeel"
+    android:orientation="vertical"
+    android:id="@+id/ad_fair_price_container"
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:paddingHorizontal="@dimen/content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textHeadingLarge"
+        android:textColor="?attr/black"
+        android:id="@+id/ad_fair_price"
+        android:focusable="false"
+        android:clickable="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawablePadding="6dp"
+        app:drawableEndCompat="?attr/ic_info24"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:textColor="?attr/gray54"
+        android:id="@+id/ad_fair_description"
+        android:focusable="false"
+        android:clickable="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/floating_btn_bg"
+    android:paddingTop="10dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="10dp">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/btn_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="@string/str_insurance_activate"
+        style="?attr/buttonPrimaryLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/btn_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/str_insurance_more_details"
+        style="?attr/buttonSecondaryLarge"/>
+</LinearLayout>

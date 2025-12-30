@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cart_icon_container"
+    android:background="@drawable/bg_btn_flat_toolbar_action"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="48dp"
+    android:maxWidth="52dp"
+    android:minWidth="48dp"
+    android:minHeight="48dp"
+    android:paddingEnd="6dp">
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/cart_button"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="12dp"
+        app:srcCompat="?attr/ic_cartOutline24"
+        app:tint="?attr/blue"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/cart_counter"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="25dp"
+        style="?attr/badgeTextRedXS"/>
+    <com.avito.android.lib.design.point.Point
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/cart_point"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="11dp"
+        android:layout_marginStart="26dp"
+        app:point_withStroke="true"
+        style="?attr/pointNewMedium"/>
+</FrameLayout>

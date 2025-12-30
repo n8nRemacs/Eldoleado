@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/address_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="24dp">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableRight="@null"
+        app:input_clearButton="true"
+        style="?attr/baseSelectDefaultM"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textColor="@color/txt_raised_button"
+    android:background="@drawable/bg_raised_button_blue"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    style="@style/Deprecated.Theme.Internal.Button.Primary"/>

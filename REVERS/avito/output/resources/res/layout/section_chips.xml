@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.chips.ui.Chips xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/section_chips_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="20dp"
+    android:paddingHorizontal="@dimen/content_horizontal_padding"
+    app:chips_keepLastSelected="true"/>

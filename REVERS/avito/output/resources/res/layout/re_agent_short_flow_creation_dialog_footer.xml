@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/re_agent_short_flow_creation_action_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="24dp"
+    android:layout_marginBottom="20dp"
+    android:text="@string/re_agent_short_flow_creation_footer_button_text"
+    android:layout_marginHorizontal="20dp"
+    style="?attr/buttonPrimaryLarge"/>

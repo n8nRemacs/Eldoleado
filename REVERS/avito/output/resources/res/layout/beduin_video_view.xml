@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/ll_error"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp">
+        <TextView
+            android:gravity="center"
+            android:id="@+id/tv_error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/beduin_video_loading_error_text"
+            style="?attr/textM10"/>
+        <com.avito.android.lib.design.button.Button
+            android:textAppearance="?attr/textS20"
+            android:layout_gravity="center"
+            android:id="@+id/btn_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/beduin_retry_text"
+            style="?attr/buttonDefaultSmall"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/skeleton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:shimmer_auto_start="true"
+        app:shimmer_duration="3000">
+        <View
+            android:background="@color/common_gray_12"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout>
+</merge>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/icon"
+    android:layout_width="@dimen/switcher_icon_size"
+    android:layout_height="@dimen/switcher_icon_size"
+    android:layout_marginTop="@dimen/switcher_icon_margin_vertical"
+    android:layout_marginRight="@dimen/switcher_icon_margin_right"
+    android:layout_marginBottom="@dimen/switcher_icon_margin_vertical"
+    android:layout_marginEnd="@dimen/switcher_icon_margin_right"/>

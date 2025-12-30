@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/ll_tab_expenses_stats"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/user_stats_shimmer_stats_chart"/>
+    <include layout="@layout/shimmer_expenses_part"/>
+</LinearLayout>

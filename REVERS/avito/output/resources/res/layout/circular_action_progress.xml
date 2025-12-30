@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/progress_error_button"
+        android:visibility="gone"
+        android:layout_width="@dimen/circular_action_progress_size"
+        android:layout_height="@dimen/circular_action_progress_size"
+        app:srcCompat="@drawable/ic_retry_white_24dp"
+        style="@style/Widget.Avito.CircularProgressBar.Light.Button"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/progress_cancel_button"
+        android:visibility="gone"
+        android:layout_width="@dimen/circular_action_progress_size"
+        android:layout_height="@dimen/circular_action_progress_size"
+        app:srcCompat="@drawable/ic_close_white_24dp"
+        style="@style/Widget.Avito.CircularProgressBar.Light.Button"/>
+    <com.avito.android.lib.design.spinner.Spinner
+        android:layout_gravity="center"
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="52dp"
+        android:maxHeight="52dp"
+        android:minWidth="52dp"
+        android:minHeight="52dp"
+        style="?attr/spinnerLightLarge"/>
+</FrameLayout>

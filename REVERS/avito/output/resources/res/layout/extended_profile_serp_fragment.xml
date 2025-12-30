@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/edge_to_edge_fake_status_bar"/>
+    <FrameLayout
+        android:id="@+id/extended_profile_serp_screen_root"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/extended_profile_serp_pull_refresh_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <FrameLayout
+                android:id="@+id/extended_profile_serp_progress_overlay_container"
+                android:background="@color/expected_background"
+                android:focusableInTouchMode="true"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/extended_profile_serp_recycler_view"
+                    android:background="?attr/white"
+                    android:paddingTop="112dp"
+                    android:paddingBottom="8dp"
+                    android:scrollbars="none"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+                <ProgressBar
+                    android:layout_gravity="center"
+                    android:id="@+id/items_loading_progress_bar"
+                    android:paddingTop="@dimen/redesign_toolbar_search_view_height"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Design.Widget.Spinner.Dark.Large"/>
+            </FrameLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        <include layout="@layout/shortcuts"/>
+        <FrameLayout
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <include layout="@layout/error_and_progress_view_redesign"/>
+        </FrameLayout>
+        <com.avito.android.extended_profile_ui_components.search_input.ProfileSearchInputView
+            android:id="@+id/extended_profile_serp_search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/search"/>
+    </FrameLayout>
+</LinearLayout>

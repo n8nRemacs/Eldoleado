@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/rounded_background_r16"
+    android:paddingTop="20dp"
+    android:paddingBottom="28dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="32dp"
+    android:layout_marginHorizontal="10dp"
+    android:paddingHorizontal="@dimen/publish_container_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH2"
+        android:id="@+id/user_verification_banner_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/user_verification_banner_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/user_verification_banner_title"
+        android:layout_toEndOf="@+id/user_verification_banner_icon"/>
+    <ImageView
+        android:id="@+id/user_verification_banner_icon"
+        android:visibility="gone"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_alignTop="@+id/user_verification_banner_subtitle"
+        android:layout_alignBottom="@+id/user_verification_banner_subtitle"
+        android:layout_marginEnd="4dp"/>
+</RelativeLayout>

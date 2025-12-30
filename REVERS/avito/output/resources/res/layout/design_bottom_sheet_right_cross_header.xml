@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet_right_cross_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_gravity="start|center_vertical"
+        android:id="@+id/bottom_sheet_close_button"
+        android:background="@drawable/design_icon_close_ripple_right_cross"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="?attr/bottomSheet_rightCrossMarginTop"
+        android:layout_marginEnd="?attr/bottomSheet_rightCrossMarginRight"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0"/>
+    <TextView
+        android:textAppearance="?attr/bottomSheet_rightCrossTitleTextAppearence"
+        android:textColor="?attr/bottomSheet_titleTextColor"
+        android:ellipsize="end"
+        android:gravity="start"
+        android:layout_gravity="center"
+        android:id="@+id/bottom_sheet_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/bottomSheet_rightCrossTitleMarginTop"
+        android:layout_marginBottom="?attr/bottomSheet_rightCrossTitleMarginBottom"
+        android:layout_marginStart="?attr/bottomSheet_rightCrossTitleMarginLeft"
+        android:layout_marginEnd="?attr/bottomSheet_rightCrossTitleMarginRight"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

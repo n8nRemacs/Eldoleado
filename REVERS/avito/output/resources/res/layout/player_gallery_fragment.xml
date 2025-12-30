@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/player_gallery_root"
+    android:background="?attr/constantBlack"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:controller_layout_id="@layout/exo_player_control"/>
+    <FrameLayout
+        android:id="@+id/player_thumbnail_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/player_thumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:actualImageScaleType="fitCenter"/>
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="center"
+            android:id="@+id/thumbnail_play_button"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="?attr/ic_play24"
+            app:button_backgroundColor="@color/re_23_constant_black_alpha_50"
+            app:button_cornerRadius="100dp"
+            app:button_iconColor="?attr/constantWhite"
+            app:button_spinnerStyle="?attr/spinnerLightLarge"
+            style="?attr/buttonSecondaryExtraLargeRound"/>
+    </FrameLayout>
+</FrameLayout>

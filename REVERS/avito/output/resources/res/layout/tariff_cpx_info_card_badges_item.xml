@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.docking_badge.DockingBadgeContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tariff_cpx_info_card_item_badge_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:dockingBadgeContainer_badgeSize="medium"
+    app:dockingBadgeContainer_numberOfLines="1"
+    style="?attr/dockingBadgeContainerMedium"/>

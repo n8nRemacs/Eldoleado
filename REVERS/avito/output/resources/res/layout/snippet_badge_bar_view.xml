@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.deprecated_design.badge_bar.CompactFlexibleLayout
+        android:id="@+id/snippet_badge_bar_flexible_layout"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        app:compactFlexibleLayout_maxLines="2"/>
+    <com.avito.android.lib.design.docking_badge.DockingBadgeContainer
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/snippet_badge_bar_docking_badge_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/dockingBadgeContainerSmall"/>
+</merge>

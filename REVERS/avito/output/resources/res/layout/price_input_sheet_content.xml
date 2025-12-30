@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="@+id/price_input_sheet_content"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="235dp">
+        <com.avito.android.lib.design.component_container.ComponentContainer
+            android:theme="@style/Theme.Avito"
+            android:id="@+id/price_input_container"
+            android:paddingLeft="16dp"
+            android:paddingTop="16dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="16dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:componentContainer_title="@string/price_title">
+            <com.avito.android.lib.design.input.Input
+                android:id="@+id/price_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                app:layout_autoReset="never"
+                style="?attr/input"/>
+        </com.avito.android.lib.design.component_container.ComponentContainer>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/close_button"
+            android:layout_width="match_parent"
+            android:text="@string/close_item_button_text"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            style="?attr/buttonPrimaryLarge"/>
+    </RelativeLayout>
+</androidx.core.widget.NestedScrollView>

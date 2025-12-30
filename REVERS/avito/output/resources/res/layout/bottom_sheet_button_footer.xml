@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="?attr/white"
+    android:paddingBottom="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="24dp">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/bottom_sheet_button_footer_button_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/buttonPrimaryLarge"/>
+</FrameLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="24dp"
+    style="?attr/shimmerDefault">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            app:skeleton_radius="16dp"/>
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_marginTop="12dp"
+            app:skeleton_radius="16dp"/>
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_marginTop="12dp"
+            app:skeleton_radius="16dp"/>
+    </LinearLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

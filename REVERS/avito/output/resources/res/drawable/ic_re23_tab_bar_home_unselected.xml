@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="36dp"
+    android:width="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <path
+        android:fillColor="@color/tab_bar_icon_unselected_color"
+        android:pathData="M13.739,27.329C17.461,27.329 20.479,24.312 20.479,20.59C20.479,16.868 17.461,13.851 13.739,13.851C10.017,13.851 7,16.868 7,20.59C7,24.312 10.017,27.329 13.739,27.329Z"/>
+    <path
+        android:fillColor="@color/tab_bar_icon_unselected_color"
+        android:pathData="M25.428,26.48C27.677,26.48 29.5,24.657 29.5,22.408C29.5,20.159 27.677,18.336 25.428,18.336C23.179,18.336 21.356,20.159 21.356,22.408C21.356,24.657 23.179,26.48 25.428,26.48Z"/>
+    <path
+        android:fillColor="@color/tab_bar_icon_unselected_color"
+        android:pathData="M15.028,12.976C16.42,12.976 17.548,11.848 17.548,10.456C17.548,9.064 16.42,7.936 15.028,7.936C13.636,7.936 12.507,9.064 12.507,10.456C12.507,11.848 13.636,12.976 15.028,12.976Z"/>
+    <path
+        android:fillColor="@color/tab_bar_icon_unselected_color"
+        android:pathData="M23.845,17.458C26.871,17.458 29.324,15.005 29.324,11.979C29.324,8.953 26.871,6.5 23.845,6.5C20.819,6.5 18.366,8.953 18.366,11.979C18.366,15.005 20.819,17.458 23.845,17.458Z"/>
+</vector>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/layout_str_buttons"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/primary_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:button_subtitleTextAppearance="?attr/textS20"
+        app:button_subtitleTextColor="@color/re23_button_pay_small_two_rows_subtitle_text_color"
+        style="?attr/buttonPayLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/secondary_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        style="?attr/buttonSecondaryLarge"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/insights_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+</LinearLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/rich_snippet_info_badge_vertical_offset_str_redesign"
+    android:layout_marginStart="@dimen/rich_snippet_info_badge_horizontal_offset_str_redesign">
+    <TextView
+        android:textAppearance="?attr/textXs10"
+        android:textColor="?attr/black"
+        android:id="@+id/seller_online_badge"
+        android:background="@drawable/bg_rich_snippet_info_viewed_badge_str_redesign"
+        android:paddingTop="1dp"
+        android:paddingBottom="2dp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:paddingHorizontal="6dp"
+        style="@style/Design.Widget.SnippetBadge.Common"/>
+    <TextView
+        android:textAppearance="?attr/textXs10"
+        android:textColor="?attr/black"
+        android:id="@+id/card_info_badge"
+        android:background="@drawable/bg_rich_snippet_info_viewed_badge_str_redesign"
+        android:paddingTop="1dp"
+        android:paddingBottom="2dp"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="6dp"
+        style="@style/Design.Widget.SnippetBadge.Viewed"/>
+</LinearLayout>

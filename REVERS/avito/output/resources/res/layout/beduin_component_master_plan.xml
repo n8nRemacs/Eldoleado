@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/beduin_master_plan_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardElevation="0dp"
+        app:cardUseCompatPadding="false"
+        style="@style/AvitoCardView">
+        <com.avito.android.lib.design.master_plan_view.MasterPlanView
+            android:id="@+id/beduin_master_plan"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/master_plan_height"/>
+        <RelativeLayout
+            android:layout_gravity="bottom"
+            android:id="@+id/beduin_master_plan_onboarding"
+            android:background="@drawable/bg_beduin_master_plan_onboarding"
+            android:layout_width="match_parent"
+            android:layout_height="78dp">
+            <TextView
+                android:theme="@style/Theme.DesignSystem.Re23"
+                android:textAppearance="?attr/textM20"
+                android:textColor="?attr/white"
+                android:id="@+id/beduin_master_plan_onboarding_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:text="@string/beduin_master_plan_onboarding_text"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"/>
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginBottom="4dp"
+                android:layout_above="@+id/beduin_master_plan_onboarding_text"
+                android:layout_centerHorizontal="true"
+                app:srcCompat="@drawable/ic_beduin_master_plan_onboarding"
+                app:tint="?attr/white"/>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</merge>

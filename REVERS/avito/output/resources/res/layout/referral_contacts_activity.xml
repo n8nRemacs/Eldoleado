@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/referral_contacts_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.lib.design.nav_bar.NavBar
+            android:id="@+id/referral_contacts_navbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <com.avito.android.lib.design.content_placeholder.ContentPlaceholder
+            android:id="@+id/referral_contacts_error"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:contentPlaceholder_buttonStyle="?attr/buttonPrimaryMedium"/>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/referral_contacts_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/referral_contacts_header_title_margin_top"
+            android:paddingStart="@dimen/contacts_screen_start_padding"
+            android:paddingEnd="@dimen/contacts_screen_end_padding">
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:liftOnScroll="false">
+                <include layout="@layout/collapsing_header"/>
+                <com.avito.android.lib.design.input.Input
+                    android:id="@+id/search_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/referral_contacts_margin_under_searchbar"/>
+                <include layout="@layout/referral_contacts_skeleton"/>
+            </com.google.android.material.appbar.AppBarLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/referral_contacts_list"
+                android:paddingBottom="@dimen/referral_contacts_recycler_padding_bottom"
+                android:clipToPadding="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="bottom"
+        android:id="@+id/referral_contacts_footer_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/referral_contacts_share_button_margin_bottom"
+        android:layout_marginHorizontal="@dimen/referral_contacts_share_button_margin_horizontal"
+        style="?attr/buttonPrimaryLarge"/>
+</FrameLayout>

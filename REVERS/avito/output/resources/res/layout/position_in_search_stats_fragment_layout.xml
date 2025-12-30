@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/search_position_root_container"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.recyclerview.widget.RecyclerView
+        android:orientation="vertical"
+        android:id="@+id/search_position_rv"
+        android:clipToPadding="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    <com.avito.android.position_in_search.stats.screen.old_position_in_search.view.widget.toolbar.SearchPositionToolbar
+        android:layout_gravity="top"
+        android:id="@+id/search_position_toolbar"
+        android:padding="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="52dp"/>
+    <com.avito.android.position_in_search.stats.screen.old_position_in_search.view.widget.bottom_bar.SearchPositionBottomBar
+        android:layout_gravity="bottom"
+        android:id="@+id/search_position_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</FrameLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/shortcuts_container"
+    android:paddingTop="@dimen/shortcuts_top_margin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/shortcuts_recycler_view"
+        android:paddingLeft="@dimen/serp_horizontal_padding_button"
+        android:paddingRight="@dimen/serp_horizontal_padding_button"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"/>
+    <TextView
+        android:textColor="@color/text_button_default"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:id="@+id/show_all_categories"
+        android:background="@drawable/design_background_button_default"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/shortcut_bar_rubricator_show_all_categories"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:layout_marginHorizontal="@dimen/serp_horizontal_padding_button"
+        style="?attr/textBody"/>
+</LinearLayout>

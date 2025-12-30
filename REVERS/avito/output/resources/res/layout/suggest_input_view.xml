@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.input.Input xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.LookAndFeel"
+    android:textColor="?attr/black"
+    android:id="@+id/query"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/user_address_input_view_min_height"
+    android:hint="@string/suggest_hint"
+    android:drawableLeft="?attr/ic_search20"
+    app:input_cornerRadius="@dimen/redesign_search_toolbar_input_corner_radius"
+    app:input_iconLeftColor="?attr/gray36"
+    app:input_iconLeftContainerHeight="@dimen/user_address_input_view_min_height"
+    app:input_iconRightContainerHeight="@dimen/user_address_input_view_min_height"
+    style="?attr/input"/>

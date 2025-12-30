@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:banner_bottomShadow="@style/WidgetFiltersWidgetShadowBottom"
+    app:banner_content="@layout/widget_filters_location_widget_banner_content"
+    app:banner_contentPaddingBottom="0dp"
+    app:banner_contentPaddingLeft="0dp"
+    app:banner_contentPaddingRight="0dp"
+    app:banner_contentPaddingTop="0dp"
+    app:banner_cornerRadius="16dp"
+    app:banner_shadow="@style/WidgetFiltersWidgetShadow"
+    style="?attr/bannerWhite"/>

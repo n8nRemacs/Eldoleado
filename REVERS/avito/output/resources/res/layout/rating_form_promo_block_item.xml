@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    app:cardBackgroundColor="?attr/warmGray4"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="12dp">
+        <com.avito.android.fresco.SimpleDraweeView
+            android:id="@+id/rating_form_promo_block_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:actualImageScaleType="centerInside"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:placeholderImage="?attr/gray8"
+            app:placeholderImageScaleType="center"
+            app:roundAsCircle="true"/>
+        <TextView
+            android:textAppearance="?attr/textM20"
+            android:id="@+id/rating_form_promo_block_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/rating_form_promo_block_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_goneMarginStart="0dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

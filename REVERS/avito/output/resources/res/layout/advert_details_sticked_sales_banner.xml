@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/sticked_sales_banner_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/advert_details_sales_banner_block_bottom_margin"
+    android:minHeight="@dimen/advert_details_sales_banner_block_min_height">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/banner_background_image"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:actualImageScaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/banner_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_sales_banner_block_top_margin"
+        app:layout_constraintEnd_toStartOf="@+id/banner_timer"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.serp_core.timer.CountDownTimerWidget
+        android:id="@+id/banner_timer"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/advert_details_sales_banner_block_padding_between_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/banner_title"
+        app:layout_constraintTop_toTopOf="@+id/banner_title"
+        style="@style/SalesBannerCountDownTimer"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/banner_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_sales_banner_block_padding_between_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/banner_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

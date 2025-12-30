@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/verification_group_card_root"
+    android:background="@drawable/bg_rounded_24"
+    android:layout_width="match_parent"
+    android:layout_height="118dp"
+    android:backgroundTint="?attr/gray4">
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/verification_group_card_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toStartOf="@+id/verification_group_card_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_goneMarginEnd="0dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:id="@+id/verification_group_card_subtitle"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="-8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/verification_group_card_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verification_group_card_title"
+        app:layout_goneMarginEnd="0dp"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/verification_group_card_image"
+        android:layout_width="98dp"
+        android:layout_height="98dp"
+        android:layout_marginTop="20dp"
+        app:actualImageScaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

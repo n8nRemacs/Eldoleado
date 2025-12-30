@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.deprecated_design.radio_button.lifecycle_view.LifecycleView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/lifecycle"
+    android:layout_width="0dp"
+    android:layout_height="0dp"/>

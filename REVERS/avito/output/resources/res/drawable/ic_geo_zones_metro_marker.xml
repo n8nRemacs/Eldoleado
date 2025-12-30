@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/pin_or_rash_background_default_color"/>
+    <size
+        android:height="12dp"
+        android:width="12dp"/>
+    <stroke
+        android:width="2dp"
+        android:color="@color/circle_inside_pin_color"/>
+</shape>

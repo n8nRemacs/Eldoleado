@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.facebook.drawee.view.SimpleDraweeView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/instruction_image"
+    android:layout_width="match_parent"
+    android:layout_height="246dp"
+    android:layout_marginBottom="20dp"
+    android:layout_marginHorizontal="16dp"
+    app:placeholderImage="?attr/warmGray4"
+    app:roundBottomLeft="false"
+    app:roundBottomRight="false"
+    app:roundTopLeft="true"
+    app:roundTopRight="true"
+    app:roundedCornerRadius="12dp"/>

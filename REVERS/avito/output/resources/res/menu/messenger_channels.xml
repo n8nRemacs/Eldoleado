@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_filter"
+        android:visible="false"
+        android:orderInCategory="10"
+        android:title="@string/filters"
+        app:showAsAction="always"/>
+    <item
+        android:icon="@drawable/ic_messenger_auto_replies_24"
+        android:id="@+id/auto_replies_menu_item"
+        android:visible="false"
+        android:orderInCategory="20"
+        android:title="@string/messenger_auto_replies_button_description"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/assistant_settings_menu_item"
+        android:visible="false"
+        android:orderInCategory="30"
+        android:title="@string/messenger_assistant_channels_list_menu_item"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_blacklist"
+        android:orderInCategory="40"
+        android:title="@string/messenger_blacklist"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/crm_entry_point_menu_item"
+        android:visible="false"
+        android:orderInCategory="50"
+        android:title="@string/messenger_crm_entry_point_default_menu_item_title"
+        app:showAsAction="never"/>
+</menu>

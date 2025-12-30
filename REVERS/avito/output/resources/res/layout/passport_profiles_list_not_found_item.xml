@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/passport_profile_list_not_found_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/passport_profile_list_not_found_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/passport_profile_list_not_found_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</FrameLayout>

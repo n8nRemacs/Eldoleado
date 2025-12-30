@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/profiles_count_root"
+    android:background="@drawable/passport_profiles_background"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="@dimen/passport_user_hat_item_size"
+    android:layout_height="@dimen/passport_user_hat_item_size">
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:gravity="center"
+        android:id="@+id/profiles_count_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="@string/passport_profiles_count_all"
+        android:layout_marginHorizontal="4dp"/>
+    <TextView
+        android:textAppearance="?attr/textS2"
+        android:textColor="?attr/white"
+        android:layout_gravity="center"
+        android:id="@+id/profiles_count"
+        android:background="@drawable/passport_profiles_count_background"
+        android:paddingTop="1dp"
+        android:paddingBottom="3dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="6dp"/>
+</LinearLayout>

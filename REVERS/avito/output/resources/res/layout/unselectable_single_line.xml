@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/selectable_single_line_root"
+    android:background="@drawable/bg_btn_flat"
+    android:paddingLeft="@dimen/component_horizontal_padding"
+    android:paddingRight="@dimen/component_horizontal_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp">
+    <TextView
+        android:textSize="12sp"
+        android:textColor="@color/text_hint_disableable"
+        android:ellipsize="end"
+        android:id="@+id/hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="1"/>
+    <TextView
+        android:textColor="@color/text_primary_disabled"
+        android:textColorHint="@color/text_hint_disableable"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/hint_visible_value_vertical_margin"
+        android:layout_marginBottom="@dimen/hint_visible_value_vertical_margin"
+        android:maxLines="1"
+        android:layout_below="@+id/hint"
+        android:layout_centerVertical="true"
+        style="?attr/textBody"/>
+</RelativeLayout>

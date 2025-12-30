@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/discount_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    app:descriptionParameterItem_dotsColor="?attr/transparentWhite"
+    app:descriptionParameterItem_leftTextAppearance="?attr/textM20"
+    app:descriptionParameterItem_leftTextIcon="?attr/ic_help20"
+    app:descriptionParameterItem_leftTextIconColor="?attr/gray28"
+    app:descriptionParameterItem_leftTextIconPadding="5dp"
+    app:descriptionParameterItem_rightTextAppearance="?attr/textM20"/>

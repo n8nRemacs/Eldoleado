@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="3dp">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/pin"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="?attr/ic_hollowPin16"
+            app:tint="?attr/black"/>
+        <com.avito.android.user_address.CompositeLocationTextView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"/>
+    </LinearLayout>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:textColor="?attr/gray54"
+        android:id="@+id/details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="22dp"/>
+</LinearLayout>

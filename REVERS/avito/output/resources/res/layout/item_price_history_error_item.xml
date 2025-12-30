@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM20"
+    android:textColor="?attr/gray54"
+    android:id="@+id/error_text"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/item_price_history_loading_error"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="19dp"/>

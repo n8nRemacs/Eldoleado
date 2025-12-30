@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/serviceTransportationWidgetContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/services_transportation_widget_banner_horizontal_margin">
+    <com.avito.android.lib.design.banner.Banner
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/serviceTransportationWidget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:banner_content="@layout/service_transportation_widget_content"
+        app:banner_shadowEnabled="false"
+        app:banner_titleStyle="?attr/textH30"
+        style="?attr/bannerWarmgray"/>
+</FrameLayout>

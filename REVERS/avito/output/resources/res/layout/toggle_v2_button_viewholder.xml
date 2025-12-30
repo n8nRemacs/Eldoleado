@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.short_term_rent.view.components.toggle_v2.ToggleV2Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textColor="@color/payment_button_text_color"
+    android:id="@+id/payment_button"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    app:backgroundColor="?attr/warmGray4"
+    app:borderColor="@color/payment_button_border_color"
+    app:borderWidth="2dp"
+    app:cornerRadius="12dp"/>

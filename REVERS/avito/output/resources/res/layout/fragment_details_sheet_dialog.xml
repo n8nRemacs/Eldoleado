@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tariff_details_sheet_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/tariff_details_sheet_loading_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"/>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/tariff_details_sheet_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:textAppearance="?attr/textM1"
+                android:id="@+id/tariff_details_sheet_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginHorizontal="24dp"/>
+            <com.avito.android.lib.design.button.Button
+                android:id="@+id/tariff_details_sheet_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginVertical="16dp"
+                style="?attr/buttonPrimaryLarge"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

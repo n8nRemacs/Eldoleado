@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.circular_counter.CircularCounter xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/timer_progress"
+    android:layout_width="124dp"
+    android:layout_height="124dp"
+    app:circularCounter_contentAppearance="?attr/textH20"
+    app:circularCounter_progressIndicatorColor="?attr/black"
+    app:circularCounter_progressRailColor="?attr/warmGray16"
+    app:circularCounter_progressWidth="8dp"/>

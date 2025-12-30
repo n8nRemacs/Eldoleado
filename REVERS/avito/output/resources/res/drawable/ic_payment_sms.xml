@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@drawable/_ic_payment_sms__0_res_0x7f08006e"
+        android:pathData="M6.7473,20.2444L3.4472,21.8944C2.5877,22.3242 1.6758,21.4123 2.1056,20.5528L3.5422,17.6794C3.3707,17.4343 3.2126,17.1769 3.0685,16.9074C2.3713,15.6037 2,14.0349 2,12.1227L2,11.8773C2,9.9651 2.3713,8.3963 3.0685,7.0926C3.7658,5.7889 4.7889,4.7658 6.0926,4.0685C7.3963,3.3713 8.9651,3 10.8773,3L13.1227,3C15.0349,3 16.6037,3.3713 17.9074,4.0685C19.2111,4.7658 20.2342,5.7889 20.9315,7.0926C21.6287,8.3963 22,9.9651 22,11.8773L22,12.1227C22,14.0349 21.6287,15.6037 20.9315,16.9074C20.2342,18.2111 19.2111,19.2342 17.9074,19.9315C16.6037,20.6287 15.0349,21 13.1227,21L10.8773,21C9.2748,21 7.9135,20.7392 6.7473,20.2444Z"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1"
+        android:fillType="evenOdd"/>
+</vector>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/container"
+    android:paddingLeft="@dimen/publish_container_horizontal_padding"
+    android:paddingTop="4dp"
+    android:paddingRight="@dimen/publish_container_horizontal_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_contentSpacing="10dp"
+    app:componentContainer_resetCondition="atLeastOne">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/range_from"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLength="4"
+        app:input_componentType="input"
+        app:input_formatterType="decimal"
+        app:layout_autoReset="notNormalOnly"
+        app:layout_weight="1"
+        style="?attr/input"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/range_to"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLength="4"
+        app:input_componentType="input"
+        app:input_formatterType="decimal"
+        app:layout_autoReset="notNormalOnly"
+        app:layout_weight="1"
+        style="?attr/input"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

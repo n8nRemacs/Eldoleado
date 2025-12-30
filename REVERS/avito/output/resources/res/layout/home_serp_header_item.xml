@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textSize="16sp"
+    android:textColor="?attr/black"
+    android:gravity="center_vertical"
+    android:id="@+id/serp_header_title"
+    android:paddingLeft="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    app:fontFamily="?attr/fontHeavy"/>

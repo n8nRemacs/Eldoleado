@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/shortcut_button"
+    android:background="@drawable/avito_mall_shortcut_bg"
+    android:layout_width="32dp"
+    android:layout_height="32dp"
+    app:button_cornerRadius="10dp"/>

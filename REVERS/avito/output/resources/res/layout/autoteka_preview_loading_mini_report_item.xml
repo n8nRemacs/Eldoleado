@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mini_report_loading_card"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:layout_marginHorizontal="12dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:background="?attr/gray4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="16dp">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/mini_report_loading_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?attr/textM10"/>
+            <TextView
+                android:textAppearance="?attr/textM10"
+                android:textColor="?attr/gray54"
+                android:id="@+id/mini_report_loading_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/mini_report_spinner"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/autoteka_mini_report_spinner"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

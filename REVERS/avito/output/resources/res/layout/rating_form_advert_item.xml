@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingBottom="22dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/rating_form_advert_item_image"
+        android:layout_width="109dp"
+        android:layout_height="84dp"
+        android:layout_marginTop="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/rating_form_advert_item_title"
+        app:roundedCornerRadius="5dp"/>
+    <com.avito.android.rating_form.select_item.adapter.advert.ComposeUncutTextView
+        android:textAppearance="?attr/textM1"
+        android:ellipsize="end"
+        android:id="@+id/rating_form_advert_item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:layout_marginStart="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/rating_form_advert_item_image"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:id="@+id/rating_form_advert_item_price"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/rating_form_advert_item_title"
+        app:layout_constraintTop_toBottomOf="@+id/rating_form_advert_item_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

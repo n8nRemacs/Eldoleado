@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:paddingTop="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/badgeDetailsHeaderImage"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:animateLayoutChanges="true"
+        app:actualImageScaleType="centerCrop"
+        app:failureImage="@drawable/badge_details_header_image_placeholder"
+        app:failureImageScaleType="centerCrop"
+        app:placeholderImage="@drawable/badge_details_header_image_placeholder"
+        app:placeholderImageScaleType="centerCrop"/>
+</LinearLayout>

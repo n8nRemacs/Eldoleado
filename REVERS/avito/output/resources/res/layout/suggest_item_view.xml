@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/suggest_item_root"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/user_address_suggest_item_view_horizontal_padding"
+    app:listItem_subtitleAppearance="?attr/textM2"
+    app:listItem_subtitleColor="?attr/gray48"
+    app:listItem_textSpacing="@dimen/user_address_suggest_item_text_spacing"
+    app:listItem_titleAppearance="?attr/textM2"
+    app:listItem_titleColor="?attr/black"/>

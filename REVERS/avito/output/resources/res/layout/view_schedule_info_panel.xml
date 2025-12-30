@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/view_schedule_info_panel_root"
+    android:paddingTop="16dp"
+    android:paddingBottom="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+    <include layout="@layout/view_schedule_info_panel_loaded"/>
+    <include layout="@layout/view_schedule_info_panel_skeleton"/>
+</FrameLayout>

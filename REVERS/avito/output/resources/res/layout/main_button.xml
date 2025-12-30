@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="bottom|center_horizontal"
+    android:id="@+id/main_button"
+    android:layout_width="match_parent"
+    android:layout_marginBottom="@dimen/location_filter_main_button_offset"
+    android:layout_marginStart="@dimen/location_filter_main_button_offset"
+    android:layout_marginEnd="@dimen/location_filter_main_button_offset"
+    style="?attr/buttonPrimaryLarge"/>

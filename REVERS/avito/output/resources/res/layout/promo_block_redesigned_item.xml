@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/publish_promo_block_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp">
+    <com.avito.android.lib.design.banner.Banner
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/publish_promo_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:banner_content="@layout/promo_block_redesigned_content_item"/>
+</FrameLayout>

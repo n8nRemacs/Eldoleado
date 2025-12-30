@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="630dp">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/offers_title"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/offers_description"
+        android:paddingBottom="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"/>
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/nothing_found_container"
+        android:background="@drawable/offers_bg"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="42dp"
+        android:paddingVertical="20dp">
+        <TextView
+            android:textAppearance="?attr/textH25"
+            android:textColor="?attr/gray48"
+            android:paddingBottom="6dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/landing_nothing_found_title"/>
+        <TextView
+            android:textAppearance="?attr/textM20"
+            android:textColor="?attr/gray48"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/landing_nothing_found_description"
+            android:textAlignment="center"/>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/placeholders_container"
+        android:background="@drawable/offers_bg"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="20dp">
+        <include layout="@layout/landing_item_offer_placeholder"/>
+        <include layout="@layout/landing_item_offer_placeholder"/>
+        <include layout="@layout/landing_item_offer_placeholder"/>
+        <include layout="@layout/landing_item_offer_placeholder"/>
+        <include layout="@layout/landing_item_offer_placeholder"/>
+        <include layout="@layout/landing_item_offer_placeholder"/>
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/data_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include
+            android:id="@+id/mkb_banner"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            layout="@layout/landing_item_mkb_banner"/>
+        <FrameLayout
+            android:background="@drawable/offers_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="20dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/offers_recycler_view"
+                android:paddingBottom="50dp"
+                android:scrollbars="none"
+                android:clipToPadding="false"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never"/>
+            <com.avito.android.lib.design.button.Button
+                android:layout_gravity="bottom"
+                android:id="@+id/offers_submit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/landing_button_title"
+                style="?attr/buttonPrimaryMedium"/>
+        </FrameLayout>
+    </LinearLayout>
+</LinearLayout>

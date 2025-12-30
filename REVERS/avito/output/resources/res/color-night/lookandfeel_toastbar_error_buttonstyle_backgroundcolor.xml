@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_enabled="false"
+        android:color="@color/look_and_feel_red_700"/>
+    <item
+        android:state_pressed="true"
+        android:color="@color/look_and_feel_red_800"/>
+    <item android:color="@color/look_and_feel_red_900"/>
+</selector>

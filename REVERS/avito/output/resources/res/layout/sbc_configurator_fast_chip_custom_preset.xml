@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/sbc_fast_chip_custom_preset_background"
+    android:paddingTop="16dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="118dp">
+    <ImageView
+        android:id="@+id/sbc_configurator_fast_chip_custom_preset_icon"
+        android:background="@drawable/sbc_fast_chip_custom_preset_edit_button_background"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginBottom="8dp"
+        android:scaleType="center"
+        app:srcCompat="?attr/ic_editOutline16"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Свой вариант"/>
+</LinearLayout>

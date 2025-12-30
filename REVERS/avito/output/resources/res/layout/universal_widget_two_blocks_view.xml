@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.extended_profile_ui_components.universal_widget.UniversalWidgetBlockView
+        android:id="@+id/universal_widget_two_blocks_top_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.extended_profile_ui_components.universal_widget.UniversalWidgetBlockView
+        android:id="@+id/universal_widget_two_blocks_bottom_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

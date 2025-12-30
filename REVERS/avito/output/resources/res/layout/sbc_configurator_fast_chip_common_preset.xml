@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/sbc_fast_chip_common_preset_background"
+    android:paddingTop="32dp"
+    android:paddingBottom="16dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="118dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:ellipsize="end"
+        android:gravity="start"
+        android:id="@+id/sbc_configurator_fast_chip_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:maxLines="1"
+        android:paddingEnd="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:ellipsize="end"
+        android:gravity="start"
+        android:id="@+id/sbc_configurator_fast_chip_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lines="3"/>
+</LinearLayout>

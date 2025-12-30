@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/contacts_bbl_container"
+    android:background="?attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="14dp">
+    <com.avito.android.lib.design.circular_counter.CircularCounter
+        android:id="@+id/contacts_bbl_counter"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="@dimen/content_horizontal_padding"
+        app:circularCounter_contentAppearance="?attr/textH6"
+        app:circularCounter_contentIconSize="16dp"
+        app:circularCounter_progressRailColor="?attr/warmGray8"
+        app:circularCounter_progressWidth="4dp"/>
+    <TextView
+        android:id="@+id/contacts_bbl_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="@dimen/content_horizontal_padding"/>
+</LinearLayout>

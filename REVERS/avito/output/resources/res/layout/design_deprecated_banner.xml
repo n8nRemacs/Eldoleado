@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal">
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_toStartOf="@+id/image"
+        android:layout_alignParentStart="true"
+        android:translationZ="1px"/>
+    <FrameLayout
+        android:id="@+id/image_container"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_gravity="end|bottom"
+            android:id="@+id/image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/deprecatedBanner_imageStyle"/>
+        <com.avito.android.lib.design.close_button.CloseButton
+            android:layout_gravity="end|top"
+            android:id="@+id/close_button"
+            android:focusable="true"
+            android:clickable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            style="?attr/clearButtonSmall"/>
+    </FrameLayout>
+</merge>

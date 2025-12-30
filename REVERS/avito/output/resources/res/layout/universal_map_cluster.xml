@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/default_cluster_white_outline"
+    android:padding="2dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="?attr/constantWhite"
+        android:gravity="center"
+        android:id="@+id/text_view"
+        android:background="@drawable/default_cluster_background"
+        android:paddingLeft="11dp"
+        android:paddingRight="11dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fontFamily="?attr/fontHeavy"/>
+</FrameLayout>

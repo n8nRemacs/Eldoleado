@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:duplicateParentState="true"
+    android:layout_width="@dimen/switcher_width"
+    android:layout_height="@dimen/switcher_height"
+    android:layout_marginLeft="@dimen/switcher_margin_left"
+    android:layout_marginStart="@dimen/switcher_margin_left">
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/toggle"
+        android:background="@null"
+        android:duplicateParentState="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:thumb="@drawable/switcher_thumb"
+        android:text="@null"
+        app:track="@drawable/switcher_track"/>
+    <com.avito.android.lib.deprecated_design.ColoredProgressBar
+        android:layout_gravity="center"
+        android:id="@+id/loader"
+        android:visibility="gone"
+        android:layout_width="@dimen/switcher_loader_size"
+        android:layout_height="@dimen/switcher_loader_size"
+        android:indeterminate="true"/>
+</FrameLayout>

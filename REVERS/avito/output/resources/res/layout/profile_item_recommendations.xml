@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/header"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableRight="?attr/ic_arrowRight24"
+        android:paddingHorizontal="@dimen/profile_inside_horizontal_padding"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:listItem_iconRightColor="?attr/gray28"
+        app:listItem_textMarginBottom="12dp"
+        app:listItem_textMarginTop="12dp"
+        app:listItem_title="Рекомендации"
+        app:listItem_titleAppearance="?attr/textM10"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"/>
+</LinearLayout>

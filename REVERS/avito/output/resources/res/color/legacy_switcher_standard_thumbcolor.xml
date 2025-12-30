@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_enabled="false"
+        android:state_checked="true"
+        android:color="@color/legacy_switcher_thumb_disabled"/>
+    <item
+        android:state_checked="true"
+        android:state_pressed="true"
+        android:color="@color/legacy_constant_white"/>
+    <item
+        android:state_checked="true"
+        android:color="@color/legacy_constant_white"/>
+    <item
+        android:state_enabled="false"
+        android:state_checked="false"
+        android:color="@color/legacy_switcher_thumb_disabled"/>
+    <item
+        android:state_checked="false"
+        android:state_pressed="true"
+        android:color="@color/legacy_constant_white"/>
+    <item
+        android:state_checked="false"
+        android:color="@color/legacy_constant_white"/>
+</selector>

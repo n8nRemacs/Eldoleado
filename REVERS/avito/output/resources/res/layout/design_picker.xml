@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <View
+        android:layout_gravity="center"
+        android:id="@+id/view"
+        android:background="@drawable/design_background_picker"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/picker_highlightHeight"
+        android:layout_marginLeft="?attr/picker_highlightMarginLeft"
+        android:layout_marginTop="?attr/picker_centerOffset"
+        android:layout_marginRight="?attr/picker_highlightMarginRight"/>
+    <LinearLayout
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="232dp"/>
+</merge>

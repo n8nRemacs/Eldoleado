@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ru.cyberity.cbr.core.widget.CBRBottomSheetView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cbr_bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ru.cyberity.cbr.core.widget.CBRToolbarView
+            android:id="@+id/cbr_toolbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/cbr_margin_medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+        <ru.cyberity.cbr.core.widget.CBRTextInputLayout
+            android:id="@+id/cbr_editor_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/cbr_margin_medium"
+            android:layout_marginEnd="@dimen/cbr_margin_medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cbr_toolbar"
+            style="@style/Widget.CBRSearchInputLayout">
+            <ru.cyberity.cbr.core.widget.CBRTextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                style="@style/Widget.CBRTextEdit"/>
+        </ru.cyberity.cbr.core.widget.CBRTextInputLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/cbr_list"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/cbr_margin_medium"
+            android:layout_marginBottom="@dimen/cbr_margin_large"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cbr_editor_layout"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ru.cyberity.cbr.core.widget.CBRBottomSheetView>

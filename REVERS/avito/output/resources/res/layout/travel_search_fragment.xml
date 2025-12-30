@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        android:id="@+id/toolbar_container"
+        android:visibility="visible"
+        layout="@layout/travel_search_filters_toolbar"/>
+    <include
+        android:id="@+id/error_container"
+        android:visibility="gone"
+        layout="@layout/travel_search_error_container"/>
+    <include
+        android:id="@+id/filters_container"
+        android:visibility="gone"
+        layout="@layout/travel_search_filters_container"/>
+    <include
+        android:id="@+id/content_container"
+        android:visibility="gone"
+        layout="@layout/travel_search_content_container"/>
+</LinearLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include
+        android:id="@+id/dates_widget_collapsed_layout"
+        android:visibility="visible"
+        layout="@layout/widget_filters_widget_collapsed_layout"/>
+    <include
+        android:id="@+id/dates_widget_expanded_content"
+        android:visibility="gone"
+        layout="@layout/widget_filters_dates_widget_expanded_content"/>
+</LinearLayout>

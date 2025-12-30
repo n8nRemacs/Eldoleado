@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/esia_redirect_buttons_secondary"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/esia_redirect_buttons_large_height"
+    android:layout_marginBottom="@dimen/esia_redirect_buttons_secondary_margin_bottom"
+    style="?attr/buttonSecondaryLarge"/>

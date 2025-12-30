@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpt_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?attr/actionBarSize"
+    app:navigationIcon="@drawable/ic_back_24">
+    <com.avito.android.lib.design.progress_bar.ProgressBar
+        android:layout_gravity="center"
+        android:id="@+id/cpt_navigation_progress_bar"
+        android:visibility="gone"
+        android:layout_width="48dp"
+        android:layout_height="6dp"
+        app:progressBar_barHeight="6dp"
+        app:progressBar_emptyColor="?attr/warmGray16"
+        app:progressBar_fillColor="?attr/black"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="end|center_vertical"
+        android:id="@+id/cpt_help_button"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        style="?attr/buttonSecondarySmall"/>
+</androidx.appcompat.widget.Toolbar>

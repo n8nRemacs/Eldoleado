@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:background="@null"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleCentered="true">
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:textColor="@color/das_clear_button_color"
+            android:layout_gravity="end"
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/das_calendar_clear"
+            android:layout_marginEnd="16dp"
+            android:paddingVertical="10dp"/>
+    </com.google.android.material.appbar.MaterialToolbar>
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/advert_details_title_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/content_horizontal_padding"
+    android:layout_marginTop="-2dp"
+    android:layout_marginRight="@dimen/content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:id="@+id/advert_details_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="true"/>
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/advert_details_subtitle"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"/>
+</LinearLayout>

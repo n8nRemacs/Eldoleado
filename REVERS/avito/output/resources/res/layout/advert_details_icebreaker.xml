@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textBodySmall"
+    android:id="@+id/icebreaker_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:layout_marginEnd="10dp"
+    app:button_cornerRadius="50dp"
+    app:button_textVerticalOffset="1dp"
+    style="?attr/buttonSecondarySmall"/>

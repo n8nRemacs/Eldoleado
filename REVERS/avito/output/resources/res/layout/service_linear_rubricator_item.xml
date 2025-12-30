@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/rubricator_item_root"
+    android:layout_width="@dimen/service_linear_rubricator_item_width"
+    android:layout_height="wrap_content">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/icon"
+        android:layout_width="@dimen/service_linear_rubricator_item_icon_size"
+        android:layout_height="@dimen/service_linear_rubricator_item_icon_size"
+        android:scaleType="centerInside"
+        app:backgroundImage="@drawable/rounded_background_r12"
+        app:roundedCornerRadius="12dp"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxLines="2"/>
+</LinearLayout>

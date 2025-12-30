@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linear_radius_list_container"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:gravity="top"
+        android:background="@drawable/design_system_bottom_menu_shadow_top"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"/>
+    <FrameLayout
+        android:layout_gravity="bottom"
+        android:id="@+id/search_radius_view_skeleton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include layout="@layout/location_picker_search_radius_loader"/>
+    </FrameLayout>
+    <LinearLayout
+        android:gravity="bottom"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:id="@+id/search_radius_bottom"
+        android:background="?attr/white"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+        <com.avito.android.lib.design.chips.Chips
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:gravity="top"
+            android:id="@+id/chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            app:chips_childHorizontalSpacing="6dp"
+            app:chips_displayType="singleLineScrollable"
+            style="?attr/chipsSmall"/>
+        <com.avito.android.lib.design.button.Button
+            android:gravity="bottom|center_horizontal"
+            android:id="@+id/select_radius_button"
+            android:layout_width="match_parent"
+            android:layout_margin="16dp"
+            android:text="@string/lp_choose_radius_btn_show"
+            style="?attr/buttonPrimaryLarge"/>
+    </LinearLayout>
+</FrameLayout>

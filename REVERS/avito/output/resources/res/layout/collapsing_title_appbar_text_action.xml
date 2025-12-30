@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM2"
+    android:textColor="?attr/blue600"
+    android:gravity="center"
+    android:id="@+id/action"
+    android:background="@drawable/bg_publish_toolbar_action"
+    android:paddingLeft="@dimen/publish_toolbar_action_padding_horizontal"
+    android:paddingRight="@dimen/publish_toolbar_action_padding_horizontal"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="?android:attr/actionBarSize"
+    android:minWidth="?android:attr/actionBarSize"
+    android:layout_alignParentEnd="true"/>

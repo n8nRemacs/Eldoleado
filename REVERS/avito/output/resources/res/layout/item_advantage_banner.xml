@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/bg_advantage_banner"
+    android:padding="20dp"
+    android:layout_width="188dp"
+    android:layout_height="wrap_content"
+    android:minHeight="160dp">
+    <ImageView
+        android:id="@+id/advantage_banner_icon"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textS2"
+        android:id="@+id/advantage_banner_title"
+        android:background="@drawable/bg_advantage_banner_title"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_marginBottom="8dp"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="1dp"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:ellipsize="end"
+        android:id="@+id/advantage_banner_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

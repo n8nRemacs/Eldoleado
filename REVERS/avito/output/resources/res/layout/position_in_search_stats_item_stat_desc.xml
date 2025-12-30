@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_position_stat_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:descriptionParameterItem_dotsColor="?attr/gray28"
+    app:descriptionParameterItem_dotsOffset="2dp"
+    app:descriptionParameterItem_leftTextAppearance="?attr/textM20"
+    app:descriptionParameterItem_leftTextColor="?attr/gray54"
+    app:descriptionParameterItem_leftTextWeight="0.6"
+    app:descriptionParameterItem_rightTextAppearance="?attr/textM20"
+    app:descriptionParameterItem_rightTextColor="?attr/black"
+    app:descriptionParameterItem_rightTextWeight="0.4"/>

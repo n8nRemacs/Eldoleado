@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/cpt_mass_activation_navbar_new"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:orientation="vertical"
+        android:id="@+id/cpt_activation_header_text_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="6dp">
+        <TextView
+            android:gravity="center"
+            android:id="@+id/cpt_mass_activation_header_v2_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/textH50"/>
+        <TextView
+            android:gravity="center"
+            android:id="@+id/cpt_mass_activation_header_v2_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/textS20"/>
+    </LinearLayout>
+    <ImageView
+        android:layout_gravity="end"
+        android:id="@+id/cpt_mass_activation_skeleton_close_button_new"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="6dp"
+        android:scaleType="centerInside"
+        app:srcCompat="?attr/ic_close24"
+        app:tint="?attr/black"/>
+</FrameLayout>

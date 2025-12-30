@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_price_history_skeleton_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="38dp">
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/date"
+        android:background="@drawable/item_price_history_skeleton_bg"
+        android:layout_width="72dp"
+        android:layout_height="10dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shimmer_animationDuration="1000"
+        app:shimmer_autostart="true"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/description"
+        android:background="@drawable/item_price_history_skeleton_bg"
+        android:layout_width="92dp"
+        android:layout_height="9dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="3dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/date"
+        app:shimmer_animationDuration="1000"
+        app:shimmer_autostart="true"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/price"
+        android:background="@drawable/item_price_history_skeleton_bg"
+        android:layout_width="72dp"
+        android:layout_height="10dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shimmer_animationDuration="1000"
+        app:shimmer_autostart="true"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/inline_filter_dialog_horizontal_padding"
+    android:layout_marginEnd="@dimen/inline_filter_dialog_horizontal_padding">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/inline_filter_from_input"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:hint="@string/from_input_hint"
+        android:layout_weight="1"
+        android:inputType="number"
+        android:imeOptions="flagNoExtractUi|actionNext"
+        android:layout_marginStart="@dimen/inline_filter_price_input_outer_margin"
+        android:layout_marginEnd="@dimen/inline_filter_price_input_inner_margin"
+        android:focusedByDefault="true"
+        app:input_clearButtonUnfocused="true"
+        style="?attr/inputDefaultM"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/inline_filter_to_input"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:hint="@string/to_input_hint"
+        android:layout_weight="1"
+        android:inputType="number"
+        android:imeOptions="flagNoExtractUi|actionDone"
+        android:layout_marginStart="@dimen/inline_filter_price_input_inner_margin"
+        android:layout_marginEnd="@dimen/inline_filter_price_input_outer_margin"
+        app:input_clearButtonUnfocused="true"
+        style="?attr/inputDefaultM"/>
+</LinearLayout>

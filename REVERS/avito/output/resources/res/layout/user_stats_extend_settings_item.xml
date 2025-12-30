@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cl_stats_settings_item"
+    android:background="@drawable/user_stats_bg_stats_metric"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="4dp"
+    android:paddingHorizontal="11dp"
+    android:paddingVertical="4dp">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/sdv_stats_settings_item"
+        android:visibility="gone"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginVertical="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:roundAsCircle="true"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:gravity="center_vertical"
+        android:id="@+id/tv_stats_settings_item"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="4dp"
+        app:layout_constraintStart_toEndOf="@+id/sdv_stats_settings_item"/>
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="?attr/ic_close16"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tv_stats_settings_item"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/black"/>
+    <View
+        android:id="@+id/v_stats_settings_item_close"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="18dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_stats_settings_item"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_stats_settings_item"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

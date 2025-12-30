@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.spinner.Spinner
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/progress_spinner"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:maxWidth="30dp"
+        android:maxHeight="30dp"
+        android:minWidth="30dp"
+        android:minHeight="30dp"
+        style="?attr/spinnerDarkMedium"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/retry_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="126dp"
+        android:minHeight="44dp"
+        style="?attr/buttonSecondaryMediumRound"/>
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/bbl_configure_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/mnz_functional_toolbar_view"/>
+    <include layout="@layout/bbl_configure_shimmer_view"/>
+    <FrameLayout
+        android:id="@+id/bbl_configure_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/bbl_configure_compose_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <com.avito.android.mnz_common.ui.MnzFloatingFooter
+            android:layout_gravity="bottom"
+            android:id="@+id/bbl_configure_floating_footer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+</LinearLayout>

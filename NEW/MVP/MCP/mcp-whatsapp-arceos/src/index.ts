@@ -37,7 +37,7 @@ const config = {
   redisUrl: process.env.REDIS_URL,
   databaseUrl: process.env.DATABASE_URL,
   ipNodeId: parseInt(process.env.IP_NODE_ID || '1'),
-  defaultWebhookUrl: process.env.DEFAULT_WEBHOOK_URL,
+  defaultWebhookUrl: process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL,
   defaultProxyUrl: process.env.DEFAULT_PROXY_URL,
   apiKey: process.env.API_KEY,
   // Alert settings

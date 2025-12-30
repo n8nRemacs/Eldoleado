@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textSize="@dimen/big_money_text_size"
+    android:background="?attr/transparentBlack"
+    android:paddingLeft="@dimen/standard_padding"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>

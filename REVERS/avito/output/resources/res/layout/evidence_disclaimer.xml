@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/publish_container_horizontal_padding"
+    android:paddingVertical="16dp">
+    <TextView
+        android:textColor="?attr/gray48"
+        android:textColorLink="?attr/black"
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textBodySmall"/>
+</LinearLayout>

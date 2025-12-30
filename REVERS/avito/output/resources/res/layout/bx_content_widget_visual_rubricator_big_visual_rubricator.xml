@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/big_visual_rubricator_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/big_visual_rubricator_recycler"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        android:paddingHorizontal="@dimen/bx_content_widget_visual_rubricator_edge_offset"/>
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/flexbox_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-6dp"
+        android:paddingHorizontal="16dp"
+        app:flexDirection="row"
+        app:flexWrap="wrap"/>
+</LinearLayout>

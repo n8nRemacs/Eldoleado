@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="?attr/overlayBackground"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.animation.AnimationView
+        android:id="@+id/pinch_to_zoom_animation_view"
+        android:layout_width="42dp"
+        android:layout_height="46dp"
+        android:layout_marginBottom="6dp"
+        android:layout_marginEnd="6dp"
+        app:animationView_animationResId="@raw/pinch_to_zoom_onboarding"
+        app:animationView_autoPlay="true"
+        app:animationView_repeatCount="-1"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:textColor="?attr/constantWhite"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/try_pinch_to_zoom"
+        android:layout_marginHorizontal="16dp"/>
+</LinearLayout>

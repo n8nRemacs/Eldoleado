@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/advert_detail_stats_fragment_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/advert_detail_stats_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Avito.Redesign.TabLayout"/>
+    <FrameLayout
+        android:id="@+id/advert_detail_stats_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.ui.SafeViewPager
+            android:id="@+id/advert_detail_stats_view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+</LinearLayout>

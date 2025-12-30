@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.bottom_sheet.BoundedLinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/avatar_group"
+    android:background="@drawable/bg_publish_profile_selector"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:maxWidth="290dp"
+    android:translationX="-6dp"
+    android:paddingStart="6dp"
+    android:paddingEnd="10dp"
+    android:paddingVertical="6dp">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/avatar"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        app:backgroundImage="?attr/beige200"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:placeholderImageScaleType="center"/>
+    <TextView
+        android:ellipsize="end"
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:layout_weight="1"
+        android:layout_marginHorizontal="12dp"
+        style="?attr/textH5"/>
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?attr/ic_arrowExpandLess16"
+        app:tint="?attr/black"/>
+</com.avito.android.lib.design.bottom_sheet.BoundedLinearLayout>

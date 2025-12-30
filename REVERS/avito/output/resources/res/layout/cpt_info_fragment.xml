@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/cpt_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/cpt_info_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:animateLayoutChanges="true"
+        app:navigationIcon="@drawable/ic_back_24">
+        <TextView
+            android:textAppearance="?attr/textH50"
+            android:layout_gravity="center"
+            android:id="@+id/cpt_info_title"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="end|center_vertical"
+            android:id="@+id/cpt_info_help_view"
+            android:visibility="gone"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
+            app:button_shadowEnabled="false"
+            style="?attr/buttonOutlineSmall"/>
+    </androidx.appcompat.widget.Toolbar>
+    <FrameLayout
+        android:id="@+id/cpt_info_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/cpt_info_shimmer"/>
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/cpt_info_refresh_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/cpt_info_items_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </FrameLayout>
+</LinearLayout>

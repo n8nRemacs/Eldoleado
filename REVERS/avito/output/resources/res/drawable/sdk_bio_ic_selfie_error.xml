@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="75dp"
+    android:width="75dp"
+    android:viewportWidth="75"
+    android:viewportHeight="75">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp"/>
+            <solid android:color="#1f969fa8"/>
+            <size
+                android:height="74dp"
+                android:width="74dp"/>
+        </shape>
+    </item>
+    <item
+        android:gravity="center"
+        android:height="44dp"
+        android:width="44dp"
+        android:drawable="@drawable/sdk_bio_ic_box_selfie_error"/>
+</layer-list>

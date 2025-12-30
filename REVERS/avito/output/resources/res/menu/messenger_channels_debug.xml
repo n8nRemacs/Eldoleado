@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_map"
+        android:title="@string/messenger_debug_menu_platform_map"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_clear_database"
+        android:title="@string/messenger_debug_menu_clear_db"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_error_tracking_test"
+        android:title="@string/messenger_debug_menu_error_tracking_test"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_support_chat_form_test"
+        android:title="@string/messenger_debug_menu_support_chat_form_test"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_crashlytics_crash_test"
+        android:title="@string/messenger_debug_menu_crash_test"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_webview_auth_test_prod"
+        android:title="@string/messenger_debug_menu_test_webview_auth_prod"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_webview_auth_test_staging"
+        android:title="@string/messenger_debug_menu_test_webview_auth_staging"
+        app:showAsAction="never"/>
+</menu>

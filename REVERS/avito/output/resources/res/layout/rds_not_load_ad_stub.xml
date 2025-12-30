@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/ad_rich_not_load"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.util.layout.RatioForegroundFrameLayout
+        android:id="@+id/top_skeleton_view"
+        android:background="@drawable/bg_ad_rds_stub"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="14dp"
+        app:height_ratio="2"
+        app:width_ratio="3"/>
+    <View
+        android:background="@drawable/bg_borderless_ad_skeleton_row_bg"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ad_skeleton_row_height"
+        android:layout_marginBottom="@dimen/ad_skeleton_row_bottom_margin"/>
+    <View
+        android:background="@drawable/bg_borderless_ad_skeleton_row_bg"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ad_skeleton_row_height"
+        android:layout_marginBottom="@dimen/ad_skeleton_row_bottom_margin"/>
+    <View
+        android:id="@+id/bottom_skeleton_view"
+        android:background="@drawable/bg_borderless_ad_skeleton_row_bg"
+        android:layout_width="171dp"
+        android:layout_height="@dimen/ad_skeleton_row_height"
+        android:layout_marginBottom="@dimen/ad_skeleton_row_bottom_margin"/>
+</LinearLayout>

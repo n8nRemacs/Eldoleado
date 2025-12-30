@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<View xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/user_adverts_search_app_bar_overlay_padding"
+    android:background="?attr/white"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/user_adverts_top_padding"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"/>

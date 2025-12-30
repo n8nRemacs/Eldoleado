@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ru.cyberity.cbr.core.widget.CBRImageView
+        android:id="@+id/cbr_status_icon"
+        android:background="@drawable/cbr_bg_circle"
+        android:visibility="gone"
+        android:layout_width="@dimen/cbr_icon_size_large"
+        android:layout_height="@dimen/cbr_icon_size_large"
+        android:layout_marginBottom="@dimen/cbr_margin_medium"
+        android:scaleType="center"/>
+    <ru.cyberity.cbr.core.widget.CBRH2TextView
+        android:gravity="center"
+        android:id="@+id/cbr_status_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/cbr_margin_medium"/>
+    <ru.cyberity.cbr.core.widget.CBRSubtitle2TextView
+        android:gravity="center"
+        android:id="@+id/cbr_status_comment"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

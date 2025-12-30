@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.yandex.mobile.ads.nativeads.view.pager.MultiBannerControlsContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:clickable="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/left_scroll_control_button"
+        android:paddingLeft="8dp"
+        android:paddingRight="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/monetization_ads_internal_multibanner_left_button_icon"
+        android:paddingVertical="12dp"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/right_scroll_control_button"
+        android:paddingLeft="16dp"
+        android:paddingRight="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/monetization_ads_internal_multibanner_right_button_icon"
+        android:paddingVertical="12dp"/>
+    <ImageView
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/dot_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="12dp"
+        android:layout_margin="10dp"
+        android:adjustViewBounds="true"/>
+</com.yandex.mobile.ads.nativeads.view.pager.MultiBannerControlsContainer>

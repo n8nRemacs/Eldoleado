@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.lib.design.nav_bar.NavBar
+        android:id="@+id/tarifikator_region_navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tarifikator_region_recycler"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:descendantFocusability="beforeDescendants"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:overScrollMode="never"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/tarifikator_region_save_btn"
+        app:layout_constraintTop_toBottomOf="@+id/tarifikator_region_navbar"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/tarifikator_region_save_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="@string/setting_button_save_text"
+        android:layout_marginHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintBottom_toTopOf="@+id/tarifikator_region_footer_tv"
+        style="?attr/buttonPrimaryMedium"/>
+    <TextView
+        android:id="@+id/tarifikator_region_footer_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:paddingHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

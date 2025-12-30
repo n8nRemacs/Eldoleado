@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_profile_pro_delivery_restriction_banner_root"
+    android:background="@drawable/bg_profile_pro_delivery_restriction_banner_item"
+    android:paddingTop="14dp"
+    android:paddingBottom="15dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/banner_image"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/banner_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:id="@+id/banner_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/banner_button"
+        app:layout_constraintStart_toEndOf="@+id/banner_image"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/banner_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/banner_title"
+        app:layout_constraintTop_toTopOf="parent"
+        style="?attr/buttonOverlayPrimarySmall"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

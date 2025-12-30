@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.ForegroundLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/recommendation_seller_carousel_item_root"
+    android:background="@drawable/seller_carousel_item_bg"
+    android:paddingTop="@dimen/standard_padding"
+    android:paddingBottom="@dimen/standard_padding"
+    android:layout_width="288dp"
+    android:layout_height="wrap_content"
+    android:foreground="@drawable/seller_carousel_item_fg">
+    <include layout="@layout/seller_carousel_item_header"/>
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp"/>
+    <include layout="@layout/seller_carousel_item_body"/>
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/standard_padding"
+        android:layout_marginEnd="@dimen/standard_padding">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/btn_subscribe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/recommended_seller_subscribe"
+            style="?attr/buttonPrimaryMedium"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/btn_settings"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/recommended_seller_settings"
+            style="?attr/buttonOutlineMedium"/>
+    </FrameLayout>
+</com.avito.android.lib.util.layout.ForegroundLinearLayout>

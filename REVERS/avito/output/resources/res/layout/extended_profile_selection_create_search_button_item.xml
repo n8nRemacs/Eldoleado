@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/load_more_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="15dp"
+    android:layout_marginBottom="20dp"
+    android:text="@string/extended_profile_selection_create_search_button"
+    style="?attr/buttonSecondaryMedium"/>

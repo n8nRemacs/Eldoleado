@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="2dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/photo_view"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:actualImageScaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:overlayImage="@color/expected_black_alpha_4"
+        app:placeholderImage="?attr/blackAlpha8"
+        app:roundedCornerRadius="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textXs10"
+        android:textColor="?attr/white"
+        android:gravity="center"
+        android:id="@+id/number"
+        android:background="@drawable/bg_photo_number_re23"
+        android:layout_width="19dp"
+        android:layout_height="19dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

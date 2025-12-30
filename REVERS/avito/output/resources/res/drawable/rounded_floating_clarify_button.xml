@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_blue_alpha_24">
+    <item>
+        <selector>
+            <item
+                android:state_pressed="true"
+                android:drawable="@drawable/rounded_floating_button_pressed"/>
+            <item
+                android:state_focused="true"
+                android:drawable="@drawable/rounded_floating_button_focused"/>
+            <item android:drawable="@drawable/rounded_floating_button"/>
+        </selector>
+    </item>
+</ripple>

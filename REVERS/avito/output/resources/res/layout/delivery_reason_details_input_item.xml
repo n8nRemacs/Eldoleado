@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.input.Input xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/input"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/reason_details_input_margin_top"
+    android:minLines="3"
+    android:layout_marginHorizontal="@dimen/reason_details_input_margin_horizontal"
+    app:input_clearButton="false"/>

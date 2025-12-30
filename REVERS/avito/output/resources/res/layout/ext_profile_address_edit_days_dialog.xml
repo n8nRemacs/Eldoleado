@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/ext_profile_day_picker_container_root"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:paddingTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="start"
+            android:id="@+id/ext_profile_days_picker_close_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="20dp"
+            app:srcCompat="?attr/ic_close24"
+            app:tint="?attr/black"/>
+        <TextView
+            android:textAppearance="?attr/textH50"
+            android:layout_gravity="center"
+            android:id="@+id/ext_profile_days_picker_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="160dp"
+            android:text="@string/days_picker_title"/>
+        <TextView
+            android:textAppearance="?attr/textM20"
+            android:textColor="?attr/blue600"
+            android:layout_gravity="end"
+            android:id="@+id/ext_profile_days_picker_save_link"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/days_picker_button"
+            android:layout_marginEnd="@dimen/extended_profile_settings_horizontal_margin"/>
+    </FrameLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/ext_profile_days_picker_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"/>
+</LinearLayout>

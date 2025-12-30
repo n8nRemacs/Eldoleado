@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:weightSum="1">
+    <androidx.appcompat.widget.AppCompatTextView
+        android:ellipsize="end"
+        android:id="@+id/seller_info_name"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:layout_weight="1"
+        android:layout_marginEnd="2dp"
+        style="@style/Widget.Avito.TextView.Serp.Item.Caption.Rich.Subtitle"/>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/rating_star"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:src="?attr/ic_rating20"
+        android:scaleType="fitCenter"
+        app:tint="?attr/orange700"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:ellipsize="none"
+        android:id="@+id/rating"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
+        style="@style/Widget.Avito.TextView.Serp.Item.Caption.Rich.Subtitle"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:ellipsize="none"
+        android:id="@+id/rating_count"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:layout_marginStart="2dp"
+        style="@style/Widget.Avito.TextView.Serp.Item.Caption.Rich.Subtitle.Secondary"/>
+</LinearLayout>

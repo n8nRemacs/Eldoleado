@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:textAppearance="?attr/textM10"
+    android:textColor="?attr/components_link_accent"
+    android:id="@+id/show_on_map_text"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/advert_details_show_on_map_item"
+    android:paddingHorizontal="@dimen/content_horizontal_padding"/>

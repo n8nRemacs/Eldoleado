@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/sb_check_price_list_item_root"
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+    <com.avito.android.lib.design.toggle.Checkbox
+        android:id="@+id/sb_service_check"
+        android:paddingTop="2dp"
+        android:clickable="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        style="?attr/toggleCheckboxDefaultMedium"/>
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/sb_check_price_list_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        app:descriptionParameterItem_dotsOffset="2dp"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textM20"
+        app:descriptionParameterItem_leftTextIconColor="?attr/gray28"
+        app:descriptionParameterItem_leftTextIconPadding="2dp"
+        app:descriptionParameterItem_rightTextAppearance="?attr/textM10"/>
+</LinearLayout>

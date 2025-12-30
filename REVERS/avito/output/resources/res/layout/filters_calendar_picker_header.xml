@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/top_line"
+    android:visibility="visible"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:paddingStart="14dp"
+    android:paddingEnd="16dp">
+    <View
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/avito_bottom_sheet_notch"
+        android:background="@drawable/ic_avito_bottom_sheet_notch"
+        android:layout_width="28dp"
+        android:layout_height="4dp"/>
+    <View
+        android:layout_gravity="start|center_vertical"
+        android:id="@+id/close_button"
+        android:background="@drawable/ic_close_24_black"
+        android:layout_width="24dp"
+        android:layout_height="24dp"/>
+    <TextView
+        android:layout_gravity="center"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        style="?attr/textHeadingSmall"/>
+    <TextView
+        android:textSize="16sp"
+        android:textColor="?attr/blue"
+        android:layout_gravity="end|center_vertical"
+        android:id="@+id/clear_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/clear_inline_filter"
+        style="?attr/textBodySmall"/>
+</FrameLayout>

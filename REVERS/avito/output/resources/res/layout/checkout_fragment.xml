@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/checkout_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/mnz_functional_toolbar_view"/>
+    <include layout="@layout/checkout_shimmer_view"/>
+    <FrameLayout
+        android:id="@+id/checkout_content"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/checkout_items"
+            android:clipChildren="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+        <com.avito.android.mnz_common.ui.MnzFloatingFooter
+            android:layout_gravity="bottom"
+            android:id="@+id/checkout_bbl_floating_footer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/imv_cars_details_price_comment_background"
+    android:paddingTop="20dp"
+    android:paddingBottom="32dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="28dp"
+    android:paddingHorizontal="@dimen/imv_cars_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:id="@+id/price_comment_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:textColor="?attr/gray54"
+        android:id="@+id/price_comment_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/price_comment_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

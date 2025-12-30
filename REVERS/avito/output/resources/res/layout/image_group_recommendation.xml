@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/picture"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="22dp"
+        android:scaleType="centerCrop"
+        app:actualImageScaleType="fitXY"/>
+    <FrameLayout
+        android:id="@+id/label_container"
+        android:padding="12dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.avito.android.publish.slots.images_groups_recommendations.item.photo_list_view_groups.RecommendationLabel
+            android:gravity="center_vertical"
+            android:layout_gravity="center"
+            android:id="@+id/label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="21dp"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="3dp"/>
+    </FrameLayout>
+    <FrameLayout
+        android:layout_gravity="end|bottom"
+        android:id="@+id/action_container"
+        android:padding="12dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="center"
+            android:id="@+id/add_action"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            style="?attr/buttonOverlayPrimarySmall"/>
+    </FrameLayout>
+</merge>

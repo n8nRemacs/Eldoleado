@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/login_suggests_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/login_suggests_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/login_suggest_title"
+        android:layout_marginHorizontal="16dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/login_suggests_recycler"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clipToPadding="false"
+        android:descendantFocusability="beforeDescendants"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/black_radio_toggle_color_checked"/>
+            <size
+                android:height="@dimen/radio_toggle_size"
+                android:width="@dimen/radio_toggle_size"/>
+        </shape>
+    </item>
+    <item
+        android:left="@dimen/toggle_point_padding"
+        android:top="@dimen/toggle_point_padding"
+        android:right="@dimen/toggle_point_padding"
+        android:bottom="@dimen/toggle_point_padding">
+        <shape android:shape="oval">
+            <solid android:color="@color/legacy_white"/>
+            <size
+                android:height="@dimen/toggle_point_size"
+                android:width="@dimen/toggle_point_size"/>
+        </shape>
+    </item>
+</layer-list>

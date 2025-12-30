@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:height="@dimen/plan_calendar_recycler_view_day_size"
+                android:width="@dimen/plan_calendar_recycler_view_day_size"/>
+            <solid android:color="?attr/blue"/>
+            <corners
+                android:topLeftRadius="@dimen/plan_calendar_recycler_view_day_half_size"
+                android:bottomLeftRadius="@dimen/plan_calendar_recycler_view_day_half_size"/>
+        </shape>
+    </item>
+</selector>

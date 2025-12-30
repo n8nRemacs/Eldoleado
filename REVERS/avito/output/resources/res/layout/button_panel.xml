@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.deprecated_design.ButtonPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingLeft="@dimen/button_panel_left_padding"
+    android:paddingTop="@dimen/button_panel_standard_padding"
+    android:paddingRight="@dimen/button_panel_standard_padding"
+    android:paddingBottom="@dimen/button_panel_standard_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include
+        android:id="@+id/primary_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/button_flat_primary"/>
+    <include
+        android:id="@+id/secondary_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/button_flat_primary"/>
+</com.avito.android.lib.deprecated_design.ButtonPanelLayout>

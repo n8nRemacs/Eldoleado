@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="14dp">
+    <TextView
+        android:textAppearance="?attr/textHeadingLarge"
+        android:id="@+id/price_comparison_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/content_horizontal_padding"
+        android:layout_marginEnd="@dimen/content_horizontal_padding"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/price_comparison_entities_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="@dimen/content_horizontal_padding"
+        android:layout_marginEnd="@dimen/content_horizontal_padding"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:textColor="?attr/blue"
+        android:id="@+id/price_comparison_link"
+        android:paddingTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/content_horizontal_padding"
+        android:paddingEnd="@dimen/content_horizontal_padding"/>
+</LinearLayout>

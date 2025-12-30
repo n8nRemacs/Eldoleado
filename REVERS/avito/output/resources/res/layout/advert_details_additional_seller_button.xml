@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/additional_seller_button_container"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1"
+    android:layout_marginHorizontal="@dimen/content_horizontal_padding">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/additional_seller_main_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        style="?attr/buttonSecondaryLarge"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/additional_seller_secondary_button"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            style="?attr/buttonSecondaryLarge"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/additional_seller_additional_button"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="?attr/ic_call20"
+            android:layout_marginStart="6dp"
+            app:button_iconColor="?attr/blue"
+            style="?attr/buttonSecondaryLarge"/>
+    </LinearLayout>
+</LinearLayout>

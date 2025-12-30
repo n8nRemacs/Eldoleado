@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textColor="@color/txt_flat_button_primary"
+    android:gravity="center"
+    android:id="@+id/flat_button"
+    android:background="@drawable/bg_payment_method_button"
+    android:paddingLeft="72dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:textAllCaps="true"
+    style="@style/Deprecated.Theme.Internal.Button.Flat.Primary"/>

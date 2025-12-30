@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/advert_details_items_bg_neighboring_dates_shimmer_chip"
+    android:layout_width="113dp"
+    android:layout_height="62dp"
+    app:shimmer_animationDuration="2500"
+    app:shimmer_autostart="true"/>

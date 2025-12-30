@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/advert_details_branding_gallery_block_element_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/advert_details_branding_gallery_block_element_image"
+        android:duplicateParentState="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:actualImageScaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:roundedCornerRadius="16dp"/>
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/advert_details_branding_gallery_block_element_play_button"
+        android:visibility="gone"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="?attr/ic_blackTranslucentPlayButton"
+        app:layout_constraintBottom_toBottomOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintEnd_toEndOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintStart_toStartOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintTop_toTopOf="@+id/advert_details_branding_gallery_block_element_image"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:id="@+id/advert_details_branding_gallery_block_element_shimmer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintEnd_toEndOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintStart_toStartOf="@+id/advert_details_branding_gallery_block_element_image"
+        app:layout_constraintTop_toTopOf="@+id/advert_details_branding_gallery_block_element_image"
+        style="?attr/shimmerDefault">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:id="@+id/advert_details_branding_gallery_block_element_shimmer_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:skeleton_radius="16dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

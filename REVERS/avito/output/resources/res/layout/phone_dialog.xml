@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="8dp"
+    android:paddingBottom="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include
+        android:id="@+id/phone_content"
+        android:visibility="visible"
+        layout="@layout/phone_dialog_content"/>
+    <include
+        android:id="@+id/phone_placeholders"
+        android:visibility="gone"
+        layout="@layout/phone_dialog_placeholders"/>
+    <include
+        android:id="@+id/phone_error"
+        android:visibility="gone"
+        layout="@layout/common_error"/>
+</FrameLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linked_info_banner_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:banner_content="@layout/vas_bundle_item"
+    app:banner_contentPaddingBottom="0dp"
+    app:banner_contentPaddingLeft="0dp"
+    app:banner_contentPaddingRight="0dp"
+    app:banner_contentPaddingTop="0dp"
+    style="?attr/bannerWhite"/>

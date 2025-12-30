@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/image_container"
+    android:layout_width="46dp"
+    android:layout_height="46dp">
+    <View
+        android:layout_gravity="center"
+        android:id="@+id/placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="center"
+        android:id="@+id/material_drawee_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/simple_drawee_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <View
+        android:id="@+id/foreground_fade"
+        android:background="?attr/black"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.04"/>
+</FrameLayout>

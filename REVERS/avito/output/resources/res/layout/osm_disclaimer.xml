@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="start|bottom"
+    android:id="@+id/osm_disclaimer"
+    android:background="@drawable/bg_osm_disclaimer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/osm_disclaimer"
+    android:paddingHorizontal="@dimen/logo_padding_horizontal"
+    android:paddingVertical="@dimen/logo_padding_vertical"/>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/promo_content_root_mini"
+    android:layout_width="match_parent"
+    android:layout_height="90dp">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/promo_title"
+        android:layout_width="0dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/promo_text"
+        app:layout_constraintEnd_toStartOf="@+id/promo_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/promo_text"
+        android:layout_width="0dp"
+        android:layout_height="22dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/promo_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/promo_title"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/promo_image"
+        android:layout_width="134dp"
+        android:layout_height="90dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/promo_actions_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

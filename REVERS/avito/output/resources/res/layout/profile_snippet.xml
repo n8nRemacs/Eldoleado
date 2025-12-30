@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/bg_btn_flat"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include
+        android:id="@+id/common_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/profile_snippet_common"/>
+    <include
+        android:id="@+id/contact_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/standard_padding"
+        layout="@layout/profile_snippet_contact"/>
+</LinearLayout>

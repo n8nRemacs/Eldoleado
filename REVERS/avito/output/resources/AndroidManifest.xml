@@ -1,0 +1,3310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="3203"
+    android:versionName="214.7"
+    android:installLocation="auto"
+    android:compileSdkVersion="36"
+    android:compileSdkVersionCodename="16"
+    package="com.avito.android"
+    platformBuildVersionCode="36"
+    platformBuildVersionName="16">
+    <uses-sdk
+        android:minSdkVersion="27"
+        android:targetSdkVersion="35"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP"/>
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <queries>
+        <package android:name="com.idamob.tinkoff.android"/>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService"/>
+        </intent>
+        <package android:name="com.whatsapp"/>
+        <package android:name="com.whatsapp.w4b"/>
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+        </intent>
+        <package android:name="ru.vtb24.mobilebanking.android"/>
+        <package android:name="ru.sberbankmobile"/>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000111"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000004"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000005"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000008"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000007"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000001"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000011"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000065"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000010"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000013"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000016"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000012"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000029"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000017"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000020"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000006"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000025"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000031"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000024"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000150"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data
+                android:scheme="bank100000000273"
+                android:host="qr.nspk.ru"/>
+        </intent>
+        <package android:name="com.sec.android.app.samsungapps"/>
+        <package android:name="com.huawei.appmarket"/>
+        <package android:name="com.xiaomi.mipicks"/>
+        <package android:name="ru.auto.ara"/>
+        <package android:name="ru.farpost.dromfilter"/>
+        <package android:name="ru.drom.baza.android.app"/>
+        <package android:name="com.sberauto.mobile"/>
+        <package android:name="ru.exist.mobile"/>
+        <package android:name="ru.zzap.ZZap"/>
+        <package android:name="ru.euroauto.EuroAuto"/>
+        <package android:name="ru.autoteka.app"/>
+        <package android:name="ru.avtocod"/>
+        <package android:name="ru.drom.numbers"/>
+        <package android:name="ru.likemobile.checkauto"/>
+        <package android:name="ru.likemobile.basegibdd"/>
+        <package android:name="ru.cian.main"/>
+        <package android:name="ru.n1"/>
+        <package android:name="ru.domofond.app"/>
+        <package android:name="ru.domclick.mortgage"/>
+        <package android:name="com.booking"/>
+        <package android:name="com.airbnb.android"/>
+        <package android:name="ru.sutochno_redesign"/>
+        <package android:name="ru.tvil.guest"/>
+        <package android:name="ru.kvartirka.android_new"/>
+        <package android:name="com.yandex.mobile.realty"/>
+        <package android:name="ru.m2.squaremeter"/>
+        <package android:name="ru.hh.android"/>
+        <package android:name="com.iconjob.android"/>
+        <package android:name="ru.rabota.app2"/>
+        <package android:name="ru.superjob.client.android"/>
+        <package android:name="ru.zarplata"/>
+        <package android:name="ru.trudvsem"/>
+        <package android:name="ru.profi.client"/>
+        <package android:name="ru.rosrabota"/>
+        <package android:name="ru.sydy.fasttrud"/>
+        <package android:name="com.trovit.android.apps.jobs"/>
+        <package android:name="com.careerjet.android"/>
+        <package android:name="com.yandex.toloka.androidapp"/>
+        <package android:name="ru.rabotaynadomu"/>
+        <package android:name="ru.wz.android"/>
+        <package android:name="pro.handswork.rabruki"/>
+        <package android:name="com.gigant.employee"/>
+        <package android:name="com.naimix"/>
+        <package android:name="mygig.worker"/>
+        <package android:name="com.tensero.dap.mobile"/>
+        <package android:name="ru.verme.shifts"/>
+        <package android:name="com.yandex.uslugi.clients"/>
+        <package android:name="com.sberbank.services"/>
+        <package android:name="com.sebbia.youdo"/>
+        <package android:name="com.es.dns"/>
+        <package android:name="ru.filit.mvideo.b2c"/>
+        <package android:name="ru.mvm.eldo"/>
+        <package android:name="ru.ozon.app.android"/>
+        <package android:name="com.alibaba.aliexpresshd"/>
+        <package android:name="ru.beru.android"/>
+        <package android:name="com.allgoritm.youla"/>
+        <package android:name="com.wildberries.ru"/>
+        <package android:name="com.lamoda.lite"/>
+        <package android:name="ru.sima_land.spb.market"/>
+        <package android:name="ru.detmir.dmbonus"/>
+        <package android:name="ru.dochkisinochki.android"/>
+        <package android:name="ru.briz.rendezvous"/>
+        <package android:name="ru.kupivip.android"/>
+        <package android:name="ru.decathlon.motherapp"/>
+        <package android:name="de.bonprix"/>
+        <package android:name="com.adidas.app"/>
+        <package android:name="ru.sportmaster.app"/>
+        <package android:name="ru.sunlight.sunlight"/>
+        <package android:name="ru.sokolov.android"/>
+        <package android:name="ru.leonardo.leonardoshop"/>
+        <package android:name="ru.kant.android"/>
+        <package android:name="goldapple.ru.goldapple.customers"/>
+        <package android:name="ru.zolotoy585.customer"/>
+        <package android:name="ru.rivegauche.app"/>
+        <package android:name="ru.letu"/>
+        <package android:name="ru.leroymerlin.mobile"/>
+        <package android:name="ru.handh.petrovich"/>
+        <package android:name="com.work220volt"/>
+        <package android:name="com.notissimus.allinstruments.android"/>
+        <package android:name="air.ru.obi.mobile"/>
+        <package android:name="com.mediapark.baucenter"/>
+        <package android:name="it.hevolus.hevo3DVR.mrdoors.projects"/>
+        <package android:name="ru.hoff.app"/>
+        <package android:name="com.ingka.ikea.app"/>
+        <package android:name="ru.mebelvia.android"/>
+        <package android:name="su.ias.stolplit"/>
+        <package android:name="com.elarbis.home.zvetdivanov"/>
+        <package android:name="com.icandesignapp.all"/>
+        <package android:name="ru.azbykamebeli.android"/>
+        <package android:name="ru.westwing.android"/>
+        <package android:name="com.kirgu.ru"/>
+        <package android:name="com.planner5d.planner5d"/>
+        <package android:name="com.materik"/>
+        <package android:name="com.notissimus.stroyland.android"/>
+        <package android:name="com.akson.aksonapp"/>
+        <package android:name="ru.strmix.android"/>
+        <package android:name="ru.tvoydom.android"/>
+        <package android:name="ru.stroyudacha.app"/>
+        <package android:name="ru.stroybum.app"/>
+        <package android:name="com.megastroy.newapp2"/>
+        <package android:name="ru.farpost.android.app"/>
+        <package android:name="ru.yandex.market.partner"/>
+        <package android:name="ru.ozon.seller_app"/>
+        <package android:name="com.wildberries.portal"/>
+        <package android:name="ru.goods.marketplace"/>
+        <package android:name="com.gnivts.selfemployed"/>
+        <package android:name="ru.yandex.taximeter"/>
+        <package android:name="com.yandex.mobile.drive"/>
+        <package android:name="com.carshering"/>
+        <package android:name="ru.belkacar.belkacar"/>
+        <package android:name="youdrive.today"/>
+        <package android:name="ru.uramobil.app"/>
+        <package android:name="ru.android.cars7"/>
+        <package android:name="com.facebook.katana"/>
+        <package android:name="com.instagram.android"/>
+        <package android:name="com.vkontakte.android"/>
+        <package android:name="org.telegram.messenger"/>
+        <package android:name="com.zhiliaoapp.musically"/>
+        <package android:name="com.google.android.youtube"/>
+        <package android:name="ru.kwork.app"/>
+        <package android:name="ru.gruzovichkof.android"/>
+        <package android:name="ru.hands.backoffice"/>
+        <package android:name="com.wheely.groundio"/>
+        <package android:name="ru.remontnik.app"/>
+        <package android:name="com.yandex.uslugi"/>
+        <package android:name="ru.fl.flmobile"/>
+        <package android:name="ru.hands.clientapp"/>
+        <package android:name="com.profibackoffice.reactnative"/>
+        <package android:name="com.tripadvisor.tripadvisor"/>
+        <package android:name="travel.opas.client"/>
+        <package android:name="com.sputnik8.android"/>
+        <package android:name="ru.russpass.tourist"/>
+        <package android:name="com.excurzilla"/>
+        <package android:name="ru.tripster.tripster"/>
+        <package android:name="ru.aliexpress.buyer"/>
+        <package android:name="ru.yandex.yandexnavi"/>
+        <package android:name="com.navitel"/>
+        <package android:name="com.gpn.azs"/>
+        <package android:name="ru.serebryakovas.lukoilmobileapp"/>
+        <package android:name="ru.pichesky.rosneft"/>
+        <package android:name="ru.yandex.mobile.gasstations"/>
+        <package android:name="com.mybedy.antiradar"/>
+        <package android:name="air.StrelkaHUDFREE"/>
+        <package android:name="air.StrelkaSDFREE"/>
+        <package android:name="ru.mosparking.appnew"/>
+        <package android:name="ru.spb.parking"/>
+        <package android:name="ru.russianhighways.mobile"/>
+        <package android:name="com.banyac.midrive.app.russia"/>
+        <package android:name="ru.starline"/>
+        <package android:name="ru.alarmtrade.pandora"/>
+        <package android:name="ru.carprice.app"/>
+        <package android:name="com.gazelkin.clients"/>
+        <package android:name="com.riesapp"/>
+        <package android:name="me.dogsy.app"/>
+        <package android:name="ru.dryclean.app"/>
+        <package android:name="ru.perevozka24.perevozka24"/>
+        <package android:name="com.qleancleaners"/>
+        <package android:name="com.sebbia.delivery"/>
+        <package android:name="com.uremont.service"/>
+        <package android:name="ru.dogwalk.apps.performer"/>
+        <package android:name="ru.salon"/>
+        <package android:name="su.ati.driver"/>
+        <package android:name="com.qlean.stirka"/>
+        <package android:name="com.sebbia.delivery.client"/>
+        <package android:name="com.uremont"/>
+        <package android:name="ru.dogwalk.apps.client"/>
+        <package android:name="ru.remontnik.app.customer"/>
+        <package android:name="ru.salon.client"/>
+        <package android:name="su.ati.client.android"/>
+        <package android:name="ru.qqrenta.qqrenta"/>
+        <package android:name="ru.ostrovok.b2b"/>
+        <package android:name="ru.tvil"/>
+        <package android:name="ru.sutochno.rentap"/>
+        <package android:name="ru.ostrovok.android"/>
+        <package android:name="ru.tinkoff.sme"/>
+        <package android:name="ru.tinkoff.investing"/>
+        <package android:name="ru.region.finance"/>
+        <package android:name="ru.mkb.mobile"/>
+        <package android:name="ru.gazprombank.android.mobilebank.app"/>
+        <package android:name="ru.gazprombank.invest"/>
+        <package android:name="ru.rshb.dbo"/>
+        <package android:name="com.tochka.bank"/>
+        <package android:name="ru.zhuck.webapp"/>
+        <package android:name="com.openbank"/>
+        <package android:name="ru.vtb.invest"/>
+        <package android:name="ru.finam.android"/>
+        <package android:name="ru.broker.my"/>
+        <package android:name="com.fivecraft.bcs"/>
+        <package android:name="ru.bcs.bcsbank"/>
+        <package android:name="ru.sberbank.investor"/>
+        <package android:name="ru.alfadirect.app"/>
+        <package android:name="ru.alfabank.mobile.android"/>
+        <package android:name="ru.tinkoff.invest.course"/>
+        <package android:name="ru.sovcombank.investor"/>
+        <package android:name="ru.diftechsvc"/>
+        <package android:name="ru.sovcomcard.halva.v1"/>
+        <package android:name="com.mileonair"/>
+        <package android:name="com.prioritypass3"/>
+        <package android:name="com.everylounge"/>
+        <package android:name="com.loungekey.android"/>
+        <package android:name="ru.av.vkusomania"/>
+        <package android:name="ru.vkusvill"/>
+        <package android:name="ru.globus.app"/>
+        <package android:name="ru.pyaterochka.app"/>
+        <package android:name="ru.pyaterochka.app.browser"/>
+        <package android:name="ru.tander.magnit"/>
+        <package android:name="ru.bestprice.fixprice"/>
+        <package android:name="ru.perekrestok.app"/>
+        <package android:name="com.webbankir"/>
+        <package android:name="ru.moneyman"/>
+        <package android:name="com.microloan.android"/>
+        <package android:name="com.zaym.microcredit"/>
+        <package android:name="ru.migcredit.migcredit2"/>
+        <package android:name="com.minlabhome.denygizaim"/>
+        <package android:name="com.zaim.online.na.kartu.microzaim.mikrozaim.credit.loan"/>
+        <package android:name="com.almazapp.credit"/>
+        <package android:name="com.metib.quikandroidx"/>
+        <package android:name="ru.ds24.apartserv"/>
+        <package android:name="veles.invest.mapp"/>
+        <package android:name="ru.alfacapital.lk"/>
+        <package android:name="ru.sinara_finance.invest"/>
+        <package android:name="ru.openbroker.app"/>
+        <package android:name="ru.opentrainer.app"/>
+        <package android:name="ru.psbank.invest"/>
+        <package android:name="ru.alor.ma"/>
+        <package android:name="ru.raiffeisen.capitalapp"/>
+        <package android:name="com.investyarmarka2.ofctr"/>
+        <package android:name="rshb.broker.mapp"/>
+        <package android:name="com.example.investcalc"/>
+        <package android:name="com.project.moneyfriends"/>
+        <package android:name="ru.dohod.mobileinvestor"/>
+        <package android:name="com.tradingcourses.learnhowtoinvest"/>
+        <package android:name="ru.shareholder"/>
+        <package android:name="ru.calculator.vkladov"/>
+        <package android:name="ru.robo24.app01"/>
+        <package android:name="org.xtina.app"/>
+        <package android:name="cz.bsc.rc"/>
+        <package android:name="fsfrexam.ru.fsfr2"/>
+        <package android:name="com.kalita.coinmaster"/>
+        <package android:name="ru.yandex.mobile.arenda"/>
+        <package android:name="com.etagi.client"/>
+        <package android:name="com.samolet.android"/>
+        <package android:name="ru.pik.mobile"/>
+        <package android:name="ru.domyland.a101android"/>
+        <package android:name="com.yandex.bluecollars"/>
+        <package android:name="com.vkusvill.courier"/>
+        <package android:name="alex.prosto.cuper"/>
+        <package android:name="ru.wildberries.team"/>
+        <package android:name="ru.ozon.hire"/>
+        <package android:name="com.wfm.mobile.client"/>
+        <package android:name="com.wibedo"/>
+        <package android:name="ru.trudvsem.mobile"/>
+        <package android:name="com.taxsee.driver"/>
+        <package android:name="ru.citymobil.cargo"/>
+        <package android:name="ru.dikidi"/>
+        <package android:name="ru.dikidi.beauty.business"/>
+        <package android:name="apps.yclients1"/>
+        <package android:name="com.yclients.yplaces"/>
+        <package android:name="ru.jamsoft.masters"/>
+        <package android:name="ru.jamsoft.masters.salon"/>
+        <package android:name="ru.beautybox.twa"/>
+        <package android:name="com.beautyagent"/>
+        <package android:name="ru.yandex.yandexnavi.inhouse"/>
+        <package android:name="com.yandex.browser.broteam"/>
+        <package android:name="ru.auto.ara.debug"/>
+        <package android:name="com.sberauto.mobile.staging"/>
+        <package android:name="com.sberautotest.mobile.autotesting"/>
+        <package android:name="com.sberautotest.mobile.debug"/>
+        <package android:name="ru.vk.store"/>
+        <package android:name="com.transsnet.store"/>
+        <package android:name="com.heytap.market"/>
+        <intent>
+            <action android:name="android.intent.action.CALL"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="mailto"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data
+                android:scheme="@string/sberbank_online_scheme"
+                android:host="@string/sberbank_online_host"/>
+        </intent>
+        <intent>
+            <action android:name="com.vk.silentauth.action.GET_INFO"/>
+        </intent>
+        <intent>
+            <action android:name="com.vk.push.HOST_SERVICE"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data
+                android:scheme="https"
+                android:host="www.tinkoff.ru"/>
+        </intent>
+        <intent>
+            <action android:name="androidx.camera.extensions.action.VENDOR_ACTION"/>
+        </intent>
+        <package android:name="com.android.chrome"/>
+        <intent>
+            <action android:name="ru.vk.store.provider.review.RemoteReviewFlowProvider"/>
+        </intent>
+        <intent>
+            <action android:name="ru.vk.store.provider.analytics.AnalyticsProvider"/>
+        </intent>
+        <package android:name="ru.vk.store.qa"/>
+        <intent>
+            <action android:name="ru.vk.store.RequestIgnoreBatteryOptimizations"/>
+        </intent>
+        <intent>
+            <action android:name="com.vkontakte.android.action.SDK_AUTH"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="http"/>
+        </intent>
+        <intent>
+            <action android:name="com.apptouch.intent.action.update_hms"/>
+        </intent>
+        <intent>
+            <action android:name="com.huawei.appmarket.intent.action.AppDetail"/>
+        </intent>
+        <package android:name="com.hisilicon.android.hiRMService"/>
+        <intent>
+            <action android:name="com.huawei.hms.core.aidlservice"/>
+        </intent>
+        <intent>
+            <action android:name="com.huawei.hms.core"/>
+        </intent>
+    </queries>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.location.network"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"/>
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.NFC"/>
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="ru.sberbank.mobile.sberid.BIND_PERSONALIZATION_SERVICE"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+    <uses-feature
+        android:glEsVersion="0x20000"
+        android:required="true"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"/>
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID"/>
+    <uses-feature
+        android:name="android.hardware.sensor.light"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.sensor.compass"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.sensor.barometer"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.sensor.proximity"
+        android:required="false"/>
+    <permission
+        android:name="com.avito.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.avito.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
+    <permission
+        android:name="com.avito.android.permission.PROCESS_PUSH_MSG"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.avito.android.permission.PUSH_PROVIDER"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.avito.android.permission.PUSH_WRITE_PROVIDER"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.avito.android.permission.PROCESS_PUSH_MSG"/>
+    <uses-permission android:name="com.avito.android.permission.PUSH_PROVIDER"/>
+    <uses-permission android:name="com.huawei.appmarket.service.commondata.permission.GET_COMMON_DATA"/>
+    <application
+        android:theme="@style/Theme.Avito"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:name="com.avito.android.ReleaseApp"
+        android:allowBackup="false"
+        android:largeHeap="true"
+        android:supportsRtl="false"
+        android:extractNativeLibs="true"
+        android:fullBackupContent="@xml/full_backup_content_rules"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <meta-data
+            android:name="com.hcaptcha.sdk.site-key"
+            android:value="@string/hCaptchaSiteKey"/>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.androidx-startup">
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.view.ProcessLifecycleInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup"/>
+        </provider>
+        <profileable android:shell="true"/>
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements"/>
+        <receiver
+            android:name="com.avito.android.receiver.AvlSharingReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="com.avito.android.receiver.CollectionSharingReceiver"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.silent_update.permissions.PermissionsActivity"/>
+        <receiver
+            android:name="com.avito.android.silent_update.download.UpdateDownloadCompletedBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.avito.android.silent_update.install.PackageInstallerStatusReceiver"
+            android:exported="false"/>
+        <meta-data
+            android:name="push_kit_auto_init_enabled"
+            android:value="true"/>
+        <service
+            android:name="com.avito.android.push.hms.HmsMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.huawei.push.action.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.cart.CartBeduinV2Activity"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.avito.android.item_map.ItemMapActivity"/>
+        <activity
+            android:name="com.avito.android.advert.AdvertDetailsActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.advert.closed.ClosedAdvertActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.advert.notes.EditAdvertNoteActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.advert.badge_details.BadgeDetailsActivity"/>
+        <activity android:name="com.avito.android.advert.cpo_program.AutotekaCpoProgramActivity"/>
+        <activity android:name="com.avito.android.advert.specifications.SpecificationsActivity"/>
+        <activity android:name="com.avito.android.advert.icebreakerseditor.IcebreakersEditorActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Launcher"
+            android:name="com.avito.android.deep_linking.DeepLinkingActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/subscriptions/search"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/videoFeed"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/favorites/collections"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/modelCard/show"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/realtyAgency/search"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/searchSubscription/open"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/deepLinks/universal"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/items/.*"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/items/.*"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/channels/.*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/order/open"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/order/open"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/trx/open"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/filters/show"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/tariff/entrypoint"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/tariff/cpt/configure/landing"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/oauth"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/favorites/comparisons/show"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/autoteka/buyReport"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/autoteka/step/products"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/autoteka/landing"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/autoteka/step/order"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/autoteka/step/report"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/voip/support/call"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/geo/seller/address/list"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/item/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/item/publish"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/brandspace/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/channel/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/channel/map/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/channels/search"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/item/channel/create"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/avito/channel/create"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/developmentsCatalog/item/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/deepLinks/fallbackable/open"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/items/search"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/main"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/item/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/targeting/enable"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/show"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/user/profile"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/items/search"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/authenticate"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/login"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/sessions/list"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/sessions/info"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/socials/list"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/password/change"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/restore"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/items"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/deepLinks/fallbackable/open"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/webview"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/mortgage/application"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/mortgage/applicationsList"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/mortgage/preQualifier"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="2"
+                    android:pathPattern="/mortgage/application"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/stories/show"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/comfortable-deal"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/gigger/kyc/esia/redirect"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/favorites/search"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/services-requests/redirect"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/item/cv/publish"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/job/seeker/profile/show"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/gigger/kyc/doc/status"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/gigger/qr"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/profile/orders/open"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/referral/universalPage"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/ds/benchmark/compose"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/beduin/v2/universalPage/benchmark"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.favorites.FavoritesActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.Avito.Launcher"
+            android:name="com.avito.android.home.HomeActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity-alias
+            android:name="com.avito.android.view.splash.SplashScreenActivity"
+            android:exported="true"
+            android:targetActivity="com.avito.android.home.HomeActivity"/>
+        <activity-alias
+            android:name="com.avito.android.ui.activity.SplashScreenActivity"
+            android:exported="true"
+            android:targetActivity="com.avito.android.home.HomeActivity"/>
+        <activity-alias
+            android:name="com.avito.android.module.splash.SplashScreenActivity"
+            android:exported="true"
+            android:targetActivity="com.avito.android.home.HomeActivity"/>
+        <activity-alias
+            android:name="com.avito.android.ui.activity.CategoryListActivity"
+            android:exported="true"
+            android:targetActivity="com.avito.android.home.HomeActivity"/>
+        <activity-alias
+            android:name="com.avito.android.Launcher"
+            android:exported="true"
+            android:targetActivity="com.avito.android.home.HomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity-alias>
+        <activity
+            android:name="com.avito.android.bxcontent.BxContentActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.avito_blog.article_screen.ui.AvitoBlogArticleActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.imv_goods_advert.ImvGoodsAdvertActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.Avito.Player.Avl"
+            android:name="com.avito.android.avl.view.AvlPlayerActivity"
+            android:launchMode="singleTop"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"
+            android:hardwareAccelerated="true"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.advert_collection.AdvertCollectionActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.ai_assistant.AiAssistantActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"/>
+        <activity android:name="com.avito.android.cart_similar_items.CartSimilarItemsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile.ExtendedProfileActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_tabs.ExtendedProfileTabsActivity"/>
+        <service
+            android:name="com.avito.android.favorite_sellers.service.FavoriteSellerService"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.imv_similiar_adverts.ImvSimilarAdvertsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.crm_paid_cvs.view.base.CrmPaidCvsActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.model_card.screen.ui.ModelCardActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name="com.avito.android.seller_promotions.SellerPromotionsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.developments_agency_search.DevelopmentsAgencySearchActivity"
+            android:exported="false"/>
+        <service
+            android:name="com.avito.android.user_advert.advert.service.UserAdvertService"
+            android:exported="false"/>
+        <activity
+            android:name="com.avito.android.user_advert.advert.MyAdvertDetailsActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.user_advert.advert.items.multiaddresses.addresses_list.MyAdvertAddressesListActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel"
+            android:name="com.avito.android.imv_cars_details.presentation.ImvCarsDetailsActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.NoBackground"
+            android:name="com.avito.android.photo_gallery.LegacyPhotoGalleryActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.NoBackground"
+            android:name="com.avito.android.photo_gallery.PhotoGalleryActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.photo_gallery.grid_gallery.GridGalleryActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_map.ExtendedProfileMapActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_serp.ExtendedProfileSerpActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_selection_create.ExtendedProfileSelectionCreateActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.avito.android.stories.StoriesActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:hardwareAccelerated="true"/>
+        <activity
+            android:name="com.avito.android.settings.ui.SettingsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:name="com.avito.android.theme_settings.ThemeSettingsActivity"
+            android:launchMode="singleTop"
+            android:configChanges="uiMode"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.travel_search.TravelSearchActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/ReviewGalleryTheme"
+            android:name="com.avito.android.review_gallery.ReviewGalleryActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.body_condition_sheet.BodyConditionSheetActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.developments_catalog.residential_complex_search.ResidentialComplexActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <activity
+            android:theme="@style/Theme.Re23.NoActionBar"
+            android:name="com.avito.android.master_plan.MasterPlanActivity"
+            android:exported="false"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.widget_filters.WidgetFiltersActivity"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.avito.android.auction.AuctionActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel.Transparent"
+            android:name="com.avito.android.auction.details.AuctionDetailsSheetActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel"
+            android:name="com.avito.android.auction.offer.AuctionOfferActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.profile_settings.ProfileSettingsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.edit_carousel.EditCarouselActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.installments.form.InstallmentsFormActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safedeal.delivery.order_cancellation.RdsOrderCancellationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safedeal.universal_delivery_type.UniversalDeliveryTypeActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.beduin.ui.universal.UniversalBeduinBottomSheetActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito"
+            android:name="com.avito.android.beduin.ui.universal.UniversalBeduinActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Beduin"
+            android:name="com.avito.android.beduin.ui.screen.BeduinScreenActivity"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/api_map_key"/>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.provider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel"
+            android:name="com.avito.android.feedback_adverts.FeedbackAdvertsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.notification_center.list.NotificationCenterListActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.profile.remove.ProfileRemoveActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.profile.edit.EditProfileActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <service android:name="com.avito.android.search.subscriptions.SearchSubscriptionSyncService"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.authorization.auth.AuthActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.login.LoginActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.reset_password.ResetPasswordActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.change_password.ChangeResettedPasswordActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.upgrade_password.UpgradePasswordActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.complete_registration.CompleteRegistrationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.confirm_3fa.ConfirmEmailListActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.select_profile.SelectProfileActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.authorization.select_social.SelectSocialActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.select_profile.social_login.SocialRegistrationSuggestsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.auto_recovery.AutoRecoveryActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.authorization.duplicate_pd.DuplicatePdActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.cv_actualization.view.JsxCvActualizationActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.profile_phones.PhoneActionActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.recall_me.presentation.RecallMeActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.code_confirmation.code_confirmation.CodeConfirmationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.code_confirmation.phone_management.PhoneManagementActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.comfortable_deal.ComfortableDealActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.comfortable_deal.submitting.ComfortableDealSubmittingActivity"/>
+        <activity
+            android:theme="@style/DefaultPublishTheme"
+            android:name="com.avito.android.evidence_request.EvidenceRequestActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/DefaultPublishTheme"
+            android:name="com.avito.android.evidence_request.mvi.evidence_request.EvidenceRequestActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:name="com.avito.android.item_report.ItemReportActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.contact_access.contact_access_service.view.ContactAccessServiceActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.login_suggests_impl.LoginSuggestsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/BottomSheetInputTransparentActivityTheme"
+            android:name="com.avito.android.messenger.deeplink.bottom_sheet.BottomSheetInputActivity"/>
+        <activity
+            android:name="com.avito.android.messenger.search.ChannelsSearchActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.messenger.conversation.ChannelActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.messenger.conversation.create.phone_verification.MessengerPhoneVerificationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.messenger.blacklist.mvi.BlacklistActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.messenger.blacklist_reasons.BlacklistReasonsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.messenger.map.viewing.PlatformMapActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.messenger.map.sharing.SharingMapActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"/>
+        <activity
+            android:name="com.avito.android.messenger.map.search.GeoSearchActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <activity
+            android:name="com.avito.android.messenger.support.SupportChatFormActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <service
+            android:name="com.avito.android.messenger.service.direct_reply.DirectReplyIntentService"
+            android:exported="false"/>
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:enabled="@bool/enable_system_foreground_service_default"
+            android:exported="false"
+            android:directBootAware="false"
+            android:foregroundServiceType="dataSync"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.hotel_booking.HotelBookingActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.mortgage.MortgageApplicationActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.mortgage_invite.MortgageInviteActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.notifications_settings.screen.NotificationsSettingsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.Payment"
+            android:name="com.avito.android.payment.lib.PaymentActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.change_specific.ExtendedProfileChangeSpecificActivity"/>
+        <activity
+            android:theme="@style/DefaultPublishTheme"
+            android:name="com.avito.android.publish.PublishActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/DefaultPublishThemeTransparent"
+            android:name="com.avito.android.publish.realty_address_submission.RealtyAddressSubmissionActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <activity
+            android:theme="@style/DefaultPublishTheme"
+            android:name="com.avito.android.publish.cpa_tariff.CpaTariffActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/DefaultPublishThemeTransparent"
+            android:name="com.avito.android.publish.start_publish.StartPublishActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.str_booking.StrBookingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.rating.details.RatingDetailsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.rating.user_contacts.UserContactsActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.rating.summary.RatingSummaryActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.rating.info_screen.RatingDetailsInfoActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/RatingAddAnswerTheme"
+            android:name="com.avito.android.rating.details.answer.RatingAddAnswerActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safedeal_checkout.delivery_universal_checkout.DeliveryUniversalCheckoutActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking.mvi.ServiceBookingMviActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking_settings.ServiceBookingSettingsActivity"/>
+        <activity
+            android:name="com.avito.android.social_management.SocialManagementActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.user_adverts_filters.host.UserAdvertsFiltersHostActivity"/>
+        <activity
+            android:name="com.avito.android.user_stats.extended_user_stats.ExtendedUserStatsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.vas_performance.screens.applied_services.ui.AppliedServicesActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent.NoActionBar"
+            android:name="com.avito.android.vas_planning.remove.VasPlannerRemoveActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent.NoActionBar"
+            android:name="com.avito.android.vas_planning_feedback.VasPlanningFeedbackActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent.NoActionBar"
+            android:name="com.avito.android.vas_planning.balance_lack.VasPlanBalanceLackActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.vas_planning_calendar.PlanCalendarActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.verification.VerificationActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/verificationView/sberFinish"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/verificationView/tinkoffFinish"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/verificationView/tinkoffFinishWeb"/>
+                <data
+                    android:scheme="ru.avito"
+                    android:host="1"
+                    android:pathPattern="/verificationView/vtbFinish"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.verification.verification_webview.VerificationWebViewActivity"/>
+        <activity android:name="com.avito.android.verification.links.mts.VerificationMTSActivity"/>
+        <activity
+            android:name="com.avito.android.verification.links.esia.apptoapp.VerificationEsiaAuthActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name="com.avito.android.verification.verification_passport.VerificationPassportActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:name="com.esiasdk.android.EsiaAuthActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="com.avito"
+                    android:host="1"
+                    android:pathPrefix="/verificationView/esiaFinish"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="com.avito"
+                    android:host="1"
+                    android:pathPrefix="/gigger/kyc/esia/sdkResult"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="com.avito"
+                    android:host="1"
+                    android:pathPrefix="/social/esiaAuthFinish"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.universal_map.UniversalMapActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.user_address.UserAddressActivity"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.avito.android.campaigns_sale.CampaignsSaleActivity"/>
+        <activity android:name="com.avito.android.campaigns_sale_search.CampaignsSaleSearchActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.tariff_lf_constructor.configure.creating.bottom_sheet.ConstructorTariffBottomSheetActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.Base.BlackMenu"
+            android:name="com.avito.android.tariff_lf_constructor.configure.creating.standard.ConstructorTariffActivity"/>
+        <activity
+            android:name="com.avito.android.location_list.LocationListActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.suggest_addresses.SuggestAddressesActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking_calendar.ServiceBookingCalendarActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking_details.ServiceBookingItemDetailsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking_day_settings.DaySettingsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.mandatory_verification.MandatoryVerificationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.code_check.CodeCheckActivity"
+            android:launchMode="standard"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profiles_list.PassportProfilesListActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profile_add.onboarding.PassportOnboardingActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profile_add.merge.PassportMergeAccountsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.passport.auth_suggest.PassportAuthSuggestActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profile_add.PassportAddProfileActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profile_add.create_flow.re_agent_short_flow_creation.ReAgentShortFlowCreationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.passport.profile_add.create_flow.re_agent_set_profile_name.ReAgentSetProfileNameActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_universal_widget_edit.ExtendedProfileUniversalWidgetActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name="com.avito.android.profile_vk_linking.common.VkLinkingActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.profile_vk_linking.request_token.VkRequestTokenActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.travel_guest_profile.TravelGuestProfileActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name="com.avito.android.rating_form.RatingFormActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="com.avito.android.rating_form.activity.RatingFormFullScreenActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.rating_form.activity.bottom_sheet.RatingFormBottomSheetActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity android:name="com.avito.android.onboarding.steps.OnboardingStepsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safety.safety_settings.SafetySettingsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safety.password_change.PasswordChangeActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safety.sessions.info.SessionsInfoActivity"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safety.sessions.social_logout.SessionsSocialLogoutActivity"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.safety.password_setting.PasswordSettingActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.notificationdeeplink.NotificationDeepLinkActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.Avito.FullScreen"
+            android:name="com.avito.android.photo_picker.PhotoPickerActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden"
+            android:hardwareAccelerated="true"/>
+        <service
+            android:name="com.avito.android.photo_picker.legacy.service.ImageUploadService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <provider
+            android:name="com.avito.android.photo_picker.legacy.provider.PhotoContentProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.provider.photo"/>
+        <service
+            android:name="com.avito.android.push.impl_module.fcm.FcmMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:name="com.avito.android.iac_calls_history.impl_module.screen.CallsHistoryScreenActivity"
+            android:launchMode="singleTop"/>
+        <service
+            android:name="com.avito.android.iac_dialer.impl_module.services.media_service.IacMediaService"
+            android:exported="false"
+            android:foregroundServiceType="microphone|camera|phoneCall"/>
+        <service
+            android:name="com.avito.android.iac_dialer.impl_module.telecom.impl.IacConnectionService"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.avito.android.iac_dialer.impl_module.socket_subscription.inter_app_call_push_receiver.IacInterAppCallPushReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.avito.android.call_broadcast_receiver.action.INCOMING_CALL"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.avito.android.remote.notification.NotificationService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="push_image_download"/>
+        </service>
+        <activity
+            android:name="com.avito.android.search_suggest.SearchSuggestActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.entry_point_client_room.report.SendReportActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.review.report.ComfortableDealReviewsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.auto_evidence_request.AutoEvidenceRequestActivity"/>
+        <activity
+            android:name="com.avito.android.category.CategoryActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.comparison.ComparisonActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.deep_linking.AppLinkActivity"
+            android:enabled="true"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="http"
+                    android:host="m.avito.ru"/>
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="m.avito.ru"/>
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="http"
+                    android:host="www.avito.ru"/>
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.avito.ru"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Avito.Launcher"
+            android:name="com.avito.android.deep_linking.AppShortcutsDeepLinkActivity"
+            android:launchMode="singleTask"
+            android:noHistory="true"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.deeplink_handler.app.screen.DeeplinkHandlerActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.delivery_tarifikator.presentation.DeliveryTarifikatorActivity"/>
+        <activity
+            android:name="com.avito.android.work_profile.WorkProfileActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.sbc.confirm.ConfirmDiscountDispatchTariffSuccessActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.sbc.create.CreateDiscountDispatchActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.sbc.autodispatches.SbcAutoDispatchesActivity"
+            android:exported="false"/>
+        <activity android:name="com.avito.android.order.feature.OrderActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.TileBackground"
+            android:name="com.avito.android.payment.form.PaymentGenericFormActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"/>
+        <activity
+            android:theme="@style/Theme.Avito.TileBackground"
+            android:name="com.avito.android.payment.form.status.PaymentStatusFormActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.payment.processing.PaymentProcessingActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Payment.Theme.WebPayment"
+            android:name="com.avito.android.payment.webview.mvi.WebPaymentMviActivity"
+            android:launchMode="singleTop"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.reputation.ui.ReputationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.return_checkout.DeliveryReturnCheckoutActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.search.filter.FiltersActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.legal_request.LegalRequestActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.short_term_rent.StrSoftBookingActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.short_term_rent.bookingform.BookingFormActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.str_seller_orders.strsellerorders.StrSellerOrdersActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.str_seller_orders.strsellerordersrange.StrSellerOrdersRangeActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.str_seller_orders_calendar.StrOrdersCalendarActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.realty_agency.checkerboard.CheckerboardActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.str_calendar.booking_calendar.StrBookingCalendarActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.str_calendar.seller.SellerCalendarActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.seller_room.ui.SellerRoomActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.services_onboarding.ServicesOnboardingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.services_portfolio.PortfolioActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.sx_address.SxAddressActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.category_items_tree.screens.tree_screen.TreeActivity"
+            android:exported="false"/>
+        <activity
+            android:name="com.avito.android.category_items_tree.screens.items_screen.CategoryItemsActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.Avito.Player"
+            android:name="com.avito.android.player.view.PlayerActivity"
+            android:launchMode="singleTop"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"
+            android:hardwareAccelerated="true"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.tariff.dialog.TariffDialogActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.tariff.detailssheet.TariffDetailsSheetActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.tariff.cpx.info.TariffCpxInfoActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/Theme.Avito.Base.BlackMenu"
+            android:name="com.avito.android.paid_services_impl.PaidServicesActivity"/>
+        <activity
+            android:name="com.avito.android.recommendation_items_loader_impl.screen.RecommendationLoaderActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.webview.WebViewActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.wallet.page.WalletPageActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.page.history.PaymentHistoryActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.wallet.page.history.details.PaymentHistoryDetailsActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name="com.avito.android.wallet.page.topup.form.TopUpFormActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"/>
+        <activity
+            android:theme="@style/Theme.Re23.TransparentStatusBar"
+            android:name="com.avito.android.referral_program.ReferralPageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity android:name="com.avito.android.lib.compose.design.shared.benchmark.BenchmarkComposeActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_booking_additional_settings.ServiceBookingAdditionalSettingsActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.beduin.v2.onboarding.impl.BeduinV2OnboardingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.related_products.bottom_sheet.RelatedProductsBottomSheetActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.beduin.v2.page.impl.BeduinV2PageActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.beduin.v2.page.impl.BeduinV2BottomSheetActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.beduin.v2.benchmark.impl.BeduinV2BenchmarkPageActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.esia_webview.ui.EsiaWebViewActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:name="com.avito.android.esia_sdk.ui.EsiaSdkActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.send_esia_data_screen.ui.SendEsiaDataActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.esia_redirect_screen.ui.EsiaRedirectActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.document_verification_status_screen.ui.VerificationStatusActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_apply.ui.GigApplyActivity"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_apply.ui.GigSlotActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_slot_show_qr.ui.GigSlotShowQrCodeActivity"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_tutorials.gigtutorials.GigTutorialsActivity"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.registration_self_employment_redirect_screen.ui.SelfEmploymentRedirectActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.shift_list.ui.ShiftListActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.payment_list.ui.PaymentListActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.motivation_screen.ui.MotivationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.btob_business_trip.B2bBusinessTripActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.upload_doc.lifecycle.GigUploadDocActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_image_edit.BannerImageEditActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name="com.avito.android.select.new_metro.SelectMetroActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.select.bottom_sheet.SelectBottomSheetActivity"/>
+        <activity android:name="com.avito.android.select.new_districts.SelectDistrictActivity"/>
+        <activity android:name="com.avito.android.delivery_location_suggest.DeliveryLocationSuggestActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.job.interview.JobInterviewInvitationActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.suggest_locations.SuggestLocationsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.location_picker.LocationPickerActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.service_order_map.serviceordermap.ServiceOrderMapActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:name="com.avito.android.advert_stats.AdvertStatsActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.autoteka.presentation.choosingPurchase.AutotekaChoosingPurchaseActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.payment.AutotekaPaymentActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.waitingForPayment.AutotekaWaitingForPaymentActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.directPurchase.AutotekaDirectPurchaseActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.reportGeneration.AutotekaReportGenerationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.report.AutotekaReportActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.landing.AutotekaLandingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.previewsearch.AutotekaPreviewSearchActivity"
+            android:windowSoftInputMode="adjustPan|stateAlwaysVisible"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.autoteka.presentation.choosingPurchase.AutotekaFullscreenChoosingPurchaseActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel.Transparent"
+            android:name="com.avito.android.auto_reseller_contacts.spend_contact_dialog.SpendContactDialogActivity"/>
+        <activity
+            android:name="com.avito.android.calltracking.CalltrackingActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name="com.avito.android.help_center.HelpCenterActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="com.avito.android.help_center.help_center_request.HelpCenterRequestActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="com.avito.android.help_center.help_center_articles.HelpCenterArticlesActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.marketplace.FinanceMarketplaceActivity"
+            android:exported="false"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.webview.WalletWebViewActivity"
+            android:exported="false"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.deal_confirmation.sheet.DealConfirmationSheetActivity"/>
+        <activity
+            android:theme="@style/DetailsSheetActivityTheme"
+            android:name="com.avito.android.details_sheet.DetailsSheetActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.developments_advice.ConsultationFormActivity"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.job.cv_packages.JobCvPackagesActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.crm_candidates.view.base.JobCrmCandidatesActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.crm_candidates.view.base.JobCrmNotesActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.hotel_available_rooms.HotelAvailableRoomsActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel"
+            android:name="com.avito.android.publish_limits_info.history.PublishLimitsHistoryActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name="com.avito.android.auto_contacts.presentation.AutoContactsPackagesActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.phone_confirmation.PhoneConfirmationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateVisible"/>
+        <activity android:name="com.avito.android.soa_stat.profile_settings.SoaStatProfileSettingsActivity"/>
+        <activity
+            android:name="com.avito.android.certificate_pinning.UnsafeNetworkActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.certificate_pinning.UnsafeNetworkMviActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.vas_discount.VasDiscountActivity"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.forceupdate.screens.forceupdateroot.ForceUpdateRootActivity"/>
+        <activity android:name="com.avito.android.forceupdate.screens.forceupdaterequired.ForceUpdateRequiredActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.extended_profile_personal_link_edit.PersonalLinkEditActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.comfortable_deal_invite.ComfortableDealInviteActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.cart_sheet_after_adding.ui.CartSheetAfterAddingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.calendar_select.presentation.CalendarSelectActivity"/>
+        <activity android:name="com.avito.android.ab_groups.AbExperimentsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.LookAndFeel.BarcodeScanner"
+            android:name="com.avito.android.barcode_scanner_impl.presentation.BarcodeScannerActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.employee_stub_impl.view.EmployeeStubActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.imv_goods_poll.ImvGoodsPollActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name="com.avito.android.info.ui.InfoActivity"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_motivation_payment.ui.MotivationPaymentActivity"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.gig_motivations_list.ui.MotivationsListActivity"
+            android:windowSoftInputMode="adjustNothing|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.job.cv_info_actualization.ui.JsxCvInfoActualizationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.cv_upload.screens.cv_upload.CvUploadActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.cv_upload.screens.cv_picker.CvPickerActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.status_doc.lifecycle.GigStatusDocActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.multigeo_flow.full_list.view.JobMultiGeoFullListActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.reputation_unavailable.ReputationUnavailableActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.quality_service.QualityServiceActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.quality_service_gray.QualityServiceGrayActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.criteria_gray.CriteriaGrayActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.criteria.CriteriaActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.quality_service.EffectDetailsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.loyalty.ui.badges_list.BadgesListActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.email.email_update.EmailUpdateActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.email.email_confirmation.EmailConfirmationActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.travel_file_download_deeplink.FileDownloadActivity"
+            android:launchMode="singleInstance"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.notifications_permission.presentation.NotificationPermissionInfoDialogActivity"
+            android:exported="false"/>
+        <activity
+            android:name="com.avito.android.phone_reverification_info.PhoneReverificationInfoActivity"
+            android:windowSoftInputMode="stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.photo_list_view_group_selection.PhotoItemGroupSelectionActivity"/>
+        <activity
+            android:name="com.avito.android.auto_loans_cabinet.AutoLoansCabinetActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.str_insurance.StrInsuranceActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.str_cancellation_settings.StrCancellationSettingsActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.Avito.Transparent"
+            android:name="com.avito.android.spare_parts.bottom_sheet.SparePartsBottomSheetActivity"/>
+        <activity
+            android:name="com.avito.android.update.UpdateApplicationActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.update.mvi_screen.UpdateApplicationMviActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.virtual_deal_room.client_room.ClientRoomActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.virtual_deal_room_client_creation.ClientCreationActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.virtual_deal_room_invite.InviteActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.barcode.presentation.BarcodeDetailsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.video_picker.VideoPickerActivity"
+            android:launchMode="singleTop"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"
+            android:hardwareAccelerated="true"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.video_picker.camera_request.CameraRequestActivity"
+            android:launchMode="singleTop"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"
+            android:hardwareAccelerated="true"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.tariff_cpt.configure.TariffCptConfigureActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.tariff_cpt.info.TariffCptInfoActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.tariff_select.TariffSelectActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.cpt.activation.CptActivationActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.Avito.NoBackground"
+            android:name="com.avito.android.gallery.ui.PhotoGalleryActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:name="com.avito.android.iac_dialer_root.impl_module.activity.argumet_ver_241206.IacCallActivity"
+            android:exported="false"
+            android:taskAffinity="com.avito.android.in_app_calls"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
+            android:autoRemoveFromRecents="true"
+            android:showForAllUsers="true"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.pin.impl.creation.WalletPinCreationActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.pin.impl.verification.WalletPinVerificationActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.pin.impl.settings.mvi.WalletSecuritySettingsActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.wallet.history.WalletHistoryActivity"
+            android:exported="false"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.referral_contacts.ui.ReferralContactsActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.success.SuccessActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.free_delivery.FreeDeliveryActivity"
+            android:exported="false"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.avito.android.select_districts.SelectDistrictsActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.delivery_abuse.price_reduction.PriceReductionActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.intermediary_verification.IntermediaryVerificationActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.position_in_search.stats.screen.position_in_search.PositionInSearchActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.position_in_search.stats.screen.old_position_in_search.view.SearchPositionActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.competitor_analytics.CompetitorAnalyticsActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.oauth.presentation.OAuthActivity"/>
+        <activity
+            android:name="com.avito.android.multi_message_send.view.MultiMessageSendActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23.Transparent"
+            android:name="com.avito.android.re_agent_landing.landing.ReAgentProfileCreateLandingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.language_selector.presentation.LanguageSelectorActivity"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.categories_global.CategoriesActivity"/>
+        <activity
+            android:name="com.avito.android.gsm_call_starter.impl_module.screen.FakeSystemDialerActivity"
+            android:exported="true"/>
+        <service
+            android:label="@string/analytics_service"
+            android:name="com.avito.android.geo.GeoService"/>
+        <meta-data
+            android:name="com.crashlytics.ApiKey"
+            android:value="08ec3e6195b1900ada120c1e0c6140a818626d68"/>
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="true"/>
+        <service
+            android:name="com.avito.android.push.rustore.service.RuStoreMessageService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="ru.rustore.sdk.pushclient.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:name="ru.ok.android.sdk.OkAuthActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:configChanges="orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="okauth"
+                    android:host="@string/okActivityHost"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="ru.ok.android.sdk.OkPostingActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Legacy.Transparent"
+            android:name="com.avito.android.social.SocialActivity"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Re23"
+            android:name="com.avito.android.social.esia.EsiaAuthActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Theme.DesignSystem.Legacy.Transparent"
+            android:name="com.avito.android.social.apple.AppleAuthActivity"/>
+        <receiver
+            android:name="com.adjust.sdk.AdjustReferrerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true"/>
+        </service>
+        <activity
+            android:theme="@style/VKID.Light.Transparent"
+            android:name="com.vk.id.internal.auth.AuthActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:configChanges="fontScale|fontWeightAdjustment|density|screenSize|screenLayout|orientation|keyboardHidden|locale">
+            <meta-data
+                android:name="VKIDClientID"
+                android:value="52038254"/>
+            <meta-data
+                android:name="VKIDClientSecret"
+                android:value="guSzxMu8S3ThcKbVPtMa"/>
+            <meta-data
+                android:name="VKIDRedirectHost"
+                android:value="vk.ru"/>
+            <meta-data
+                android:name="VKIDRedirectScheme"
+                android:value="vk52038254"/>
+        </activity>
+        <activity
+            android:name="com.vk.id.internal.auth.RedirectUriReceiverActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="vk52038254"
+                    android:host="vk.ru"/>
+            </intent-filter>
+        </activity>
+        <service
+            android:name="androidx.credentials.playservices.CredentialProviderMetadataHolder"
+            android:enabled="true"
+            android:exported="false">
+            <meta-data
+                android:name="androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+                android:value="androidx.credentials.playservices.CredentialProviderPlayServicesImpl"/>
+        </service>
+        <activity
+            android:theme="@style/Theme.Hidden"
+            android:name="androidx.credentials.playservices.HiddenActivity"
+            android:enabled="true"
+            android:exported="false"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden"
+            android:fitsSystemWindows="true"/>
+        <meta-data
+            android:name="yandex.maps.runtime.stl.linkage"
+            android:value="static"/>
+        <service
+            android:name="com.yandex.runtime.connectivity.internal.ConnectivityService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
+        <service
+            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
+            android:enabled="@bool/enable_system_alarm_service_default"
+            android:exported="false"
+            android:directBootAware="false"/>
+        <service
+            android:name="androidx.work.impl.background.systemjob.SystemJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:enabled="@bool/enable_system_job_service_default"
+            android:exported="true"
+            android:directBootAware="false"/>
+        <receiver
+            android:name="androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:directBootAware="false"/>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy.BatteryChargingProxy"
+            android:enabled="false"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy.BatteryNotLowProxy"
+            android:enabled="false"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_OKAY"/>
+                <action android:name="android.intent.action.BATTERY_LOW"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy.StorageNotLowProxy"
+            android:enabled="false"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DEVICE_STORAGE_LOW"/>
+                <action android:name="android.intent.action.DEVICE_STORAGE_OK"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy.NetworkStateProxy"
+            android:enabled="false"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
+            android:enabled="false"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.TIME_SET"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
+            android:enabled="@bool/enable_system_alarm_service_default"
+            android:exported="false"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+            android:permission="android.permission.DUMP"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="androidx.work.multiprocess.RemoteWorkManagerService"
+            android:exported="false"/>
+        <activity
+            android:name="ru.cyberity.cbr.presentation.screen.CBRAppActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"/>
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="face"/>
+        <provider
+            android:name="ru.cyberity.cbr.core.common.FileProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.provider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="true"/>
+        <activity
+            android:name="sberid.sdk.auth.view.activity.WebViewActivity"
+            android:exported="false"/>
+        <provider
+            android:name="com.avito.beduin.v2.utils.filepicker.BeduinFileProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.fileprovider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES"/>
+            </intent-filter>
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value=""/>
+        </service>
+        <provider
+            android:name="ru.rustore.sdk.pushclient.provider.RuStorePushClientInitProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.rustorepushclientinitprovider"
+            android:initOrder="100"
+            android:directBootAware="true"/>
+        <receiver
+            android:name="ru.rustore.sdk.pushclient.internal.arbiter.ArbiterBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vk.push.ACTION_MASTER_HOST_UPDATE"/>
+            </intent-filter>
+        </receiver>
+        <activity
+            android:theme="@style/TinkoffIdAuth.Theme"
+            android:name="ru.tinkoff.core.tinkoffId.ui.webView.TinkoffWebViewAuthActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/MonetizationAdsInternal.AdActivity"
+            android:name="com.yandex.mobile.ads.common.AdActivity"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"/>
+        <provider
+            android:name="com.yandex.mobile.ads.core.initializer.MobileAdsInitializeProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.MobileAdsInitializeProvider"/>
+        <uses-library
+            android:name="androidx.camera.extensions.impl"
+            android:required="false"/>
+        <service
+            android:name="androidx.camera.core.impl.MetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider"/>
+        </service>
+        <service
+            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+            android:exported="false"
+            android:directBootAware="true">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.vision.face.internal.FaceRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+        </service>
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.mlkitinitprovider"
+            android:initOrder="99"/>
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"/>
+        <service
+            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+            android:exported="true"
+            android:visibleToInstantApps="true"/>
+        <service
+            android:name="com.google.firebase.components.ComponentDiscoveryService"
+            android:exported="false"
+            android:directBootAware="true">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.crashlytics.ndk.CrashlyticsNdkRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.dynamiclinks.internal.FirebaseDynamicLinkRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.crashlytics.CrashlyticsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar"/>
+        </service>
+        <receiver
+            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+            android:exported="false"
+            android:directBootAware="true">
+            <intent-filter android:priority="-500">
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+            android:enabled="true"
+            android:exported="false"/>
+        <service
+            android:name="com.google.android.gms.measurement.AppMeasurementService"
+            android:enabled="true"
+            android:exported="false"/>
+        <service
+            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:enabled="true"
+            android:exported="false"/>
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/ga_ad_services_config"/>
+        <service
+            android:name="com.google.android.play.core.assetpacks.AssetPackExtractionService"
+            android:enabled="false"
+            android:exported="true">
+            <meta-data
+                android:name="com.google.android.play.core.assetpacks.versionCode"
+                android:value="20100"/>
+        </service>
+        <service
+            android:name="com.google.android.play.core.assetpacks.ExtractionForegroundService"
+            android:enabled="false"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <service
+            android:name="com.yandex.metrica.MetricaService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":Metrica">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="com.yandex.metrica.IMetricaService"/>
+                <data android:scheme="metrica"/>
+            </intent-filter>
+            <meta-data
+                android:name="metrica:api:level"
+                android:value="106"/>
+        </service>
+        <provider
+            android:name="com.yandex.metrica.PreloadInfoContentProvider"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":Metrica"
+            android:authorities="com.avito.android.appmetrica.preloadinfo.retail"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"/>
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.firebaseinitprovider"
+            android:initOrder="100"
+            android:directBootAware="true"/>
+        <activity
+            android:name="androidx.compose.ui.tooling.PreviewActivity"
+            android:exported="true"/>
+        <uses-library
+            android:name="androidx.window.extensions"
+            android:required="false"/>
+        <uses-library
+            android:name="androidx.window.sidecar"
+            android:required="false"/>
+        <uses-library
+            android:name="android.ext.adservices"
+            android:required="false"/>
+        <activity
+            android:name="com.my.target.common.MyTargetActivity"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|keyboard"/>
+        <provider
+            android:name="com.my.target.common.MyTargetContentProvider"
+            android:enabled="true"
+            android:exported="false"
+            android:authorities="com.avito.android.mytargetcontentprovider"/>
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            android:permission="android.permission.DUMP"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:exported="false"
+            android:directBootAware="true"/>
+        <activity
+            android:theme="@style/Theme.ActivityLauncher.Transparent"
+            android:name="ru.rustore.sdk.activitylauncher.RuStoreActivityLauncher"
+            android:exported="false"/>
+        <service
+            android:label="SendMetricsEventJobService"
+            android:name="ru.rustore.sdk.metrics.internal.presentation.SendMetricsEventJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version"/>
+        <activity
+            android:theme="@style/VK.Transparent"
+            android:name="com.vk.api.sdk.ui.VKWebViewAuthActivity"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.vk.api.sdk.ui.VKCaptchaActivity"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.vk.api.sdk.ui.VKConfirmationActivity"/>
+        <provider
+            android:name="com.vk.api.sdk.internal.VKInitProvider"
+            android:enabled="@bool/com_vk_sdk_init_provider_enabled"
+            android:exported="false"
+            android:authorities="com.avito.android.VKInitProvider"/>
+        <meta-data
+            android:name="VKSdkVersion"
+            android:value="3.3.0"/>
+        <meta-data
+            android:name="VKSdkVersionCode"
+            android:value="28"/>
+        <provider
+            android:name="com.squareup.picasso.PicassoProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.com.squareup.picasso"/>
+        <provider
+            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
+            android:enabled="@bool/leak_canary_watcher_auto_install"
+            android:exported="false"
+            android:authorities="com.avito.android.leakcanary-installer"/>
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                android:value="cct"/>
+        </service>
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            android:exported="false"/>
+        <provider
+            android:name="com.adjust.sdk.SystemLifecycleContentProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.adjust-lifecycle-provider"/>
+        <receiver
+            android:name="com.huawei.hms.support.api.push.PushMsgReceiver"
+            android:permission="com.avito.android.permission.PROCESS_PUSH_MSG"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.huawei.intent.action.PUSH_DELAY_NOTIFY"/>
+                <action android:name="com.huawei.intent.action.PUSH"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.huawei.hms.support.api.push.PushReceiver"
+            android:permission="com.avito.android.permission.PROCESS_PUSH_MSG"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.huawei.android.push.intent.REGISTRATION"/>
+                <action android:name="com.huawei.android.push.intent.RECEIVE"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.huawei.hms.support.api.push.service.HmsMsgService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":pushservice"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.huawei.push.msg.NOTIFY_MSG"/>
+                <action android:name="com.huawei.push.msg.PASSBY_MSG"/>
+            </intent-filter>
+        </service>
+        <provider
+            android:name="com.huawei.hms.support.api.push.PushProvider"
+            android:readPermission="com.avito.android.permission.PUSH_PROVIDER"
+            android:writePermission="com.avito.android.permission.PUSH_WRITE_PROVIDER"
+            android:exported="true"
+            android:authorities="com.avito.android.huawei.push.provider"/>
+        <meta-data
+            android:name="com.huawei.hms.client.service.name:push"
+            android:value="push:6.3.0.301"/>
+        <meta-data
+            android:name="com.huawei.hms.min_api_level:push:push"
+            android:value="1"/>
+        <activity
+            android:name="com.huawei.hms.support.api.push.TransActivity"
+            android:exported="false"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.jakewharton.processphoenix.ProcessPhoenix"
+            android:process=":phoenix"/>
+        <activity
+            android:theme="@style/Theme.Biometry"
+            android:name="ru.mts.biometry.sdk.feature.main.ui.BiometryActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="uiMode"/>
+        <provider
+            android:name="com.huawei.hms.aaid.InitProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.aaidinitprovider"
+            android:initOrder="500"/>
+        <meta-data
+            android:name="com.huawei.hms.client.service.name:opendevice"
+            android:value="opendevice:6.3.0.301"/>
+        <meta-data
+            android:name="com.huawei.hms.min_api_level:opendevice:push"
+            android:value="1"/>
+        <activity
+            android:theme="@style/Theme.PlayCore.Transparent"
+            android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+            android:exported="false"
+            android:stateNotNeeded="true"/>
+        <meta-data
+            android:name="com.huawei.hms.client.service.name:base"
+            android:value="base:6.3.0.303"/>
+        <meta-data
+            android:name="com.huawei.hms.min_api_level:base:hmscore"
+            android:value="1"/>
+        <meta-data
+            android:name="availableLoaded"
+            android:value="yes"/>
+        <provider
+            android:name="com.huawei.hms.update.provider.UpdateProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.hms.update.provider"
+            android:grantUriPermissions="true"/>
+        <provider
+            android:name="com.huawei.hms.device.provider.CheckHmsProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.hms.device.validate.spoofprovider"
+            android:grantUriPermissions="false"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.huawei.updatesdk.service.otaupdate.AppUpdateActivity"
+            android:exported="false"
+            android:configChanges="screenSize|orientation">
+            <meta-data
+                android:name="hwc-theme"
+                android:value="androidhwext:style/Theme.Emui.Translucent.NoTitleBar"/>
+            <meta-data
+                android:name="hnc-theme"
+                android:value="androidhnext:style/Theme.Magic.Translucent.NoTitleBar"/>
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.huawei.updatesdk.support.pm.PackageInstallerActivity"
+            android:exported="false"
+            android:configChanges="screenSize|orientation|keyboardHidden">
+            <meta-data
+                android:name="hwc-theme"
+                android:value="androidhwext:style/Theme.Emui.Translucent"/>
+            <meta-data
+                android:name="hnc-theme"
+                android:value="androidhnext:style/Theme.Magic.Translucent"/>
+        </activity>
+        <provider
+            android:name="com.huawei.updatesdk.fileprovider.UpdateSdkFileProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.updateSdk.fileProvider"
+            android:grantUriPermissions="true"/>
+        <activity
+            android:theme="@style/VKCaptchaTheme"
+            android:name="com.vk.id.captcha.web.VKCaptchaWebViewActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:theme="@style/Base_Translucent"
+            android:name="com.huawei.hms.activity.BridgeActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="behind"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|locale"
+            android:hardwareAccelerated="true">
+            <meta-data
+                android:name="hwc-theme"
+                android:value="androidhwext:style/Theme.Emui.Translucent"/>
+        </activity>
+        <activity
+            android:name="com.huawei.hms.activity.EnableServiceActivity"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"/>
+        <provider
+            android:name="com.huawei.agconnect.core.provider.AGConnectInitializeProvider"
+            android:exported="false"
+            android:authorities="com.avito.android.AGCInitializeProvider"/>
+        <service
+            android:name="com.huawei.agconnect.core.ServiceDiscovery"
+            android:exported="false"/>
+        <meta-data
+            android:name="componentverify_ag_cbg_root"
+            android:value="@string/ag_sdk_cbg_root"/>
+    </application>
+</manifest>

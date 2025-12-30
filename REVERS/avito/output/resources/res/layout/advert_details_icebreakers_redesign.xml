@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/advert_details_icebreakers_redesign_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/advert_details_icebreakers_redesign_margin">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/icebreakers_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/icebreaker_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_icebreakers_redesign_margin"
+        app:chips_displayType="multipleLines"
+        app:chips_selectStrategy="multiple"
+        style="?attr/chipsSmall"/>
+    <com.avito.android.lib.design.input.Input
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/icebreakers_input"
+        android:paddingTop="11dp"
+        android:paddingBottom="13dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_icebreakers_redesign_margin"
+        android:maxLines="5"
+        android:minLines="1"
+        android:maxLength="1000"
+        android:drawableRight="@drawable/advert_details_icebreakers_send_message_icon"
+        android:inputType="textMultiLine"
+        android:paddingStart="@dimen/advert_details_icebreakers_redesign_margin"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:textColor="?attr/red600"
+        android:id="@+id/message_limit_error"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/message_limit_text"/>
+</LinearLayout>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <Button
+        android:textColor="?attr/red"
+        android:id="@+id/button"
+        android:background="@drawable/bg_btn_raised_white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="25dp"
+        android:text="@string/delete"
+        android:maxLines="1"
+        android:singleLine="true"
+        style="@style/Widget.Avito.Button.Raised"/>
+</FrameLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textS1"
+    android:textColor="@color/lookandfeel_button_beigetag_titlecolor"
+    android:id="@+id/reformulation_chip"
+    android:background="@drawable/reformulation_bg"
+    android:paddingBottom="@dimen/serp_reformulation_chip_content_padding"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/serp_reformulation_chip_height"
+    android:layout_marginTop="@dimen/serp_reformulation_chip_margins"
+    android:drawablePadding="@dimen/serp_reformulation_chip_drawable_padding"
+    android:textAllCaps="false"
+    android:layout_marginEnd="@dimen/serp_reformulation_chip_margins"
+    app:button_cornerRadius="@dimen/serp_reformulation_chip_corner_radius"
+    app:button_iconColor="@color/lookandfeel_button_beigetag_iconcolor"
+    app:button_iconPaddingRight="@dimen/serp_reformulation_chip_icon_padding"
+    app:button_textPaddingLeft="@dimen/serp_reformulation_chip_text_padding"
+    app:button_textPaddingRight="@dimen/serp_reformulation_chip_text_padding"/>

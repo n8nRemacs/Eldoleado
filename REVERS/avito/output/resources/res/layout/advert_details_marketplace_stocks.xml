@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/marketplace_stocks_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/marketplace_stocks_description"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/content_horizontal_padding"/>
+    <com.avito.android.lib.design.animation.AnimationView
+        android:id="@+id/marketplace_stocks_animation_view"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_stocks_progress_bar_margin_top"
+        android:layout_marginStart="@dimen/advert_details_stocks_progress_bar_margin_start"
+        app:animationView_autoPlay="true"/>
+    <com.avito.android.lib.design.progress_bar.ProgressBar
+        android:id="@+id/marketplace_stocks_progress_bar_static"
+        android:visibility="gone"
+        android:layout_width="@dimen/advert_details_stocks_progress_bar_static_width"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/advert_details_stocks_progress_bar_margin_top"
+        android:layout_marginStart="@dimen/advert_details_stocks_progress_bar_margin_start"
+        app:progressBar_barHeight="@dimen/advert_details_stocks_progress_bar_static_height"
+        app:progressBar_emptyColor="?attr/red200"
+        app:progressBar_fillColor="?attr/red600"
+        app:progressBar_progress="0.05"/>
+</LinearLayout>

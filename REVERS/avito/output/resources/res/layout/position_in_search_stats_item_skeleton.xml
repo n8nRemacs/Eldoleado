@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_position_skeleton_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    style="?attr/shimmerDefault">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:id="@+id/skeleton_period"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            app:skeleton_radius="12dp"/>
+        <android.widget.Space
+            android:id="@+id/skeleton_position_space"
+            android:layout_width="0dp"
+            android:layout_height="28dp"/>
+        <include
+            android:id="@+id/skeleton_position"
+            layout="@layout/position_in_search_stats_skeleton_position"/>
+        <android.widget.Space
+            android:id="@+id/skeleton_header_space"
+            android:layout_width="0dp"
+            android:layout_height="24dp"/>
+        <include
+            android:id="@+id/skeleton_chart"
+            android:visibility="gone"
+            layout="@layout/position_in_search_stats_skeleton_chart"/>
+        <android.widget.Space
+            android:id="@+id/skeleton_chart_space"
+            android:visibility="gone"
+            android:layout_width="0dp"
+            android:layout_height="24dp"/>
+        <include
+            android:id="@+id/skeleton_header"
+            layout="@layout/position_in_search_stats_skeleton_header"/>
+        <include
+            android:id="@+id/skeleton_sort"
+            layout="@layout/position_in_search_stats_skeleton_sort"/>
+        <include
+            android:id="@+id/skeleton_header_info"
+            layout="@layout/position_in_search_stats_skeleton_header_info"/>
+        <android.widget.Space
+            android:id="@+id/skeleton_queries_space"
+            android:layout_width="0dp"
+            android:layout_height="12dp"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/skeleton_queries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+            <include layout="@layout/position_in_search_stats_skeleton_query"/>
+        </LinearLayout>
+        <android.widget.Space
+            android:id="@+id/skeleton_competitors_space"
+            android:layout_width="0dp"
+            android:layout_height="32dp"/>
+        <include layout="@layout/position_in_search_stats_item_competitors_shimmer"/>
+    </LinearLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

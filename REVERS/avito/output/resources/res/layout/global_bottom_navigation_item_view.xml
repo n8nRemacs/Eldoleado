@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.bottom_navigation.ui.GlobalBottomNavigationTabView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:background="?attr/bg_elevation2"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:layout_gravity="top"
+        android:background="?attr/divider_default"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="center"
+        android:id="@+id/bn_icon"
+        android:duplicateParentState="true"
+        android:layout_width="@dimen/bottom_nav_icon_size"
+        android:layout_height="@dimen/bottom_nav_icon_size"
+        app:roundAsCircle="true"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/bn_current_stroke"
+        android:visibility="gone"
+        android:duplicateParentState="true"
+        android:layout_width="@dimen/bottom_nav_icon_size"
+        android:layout_height="@dimen/bottom_nav_icon_size"
+        app:srcCompat="@drawable/bg_bn_tab_profile_current"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="@+id/bn_badge"
+        android:paddingLeft="@dimen/bottom_nav_badge_horizontal_padding"
+        android:paddingRight="@dimen/bottom_nav_badge_horizontal_padding"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/bottom_nav_badge_size"
+        android:layout_marginBottom="@dimen/global_bottom_nav_badge_bottom_offset"
+        android:minWidth="@dimen/bottom_nav_badge_size"
+        app:badge_strokeColor="?attr/bg_page"
+        app:badge_strokeWidth="2dp"
+        style="?attr/badgeTextBlackS"/>
+</com.avito.android.bottom_navigation.ui.GlobalBottomNavigationTabView>

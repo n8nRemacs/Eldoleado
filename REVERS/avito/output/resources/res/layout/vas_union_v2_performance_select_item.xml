@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.selector_card.SelectorCardGroup xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vas_union_v2_performance_selector_group"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:selectorCardGroup_backgroundColor="?attr/transparentWhite"
+    app:selectorCardGroup_childSpacing="12dp"
+    app:selectorCardGroup_content="@layout/vas_union_v2_performance_select_content"
+    app:selectorCardGroup_indicatorType="none"
+    app:selectorCardGroup_keepLastSelected="true"
+    app:selectorCardGroup_orientation="vertical"
+    app:selectorCardGroup_showBorder="false"/>

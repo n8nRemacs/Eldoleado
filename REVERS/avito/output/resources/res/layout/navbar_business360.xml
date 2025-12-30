@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/edge_to_edge_fake_status_bar"/>
+    <FrameLayout
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/navbar_business360"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/navbar_business360_height">
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/close_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:srcCompat="?attr/ic_arrowBack24"
+            app:tint="?attr/text_primary"/>
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/navbar_logo"
+            android:layout_width="166dp"
+            android:layout_height="40dp"
+            app:srcCompat="@drawable/logo_navbar_business360"/>
+        <include
+            android:layout_gravity="end|center_vertical"
+            android:id="@+id/cart_icon_container"
+            android:clipToPadding="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            layout="@layout/redesign_cart_icon_view"/>
+    </FrameLayout>
+</LinearLayout>

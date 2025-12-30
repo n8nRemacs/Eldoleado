@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/content_horizontal_padding_smaller">
+    <TextView
+        android:textAppearance="?attr/textH2"
+        android:textColor="?attr/black"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:textColor="@color/text_button_default"
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:inputType="phone"
+        app:input_formatterType="mobile_phone"
+        app:input_prefix="+7 "
+        app:layout_autoReset="notNormalOnly"
+        style="?attr/input"/>
+    <com.avito.android.lib.design.select.BaseSelect
+        android:id="@+id/select_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:inputType="phone"
+        style="?attr/baseSelect"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/consultation_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:button_cornerRadius="12dp"
+        style="?attr/buttonPrimaryLarge"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/gray48"
+        android:id="@+id/consultation_disclaimer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

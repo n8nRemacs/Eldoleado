@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:orientation="horizontal"
+        android:id="@+id/multi_item_group_clickable_layout"
+        android:background="@drawable/advert_item_multi_item_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:weightSum="1">
+        <TextView
+            android:textColor="?attr/blue"
+            android:ellipsize="end"
+            android:id="@+id/multi_item_group_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:layout_weight="1"
+            style="?attr/textS20"/>
+        <TextView
+            android:textColor="?attr/blue"
+            android:id="@+id/multi_item_group_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:layout_weight="1"
+            style="?attr/textS20"/>
+    </LinearLayout>
+</merge>

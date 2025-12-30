@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/geo_reference"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:stretchColumns="2"
+    android:shrinkColumns="0">
+    <TableRow>
+        <TextView
+            android:textAppearance="?attr/textM20"
+            android:ellipsize="end"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/location"
+            android:visibility="visible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:maxLines="1"
+            android:drawablePadding="3dp"/>
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/distance_icon"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_marginStart="4dp"
+            app:tint="?attr/black"/>
+        <TextView
+            android:textAppearance="?attr/textM20"
+            android:layout_gravity="center"
+            android:id="@+id/distance"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:maxLines="1"
+            android:layout_marginStart="4dp"/>
+    </TableRow>
+</TableLayout>

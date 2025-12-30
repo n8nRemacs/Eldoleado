@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textBodySmall"
+    android:textColor="?attr/gray48"
+    android:textColorLink="?attr/black"
+    android:id="@+id/text_view_offer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>

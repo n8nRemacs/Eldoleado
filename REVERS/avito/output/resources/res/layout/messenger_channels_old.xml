@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/messenger_channels_screen_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="0dp"
+        app:contentInsetEnd="16dp"
+        app:contentInsetLeft="16dp"
+        app:contentInsetRight="16dp"
+        app:contentInsetStart="16dp"
+        app:contentInsetStartWithNavigation="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@null"/>
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/folders_tabs"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        style="@style/Widget.Avito.Redesign.TabLayout"/>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/channels_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/folders_tabs"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

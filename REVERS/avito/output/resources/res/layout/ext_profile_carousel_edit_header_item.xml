@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/advert_header_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp">
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:id="@+id/advert_header_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/advert_header_name_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/advert_header_name_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/advert_header_name_select"
+        android:layout_width="288dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/extended_profile_carousel_edit_name_hint"
+        app:input_clearButton="true"
+        style="?attr/baseSelect"/>
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/adverts_header_title_advert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/adverts_header_subtitle_advert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="?attr/sdkBioBulletColor"/>
+    <size
+        android:height="@dimen/sdk_bio_bullet_size"
+        android:width="@dimen/sdk_bio_bullet_size"/>
+</shape>

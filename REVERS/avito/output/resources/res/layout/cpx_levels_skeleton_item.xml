@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpx_levels_shimmer"
+    android:padding="16dp"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:shimmer_animationDuration="3000"
+    app:shimmer_autostart="true">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:id="@+id/title_stub1"
+            android:background="@drawable/shimmer_cpx_stub_text"
+            android:layout_width="130dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+        <View
+            android:id="@+id/title_stub2"
+            android:background="@drawable/shimmer_cpx_stub_text"
+            android:layout_width="214dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_stub1"/>
+        <View
+            android:id="@+id/tab_stub1"
+            android:background="@drawable/shimmer_cpx_stub_tab"
+            android:layout_width="169dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_stub2"/>
+        <View
+            android:id="@+id/tab_stub2"
+            android:background="@drawable/shimmer_cpx_stub_tab"
+            android:layout_width="169dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="5dp"
+            app:layout_constraintStart_toEndOf="@+id/tab_stub1"
+            app:layout_constraintTop_toBottomOf="@+id/title_stub2"/>
+        <View
+            android:id="@+id/subtitle_stub"
+            android:background="@drawable/shimmer_cpx_stub_subtitle"
+            android:layout_width="85dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="26dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tab_stub1"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subtitle_stub">
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+            <include layout="@layout/cpx_levels_skeleton_list_item"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

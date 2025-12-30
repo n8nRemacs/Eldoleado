@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:paddingTop="@dimen/publish_checkbox_container_vertical_padding"
+    android:paddingBottom="@dimen/publish_checkbox_container_vertical_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/publish_container_horizontal_padding"
+    android:paddingEnd="@dimen/publish_container_horizontal_padding">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/checkbox_container"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="52dp">
+        <com.avito.android.lib.design.toggle.Checkbox
+            android:layout_gravity="center_vertical"
+            android:id="@+id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textAppearance="?attr/textBody"
+            android:id="@+id/text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/tip_action"
+            android:paddingBottom="6dp"
+            android:focusable="true"
+            android:visibility="gone"
+            android:clickable="true"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="?attr/ic_help24"
+            android:scaleType="center"
+            android:paddingStart="6dp"
+            app:tint="?attr/gray28"/>
+    </LinearLayout>
+</com.avito.android.lib.design.component_container.ComponentContainer>

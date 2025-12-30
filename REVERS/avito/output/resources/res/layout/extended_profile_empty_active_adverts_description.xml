@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="14dp"
+    android:layout_marginHorizontal="@dimen/extended_profile_widget_horizontal_margin">
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/extended_profile_search_active_empty_title"/>
+    <ImageView
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:srcCompat="?attr/ic_profileAdvertsEmpty"/>
+</LinearLayout>

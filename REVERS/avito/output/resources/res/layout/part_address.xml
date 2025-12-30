@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/address_container"
+    android:background="@drawable/bg_btn_flat"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:focusableInTouchMode="false"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp">
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_location_24_blue"
+        android:contentDescription="@null"
+        android:layout_marginEnd="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/advert_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

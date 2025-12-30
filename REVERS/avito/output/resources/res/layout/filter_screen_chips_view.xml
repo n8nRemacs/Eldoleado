@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/chips_container"
+    android:paddingBottom="@dimen/filter_item_compensation_vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/filter_item_horizontal_padding">
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/chipsMedium"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/blue700"
+        android:id="@+id/show_more"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+</LinearLayout>

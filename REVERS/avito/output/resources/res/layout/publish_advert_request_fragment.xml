@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/progress_overlay_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/image_upload_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:layout_width="@dimen/photo_upload_icon_size"
+            android:layout_height="@dimen/photo_upload_icon_size"
+            app:srcCompat="@drawable/ic_photo_upload"/>
+        <TextView
+            android:textAppearance="?attr/textBody"
+            android:textColor="@color/text_button_default"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/image_upload_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/photo_upload_info_margin"/>
+        <ProgressBar
+            android:id="@+id/progress_indicator"
+            android:layout_width="@dimen/photo_upload_progress_width"
+            android:layout_height="@dimen/progress_indicator_height"
+            android:progressDrawable="@drawable/progress_indicator"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"/>
+    </LinearLayout>
+</FrameLayout>

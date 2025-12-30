@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:textAppearance="?attr/textBody"
+    android:textColor="@color/design_text_color_black_selector"
+    android:id="@+id/addressText"
+    android:background="?attr/selectableItemBackground"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/item_address_margin_top"
+    android:drawablePadding="4dp"
+    android:layout_marginHorizontal="@dimen/map_bottom_sheet_recycler_view_margin"/>

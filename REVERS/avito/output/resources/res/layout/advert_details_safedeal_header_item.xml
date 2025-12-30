@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding">
+    <ImageView
+        android:id="@+id/header_info_icon"
+        android:paddingTop="@dimen/safedeal_trust_factor_header_info_icon_top_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@null"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_delivery_info"/>
+    <ImageView
+        android:id="@+id/header_dropdown_icon"
+        android:paddingTop="@dimen/safedeal_trust_factor_header_dropdown_icon_top_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@null"
+        android:paddingHorizontal="@dimen/safedeal_trust_factor_header_dropdown_icon_padding"
+        app:layout_constraintEnd_toStartOf="@+id/header_info_icon"
+        app:layout_constraintStart_toEndOf="@+id/header_title"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_marketplace_arrow_down"/>
+    <TextView
+        android:textAppearance="?attr/textHeadingSmall"
+        android:id="@+id/header_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toStartOf="@+id/header_dropdown_icon"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

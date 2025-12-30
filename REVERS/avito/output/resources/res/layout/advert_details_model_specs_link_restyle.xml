@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM2"
+    android:textColor="?attr/blue"
+    android:id="@+id/title"
+    android:background="@drawable/bg_rds_gray_button"
+    android:paddingBottom="4dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/content_horizontal_padding"
+    android:layout_marginTop="4dp"
+    android:layout_marginRight="@dimen/content_horizontal_padding"/>

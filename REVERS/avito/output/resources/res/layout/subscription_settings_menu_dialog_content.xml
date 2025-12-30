@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:overScrollMode="never">
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/bottom_sheet_content"
+        android:paddingBottom="@dimen/standard_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:layout_gravity="top|center_horizontal"
+            android:id="@+id/avito_bottom_sheet_notch"
+            android:background="@drawable/ic_avito_bottom_sheet_notch"
+            android:layout_width="28dp"
+            android:layout_height="4dp"
+            android:layout_marginBottom="6dp"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

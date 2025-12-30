@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/category_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:ellipsize="end"
+        android:id="@+id/category_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_marginStart="@dimen/serp_vertical_category_item_title_side_padding"
+        android:layout_marginEnd="@dimen/serp_vertical_category_item_title_side_padding"
+        style="?attr/textH2"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/actioned_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/serp_vertical_category_item_image_manrope_top_padding"
+        android:minHeight="140dp"
+        app:actualImageScaleType="centerCrop"
+        app:placeholderImage="?attr/gray8"
+        app:roundedCornerRadius="@dimen/serp_vertical_category_item_image_corner_radius"/>
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/category_actions_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/serp_vertical_category_item_actions_container_start_padding"
+        app:alignContent="flex_start"
+        app:alignItems="flex_start"
+        app:flexDirection="row"
+        app:flexWrap="wrap"/>
+</LinearLayout>

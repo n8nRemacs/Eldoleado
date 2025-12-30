@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textS1"
+    android:textColor="?attr/black"
+    android:id="@+id/btn_filter"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:button_backgroundColor="@color/bg_inline_filter"
+    app:button_backgroundRipple="?attr/warmGray8"
+    app:button_textPaddingLeft="12dp"
+    app:button_textPaddingRight="12dp"
+    style="?attr/buttonPrimaryMedium"/>

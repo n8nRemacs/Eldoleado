@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:id="@+id/metro_icon"
+        android:background="@drawable/metro_line_circle"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:backgroundTint="@color/legacy_green"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/metro_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"/>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/metro_walk_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="2dp"
+        app:tint="?attr/gray54"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/gray54"
+        android:id="@+id/metro_distance_in_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"/>
+</LinearLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:id="@+id/providers_logo_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/logo_margin_bottom"
+        android:layout_marginHorizontal="@dimen/logo_margin_horizontal"
+        app:layout_anchor="@+id/bottom_sheet">
+        <include layout="@layout/osm_disclaimer"/>
+        <android.widget.Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <include layout="@layout/yandex_logo"/>
+    </LinearLayout>
+</merge>

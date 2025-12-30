@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/info_banner"
+    android:background="@drawable/wallet_refund_info_banner_background"
+    android:paddingTop="20dp"
+    android:paddingBottom="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:layout_marginHorizontal="10dp"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/banner_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/info_banner_title"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/banner_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"/>
+</LinearLayout>

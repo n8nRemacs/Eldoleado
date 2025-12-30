@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.component.advert_badge_bar.badge_item.ProfileBadgeView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/advert_badge_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:profileBadgeView_iconPlaceholder="?attr/ic_checkRoundOutline20"
+    app:profileBadgeView_iconPlaceholderTint="?attr/black"/>

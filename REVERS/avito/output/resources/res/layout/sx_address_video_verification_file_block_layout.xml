@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/sx_address_video_verification_upload_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sx_address_video_verification_upload"
+        style="?attr/buttonSecondaryLarge"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:textColor="?attr/red600"
+        android:id="@+id/sx_address_video_verification_error"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+    <include
+        android:id="@+id/sx_address_video_verification_file"
+        android:visibility="gone"
+        layout="@layout/sx_address_video_verification_file_layout"/>
+</LinearLayout>

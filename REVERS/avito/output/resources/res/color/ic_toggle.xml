@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_checked="true"
+        android:color="@color/common_constant_white"/>
+    <item
+        android:color="@color/common_constant_white"
+        app:state_indeterminate="true"/>
+    <item
+        android:state_checked="false"
+        android:color="@color/common_transparent_black"/>
+</selector>

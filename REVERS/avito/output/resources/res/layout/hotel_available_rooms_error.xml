@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingTop="92dp"
+        android:paddingBottom="70dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp">
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="160dp"
+            android:importantForAccessibility="no"
+            app:srcCompat="@drawable/placeholders_ic_unknown_error_cat"/>
+        <TextView
+            android:textAppearance="?attr/textH20"
+            android:gravity="center"
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:gravity="center"
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="center"
+            android:id="@+id/retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/hotel_available_rooms_retry"
+            style="?attr/buttonPrimaryMedium"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

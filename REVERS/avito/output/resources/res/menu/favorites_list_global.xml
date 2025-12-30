@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_remove_sheet"
+        android:title="@string/remove_all"
+        app:actionLayout="@layout/favorites_delete_sheet_icon"
+        app:showAsAction="always"/>
+</menu>

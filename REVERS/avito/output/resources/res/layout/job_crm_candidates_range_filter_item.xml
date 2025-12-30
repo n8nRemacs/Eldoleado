@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="?attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:layout_gravity="start"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/input_from"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/crm_from"
+            android:singleLine="true"
+            android:maxLength="2"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            app:input_formatterType="decimal"
+            app:input_prefix="@string/crm_from"
+            style="?attr/input"/>
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/input_to"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/crm_to"
+            android:singleLine="true"
+            android:maxLength="2"
+            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            app:input_formatterType="decimal"
+            app:input_prefix="@string/crm_to"
+            style="?attr/input"/>
+    </LinearLayout>
+</LinearLayout>

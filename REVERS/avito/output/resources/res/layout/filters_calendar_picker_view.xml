@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/filters_calendar_picker_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/filters_calendar_picker_header"/>
+    <include layout="@layout/filters_calendar_picker_week_days"/>
+    <FrameLayout
+        android:id="@+id/content_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:paddingLeft="@dimen/calendar_recycler_view_padding"
+            android:paddingRight="@dimen/calendar_recycler_view_padding"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <com.avito.android.lib.design.floating_container.FloatingContainer
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:id="@+id/bottom_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:floatingContainer_horizontal="false"
+            app:floatingContainer_horizontalPadding="0dp"
+            style="?attr/floatingContainerIncomplete">
+            <com.avito.android.lib.design.chips.ui.Chips
+                android:id="@+id/chips"
+                android:visibility="visible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"/>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:id="@+id/calendar_buttons_root"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp">
+                <com.avito.android.lib.design.button.Button
+                    android:id="@+id/button_skip"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/skip_inline_filter"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    style="?attr/buttonSecondaryLarge"/>
+                <com.avito.android.lib.design.button.Button
+                    android:id="@+id/button_select"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/apply_inline_filter"
+                    android:layout_weight="1"
+                    style="?attr/buttonPrimaryLarge"/>
+            </LinearLayout>
+        </com.avito.android.lib.design.floating_container.FloatingContainer>
+    </FrameLayout>
+</LinearLayout>

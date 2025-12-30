@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/ad_list_not_load"
+    android:background="@drawable/serp_card_background"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:background="@drawable/bg_stub_image_list"
+        android:layout_width="@dimen/list_serp_image_width"
+        android:layout_height="@dimen/list_serp_card_content_min_height"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingTop="14dp"
+        android:paddingRight="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:background="@drawable/bg_ad_skeleton_row_bg"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/ad_skeleton_row_height"
+            android:layout_marginBottom="@dimen/ad_skeleton_row_bottom_margin"/>
+        <View
+            android:background="@drawable/bg_ad_skeleton_row_bg"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/ad_skeleton_row_height"
+            android:layout_marginBottom="@dimen/ad_skeleton_row_bottom_margin"/>
+        <View
+            android:background="@drawable/bg_ad_skeleton_row_bg"
+            android:layout_width="94dp"
+            android:layout_height="@dimen/ad_skeleton_row_height"/>
+    </LinearLayout>
+</LinearLayout>

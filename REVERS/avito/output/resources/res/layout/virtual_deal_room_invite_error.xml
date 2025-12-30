@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="48dp">
+    <TextView
+        android:gravity="center"
+        android:id="@+id/title_no_internet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/virtual_deal_room_invite_common_error"
+        android:paddingHorizontal="24dp"
+        style="?attr/textH20"/>
+    <TextView
+        android:gravity="center"
+        android:id="@+id/description_no_internet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/virtual_deal_room_invite_common_error_description"
+        android:paddingHorizontal="24dp"
+        style="?attr/textM20"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/update_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/virtual_deal_room_invite_update"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/operations_history_activity_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        app:layout_collapseMode="pin"
+        app:navigationIconTint="?attr/black"
+        app:title="@string/payment_operations_history"
+        app:titleCentered="true"
+        app:titleTextAppearance="?attr/textH5"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/wallet_page_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:overScrollMode="never"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        app:chips_displayType="singleLineScrollable"
+        app:chips_keepLastSelected="true"
+        app:chips_selectStrategy="single"
+        style="?attr/chipsMedium"/>
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/wallet_page_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding">
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:textColor="?attr/blue"
+        android:id="@+id/manual_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:text="@string/redesigned_sts_scanner_manual_link"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/sts_scan_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/redesigned_sts_scanner_button_text"
+        android:drawableLeft="@drawable/common_ic_autocorrection_20"
+        style="?attr/buttonSecondaryLarge"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/redesigned_sts_scanner_button_description"/>
+</LinearLayout>

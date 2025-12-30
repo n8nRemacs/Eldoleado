@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="48dp"
+    android:width="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <group>
+        <clip-path android:pathData="M13.33,0L34.67,0A13.33,13.33 0,0 1,48 13.33L48,34.67A13.33,13.33 0,0 1,34.67 48L13.33,48A13.33,13.33 0,0 1,0 34.67L0,13.33A13.33,13.33 0,0 1,13.33 0z"/>
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M13.33,0L34.67,0A13.33,13.33 0,0 1,48 13.33L48,34.67A13.33,13.33 0,0 1,34.67 48L13.33,48A13.33,13.33 0,0 1,0 34.67L0,13.33A13.33,13.33 0,0 1,13.33 0z"/>
+        <path
+            android:fillColor="@drawable/_user_profile_wallet__0_res_0x7f0800c7"
+            android:pathData="M13.33,0L34.67,0A13.33,13.33 0,0 1,48 13.33L48,34.67A13.33,13.33 0,0 1,34.67 48L13.33,48A13.33,13.33 0,0 1,0 34.67L0,13.33A13.33,13.33 0,0 1,13.33 0z"/>
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M-1.5,10C-2.328,10 -3,10.672 -3,11.5V14H37V11.5C37,10.672 36.328,10 35.5,10H-1.5ZM-1.5,17C-2.328,17 -3,17.672 -3,18.5V46.5C-3,47.328 -2.328,48 -1.5,48H38.5C39.328,48 40,47.328 40,46.5V18.5C40,17.672 39.328,17 38.5,17H-1.5Z"
+            android:fillType="evenOdd"/>
+        <path
+            android:fillColor="@drawable/_user_profile_wallet__1_res_0x7f0800c8"
+            android:pathData="M-1.5,10C-2.328,10 -3,10.672 -3,11.5V14H37V11.5C37,10.672 36.328,10 35.5,10H-1.5ZM-1.5,17C-2.328,17 -3,17.672 -3,18.5V46.5C-3,47.328 -2.328,48 -1.5,48H38.5C39.328,48 40,47.328 40,46.5V18.5C40,17.672 39.328,17 38.5,17H-1.5Z"
+            android:fillAlpha="0.6"
+            android:fillType="evenOdd"/>
+        <path
+            android:fillColor="#04e061"
+            android:pathData="M30.5,32.5m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0"/>
+        <path
+            android:fillColor="@drawable/_user_profile_wallet__2_res_0x7f0800c9"
+            android:pathData="M30.5,32.5m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0"/>
+    </group>
+</vector>

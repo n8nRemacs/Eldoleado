@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/development_offers_carousel_call"
+    android:layout_width="@dimen/development_offers_carousel_item_height"
+    android:layout_height="@dimen/development_offers_carousel_item_height"
+    app:cardBackgroundColor="?attr/gray4"
+    app:cardCornerRadius="@dimen/development_offers_carousel_item_corner_radius"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false"
+    app:contentPadding="@dimen/development_offers_carousel_item_content_padding"
+    style="@style/AvitoCardView">
+    <LinearLayout
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/development_offers_carousel_call_icon"
+            android:background="@drawable/gallery_call_action_item_circle"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginBottom="4dp"
+            android:src="@drawable/call_white"
+            android:scaleType="center"/>
+        <TextView
+            android:textAppearance="?attr/textS2"
+            android:textColor="?attr/black"
+            android:layout_gravity="center"
+            android:id="@+id/development_offers_carousel_call_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

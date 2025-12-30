@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textColor="@color/design_text_color_black_selector"
+    android:id="@+id/messenger_geo_search_suggest_item_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    style="?attr/textBody"/>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/chat_list_element_right_view"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    app:bring_to_clamp="2dp"
+    app:clamp="self"
+    app:gravity="right"
+    app:sticky="none">
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/rounded_background_right_error_r12"
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="4dp"
+        app:bring_to_clamp="2dp"
+        app:clamp="self"
+        app:gravity="right"
+        app:sticky="none">
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_gravity="center"
+            android:id="@+id/chat_list_element_right_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            app:srcCompat="@drawable/ic_delete_white_24"
+            app:tint="?attr/constantWhite"/>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textColor="?attr/constantWhite"
+            android:id="@+id/chat_list_element_right_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/messenger_channels_list_delete_action_title"
+            style="?attr/textXs10"/>
+    </LinearLayout>
+</FrameLayout>

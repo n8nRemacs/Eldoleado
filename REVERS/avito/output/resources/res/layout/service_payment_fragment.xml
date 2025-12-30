@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/service_payment_screen_root"
+    android:background="?attr/gray8"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/toolbar"/>
+    <FrameLayout
+        android:id="@+id/service_payment_content_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        style="@style/ContentHolder">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/service_payment_recycler"
+            android:paddingBottom="@dimen/payment_methods_list_bottom_padding"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"/>
+        <include layout="@layout/payment_submit_button_rounded"/>
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

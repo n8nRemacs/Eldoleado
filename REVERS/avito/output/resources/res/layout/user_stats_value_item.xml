@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dotted_text_value_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:paddingVertical="4dp"
+    app:descriptionParameterItem_dotsColor="?attr/gray28"
+    app:descriptionParameterItem_dotsHeight="1dp"
+    app:descriptionParameterItem_dotsInterval="2dp"
+    app:descriptionParameterItem_dotsOffset="5dp"
+    app:descriptionParameterItem_leftTextAppearance="?attr/textM2"
+    app:descriptionParameterItem_leftTextIcon="?attr/ic_help16"
+    app:descriptionParameterItem_leftTextIconColor="?attr/gray28"
+    app:descriptionParameterItem_leftTextIconTouchExtraSpace="10dp"
+    app:descriptionParameterItem_leftTextWeight="7"
+    app:descriptionParameterItem_rightTextAppearance="?attr/textM2"
+    app:descriptionParameterItem_rightTextWeight="3"/>

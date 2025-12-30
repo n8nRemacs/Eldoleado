@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/messenger_create_channel_screen"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        android:id="@+id/overlay"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        layout="@layout/old_part_network_problem"/>
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"/>
+</FrameLayout>

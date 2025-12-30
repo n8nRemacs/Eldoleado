@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/checkbox_root"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:paddingHorizontal="@dimen/gig_default_padding"
+    app:listItem_checkboxStyle="?attr/toggleCheckboxDefaultSmall">
+    <com.avito.android.lib.design.list_item.ListItemCheckbox
+        android:id="@+id/checkbox_item"
+        android:layout_width="32dp"
+        android:layout_height="21dp"
+        app:listItem_checkboxStyle="?attr/toggleCheckboxDefaultSmall"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:gravity="center_vertical"
+        android:id="@+id/checkbox_text"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"/>
+</LinearLayout>

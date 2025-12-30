@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textH20"
+    android:gravity="start"
+    android:id="@+id/str_booking_screen_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="26dp"
+    android:layout_marginBottom="26dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"/>

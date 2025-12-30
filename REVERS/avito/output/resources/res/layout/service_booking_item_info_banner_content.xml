@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="@style/TextM20Bold"
+        android:textStyle="bold"
+        android:textColor="?attr/black"
+        android:id="@+id/sb_info_banner_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"/>
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textS20"
+        android:textColor="?attr/black"
+        android:id="@+id/sb_info_banner_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

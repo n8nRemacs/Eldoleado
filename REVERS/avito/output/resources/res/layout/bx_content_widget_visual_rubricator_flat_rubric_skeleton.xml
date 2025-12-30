@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:background="@drawable/bx_content_widget_visual_rubricator_huge_radius_rounded_background"
+        android:layout_width="92dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="6dp"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/category_skeleton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="6dp"
+        app:shimmer_animationDuration="3000"
+        app:shimmer_auto_start="true"
+        app:shimmer_color="@color/legacy_white"
+        app:shimmer_maskWidth="1">
+        <View
+            android:background="@drawable/bx_content_widget_visual_rubricator_huge_radius_rounded_background"
+            android:layout_width="92dp"
+            android:layout_height="36dp"
+            android:backgroundTint="@color/legacy_warm_gray_4"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout>
+</FrameLayout>

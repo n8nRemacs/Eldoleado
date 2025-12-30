@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textColor="?attr/black"
+    android:gravity="center_horizontal"
+    android:id="@+id/actions_hint"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:lineSpacingExtra="3sp"
+    android:paddingHorizontal="@dimen/content_horizontal_padding"
+    style="?attr/textBodySmall"/>

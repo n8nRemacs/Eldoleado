@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.deprecated_design.input.TextInputView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text_input"
+    android:paddingLeft="@dimen/standard_padding"
+    android:paddingRight="@dimen/standard_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:imeOptions="flagNoExtractUi"/>

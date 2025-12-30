@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="40dp"
+    android:width="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="40">
+    <path
+        android:fillColor="@color/pin_or_rash_background_default_color"
+        android:pathData="M1,16C1,20.728 3.188,24.945 6.603,27.693C8.157,29.014 9.706,30.551 10.708,31.586C11.777,32.689 12.727,34.001 13.461,35.452C13.776,36.074 13.947,36.577 14.105,37.041C14.162,37.209 14.217,37.372 14.277,37.534C14.376,37.799 14.521,38.157 14.772,38.446C15.08,38.799 15.502,39 15.999,39C16.497,39 16.918,38.801 17.227,38.447C17.479,38.159 17.624,37.801 17.723,37.535C17.783,37.374 17.838,37.211 17.896,37.042C18.054,36.579 18.225,36.077 18.539,35.455C19.274,34.003 20.225,32.69 21.292,31.585C22.301,30.542 23.874,28.986 25.443,27.655C28.831,24.907 31,20.706 31,16C31,7.716 24.284,1 16,1C7.716,1 1,7.716 1,16Z"
+        android:strokeColor="@color/pin_outline_color"
+        android:strokeWidth="2"/>
+    <path
+        android:fillColor="@color/circle_inside_pin_color"
+        android:pathData="M16,16m-5.3,0a5.3,5.3 0,1 1,10.6 0a5.3,5.3 0,1 1,-10.6 0"/>
+</vector>

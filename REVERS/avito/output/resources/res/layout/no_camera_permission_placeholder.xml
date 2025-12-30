@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/no_camera_permission_placeholder"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/no_camera_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:src="?attr/img_noCamera"/>
+    <TextView
+        android:id="@+id/no_camera_access"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:maxWidth="@dimen/photo_picker_placeholder_text_max_width"
+        android:text="@string/no_camera_access"
+        style="@style/Widget.Avito.Textview.Title.Camera"/>
+    <TextView
+        android:gravity="center"
+        android:id="@+id/allow_camera_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="48dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginRight="48dp"
+        android:maxWidth="@dimen/photo_picker_placeholder_text_max_width"
+        android:text="@string/allow_camera"
+        style="@style/Widget.Avito.Textview.Text.Camera"/>
+    <Button
+        android:textSize="12sp"
+        android:textColor="?attr/blue"
+        android:id="@+id/allow_access_btn"
+        android:background="@drawable/btn_transparent_blue_rounded_states"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/allow_access"
+        android:textAllCaps="true"
+        app:fontFamily="?attr/fontHeavy"/>
+</LinearLayout>

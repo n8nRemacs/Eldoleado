@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/time_line_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.surface.Surface
+        android:id="@+id/time_line_start_line"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/time_line_status_icon"
+        app:layout_constraintEnd_toStartOf="@+id/time_line_status_icon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ImageView
+        android:id="@+id/time_line_status_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/time_line_icon_height"
+        android:scaleType="centerInside"
+        android:importantForAccessibility="no"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
+        app:layout_constraintEnd_toStartOf="@+id/time_line_end_line"
+        app:layout_constraintStart_toEndOf="@+id/time_line_start_line"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.surface.Surface
+        android:id="@+id/time_line_end_line"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/time_line_status_icon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/time_line_status_icon"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:ellipsize="end"
+        android:id="@+id/time_line_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/time_line_text_top_margin"
+        android:maxLines="3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time_line_status_icon"
+        style="?attr/textM20"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

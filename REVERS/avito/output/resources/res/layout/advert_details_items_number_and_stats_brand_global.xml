@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/advert_number_and_stats"
+    android:paddingLeft="@dimen/content_horizontal_padding"
+    android:paddingRight="@dimen/content_horizontal_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="28dp"
+    android:layout_marginBottom="86dp">
+    <TextView
+        android:textColor="?attr/text_secondary"
+        android:id="@+id/advert_number"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="true"
+        style="?attr/textS20"/>
+    <TextView
+        android:textColor="?attr/text_secondary"
+        android:id="@+id/advert_stats"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textS20"/>
+</LinearLayout>

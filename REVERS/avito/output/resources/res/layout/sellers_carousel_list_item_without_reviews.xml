@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/sellers_carousel_list_item"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="3dp">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/icon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="12dp"
+        android:scaleType="fitEnd"
+        app:overlayImage="@color/logo_mask"
+        app:placeholderImage="@drawable/avatar_placeholder"
+        app:roundedCornerRadius="100dp"/>
+    <TextView
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/title"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:maxWidth="120dp"
+        android:minWidth="70dp"
+        android:maxLines="2"
+        android:layout_marginHorizontal="6dp"
+        style="?attr/textS20"/>
+</LinearLayout>

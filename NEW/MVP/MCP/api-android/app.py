@@ -9,14 +9,16 @@ from typing import Optional
 from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, HTTPException, Depends, Query
+from fastapi import FastAPI, Request, HTTPException, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
+import json
 
 from config import settings
 from n8n_client import N8NClient, N8NClientError
 from db import init_db, close_db, get_pool
-from auth import get_current_operator, create_token, TokenData
+from auth import get_current_operator, get_internal_or_operator, create_token, TokenData
 from models import (
     LoginRequest, LoginResponse,
     AppealsListRequest, TakeAppealRequest, RejectAppealRequest,
@@ -37,6 +39,55 @@ logger = logging.getLogger(__name__)
 
 # Global n8n client
 n8n_client: Optional[N8NClient] = None
+
+
+# ========== WebSocket Connection Manager (replaces FCM) ==========
+
+class ConnectionManager:
+    """Manages WebSocket connections for push notifications."""
+
+    def __init__(self):
+        # operator_id -> WebSocket
+        self.active_connections: dict[str, WebSocket] = {}
+
+    async def connect(self, websocket: WebSocket, operator_id: str):
+        await websocket.accept()
+        # Close existing connection if any
+        if operator_id in self.active_connections:
+            try:
+                await self.active_connections[operator_id].close()
+            except:
+                pass
+        self.active_connections[operator_id] = websocket
+        logger.info(f"WebSocket connected: operator={operator_id}, total={len(self.active_connections)}")
+
+    def disconnect(self, operator_id: str):
+        if operator_id in self.active_connections:
+            del self.active_connections[operator_id]
+            logger.info(f"WebSocket disconnected: operator={operator_id}, total={len(self.active_connections)}")
+
+    async def send_to_operator(self, operator_id: str, message: dict):
+        """Send push notification to specific operator."""
+        if operator_id in self.active_connections:
+            try:
+                await self.active_connections[operator_id].send_json(message)
+                return True
+            except Exception as e:
+                logger.error(f"Failed to send to operator {operator_id}: {e}")
+                self.disconnect(operator_id)
+        return False
+
+    async def broadcast_to_tenant(self, tenant_id: str, message: dict):
+        """Broadcast to all operators of a tenant (requires DB lookup)."""
+        # TODO: Implement tenant-based broadcast
+        pass
+
+    def get_connected_operators(self) -> list[str]:
+        return list(self.active_connections.keys())
+
+
+# Global connection manager
+ws_manager = ConnectionManager()
 
 
 @asynccontextmanager
@@ -504,6 +555,127 @@ async def avito_logout(
     except Exception as e:
         logger.error(f"Avito logout error: {e}")
         return {"success": False, "error": str(e)}
+
+
+# ========== WebSocket Endpoints (replaces FCM) ==========
+
+@app.websocket("/ws/operator")
+async def websocket_operator(
+    websocket: WebSocket,
+    operator_id: str = Query(...),
+    tenant_id: str = Query(...),
+    token: str = Query(None)
+):
+    """
+    WebSocket endpoint for push notifications.
+    Replaces FCM for real-time message delivery.
+
+    Query params:
+    - operator_id: Operator UUID
+    - tenant_id: Tenant UUID
+    - token: JWT token (optional, for auth)
+
+    Messages sent to client:
+    - {"action": "new_message", "dialog_id": "...", "title": "...", "body": "..."}
+    - {"action": "new_dialog", "dialog_id": "...", "title": "...", "body": "..."}
+    - {"action": "appeal_update", "dialog_id": "...", "title": "...", "body": "..."}
+    - {"action": "draft_ready", "dialog_id": "...", "draft_text": "..."}
+    - {"action": "ping"}
+    """
+    await ws_manager.connect(websocket, operator_id)
+
+    try:
+        # Start ping task
+        ping_task = asyncio.create_task(send_pings(websocket, operator_id))
+
+        while True:
+            # Wait for messages from client (pong, etc.)
+            try:
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=120)
+                message = json.loads(data)
+                action = message.get("action", "")
+
+                if action == "pong":
+                    logger.debug(f"Pong from operator {operator_id}")
+                elif action == "send":
+                    # Forward message to n8n for processing
+                    # This can be used for operator messages that need normalization
+                    logger.info(f"Message from operator {operator_id}: {message}")
+                elif action == "approve":
+                    # Approve and send message
+                    logger.info(f"Approve from operator {operator_id}: {message}")
+
+            except asyncio.TimeoutError:
+                # No message received, send ping
+                continue
+
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected: {operator_id}")
+    except Exception as e:
+        logger.error(f"WebSocket error for {operator_id}: {e}")
+    finally:
+        ping_task.cancel()
+        ws_manager.disconnect(operator_id)
+
+
+async def send_pings(websocket: WebSocket, operator_id: str):
+    """Send periodic pings to keep connection alive."""
+    while True:
+        try:
+            await asyncio.sleep(30)
+            await websocket.send_json({"action": "ping"})
+        except:
+            break
+
+
+@app.post("/api/push/send")
+async def send_push(
+    request: Request,
+    operator: TokenData = Depends(get_internal_or_operator)
+):
+    """
+    Send push notification to operator via WebSocket.
+    Called by n8n workflows instead of FCM.
+
+    Body:
+    - operator_id: target operator
+    - action: new_message, new_dialog, appeal_update, draft_ready
+    - dialog_id: related dialog
+    - title, body: notification content
+    - draft_text: for draft_ready action
+    """
+    body = await request.json()
+    target_operator_id = body.get("operator_id")
+
+    if not target_operator_id:
+        return {"success": False, "error": "operator_id required"}
+
+    message = {
+        "action": body.get("action", "new_message"),
+        "dialog_id": body.get("dialog_id"),
+        "title": body.get("title", ""),
+        "body": body.get("body", ""),
+        "draft_text": body.get("draft_text"),
+        "message": body.get("message"),  # Full message object for real-time update
+    }
+
+    success = await ws_manager.send_to_operator(target_operator_id, message)
+
+    return {
+        "success": success,
+        "delivered": success,
+        "operator_id": target_operator_id
+    }
+
+
+@app.get("/api/push/connections")
+async def get_connections(operator: TokenData = Depends(get_current_operator)):
+    """Get list of connected operators."""
+    return {
+        "success": True,
+        "connected": ws_manager.get_connected_operators(),
+        "count": len(ws_manager.active_connections)
+    }
 
 
 # ========== Run Server ==========

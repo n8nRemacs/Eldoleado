@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <com.avito.android.map_core.view.zoom.ZoomButton
+        android:id="@+id/zoom_map"
+        android:layout_width="@dimen/search_map_controls_size"
+        android:layout_height="88dp"
+        android:layout_margin="@dimen/search_map_controls_margin"
+        app:cardCornerRadius="@dimen/search_map_controls_corner_radius"
+        app:cardElevation="10dp"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/find_me_button"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="@dimen/search_map_controls_size"
+        android:layout_height="@dimen/search_map_controls_size"
+        android:layout_margin="@dimen/search_map_controls_margin"
+        android:layout_marginTop="4dp"
+        android:src="@drawable/my_location_icon"
+        app:backgroundTint="?attr/white"
+        app:fabCustomSize="@dimen/search_map_controls_size"/>
+</LinearLayout>

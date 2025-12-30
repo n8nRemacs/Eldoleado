@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/selectableItemBackground"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+    <TextView
+        android:textAppearance="?attr/sdkBioTextAppearanceRegularText"
+        android:id="@+id/addressTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sdk_bio_address_input_hint"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.mts.biometry.sdk.view.SdkBioEditText
+        android:id="@+id/addressTextEdit"
+        android:focusable="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:inputType="none"
+        android:layout_marginEnd="8dp"
+        app:hint="@string/sdk_bio_address_input_placeholder"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.135"
+        app:layout_constraintStart_toEndOf="@+id/addressTitle"
+        app:layout_constraintTop_toBottomOf="@+id/addressTitle"
+        app:topLabel="@string/sdk_bio_address_top_label"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

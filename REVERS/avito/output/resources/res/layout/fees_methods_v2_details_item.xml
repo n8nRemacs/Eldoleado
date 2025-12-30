@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/fees_methods_v2_details_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/fees_methods_v2_details_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp">
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:id="@+id/fees_methods_v2_details_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textAppearance="?attr/textS10"
+            android:textColor="?attr/gray54"
+            android:id="@+id/fees_methods_v2_details_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"/>
+    </LinearLayout>
+</LinearLayout>

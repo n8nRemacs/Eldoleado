@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.ui.widget.WrapWidthTextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textBody"
+    android:textColor="@color/text_rds_link_button"
+    android:ellipsize="end"
+    android:linksClickable="false"
+    android:background="@drawable/bg_text_bubble_link_text"
+    android:paddingLeft="4dp"
+    android:paddingRight="4dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:maxLines="2"
+    android:singleLine="false"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp"/>

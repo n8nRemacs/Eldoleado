@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ru.cyberity.cbr.core.widget.CBRImageView
+        android:id="@+id/cbr_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="@dimen/cbr_margin_small"/>
+    <ru.cyberity.cbr.core.widget.CBRSubtitle2TextView
+        android:gravity="center"
+        android:id="@+id/cbr_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="gravity"
+        android:layout_marginHorizontal="@dimen/cbr_margin_small"
+        android:layout_marginVertical="@dimen/cbr_margin_tiny"
+        app:cbr_textColor="#ffffffff"/>
+</LinearLayout>

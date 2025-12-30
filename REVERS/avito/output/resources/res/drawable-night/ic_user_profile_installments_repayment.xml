@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="25dp"
+    android:viewportWidth="25"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#965eeb"
+        android:pathData="M9.5,9m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"/>
+    <path
+        android:fillColor="@drawable/_ic_user_profile_installments_repayment__0_res_0x7f080093"
+        android:pathData="M9.5,9m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"/>
+    <path
+        android:fillColor="#965eeb"
+        android:pathData="M15.5,15m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"/>
+    <path
+        android:fillColor="@drawable/_ic_user_profile_installments_repayment__1_res_0x7f080094"
+        android:pathData="M15.5,15m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"
+        android:fillAlpha="0.7"/>
+</vector>

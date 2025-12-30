@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingBottom="@dimen/standard_padding"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/standard_padding">
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nsv_more_contacts"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/ll_more_contacts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="50dp"
+            android:paddingVertical="@dimen/statistics_vertical_padding">
+            <TextView
+                android:textAppearance="?attr/textBody"
+                android:id="@+id/tv_more_contacts_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_more_contacts_dialog_description"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="bottom"
+        android:id="@+id/btn_more_contacts_close"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/close"
+        style="?attr/buttonSecondaryLarge"/>
+</FrameLayout>

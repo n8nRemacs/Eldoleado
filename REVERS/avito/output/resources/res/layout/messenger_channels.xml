@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/messenger_channels_screen_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:id="@+id/navbar_offset"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <androidx.appcompat.widget.Toolbar
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="0dp"
+        app:contentInsetEnd="16dp"
+        app:contentInsetLeft="16dp"
+        app:contentInsetRight="16dp"
+        app:contentInsetStart="16dp"
+        app:contentInsetStartWithNavigation="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/navbar_offset"
+        app:navigationIcon="@null"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/messenger_channels_toolbar_filter_chips"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginHorizontal="16dp"
+        app:chips_displayType="singleLineScrollable"
+        app:layout_constraintBottom_toTopOf="@+id/channels_content_container"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        style="?attr/chipsSmall"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/channels_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/messenger_channels_toolbar_filter_chips"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

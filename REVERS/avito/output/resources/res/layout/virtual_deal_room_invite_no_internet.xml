@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="48dp">
+    <ImageView
+        android:layout_gravity="center"
+        android:layout_width="210dp"
+        android:layout_height="180dp"
+        android:contentDescription="@string/virtual_deal_room_invite_common_no_internet"
+        app:srcCompat="@drawable/product_specific_vdr_invite_no_internet"/>
+    <TextView
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="@string/virtual_deal_room_invite_common_no_internet"
+        android:paddingHorizontal="24dp"
+        style="?attr/textH20"/>
+    <TextView
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/virtual_deal_room_invite_common_no_internet_description"
+        android:paddingHorizontal="24dp"
+        style="?attr/textM20"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/reload_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/virtual_deal_room_invite_update"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

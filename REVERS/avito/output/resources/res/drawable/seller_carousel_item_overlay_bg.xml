@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/expected_constant_black_alpha_60"/>
+    <corners android:bottomRightRadius="@dimen/recommendation_carousel_item_advert_radius"/>
+</shape>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/profile_pro_avito_finance_item_stub_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="32dp"
+    android:paddingHorizontal="10dp"
+    style="?attr/shimmerDefault">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="6dp">
+        <TextView
+            android:textAppearance="?attr/textH30"
+            android:gravity="start"
+            android:id="@+id/avito_finance_stub_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/profile_pro_avito_finance_stub_title"
+            android:maxLines="2"
+            android:layout_weight="1"/>
+        <com.avito.android.lib.design.header_button.HeaderButton
+            android:id="@+id/avito_finance_stub_header_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:headerButton_textIconStyleAttr="?attr/textIconHeaderbuttonArrow"
+            style="?attr/headerButtonH30"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        style="?attr/shimmerDefault">
+        <com.avito.android.lib.design.skeleton.Skeleton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:skeleton_radius="24dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+</LinearLayout>

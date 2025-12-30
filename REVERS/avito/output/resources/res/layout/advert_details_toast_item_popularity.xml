@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:id="@+id/toast_item_popularity"
+    android:background="@drawable/bg_toast_item_popularity"
+    android:paddingTop="10dp"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:alpha="0"
+    android:elevation="6dp"
+    android:paddingHorizontal="14dp">
+    <com.avito.android.lib.design.animation.AnimationView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/toast_item_popularity_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/toast_item_popularity_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"/>
+</LinearLayout>

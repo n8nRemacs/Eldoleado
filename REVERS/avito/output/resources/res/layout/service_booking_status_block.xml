@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/sb_status_block_root_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/sb_status_block_list_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="?attr/ic_calendar24"
+        android:layout_marginHorizontal="@dimen/content_horizontal_padding"
+        app:listItem_alignment="firstLineCenter"
+        app:listItem_iconLeftMarginTop="2dp"/>
+    <com.avito.android.lib.design.button.Button
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/sb_status_block_button"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/service_booking_block_action_btn_top_margin"
+        android:layout_marginBottom="@dimen/service_booking_block_action_btn_bottom_margin"
+        android:layout_marginHorizontal="@dimen/content_horizontal_padding"
+        style="?attr/buttonSecondaryLarge"/>
+</LinearLayout>

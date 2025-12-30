@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="20dp"
+    android:layout_marginHorizontal="16dp">
+    <TextView
+        android:textAppearance="?attr/textH60"
+        android:id="@+id/comment_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/stages_transition_dialog_comment_label"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/comment_field"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/stages_transition_dialog_comment_hint"
+        android:maxLines="3"
+        android:minLines="3"
+        style="?attr/textAreaDefaultM"/>
+</LinearLayout>

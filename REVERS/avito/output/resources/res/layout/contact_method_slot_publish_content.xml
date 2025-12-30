@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/contact_method_slot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItemCheckmark
+        android:enabled="true"
+        android:id="@+id/contact_method_all"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:listItem_checkmarkStyle="?attr/toggleRadioDefaultMedium"
+        style="?attr/listItemCheckmarkDefaultMedium"/>
+    <com.avito.android.lib.design.list_item.ListItemCheckmark
+        android:enabled="true"
+        android:id="@+id/contact_method_phone"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:listItem_checkmarkStyle="?attr/toggleRadioDefaultMedium"
+        style="?attr/listItemCheckmarkDefaultMedium"/>
+    <com.avito.android.lib.design.list_item.ListItemCheckmark
+        android:enabled="true"
+        android:id="@+id/contact_method_messenger"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:listItem_checkmarkStyle="?attr/toggleRadioDefaultMedium"
+        style="?attr/listItemCheckmarkDefaultMedium"/>
+</LinearLayout>

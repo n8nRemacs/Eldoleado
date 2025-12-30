@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/selector_card"
+    android:background="@drawable/border_selector_card_group"
+    android:paddingTop="20dp"
+    android:paddingBottom="32dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/selector_card_image"
+        android:layout_width="match_parent"
+        android:layout_height="124dp"
+        app:actualImageScaleType="fitCenter"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:id="@+id/selector_card_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:maxLines="2"
+        android:minLines="2"/>
+</LinearLayout>

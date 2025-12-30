@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.docking_badge.DockingBadgeContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/advert_badge_bar_light"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding"
+    app:dockingBadgeContainer_numberOfLines="2"
+    app:dockingBadgeContainer_spacing="@dimen/advert_details_docking_badge_bar_vertical_spacing"
+    style="?attr/dockingBadgeContainerMedium"/>

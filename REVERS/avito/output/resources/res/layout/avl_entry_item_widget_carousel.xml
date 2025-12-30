@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_view"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardBackgroundColor="?attr/warmGray4"
+    app:cardCornerRadius="@dimen/avl_entry_corner_radius"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false">
+    <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:resize_mode="zoom"
+        app:surface_type="texture_view"
+        app:use_controller="false"/>
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/thumbnail"
+        android:background="?attr/warmGray4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        style="@style/Widget.Avito.SimpleDraweeView.Serp.Item.Image"/>
+    <ImageView
+        android:layout_gravity="start|bottom"
+        android:id="@+id/play_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginBottom="8dp"
+        android:contentDescription="@null"
+        android:layout_marginStart="8dp"
+        app:srcCompat="@drawable/avl_entry_ic_card_play"/>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.RatioFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/gallery_item_bg"
+    android:padding="@dimen/premium_ad_rich_legal_content_padding"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:foreground="@drawable/rich_item_fg">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <FrameLayout
+            android:id="@+id/logo_container"
+            android:background="@drawable/ad_premium_v2_logo_bg"
+            android:layout_width="60dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="12dp">
+            <com.avito.android.fresco.SimpleDraweeView
+                android:layout_gravity="center"
+                android:id="@+id/logo"
+                android:layout_width="44dp"
+                android:layout_height="32dp"
+                app:actualImageScaleType="fitCenter"/>
+        </FrameLayout>
+        <TextView
+            android:gravity="center_vertical"
+            android:id="@+id/text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            style="@style/Widget.Avito.TextView.Ad.LegalTheme"/>
+    </LinearLayout>
+</com.avito.android.lib.util.layout.RatioFrameLayout>

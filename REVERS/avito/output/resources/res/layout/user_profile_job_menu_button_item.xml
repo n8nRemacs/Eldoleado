@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/user_profile_job_menu_button_item"
+    android:background="@drawable/user_profile_rounded_rectangle_12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:backgroundTint="?attr/warmGray8">
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:ellipsize="end"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="16dp"
+        android:maxLines="1"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="12dp"/>
+</FrameLayout>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/publish_information_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:paddingHorizontal="?attr/publish_horizontalPadding">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/image"
+        android:visibility="gone"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="2dp"
+        app:actualImageScaleType="centerInside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/publish_informationSlot_text_textAppearance"
+        android:textColor="?attr/gray48"
+        android:textColorLink="?attr/black"
+        android:id="@+id/text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="?attr/publish_informationSlot_text_marginStart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/image"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:textColor="?attr/gray54"
+        android:id="@+id/subtitle"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="?attr/publish_informationSlot_text_marginStart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/image"
+        app:layout_constraintTop_toBottomOf="@+id/text"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

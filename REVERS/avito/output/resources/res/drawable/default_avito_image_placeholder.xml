@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="50dp"
+    android:width="50dp"
+    android:viewportWidth="50"
+    android:viewportHeight="50">
+    <path
+        android:fillColor="?attr/warmGray75"
+        android:pathData="M0,0 h50 v50 h-50 z"/>
+    <group>
+        <clip-path android:pathData="M17.372,17.186h14.884v14.884h-14.884z"/>
+        <path
+            android:fillColor="@color/default_avito_placeholder_foreground"
+            android:pathData="M22.079,30.863C24.336,30.863 26.165,29.033 26.165,26.776C26.165,24.519 24.336,22.69 22.079,22.69C19.822,22.69 17.992,24.519 17.992,26.776C17.992,29.033 19.822,30.863 22.079,30.863Z"/>
+        <path
+            android:fillColor="@color/default_avito_placeholder_foreground"
+            android:pathData="M29.167,30.348C30.53,30.348 31.636,29.242 31.636,27.879C31.636,26.515 30.53,25.41 29.167,25.41C27.803,25.41 26.698,26.515 26.698,27.879C26.698,29.242 27.803,30.348 29.167,30.348Z"/>
+        <path
+            android:fillColor="@color/default_avito_placeholder_foreground"
+            android:pathData="M22.86,22.16C23.704,22.16 24.388,21.475 24.388,20.631C24.388,19.787 23.704,19.103 22.86,19.103C22.016,19.103 21.332,19.787 21.332,20.631C21.332,21.475 22.016,22.16 22.86,22.16Z"/>
+        <path
+            android:fillColor="@color/default_avito_placeholder_foreground"
+            android:pathData="M28.207,24.878C30.042,24.878 31.529,23.39 31.529,21.555C31.529,19.72 30.042,18.233 28.207,18.233C26.372,18.233 24.884,19.72 24.884,21.555C24.884,23.39 26.372,24.878 28.207,24.878Z"/>
+    </group>
+</vector>

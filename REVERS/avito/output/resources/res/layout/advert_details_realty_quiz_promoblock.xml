@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.blurlayout.BlurLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:layout_marginHorizontal="@dimen/content_horizontal_padding_smaller"
+    app:blurLayout_targetChildId="@+id/realty_quiz_promo_block">
+    <ImageView
+        android:layout_gravity="top|left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/realty_quiz_cross"/>
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/realty_quiz_promo_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="25dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        app:banner_backgroundColor="@color/advert_details_realty_background"
+        app:banner_blurRadius="4"
+        app:banner_closeStyle="?attr/closeButtonInverseL"
+        app:banner_content="@layout/advert_details_realty_quiz_promoblock_content"
+        app:banner_contentPaddingBottom="40dp"
+        app:banner_contentPaddingLeft="16dp"
+        app:banner_contentPaddingRight="16dp"
+        app:banner_contentPaddingTop="16dp"
+        app:banner_titleStyle="@style/RealtyQuizPromoblockTitleWhite"
+        style="?attr/bannerDefault"/>
+    <ImageView
+        android:layout_gravity="bottom|right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="25dp"
+        app:srcCompat="@drawable/realty_quiz_circle_half"/>
+</com.avito.android.blurlayout.BlurLayout>

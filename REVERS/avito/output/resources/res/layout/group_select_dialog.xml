@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.core.widget.NestedScrollView
+        android:paddingBottom="72dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never">
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/options_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </androidx.core.widget.NestedScrollView>
+    <FrameLayout
+        android:layout_gravity="bottom|center_horizontal"
+        android:background="@drawable/bg_transparent_white_gradient"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="64dp">
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="top|center_horizontal"
+            android:id="@+id/apply_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/apply_hint"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            style="?attr/buttonPrimaryLarge"/>
+    </FrameLayout>
+</FrameLayout>

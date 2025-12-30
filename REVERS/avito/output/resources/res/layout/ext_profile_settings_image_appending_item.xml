@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_appending_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.photo_uploader_appending.PhotoUploaderAppending
+        android:id="@+id/loading_photo_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:photoUploaderAppending_cornerRadius="5dp"/>
+    <include layout="@layout/inactive_fill"/>
+</com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout>

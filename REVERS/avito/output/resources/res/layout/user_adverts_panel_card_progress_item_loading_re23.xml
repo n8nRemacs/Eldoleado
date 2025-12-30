@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/panel_card_progress_item_loading_root"
+    android:layout_width="184dp"
+    android:layout_height="108dp"
+    app:cardBackgroundColor="?attr/warmGray4"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp">
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        style="?attr/shimmerDefault">
+        <LinearLayout
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="14dp">
+            <com.avito.android.lib.design.skeleton.Skeleton
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:layout_marginTop="6dp"
+                app:skeleton_radius="6dp"/>
+            <com.avito.android.lib.design.skeleton.Skeleton
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="35dp"
+                app:skeleton_radius="6dp"/>
+            <com.avito.android.lib.design.skeleton.Skeleton
+                android:layout_width="match_parent"
+                android:layout_height="9dp"
+                android:layout_marginTop="9dp"
+                android:layout_marginEnd="70dp"
+                app:skeleton_radius="6dp"/>
+            <com.avito.android.lib.design.skeleton.Skeleton
+                android:layout_width="match_parent"
+                android:layout_height="9dp"
+                android:layout_marginTop="9dp"
+                android:layout_marginEnd="85dp"
+                app:skeleton_radius="6dp"/>
+        </LinearLayout>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+</androidx.cardview.widget.CardView>

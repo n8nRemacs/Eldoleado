@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/trx_promo_goods_date_picker_footer"
+    android:background="@drawable/trx_promo_goods_bg_white_gradient"
+    android:paddingTop="24dp"
+    android:paddingBottom="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="20dp">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:gravity="center_horizontal"
+        android:id="@+id/trx_promo_goods_date_picker_text_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/trx_promo_goods_date_picker_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

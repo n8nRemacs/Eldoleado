@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingTop="@dimen/cbr_margin_medium"
+    android:paddingBottom="@dimen/cbr_margin_medium"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/cbr_margin_medium"
+    android:paddingEnd="@dimen/cbr_margin_medium">
+    <ru.cyberity.cbr.core.widget.CBRImageView
+        android:id="@+id/cbr_item_start_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:duplicateParentState="true"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cbr_item_start_icon"
+        app:layout_constraintTop_toTopOf="parent">
+        <ru.cyberity.cbr.core.widget.CBRSubtitle1TextView
+            android:id="@+id/cbr_item_title"
+            android:duplicateParentState="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/cbr_margin_small"
+            app:layout_goneMarginEnd="@dimen/cbr_margin_small"
+            app:layout_goneMarginStart="@dimen/cbr_margin_small"/>
+        <ru.cyberity.cbr.core.widget.CBRSubtitle2TextView
+            android:id="@+id/cbr_item_subtitle"
+            android:duplicateParentState="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/cbr_margin_small"
+            app:layout_goneMarginEnd="@dimen/cbr_margin_small"
+            app:layout_goneMarginStart="@dimen/cbr_margin_small"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

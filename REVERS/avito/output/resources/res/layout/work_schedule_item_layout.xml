@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:textAppearance="?attr/textH50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sx_new_address_work_schedule"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/schedule_options_chips_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:chips_selectStrategy="single"
+        style="?attr/chipsMedium"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/schedule_days_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:animateLayoutChanges="true"/>
+</LinearLayout>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:layout_marginBottom="12dp">
+    <com.avito.android.lib.design.switcher.Switcher
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/switcher"
+        android:focusable="true"
+        android:clickable="true"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/switcherDefaultMedium"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:textColor="?attr/black"
+        android:id="@+id/title"
+        android:duplicateParentState="true"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginHorizontal="12dp"/>
+</LinearLayout>

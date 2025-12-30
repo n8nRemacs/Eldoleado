@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/widget_content_top_padding"
+    android:paddingBottom="@dimen/widget_content_bottom_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/widget_content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/category_widget_title_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/category_widget_selector_hint"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+    <com.avito.android.lib.design.selector_card.SelectorCardGroup
+        android:id="@+id/category_widget_selector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:selectorCardGroup_childSpacing="7dp"
+        app:selectorCardGroup_content="@layout/widget_filters_category_selector_content"
+        app:selectorCardGroup_gridSpanCount="2"
+        app:selectorCardGroup_keepLastSelected="true"
+        app:selectorCardGroup_orientation="grid"/>
+</LinearLayout>

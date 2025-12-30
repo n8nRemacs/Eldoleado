@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/similar_shifts_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.chips.Chips
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/days_shifts"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:chips_displayType="singleLineScrollable"
+        app:chips_keepLastSelected="true"
+        app:chips_selectStrategy="single"
+        style="?attr/chipsMedium"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/time_shifts"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:chips_displayType="singleLineScrollable"
+        app:chips_keepLastSelected="true"
+        app:chips_selectStrategy="single"
+        style="?attr/chipsMedium"/>
+</LinearLayout>

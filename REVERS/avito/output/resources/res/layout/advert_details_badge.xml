@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.component.advert_badge_bar.badge_item.AdvertBadgeView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/advert_details_badge"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/advert_details_verification_block_horizontal_margin"
+    android:layout_marginRight="@dimen/advert_details_verification_block_horizontal_margin"/>

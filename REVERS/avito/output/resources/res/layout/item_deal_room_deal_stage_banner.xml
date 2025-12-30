@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp">
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/reward_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginHorizontal="10dp"
+        app:banner_content="@layout/item_deal_room_deal_stage_banner_content"
+        style="?attr/bannerDefault"/>
+    <ImageView
+        android:layout_gravity="end|top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/deal_stage_payment_banner_picture"
+        android:contentDescription="@null"
+        android:layout_marginEnd="10dp"/>
+</FrameLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="?attr/selectableItemBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/extended_profile_widget_horizontal_margin">
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/promotion_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</FrameLayout>

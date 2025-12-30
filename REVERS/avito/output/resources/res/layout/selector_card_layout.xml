@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:id="@+id/selector_card_content_container"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.avito.android.lib.design.toggle.Checkmark
+        android:layout_gravity="end|top"
+        android:id="@+id/selector_card_checkmark"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"/>
+    <com.avito.android.lib.design.switcher.Switcher
+        android:layout_gravity="end|top"
+        android:id="@+id/selector_card_switcher"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"/>
+</merge>

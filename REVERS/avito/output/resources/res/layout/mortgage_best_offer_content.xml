@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/mortgage_body_text"
+        android:paddingTop="6dp"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/advert_details_mortgage_best_offer_block_description"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/mortgage_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/advert_details_mortgage_best_offer_block_button"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="12dp"
+    android:width="12dp"
+    android:viewportWidth="12"
+    android:viewportHeight="12">
+    <path
+        android:fillColor="@color/stepper_icon_color_re23"
+        android:pathData="M5.3,6.7L5.3,11.7H6.7L6.7,6.7H11.7V5.3H6.7L6.7,0.3H5.3L5.3,5.3H0.3V6.7H5.3Z"/>
+</vector>

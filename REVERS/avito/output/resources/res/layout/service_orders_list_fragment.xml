@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/service_orders_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIconTint="?attr/black"
+        app:titleCentered="true"
+        app:titleTextAppearance="?attr/textH50">
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_gravity="end|center_vertical"
+            android:orientation="horizontal"
+            android:id="@+id/srv_orders_toolbar_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:overScrollMode="never"
+            android:layout_marginEnd="12dp"
+            android:nestedScrollingEnabled="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </com.google.android.material.appbar.MaterialToolbar>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <include
+            android:id="@+id/service_orders_list_skeleton"
+            layout="@layout/service_orders_list_skeleton"/>
+        <include
+            android:id="@+id/service_orders_error"
+            android:visibility="gone"
+            layout="@layout/service_orders_list_error"/>
+        <include
+            android:id="@+id/service_orders_list_empty"
+            android:visibility="gone"
+            layout="@layout/service_orders_list_empty"/>
+        <include
+            android:id="@+id/service_orders_content_root"
+            android:visibility="gone"
+            layout="@layout/service_orders_list"/>
+    </FrameLayout>
+</LinearLayout>

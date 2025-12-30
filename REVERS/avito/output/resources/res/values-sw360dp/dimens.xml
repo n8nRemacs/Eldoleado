@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="buttons_on_photo_in_editor_width">48dp</dimen>
+    <dimen name="fab_drawable_padding">4dp</dimen>
+    <dimen name="fab_left_padding">12dp</dimen>
+    <dimen name="fab_right_padding">24dp</dimen>
+</resources>

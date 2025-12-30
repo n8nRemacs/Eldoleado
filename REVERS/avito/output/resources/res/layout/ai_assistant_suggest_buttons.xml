@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/suggest_buttons_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="20dp"
+    app:dividerDrawable="@drawable/ai_assistant_suggestion_divider"
+    app:flexDirection="row_reverse"
+    app:flexWrap="wrap"
+    app:showDivider="middle">
+    <com.avito.android.lib.design.button.Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/buttonAssistantSecondaryExtraSmallRound"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/buttonAssistantSecondaryExtraSmallRound"/>
+</com.google.android.flexbox.FlexboxLayout>

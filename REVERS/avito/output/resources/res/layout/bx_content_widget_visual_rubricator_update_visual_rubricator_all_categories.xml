@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/category_tile_root"
+    android:layout_width="124dp"
+    android:layout_height="@dimen/bx_content_widget_visual_rubricator_double_rows_all_categories_height">
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/category_all_background"
+        android:background="@drawable/bx_content_widget_visual_rubricator_category_background"
+        android:layout_width="match_parent"
+        android:layout_height="166dp"
+        android:foreground="@drawable/bx_content_widget_visual_rubricator_rich_item_ripple_fg_r_16"
+        android:elevation="2dp"
+        android:outlineProvider="none">
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:layout_gravity="end|bottom"
+            android:id="@+id/category_icon"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:actualImageScaleType="centerCrop"/>
+        <TextView
+            android:textAppearance="?attr/textS2"
+            android:textColor="?attr/black"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:id="@+id/category_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginHorizontal="8dp"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:id="@+id/category_skeleton"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:shimmer_animationDuration="3000"
+        app:shimmer_autostart="true">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout>
+</LinearLayout>

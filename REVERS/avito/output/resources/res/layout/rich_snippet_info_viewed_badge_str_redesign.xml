@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textXs10"
+    android:textColor="?attr/black"
+    android:id="@+id/card_info_badge"
+    android:background="@drawable/bg_rich_snippet_info_viewed_badge_str_redesign"
+    android:paddingTop="1dp"
+    android:paddingBottom="2dp"
+    android:visibility="visible"
+    android:layout_marginHorizontal="24dp"
+    android:layout_marginVertical="14dp"
+    android:paddingHorizontal="6dp"
+    style="@style/Design.Widget.SnippetBadge.Viewed"/>

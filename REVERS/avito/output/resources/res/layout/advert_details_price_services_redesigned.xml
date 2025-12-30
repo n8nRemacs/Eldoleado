@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/item_price"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/content_horizontal_padding"
+    android:layout_marginTop="2dp"
+    android:layout_marginRight="@dimen/content_horizontal_padding">
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:alignItems="flex_end"
+        app:flexWrap="wrap">
+        <TextView
+            android:textAppearance="?attr/textH4"
+            android:id="@+id/current_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:layout_marginEnd="8dp"/>
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/hint_icon"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="?attr/ic_help24"
+            android:layout_marginEnd="4dp"
+            app:tint="?attr/gray24"/>
+    </com.google.android.flexbox.FlexboxLayout>
+    <TextView
+        android:textAppearance="?attr/textHeading"
+        android:textColor="?attr/black"
+        android:id="@+id/old_price"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

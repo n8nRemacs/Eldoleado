@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.button.Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/button_open_in_another_app"
+    android:layout_width="match_parent"
+    android:layout_marginTop="@dimen/button_create_root_margin_top"
+    android:layout_marginHorizontal="@dimen/map_bottom_sheet_recycler_view_margin"
+    style="?attr/buttonPrimaryLarge"/>

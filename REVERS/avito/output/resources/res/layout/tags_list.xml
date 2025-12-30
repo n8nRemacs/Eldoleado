@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tags"
+    android:background="?attr/white"
+    android:paddingTop="2dp"
+    android:visibility="gone"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:splitMotionEvents="false"
+    android:paddingHorizontal="?attr/publish_horizontalPadding"/>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/banner_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/promo_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:banner_closeVisible="false"
+        app:banner_content="@layout/messenger_iac_problem_banner_card_old_content"
+        app:banner_contentPaddingBottom="20dp"
+        app:banner_contentPaddingLeft="0dp"
+        app:banner_contentPaddingRight="0dp"
+        style="?attr/bannerOrange"/>
+</FrameLayout>

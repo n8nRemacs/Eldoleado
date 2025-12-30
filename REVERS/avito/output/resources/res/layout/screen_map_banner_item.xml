@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/screen_map_banner_container"
+    android:background="@drawable/rounded_background_r16"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/map_banner_image"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="fitXY"
+        app:roundedCornerRadius="16dp"/>
+    <androidx.cardview.widget.CardView
+        android:layout_gravity="end"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="5dp">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/screen_map_banner_icon_full_map"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            app:srcCompat="@drawable/ic_arrow_full_map_14"/>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>

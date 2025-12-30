@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/expandable_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textL10"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/expandable_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="16dp"/>
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/expandable_arrow"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="?attr/ic_arrowRight20"
+            android:scaleType="centerInside"
+            android:rotation="90"
+            app:tint="?attr/black"/>
+    </LinearLayout>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/expandable_section"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+    <View
+        android:id="@+id/separator"
+        android:background="?attr/warmGray16"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"/>
+</LinearLayout>

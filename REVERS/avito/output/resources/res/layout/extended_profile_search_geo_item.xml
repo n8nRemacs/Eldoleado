@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/geo_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:ellipsize="end"
+        android:id="@+id/geo_address"
+        android:paddingTop="@dimen/shortcut_bar_geo_address_padding_top"
+        android:focusable="false"
+        android:clickable="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:drawablePadding="@dimen/shortcut_bar_blocks_titles_drawable_padding"
+        app:drawableStartCompat="?attr/ic_hollowPin16"
+        app:drawableTint="?attr/black"/>
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/arrow_icon"
+        android:focusable="false"
+        android:clickable="false"
+        android:layout_width="@dimen/shortcut_bar_arrow_icon_width"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/shortcut_bar_arrow_margin_top"
+        android:contentDescription="@null"
+        android:paddingStart="@dimen/shortcut_bar_arrow_padding_start"
+        android:layout_marginStart="@dimen/shortcut_bar_arrow_margin_start"
+        android:layout_marginEnd="@dimen/shortcut_bar_arrow_margin_end"
+        app:srcCompat="?attr/ic_arrowDown16"
+        app:tint="?attr/black"/>
+</LinearLayout>

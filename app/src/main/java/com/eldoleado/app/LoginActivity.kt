@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -13,21 +14,12 @@ import com.eldoleado.app.api.DeviceInfo
 import com.eldoleado.app.api.LoginRequest
 import com.eldoleado.app.api.LoginResponse
 import com.eldoleado.app.api.RetrofitClient
-import com.eldoleado.app.fcm.FCMRepository
-import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import com.eldoleado.app.operator.OperatorWebSocketService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
-
-    private val loginScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private lateinit var sessionManager: SessionManager
     private lateinit var etEmail: EditText
@@ -51,11 +43,6 @@ class LoginActivity : AppCompatActivity() {
         btnLogin = findViewById(R.id.btn_login)
 
         btnLogin.setOnClickListener { login() }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        loginScope.cancel()
     }
 
     private fun login() {
@@ -101,7 +88,8 @@ class LoginActivity : AppCompatActivity() {
                         tunnelUrl = data.tunnel_url,
                         tunnelSecret = data.tunnel_secret
                     )
-                    registerFCMToken(data.operator_id, data.session_token)
+                    // Start WebSocket service for push notifications (replaces FCM)
+                    startWebSocketService()
                     navigateToMain()
                 } else {
                     Toast.makeText(this@LoginActivity, "Неверные данные", Toast.LENGTH_SHORT).show()
@@ -120,18 +108,16 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-    private fun registerFCMToken(operatorId: String, sessionToken: String) {
-        loginScope.launch {
-            try {
-                val fcmToken = FirebaseMessaging.getInstance().token.await()
-                val repository = FCMRepository(
-                    apiService = RetrofitClient.getApiService(this@LoginActivity),
-                    context = this@LoginActivity
-                )
-                repository.registerFCMToken(operatorId, sessionToken, fcmToken)
-            } catch (e: Exception) {
-                android.util.Log.e("LoginActivity", "FCM токен не зарегистрирован", e)
-            }
+    /**
+     * Start WebSocket service for push notifications.
+     * Replaces FCM token registration.
+     */
+    private fun startWebSocketService() {
+        try {
+            OperatorWebSocketService.start(this)
+            Log.d("LoginActivity", "WebSocket service started for push notifications")
+        } catch (e: Exception) {
+            Log.e("LoginActivity", "Failed to start WebSocket service", e)
         }
     }
 

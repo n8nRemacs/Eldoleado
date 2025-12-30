@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/content_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/buttons_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:weightSum="1">
+        <com.avito.android.lib.design.button.Button
+            android:textAppearance="?attr/textM1"
+            android:id="@+id/firstButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="0.5"
+            android:layout_marginEnd="16dp"
+            app:button_backgroundColor="?attr/beige50"
+            style="?attr/buttonBeigeLarge"/>
+        <com.avito.android.lib.design.button.Button
+            android:textAppearance="?attr/textM1"
+            android:id="@+id/secondButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="0.5"
+            app:button_backgroundColor="?attr/beige50"
+            style="?attr/buttonBeigeLarge"/>
+    </LinearLayout>
+</LinearLayout>

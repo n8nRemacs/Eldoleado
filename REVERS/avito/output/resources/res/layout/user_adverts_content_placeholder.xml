@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.avito.android.lib.design.content_placeholder.ContentPlaceholder
+        android:id="@+id/user_adverts_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:contentPlaceholder_buttonStyle="?attr/buttonSecondaryMedium"/>
+    <com.avito.android.lib.design.spinner.Spinner
+        android:layout_gravity="center"
+        android:id="@+id/user_adverts_spinner"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/spinnerDarkLarge"/>
+</merge>

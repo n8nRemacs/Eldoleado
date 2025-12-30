@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/snippet_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:banner_bottomShadow="@style/DeliverySummarySnippet.BottomShadow"
+        app:banner_content="@layout/delivery_summary_snippet_view_content"
+        app:banner_contentPaddingBottom="12dp"
+        app:banner_contentPaddingLeft="12dp"
+        app:banner_contentPaddingRight="12dp"
+        app:banner_contentPaddingTop="12dp"
+        app:banner_cornerRadius="16dp"
+        app:banner_shadow="@style/DeliverySummarySnippet.UpperShadow"
+        app:banner_shadowEnabled="true"
+        style="?attr/bannerWhite"/>
+</merge>

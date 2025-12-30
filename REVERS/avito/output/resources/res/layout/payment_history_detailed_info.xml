@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/payment_history_details_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/details_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <ViewStub
+        android:id="@+id/error_view_stub"
+        android:visibility="gone"
+        android:layout="@layout/payment_history_detailed_error"
+        android:inflatedId="@+id/error_view"
+        android:layout_width="match_parent"
+        android:layout_height="236dp"/>
+    <ViewStub
+        android:id="@+id/refund_view_stub"
+        android:visibility="gone"
+        android:layout="@layout/payment_history_confirm_refund_dialog"
+        android:inflatedId="@+id/refund_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"/>
+    <FrameLayout
+        android:id="@+id/loading_indicator"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="236dp">
+        <com.avito.android.lib.design.spinner.Spinner
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/spinnerDarkMedium"/>
+    </FrameLayout>
+</FrameLayout>

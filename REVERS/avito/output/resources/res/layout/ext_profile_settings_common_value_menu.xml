@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/common_value_menu_root"
+    android:paddingBottom="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/edit_list_item"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:drawableLeft="?attr/ic_edit24"
+        android:paddingHorizontal="@dimen/extended_profile_settings_horizontal_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:listItem_alignment="firstLineCenter"
+        app:listItem_iconLeftColor="?attr/black"
+        app:listItem_title="@string/extended_profile_settings_edit"/>
+    <com.avito.android.lib.design.list_item.ListItem
+        android:id="@+id/delete_list_item"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableLeft="?attr/ic_delete24"
+        android:paddingHorizontal="@dimen/extended_profile_settings_horizontal_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_list_item"
+        app:listItem_alignment="firstLineCenter"
+        app:listItem_iconLeftColor="?attr/black"
+        app:listItem_title="@string/extended_profile_settings_delete"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

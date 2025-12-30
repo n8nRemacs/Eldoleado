@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/selectContainer"
+    android:background="@drawable/srv_transportation_card_background"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="@drawable/srv_transportation_card_foreground">
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/selectText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="20dp"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/selectDescription"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        android:paddingHorizontal="20dp"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/selectLabel"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="6dp"
+        android:paddingHorizontal="20dp"/>
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/selectImage"
+        android:layout_width="match_parent"
+        android:layout_height="108dp"
+        app:actualImageScaleType="fitEnd"/>
+</LinearLayout>

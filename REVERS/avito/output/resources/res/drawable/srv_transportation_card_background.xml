@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/warmGray4"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    <item android:id="?attr/selectableItemBackground">
+        <ripple android:color="?attr/warmGray16">
+            <item android:id="@android:id/mask">
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp"/>
+                    <solid android:color="?attr/warmGray4"/>
+                </shape>
+            </item>
+        </ripple>
+    </item>
+</layer-list>

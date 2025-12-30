@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <View
+                android:id="@+id/sbc_configurator_fast_chip_onboarding_gradient"
+                android:layout_width="match_parent"
+                android:layout_height="193dp"/>
+            <com.avito.android.fresco.SimpleDraweeView
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/sbc_configurator_fast_chip_onboarding_image"
+                android:layout_width="189dp"
+                android:layout_height="160dp"
+                android:layout_marginTop="67dp"
+                app:actualImageScaleType="centerCrop"
+                app:roundedCornerRadius="0dp"/>
+        </FrameLayout>
+        <TextView
+            android:textAppearance="?attr/textH3"
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Подсказываем, что выбрать"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"/>
+        <TextView
+            android:textAppearance="?attr/textM1"
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Теперь вы видите, какое предложение может сработать лучше всего и что часто отправляют конкуренты"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/close_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="Хорошо"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            style="?attr/buttonPrimaryMedium"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

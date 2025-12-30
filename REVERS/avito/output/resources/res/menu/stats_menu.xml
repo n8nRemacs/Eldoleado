@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:icon="?attr/ic_filter24"
+        android:id="@+id/stats_menu_group_item"
+        android:title="@string/user_stats_groups_default_title"
+        app:iconTint="?attr/blue"
+        app:showAsAction="always"/>
+</menu>

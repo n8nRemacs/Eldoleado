@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/stub_flat_info_root"
+    android:background="@drawable/calendar_day_item_background"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/str_calendar_cell_size_redesign">
+    <View
+        android:id="@+id/stub_flat_pic"
+        android:background="@drawable/str_orders_calendar_stub_12dp_bg"
+        android:layout_width="@dimen/str_calendar_flat_info_pic_size"
+        android:layout_height="@dimen/str_calendar_flat_info_pic_size"
+        android:layout_marginStart="16dp"
+        android:layout_marginVertical="12dp"/>
+    <LinearLayout
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp">
+        <View
+            android:id="@+id/stub_flat_title"
+            android:background="@drawable/str_orders_calendar_stub_3dp_bg"
+            android:layout_width="69dp"
+            android:layout_height="7dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/stub_flat_pic"
+            app:layout_constraintTop_toTopOf="@+id/stub_flat_pic"/>
+        <View
+            android:id="@+id/stub_flat_subtitle"
+            android:background="@drawable/str_orders_calendar_stub_3dp_bg"
+            android:layout_width="38dp"
+            android:layout_height="7dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@+id/stub_flat_title"
+            app:layout_constraintTop_toBottomOf="@+id/stub_flat_title"/>
+    </LinearLayout>
+</LinearLayout>

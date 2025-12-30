@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/error_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/str_seller_orders_no_content_img"/>
+    <TextView
+        android:textAppearance="?attr/textH25"
+        android:textColor="?attr/black"
+        android:gravity="center"
+        android:id="@+id/error_title_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/str_seller_orders_empty_state_header"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:textColor="?attr/black"
+        android:gravity="center"
+        android:id="@+id/error_subtitle_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/str_seller_orders_empty_state_description"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="center"
+        android:id="@+id/retry_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/error_layout_refresh"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/advance_info_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/money_input_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.input.Input
+            android:textAppearance="?attr/textM2"
+            android:id="@+id/money_input"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLength="9"
+            android:imeOptions="actionDone"
+            app:input_formatterType="roubles"
+            style="?attr/input"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/red600"
+        android:id="@+id/tv_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"/>
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/tariff_upsell_banner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:banner_content="@layout/profile_tariff_upsell_banner_content"
+    app:banner_contentPaddingBottom="8dp"
+    app:banner_contentPaddingLeft="20dp"
+    app:banner_contentPaddingRight="12dp"
+    app:banner_contentPaddingTop="8dp"/>

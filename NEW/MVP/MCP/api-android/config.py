@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # API Security
     api_key: Optional[str] = None
+    internal_api_key: str = "elo-internal-2024"
 
     # Rate Limiting
     rate_limit_per_minute: int = 60

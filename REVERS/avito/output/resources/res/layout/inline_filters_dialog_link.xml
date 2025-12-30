@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textColor="?attr/blue"
+    android:id="@+id/inline_filters_dialog_item_text"
+    android:paddingTop="@dimen/inline_filter_select_item_vertical_padding"
+    android:paddingBottom="@dimen/inline_filter_select_item_vertical_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/inline_filter_dialog_horizontal_padding"
+    android:paddingEnd="@dimen/inline_filter_dialog_horizontal_padding"
+    style="?attr/textBody"/>

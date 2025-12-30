@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/passport_user_profile_info_card_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <include layout="@layout/user_profile_info_avatar_alerts"/>
+    <include
+        android:id="@+id/user_hat"
+        layout="@layout/passport_user_hat"/>
+    <include
+        android:id="@+id/user_profile_widget_subview"
+        layout="@layout/profile_header_widget_subview"/>
+    <include
+        android:id="@+id/user_profile_delivery_restriction_item"
+        layout="@layout/profile_delivery_restriction_banner_item"/>
+    <include layout="@layout/user_profile_info_fields"/>
+</LinearLayout>

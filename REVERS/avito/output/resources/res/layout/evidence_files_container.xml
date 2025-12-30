@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/photo_param_container"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_subtitleAppearance="?attr/textM2"
+    app:componentContainer_textPaddingLeft="@dimen/publish_container_horizontal_padding"
+    app:componentContainer_textPaddingRight="@dimen/publish_container_horizontal_padding"
+    app:componentContainer_titleAppearance="?attr/textH3">
+    <androidx.recyclerview.widget.RecyclerView
+        android:orientation="vertical"
+        android:id="@+id/image_list_container"
+        android:paddingLeft="@dimen/publish_container_horizontal_padding"
+        android:paddingRight="@dimen/publish_container_horizontal_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

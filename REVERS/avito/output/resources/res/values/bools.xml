@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="abc_action_bar_embed_tabs">true</bool>
+    <bool name="abc_config_actionMenuItemAllCaps">true</bool>
+    <bool name="calendar_select_show_bottom_sheet">true</bool>
+    <bool name="can_switch_display_type">true</bool>
+    <bool name="com.yandex.android.appmetrica.is_offline">false</bool>
+    <bool name="com.yandex.android.appmetrica.ndk.enable">false</bool>
+    <bool name="com_vk_sdk_init_provider_enabled">true</bool>
+    <bool name="config_materialPreferenceIconSpaceReserved">false</bool>
+    <bool name="design_widget_modal_backgroundDimEnabled">true</bool>
+    <bool name="enable_system_alarm_service_default">false</bool>
+    <bool name="enable_system_foreground_service_default">true</bool>
+    <bool name="enable_system_job_service_default">true</bool>
+    <bool name="io.appmetrica.analytics.is_offline">false</bool>
+    <bool name="io.appmetrica.analytics.ndk.enable">false</bool>
+    <bool name="isTablet">false</bool>
+    <bool name="is_dark_theme">false</bool>
+    <bool name="is_landscape">false</bool>
+    <bool name="is_not_dark_theme">true</bool>
+    <bool name="is_str_calendar_toolbar_visible">true</bool>
+    <bool name="is_sw720">false</bool>
+    <bool name="is_tablet">false</bool>
+    <bool name="leak_canary_watcher_auto_install">false</bool>
+    <bool name="leak_canary_watcher_watch_dismissed_dialogs">false</bool>
+    <bool name="mtrl_btn_textappearance_all_caps">true</bool>
+    <bool name="photo_picker_photo_list_align_center_horizontal">false</bool>
+    <bool name="photo_picker_photo_list_align_left">true</bool>
+    <bool name="profile_concealable_toolbar_shadow">true</bool>
+    <bool name="show_bottom_sheet">true</bool>
+    <bool name="single_button_always">true</bool>
+    <bool name="workmanager_test_configuration">false</bool>
+</resources>

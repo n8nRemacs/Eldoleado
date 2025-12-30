@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/date_item_root"
+    android:background="@drawable/str_orders_calendar_date_item_bg"
+    android:layout_width="@dimen/str_calendar_cell_size_redesign"
+    android:layout_height="@dimen/str_calendar_dates_height"
+    android:paddingStart="4dp"
+    android:paddingEnd="0dp">
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/date_tv"
+        android:padding="@dimen/str_calendar_dates_today_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</FrameLayout>

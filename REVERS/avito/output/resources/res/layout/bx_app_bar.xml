@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.bxcontent.vertical_toolbar.UnconditionalDraggableAppBarLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bx_appbar"
+    android:background="?attr/transparentBlack"
+    android:visibility="gone"
+    android:fitsSystemWindows="true"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:elevation="0dp">
+    <include layout="@layout/main_promo_banner_toolbar"/>
+    <include layout="@layout/hero_banner_toolbar"/>
+    <include layout="@layout/vertical_filter_toolbar"/>
+    <include layout="@layout/vertical_mini_search_toolbar"/>
+    <include layout="@layout/vertical_category_filter_toolbar"/>
+    <include layout="@layout/service_transportation_widget_public_toolbar"/>
+</com.avito.android.bxcontent.vertical_toolbar.UnconditionalDraggableAppBarLayout>

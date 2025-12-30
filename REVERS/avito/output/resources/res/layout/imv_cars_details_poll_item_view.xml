@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/imv_cars_poll_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="28dp"
+    android:paddingHorizontal="@dimen/imv_cars_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/imv_cars_details_poll_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/imv_cars_details_positive_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imv_cars_details_poll_title"
+        style="?attr/buttonBeigeLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/imv_cars_details_negative_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@+id/imv_cars_details_positive_button"
+        app:layout_constraintTop_toBottomOf="@+id/imv_cars_details_poll_title"
+        style="?attr/buttonBeigeLarge"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:textColor="?attr/gray44"
+        android:id="@+id/imv_cars_details_already_answered_title"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imv_cars_details_poll_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

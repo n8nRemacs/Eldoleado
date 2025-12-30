@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/search_view_root">
+    <com.avito.android.lib.design.input.Input
+        android:textColorHint="?attr/gray54"
+        android:id="@+id/search_input"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:paddingEnd="42dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="12dp"
+        app:input_backgroundColor="?attr/warmGray4"
+        app:input_clearButton="false"
+        app:input_cornerRadius="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_goneMarginEnd="16dp"
+        style="?attr/input"/>
+    <ImageView
+        android:id="@+id/clear_button"
+        android:padding="4dp"
+        android:visibility="gone"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="?attr/ic_close16"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/search_input"
+        app:layout_constraintEnd_toEndOf="@+id/search_input"
+        app:layout_constraintTop_toTopOf="@+id/search_input"
+        app:tint="?attr/black"/>
+</merge>

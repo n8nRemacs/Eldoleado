@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/autoteka_teaser_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <include layout="@layout/advert_details_autoteka_teaser_v3_result"/>
+        <include layout="@layout/advert_details_autoteka_teaser_error"/>
+    </FrameLayout>
+</LinearLayout>

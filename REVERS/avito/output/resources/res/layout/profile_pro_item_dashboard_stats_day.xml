@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cl_column"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="2dp">
+    <View
+        android:id="@+id/v_substrate"
+        android:background="@drawable/bg_profile_pro_dashboard_stats_substrate"
+        android:layout_width="20dp"
+        android:layout_height="52dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <View
+        android:id="@+id/v_column"
+        android:background="@drawable/bg_profile_pro_dashboard_stats_blue"
+        android:layout_width="20dp"
+        android:layout_height="42dp"
+        app:layout_constraintBottom_toBottomOf="@+id/v_substrate"
+        app:layout_constraintStart_toStartOf="@+id/v_substrate"/>
+    <TextView
+        android:textAppearance="?attr/textXs10"
+        android:textColor="?attr/gray44"
+        android:id="@+id/tv_column"
+        android:paddingTop="4dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/v_substrate"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

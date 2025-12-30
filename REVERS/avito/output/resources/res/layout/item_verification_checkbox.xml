@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/verification_item_checkbox_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.toggle.Checkbox
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/verification_item_checkbox_view"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="12dp"
+        style="?attr/toggleCheckboxDefaultMedium"/>
+    <TextView
+        android:textAppearance="?attr/textS10"
+        android:textColor="?attr/red600"
+        android:id="@+id/verification_item_checkbox_error_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"/>
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_new_badge"
+    android:background="@drawable/design_background_badge_new"
+    android:paddingBottom="1dp"
+    android:layout_marginTop="@dimen/rich_snippet_info_badge_vertical_offset"
+    android:fontFamily="?attr/fontRegular"
+    android:layout_marginStart="@dimen/rich_snippet_info_badge_horizontal_offset"
+    android:layout_marginEnd="@dimen/rich_snippet_favorite_button_size"
+    style="@style/Design.Widget.SnippetBadge"/>

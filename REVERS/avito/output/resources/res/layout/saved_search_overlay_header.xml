@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/header_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:id="@+id/fadable"
+        android:background="@drawable/saved_search_header_fadable_background"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:alpha="0"/>
+    <ImageView
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/thumb"
+        android:layout_width="?attr/bottomSheet_thumbWidth"
+        android:layout_height="?attr/bottomSheet_thumbHeight"
+        android:layout_marginTop="?attr/bottomSheet_thumbMarginTop"
+        android:layout_marginBottom="?attr/bottomSheet_thumbMarginBottom"
+        android:src="@drawable/design_bottom_sheet_thumb_overlay"
+        app:tint="?attr/bottomSheet_overlayThumbColor"/>
+    <ImageView
+        android:layout_gravity="end|top"
+        android:id="@+id/close_button"
+        android:background="@drawable/design_icon_close_ripple_right_cross"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="?attr/bottomSheet_overlayRightCrossMarginRight"/>
+</FrameLayout>

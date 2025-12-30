@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="profile_adverts_columns">3</integer>
+    <integer name="serp_columns">3</integer>
+    <integer name="similar_adverts_columns">3</integer>
+    <integer name="user_contacts_column_count">2</integer>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.yandex.mobile.ads.nativeads.video.view.PlaybackControlsContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <CheckBox
+        android:layout_gravity="fill_vertical"
+        android:id="@+id/video_mute_control"
+        android:background="@drawable/monetization_ads_internal_mute_checkable_fullscreen_content_v1"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:button="@null"/>
+    <TextView
+        android:textSize="12sp"
+        android:textColor="@color/monetization_ads_internal_text_color_white"
+        android:layout_gravity="end|top"
+        android:id="@+id/video_count_down_control"
+        android:padding="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="4dp"
+        android:shadowColor="#000000"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="8"/>
+</com.yandex.mobile.ads.nativeads.video.view.PlaybackControlsContainer>

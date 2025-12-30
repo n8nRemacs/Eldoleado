@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:textColor="@color/tab_title_redesign_color"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/tab_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:textColor="?attr/gray44"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/tab_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:layout_gravity="top"
+        android:id="@+id/tab_badge"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        style="?attr/badgeTextRedXS"/>
+</LinearLayout>

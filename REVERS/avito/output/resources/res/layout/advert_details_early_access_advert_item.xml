@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.blurlayout.BlurLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:blurLayout_targetChildId="@+id/banner">
+    <ImageView
+        android:layout_gravity="start|top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:layout_marginStart="-30dp"
+        app:srcCompat="@drawable/graphic_element_cross"
+        app:tint="?attr/blue500"/>
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="32dp"
+        android:layout_marginHorizontal="10dp"
+        app:banner_backgroundColor="@color/early_access_advert_background"
+        app:banner_blurRadius="25"
+        app:banner_content="@layout/advert_details_early_access_advert_banner_content"
+        app:banner_roundCorners="false"
+        style="?attr/bannerDefault"/>
+    <ImageView
+        android:layout_gravity="end|bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:layout_marginEnd="-22dp"
+        app:srcCompat="@drawable/graphic_element_candy_rotated_left"
+        app:tint="?attr/green600"/>
+</com.avito.android.blurlayout.BlurLayout>

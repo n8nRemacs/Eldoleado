@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/PublishParentTheme"
+    android:orientation="vertical"
+    android:id="@+id/delivery_summary_skeleton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:shimmer_animationDuration="3000"
+        app:shimmer_autostart="true"
+        style="?attr/shimmerDefault">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.avito.android.lib.design.skeleton.TextSkeleton
+                android:id="@+id/text_view_stub_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginHorizontal="@dimen/delivery_summary_add_view_horizontal_padding"
+                style="?attr/textH10"/>
+            <com.avito.android.lib.design.skeleton.TextSkeleton
+                android:id="@+id/text_view_stub_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/delivery_summary_add_view_horizontal_padding"
+                style="?attr/textH20"/>
+            <com.avito.android.lib.design.skeleton.TextSkeleton
+                android:id="@+id/text_view_stub_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/delivery_summary_add_view_horizontal_padding"
+                style="?attr/textH20"/>
+        </LinearLayout>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+</LinearLayout>

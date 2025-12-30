@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:shimmer_animationDuration="3000"
+    app:shimmer_autostart="true">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="?attr/listItemHorizontalPadding">
+            <include layout="@layout/service_orders_list_item_title_skeleton"/>
+            <include layout="@layout/service_orders_list_item_order_skeleton"/>
+            <include layout="@layout/service_orders_list_item_order_skeleton"/>
+            <include layout="@layout/service_orders_list_item_order_skeleton"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

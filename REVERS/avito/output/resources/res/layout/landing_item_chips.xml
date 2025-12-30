@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/textH5"/>
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:chips_childHorizontalSpacing="6dp"
+        app:chips_childVerticalSpacing="6dp"
+        app:chips_displayType="multipleLines"
+        app:chips_selectStrategy="single"
+        app:chips_selectedAppearance="?attr/buttonPrimaryMedium"
+        app:chips_unselectedAppearance="?attr/buttonSecondaryMedium"
+        style="?attr/chips"/>
+    <TextView
+        android:id="@+id/chip_as_text"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        style="?attr/textM20"/>
+</LinearLayout>

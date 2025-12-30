@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM20"
+    android:textColor="?attr/gray54"
+    android:id="@+id/srv_orders_list_item_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="28dp"
+    android:layout_marginBottom="22dp"
+    android:paddingHorizontal="16dp"/>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItemSwitcher xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/publish_switcher"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:listItem_backgroundRipple="?attr/transparentWhite"
+    app:listItem_linkAppearance="?attr/publish_listItem_switcher_linkAppearance"
+    style="?attr/switcherDefaultMedium"/>

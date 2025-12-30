@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/user_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding">
+    <FrameLayout
+        android:gravity="center_vertical"
+        android:background="?attr/publish_userInfo_background"
+        android:padding="@dimen/standard_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:layout_gravity="center"
+            android:id="@+id/avatar"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            app:actualImageScaleType="centerCrop"
+            app:backgroundImage="?attr/gray8"
+            app:placeholderImage="?attr/gray8"
+            app:placeholderImageScaleType="center"
+            app:roundAsCircle="true"/>
+        <LinearLayout
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="84dp">
+            <TextView
+                android:textAppearance="?attr/textBody"
+                android:textSize="22sp"
+                android:ellipsize="end"
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"/>
+            <include
+                android:id="@+id/rating_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                layout="@layout/profile_snippet_rating"/>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

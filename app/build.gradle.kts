@@ -1,7 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
+    // FCM removed - using WebSocket for push notifications
+    // id("com.google.gms.google-services")
     id("com.google.devtools.ksp")
 }
 
@@ -56,10 +57,11 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    implementation("com.google.firebase:firebase-messaging-ktx")
-    implementation("com.google.firebase:firebase-analytics-ktx")
+    // FCM removed - using WebSocket for push notifications
+    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    // implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // implementation("com.google.firebase:firebase-messaging-ktx")
+    // implementation("com.google.firebase:firebase-analytics-ktx")
 
     // Room Database
     val roomVersion = "2.6.1"

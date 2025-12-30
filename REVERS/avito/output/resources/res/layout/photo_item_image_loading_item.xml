@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_photo_container"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:photoUploaderLayout_ratioHeight="1"
+    app:photoUploaderLayout_ratioWidth="1">
+    <com.avito.android.photo_list_view.re23.image.loading.PublishImageLoading
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:publishImageLoading_cornerRadius="16dp"/>
+</com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout>

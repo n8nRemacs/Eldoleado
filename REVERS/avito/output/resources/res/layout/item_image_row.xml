@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/image_row_item_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/image_container"
+        android:layout_width="wrap_content"
+        android:layout_height="58dp"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:textColor="?attr/constantWhite"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="@+id/image_counter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:paddingHorizontal="4dp"/>
+</FrameLayout>

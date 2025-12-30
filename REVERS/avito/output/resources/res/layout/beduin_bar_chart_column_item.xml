@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/fl_column"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.beduin.common.component.bar_chart.column.ColumnView
+            android:layout_gravity="bottom"
+            android:id="@+id/column"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+    <TextView
+        android:ellipsize="end"
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:maxLines="1"/>
+    <TextView
+        android:ellipsize="end"
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/footer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"/>
+</LinearLayout>

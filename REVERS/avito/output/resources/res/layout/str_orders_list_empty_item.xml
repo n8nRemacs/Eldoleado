@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="338dp">
+    <ImageView
+        android:layout_width="112dp"
+        android:layout_height="100dp"
+        app:srcCompat="@drawable/str_seller_orders_calendar"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/str_seller_orders_not_found"/>
+</LinearLayout>

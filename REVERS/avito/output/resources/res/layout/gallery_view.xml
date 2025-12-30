@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.design.widget.GalleryPager
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/photo_pager"
+        android:background="?attr/transparentBlack"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.avito.android.lib.design.page_indicator.PageIndicator
+        android:gravity="center"
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/photo_indicator"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        app:backgroundColor="@color/expected_black_alpha_57"
+        style="@style/Design.Widget.PageIndicator"/>
+    <com.avito.android.lib.design.page_indicator_re23.PageIndicatorRe23
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/photo_indicator_re23"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        app:pageIndicator_backgroundColor="@color/expected_constant_black_alpha_40"
+        app:pageIndicator_selectedDotStyle="@style/WhiteDotSelected"
+        app:pageIndicator_unselectedPrimaryDotStyle="@style/WhiteDotUnselectedPrimary"
+        app:pageIndicator_unselectedSecondaryDotStyle="@style/WhiteDotUnselectedSecondary"
+        app:pageIndicator_unselectedTertiaryDotStyle="@style/WhiteDotUnselectedTertiary"/>
+</FrameLayout>

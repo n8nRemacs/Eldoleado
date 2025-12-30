@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <ViewStub
+        android:id="@+id/no_camera_permission_placeholder_stub"
+        android:layout="@layout/no_camera_permission_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <ViewStub
+        android:id="@+id/no_camera_placeholder_stub"
+        android:layout="@layout/no_camera_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</merge>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/timeslot_busy"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/day_schedule_timeslot_section_separator_time_width"
+    android:paddingEnd="10dp">
+    <com.avito.android.service_booking_calendar.day.schedule.view.TimeSlotView
+        android:id="@+id/timeslot_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</FrameLayout>

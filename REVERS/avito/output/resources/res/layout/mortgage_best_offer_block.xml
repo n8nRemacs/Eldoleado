@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mortgage_best_offer_promoblock"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="22dp"
+    android:layout_marginBottom="25dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    app:banner_content="@layout/mortgage_best_offer_content"
+    app:banner_contentPaddingLeft="16dp"
+    app:banner_contentPaddingRight="16dp"
+    app:banner_contentPaddingTop="16dp"
+    app:banner_title="@string/advert_details_mortgage_best_offer_block_title"
+    style="?attr/bannerWarmgray"/>

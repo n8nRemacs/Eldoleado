@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.list_item.ListItemRadio
+        android:id="@+id/radio_list_item"
+        android:paddingLeft="?attr/listItemHorizontalPadding"
+        android:paddingRight="?attr/listItemHorizontalPadding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:listItem_messageAppearance="?attr/textBody"
+        app:listItem_messageColor="@color/design_text_color_black_selector"
+        app:listItem_subtitleAppearance="?attr/textBody"
+        app:listItem_subtitleColor="?attr/gray48"
+        app:listItem_textMessageMarginTop="12dp"
+        app:listItem_toggleByClick="false"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout
+        android:id="@+id/shimmer_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:background="@drawable/constructor_configure_bg_stub"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginStart="52dp"
+            android:layout_marginEnd="104dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>
+</LinearLayout>

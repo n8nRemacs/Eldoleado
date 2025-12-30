@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="14dp"
+    android:layout_marginHorizontal="@dimen/extended_profile_widget_horizontal_margin">
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/extended_profile_empty_search_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/extended_profile_search_empty_title"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/extended_profile_empty_search_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <ImageView
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/extended_profile_empty_search_title_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:srcCompat="@drawable/ic_brand_geo_city"/>
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/search_position_position_skeleton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <android.widget.Space
+        android:layout_width="0dp"
+        android:layout_height="13dp"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.skeleton.TextSkeleton
+            android:layout_gravity="start"
+            android:layout_width="126dp"
+            android:layout_height="wrap_content"
+            style="?attr/textS10"/>
+        <com.avito.android.lib.design.skeleton.TextSkeleton
+            android:layout_gravity="end"
+            android:layout_width="97dp"
+            android:layout_height="wrap_content"
+            style="?attr/textS10"/>
+    </FrameLayout>
+</LinearLayout>

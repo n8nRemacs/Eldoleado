@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textAppearance="?attr/textBody"
+    android:textColor="@color/text_button_default"
+    android:gravity="center_vertical"
+    android:id="@+id/safe_show_teaser_text"
+    android:background="@drawable/bg_show_online_teaser"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/safe_show_teaser_height"
+    android:layout_marginTop="24dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:layout_marginStart="@dimen/content_horizontal_padding"
+    android:layout_marginEnd="@dimen/content_horizontal_padding"
+    app:drawableEndCompat="@drawable/ic_info"/>

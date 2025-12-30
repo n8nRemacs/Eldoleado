@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.advert_core.utils.WrapContentHeightViewPager
+            android:id="@+id/expert_reviews_bottom_sheet_pager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="100dp"/>
+        <com.avito.android.lib.design.page_indicator_re23.PageIndicatorRe23
+            android:layout_gravity="start|bottom"
+            android:id="@+id/expert_reviews_bottom_sheet_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:layout_marginStart="16dp"
+            style="@style/Design.Widget.PageIndicator.Black"/>
+    </FrameLayout>
+</androidx.core.widget.NestedScrollView>

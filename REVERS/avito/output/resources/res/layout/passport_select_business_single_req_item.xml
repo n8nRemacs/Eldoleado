@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/passport_select_business_vrf_single_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/passport_select_business_vrf_single_item_marker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="—"
+        android:layout_marginStart="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/passport_select_business_vrf_single_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="16dp"/>
+</LinearLayout>

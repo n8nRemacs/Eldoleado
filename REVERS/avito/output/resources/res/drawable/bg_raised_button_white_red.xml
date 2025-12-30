@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_red_alpha_24">
+    <item>
+        <selector>
+            <item
+                android:state_enabled="false"
+                android:drawable="@drawable/bg_raised_button_white_red_disabled"/>
+            <item android:drawable="@drawable/bg_raised_button_white_red_normal"/>
+        </selector>
+    </item>
+</ripple>

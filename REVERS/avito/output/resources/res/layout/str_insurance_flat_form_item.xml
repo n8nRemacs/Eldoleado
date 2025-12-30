@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/flat_form_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="?attr/horizontalOffset">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textH5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/str_insurance_address_title"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/flat_number_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        app:componentContainer_title="@string/str_insurance_flat_number">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/flat_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/input"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+</LinearLayout>

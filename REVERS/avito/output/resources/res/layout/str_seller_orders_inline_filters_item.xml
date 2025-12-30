@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.chips.Chips xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/chips"
+    android:paddingTop="6dp"
+    android:paddingBottom="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    app:chips_displayType="singleLineScrollable"
+    app:chips_selectStrategy="single"
+    style="?attr/chipsSmall"/>

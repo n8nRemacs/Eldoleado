@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItemRadio xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_verical_radio_item"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/extended_profile_creation_horizontal_margin"
+    app:listItem_iconAlignment="firstLineCenter"
+    app:listItem_iconColor="?attr/warmGray28"
+    app:listItem_subtitleAppearance="?attr/textM20"
+    app:listItem_subtitleColor="@color/vertical_subtitle_color"
+    app:listItem_titleAppearance="?attr/textM20"
+    app:listItem_titleColor="@color/vertical_title_color"/>

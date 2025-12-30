@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/seller_calendar_parameters_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:gravity="center_vertical"
+        android:id="@+id/header"
+        android:paddingTop="@dimen/str_calendar_dialog_top_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:gravity="center"
+            android:id="@+id/close_button"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_back_24"
+            android:layout_marginStart="12dp"/>
+        <TextView
+            android:textAppearance="?attr/textHeadingSmall"
+            android:textColor="?attr/black"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:id="@+id/title_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:singleLine="true"
+            app:fontFamily="?attr/fontHeavy"/>
+    </FrameLayout>
+    <include layout="@layout/str_calendar_parameters_fragment_content"/>
+</LinearLayout>

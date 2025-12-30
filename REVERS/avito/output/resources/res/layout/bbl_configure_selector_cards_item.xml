@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.selector_card.SelectorCardGroup xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bbl_configure_selector_card_group"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="150dp"
+    app:selectorCardGroup_childSpacing="10dp"
+    app:selectorCardGroup_content="@layout/bbl_configure_selector_card_content"
+    app:selectorCardGroup_gridSpanCount="2"
+    app:selectorCardGroup_gridSpanCountLandscape="3"
+    app:selectorCardGroup_horizontalPadding="10dp"
+    app:selectorCardGroup_keepLastSelected="true"
+    app:selectorCardGroup_orientation="grid"/>

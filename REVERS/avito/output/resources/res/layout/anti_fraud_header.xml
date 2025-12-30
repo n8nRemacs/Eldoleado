@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_gravity="end|top"
+        android:id="@+id/anti_fraud_header_close"
+        android:background="@drawable/design_icon_close_ripple"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:contentDescription="@null"
+        android:layout_marginEnd="@dimen/anti_fraud_bottom_sheet_horizontal_close_button_offset"
+        android:backgroundTint="?attr/gray28"/>
+    <TextView
+        android:textAppearance="?attr/textHeadingLarge"
+        android:textColor="?attr/bottomSheet_titleTextColor"
+        android:layout_gravity="top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/advert_core_anti_fraud_dialog_title"
+        android:translationY="?attr/bottomSheet_visualCompensation"
+        android:layout_marginStart="@dimen/anti_fraud_bottom_sheet_horizontal_offset"
+        android:layout_marginEnd="@dimen/anti_fraud_bottom_sheet_horizontal_title_offset_from_side_close_button"/>
+</FrameLayout>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="?attr/warmGray4"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/badge_icon"
+        android:layout_width="134dp"
+        android:layout_height="134dp"
+        android:layout_margin="24dp"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="?attr/white"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textH30"
+            android:id="@+id/badge_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:id="@+id/badge_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/done_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            style="?attr/buttonSecondaryMedium"/>
+    </LinearLayout>
+</LinearLayout>

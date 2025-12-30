@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@drawable/_ic_payment_card__0_res_0x7f08006c"
+        android:pathData="M3.2819,4L20.7181,4C21.1638,4 21.3255,4.0464 21.4884,4.1336C21.6514,4.2207 21.7793,4.3486 21.8664,4.5116C21.9536,4.6745 22,4.8362 22,5.2819L22,18.7181C22,19.1638 21.9536,19.3255 21.8664,19.4884C21.7793,19.6514 21.6514,19.7793 21.4884,19.8664C21.3255,19.9536 21.1638,20 20.7181,20L3.2819,20C2.8362,20 2.6745,19.9536 2.5116,19.8664C2.3486,19.7793 2.2207,19.6514 2.1336,19.4884C2.0464,19.3255 2,19.1638 2,18.7181L2,5.2819C2,4.8362 2.0464,4.6745 2.1336,4.5116C2.2207,4.3486 2.3486,4.2207 2.5116,4.1336C2.6745,4.0464 2.8362,4 3.2819,4Z"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1"
+        android:fillType="evenOdd"/>
+    <path
+        android:fillColor="#004e87"
+        android:pathData="M2,8h20v3h-20z"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1"
+        android:strokeAlpha="0.4"
+        android:fillAlpha="0.4"
+        android:fillType="evenOdd"/>
+</vector>

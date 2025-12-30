@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatCheckedTextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:textSize="16sp"
+    android:textColor="@color/control_with_check_mark_text_states"
+    android:gravity="center"
+    android:id="@+id/variant_name"
+    android:background="@drawable/bg_btn_flat"
+    android:paddingLeft="72dp"
+    android:paddingTop="@dimen/card_padding"
+    android:paddingRight="16dp"
+    android:paddingBottom="@dimen/card_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp"
+    android:drawablePadding="24dp"
+    app:fontFamily="?attr/fontRegular"/>

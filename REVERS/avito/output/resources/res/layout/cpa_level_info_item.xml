@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpa_level_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textH3"
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textAppearance="?attr/textM1"
+            android:id="@+id/description"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="13dp"/>
+        <com.avito.android.lib.design.button.Button
+            android:textAppearance="?attr/textM1"
+            android:textColor="?attr/black"
+            android:id="@+id/button"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="23dp"
+            app:button_backgroundColor="?attr/beige50"
+            style="?attr/buttonSecondaryMedium"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.spinner.Spinner
+        android:layout_gravity="center"
+        android:id="@+id/progress_bar"
+        android:visibility="gone"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        style="?attr/spinnerDarkLarge"/>
+</FrameLayout>

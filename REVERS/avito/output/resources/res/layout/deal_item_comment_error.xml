@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="20dp">
+    <TextView
+        android:textAppearance="?attr/textH20"
+        android:gravity="center"
+        android:paddingBottom="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/loading_comment_error"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/error_message_comfortable_deal"/>
+    <com.avito.android.lib.design.button.Button
+        android:layout_gravity="center"
+        android:id="@+id/retry_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/error_update"
+        style="?attr/buttonSecondaryMedium"/>
+</LinearLayout>

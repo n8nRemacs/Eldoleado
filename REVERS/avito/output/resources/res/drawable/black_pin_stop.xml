@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="@drawable/_black_pin_stop__0_res_0x7f080015">
+    <target
+        android:name="path_5"
+        android:animation="@drawable/_black_pin_stop__1_res_0x7f080016"/>
+    <target
+        android:name="path_6"
+        android:animation="@drawable/_black_pin_stop__2_res_0x7f080017"/>
+    <target
+        android:name="path_7"
+        android:animation="@drawable/_black_pin_stop__3_res_0x7f080018"/>
+    <target
+        android:name="path_8"
+        android:animation="@drawable/_black_pin_stop__4_res_0x7f080019"/>
+</animated-vector>

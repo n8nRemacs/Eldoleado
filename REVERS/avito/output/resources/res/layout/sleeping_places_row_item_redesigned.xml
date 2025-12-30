@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/bed_type_row_container_redesigned"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.select.BaseSelect
+        android:id="@+id/select_redesigned"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/sleeping_places_select_hint_redesigned"
+        android:layout_weight="1"
+        style="?attr/baseSelectDefaultL"/>
+    <com.avito.android.lib.design.stepper.Stepper
+        android:id="@+id/amount_redesigned"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp"
+        app:stepper_allowOverrideConstraints="false"
+        app:stepper_minValue="0"
+        style="?attr/stepperLarge"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/delete_redesigned"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?attr/ic_deleteOutline16"
+        android:layout_marginStart="6dp"
+        style="?attr/buttonSecondaryLarge"/>
+</LinearLayout>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/legacy_gray_4"/>
+    <corners android:radius="@dimen/advert_details_fake_pic_radius"/>
+</shape>

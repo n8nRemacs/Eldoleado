@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/progress_indicator"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.spinner.overlay.SpinnerOverlay
+        android:layout_gravity="center"
+        android:id="@+id/progress_bar"
+        android:background="?attr/bottomSheet_backgroundColor"
+        android:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingVertical="72dp"
+        app:spinnerStyle="?attr/spinnerDarkLarge"/>
+</FrameLayout>

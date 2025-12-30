@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/vas_union_v2_bundle_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/vas_union_v2_bundle_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:layout_marginHorizontal="6dp"/>
+    <com.avito.android.lib.design.selector_card.SelectorCardGroup
+        android:id="@+id/vas_union_v2_bundle_selector_group"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:selectorCardGroup_backgroundColor="?attr/warmGray4"
+        app:selectorCardGroup_childSpacing="12dp"
+        app:selectorCardGroup_content="@layout/vas_union_v2_bundle_content"
+        app:selectorCardGroup_indicatorType="none"
+        app:selectorCardGroup_keepLastSelected="true"
+        app:selectorCardGroup_orientation="vertical"
+        app:selectorCardGroup_showBorder="false"/>
+</LinearLayout>

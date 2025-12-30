@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:layout_behavior="">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/day_input"
+        android:saveEnabled="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/interview_invitation_date_hint"
+        android:singleLine="true"
+        android:layout_toStartOf="@+id/middle_divider"
+        style="?attr/baseSelect"/>
+    <Space
+        android:id="@+id/middle_divider"
+        android:layout_width="8dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/time_input"
+        android:saveEnabled="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/interview_invitation_time_hint"
+        android:singleLine="true"
+        android:layout_toEndOf="@+id/middle_divider"
+        style="?attr/baseSelect"/>
+</RelativeLayout>

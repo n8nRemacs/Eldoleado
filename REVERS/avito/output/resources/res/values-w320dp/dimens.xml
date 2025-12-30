@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="messenger_message_min_width">212dp</dimen>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/group_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/filter_item_min_height"
+    android:paddingHorizontal="@dimen/select_item_horizontal_margin">
+    <com.avito.android.lib.design.toggle.Checkbox
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:layout_gravity="center_vertical"
+        android:id="@+id/group_checkbox"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:paddingStart="16dp"
+        style="?attr/toggleCheckboxDefaultMedium"/>
+</FrameLayout>

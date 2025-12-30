@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/advert_details_bottom_sheet_header"
+    android:paddingLeft="4dp"
+    android:paddingRight="4dp"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/advert_details_feature_teaser_dialog_header_height">
+    <FrameLayout
+        android:id="@+id/advert_details_features_dialog_header_background"
+        android:background="?attr/white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="1">
+        <TextView
+            android:textAppearance="?attr/bottomSheet_titleTextAppearance"
+            android:textColor="?attr/bottomSheet_titleTextColor"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:id="@+id/advert_details_features_dialog_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:translationY="?attr/bottomSheet_visualCompensation"
+            android:layout_marginStart="?attr/bottomSheet_titleMarginLeft"
+            android:layout_marginEnd="?attr/bottomSheet_titleMarginRight"/>
+    </FrameLayout>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="@+id/advert_details_features_dialog_close_button"
+        android:background="@drawable/ic_advert_details_feature_dialog_close"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="14dp"/>
+    <View
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/advert_details_features_dialog__thumb"
+        android:background="@drawable/design_bottom_sheet_thumb"
+        android:layout_width="?attr/bottomSheet_thumbWidth"
+        android:layout_height="?attr/bottomSheet_thumbHeight"/>
+</FrameLayout>

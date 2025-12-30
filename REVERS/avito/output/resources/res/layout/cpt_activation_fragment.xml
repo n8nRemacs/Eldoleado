@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/cpt_activation_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        layout="@layout/cpt_functional_toolbar_view"/>
+    <FrameLayout
+        android:id="@+id/cpt_activation_content_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cpt_toolbar">
+        <include layout="@layout/cpt_activation_skeleton_item"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/cpt_activation_recycler_view"
+            android:clipChildren="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </FrameLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/cpt_activation_button_container"
+        android:background="@drawable/cpt_activation_bg_white_gradient"
+        android:paddingTop="16dp"
+        android:paddingBottom="20dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/cpt_activation_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/buttonPrimaryLarge"/>
+        <TextView
+            android:textAppearance="?attr/textS10"
+            android:textColorHighlight="?attr/transparentWhite"
+            android:gravity="center_horizontal"
+            android:id="@+id/cpt_activation_text_agreement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

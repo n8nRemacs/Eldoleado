@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/sb_geo_ref_root"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textH25"
+        android:id="@+id/sb_geo_ref_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/sb_geo_ref_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"/>
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textM10"
+        android:textColor="?attr/blue600"
+        android:id="@+id/sb_geo_ref_map_link"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

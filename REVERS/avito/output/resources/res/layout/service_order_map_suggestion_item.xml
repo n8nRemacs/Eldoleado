@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:id="@+id/service_order_suggest_item"
+    android:background="@drawable/bg_service_order_map_suggest_item"
+    android:layout_width="match_parent"
+    android:layout_height="62dp"
+    android:paddingHorizontal="@dimen/publish_container_horizontal_padding_redesign">
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:ellipsize="end"
+        android:id="@+id/text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        app:layout_constraintBottom_toTopOf="@+id/subtext_view"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:textColor="?attr/gray54"
+        android:ellipsize="end"
+        android:id="@+id/subtext_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_view"/>
+    <View
+        android:background="?attr/gray20"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

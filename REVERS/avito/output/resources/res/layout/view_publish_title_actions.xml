@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/PublishParentTheme"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:id="@+id/publish_title_actions_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="20dp">
+        <ImageView
+            android:id="@+id/publish_title_action_help"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            style="?attr/publishTitleHelp"/>
+        <com.avito.android.lib.design.badge.Badge
+            android:id="@+id/publish_title_action_dot"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            style="?attr/publishTitleDot"/>
+        <com.avito.android.lib.design.badge.Badge
+            android:id="@+id/publish_title_action_text_badge"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            style="?attr/badgeTextRedS"/>
+    </LinearLayout>
+</FrameLayout>

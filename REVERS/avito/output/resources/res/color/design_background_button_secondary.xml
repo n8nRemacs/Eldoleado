@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_enabled="false"
+        android:color="@color/common_old_background"/>
+    <item
+        android:state_pressed="true"
+        android:color="@color/common_blue_100"/>
+    <item
+        android:color="@color/common_blue_200"
+        app:state_ripple="true"/>
+    <item android:color="@color/common_blue_50"/>
+</selector>

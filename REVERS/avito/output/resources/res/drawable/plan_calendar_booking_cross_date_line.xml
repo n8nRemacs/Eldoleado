@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:left="@dimen/plan_calendar_cross_date_line_margin"
+        android:top="@dimen/plan_calendar_cross_date_line_margin"
+        android:right="@dimen/plan_calendar_cross_date_line_margin"
+        android:bottom="@dimen/plan_calendar_cross_date_line_margin">
+        <rotate
+            android:fromDegrees="135"
+            android:toDegrees="135"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <shape
+                android:shape="line"
+                android:top="1dp">
+                <stroke
+                    android:width="1dp"
+                    android:color="@color/plan_calendar_past_text_color"/>
+                <padding
+                    android:left="5dp"
+                    android:top="5dp"
+                    android:right="5dp"
+                    android:bottom="5dp"/>
+            </shape>
+        </rotate>
+    </item>
+</layer-list>

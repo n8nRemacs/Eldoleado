@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:color="?attr/cbr_colorOnInit"
+        app:cbr_stateInit="true"/>
+    <item
+        android:color="?attr/cbr_colorOnPending"
+        app:cbr_statePending="true"/>
+    <item
+        android:color="?attr/cbr_colorOnSuccess"
+        app:cbr_stateApproved="true"/>
+    <item
+        android:color="?attr/cbr_colorOnRejected"
+        app:cbr_stateRejected="true"/>
+    <item
+        android:color="?attr/cbr_colorOnProcessing"
+        app:cbr_stateProcessing="true"/>
+    <item android:color="?attr/cbr_colorOnInit"/>
+</selector>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:paddingTop="?attr/publish_componentContainer_paddingTop"
+    android:paddingBottom="@dimen/publish_container_vertical_padding"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="?attr/publish_horizontalPadding"
+    android:paddingEnd="?attr/publish_horizontalPadding"
+    app:componentContainer_contentPaddingBottom="@dimen/publish_container_content_bottom_padding"
+    app:componentContainer_contentPaddingTop="?attr/publish_videoContainer_topContentPadding"
+    style="?attr/publish_videoComponentStyle">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textNoSuggestions"
+        app:layout_autoReset="never"
+        style="?attr/input"/>
+    <com.avito.android.publish.items.video.video_preview.VideoPreview
+        android:id="@+id/video_preview"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        style="?attr/publish_videoPreviewStyle"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

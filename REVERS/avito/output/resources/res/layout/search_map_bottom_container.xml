@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/serp_bottom_container"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.header_button.HeaderButton
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:layout_gravity="left"
+        android:id="@+id/switch_serp_map_button"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/search_map_controls_margin"
+        android:text="@string/switch_map_to_serp_button_title"
+        app:button_cornerRadius="@dimen/switch_serp_map_button_corner_radius"
+        app:headerButton_iconOnlyPaddingRight="4dp"
+        app:headerButton_isIconPositionEnd="false"
+        style="?attr/buttonOverlayPrimaryMedium"/>
+    <com.avito.android.lib.design.floating_container.FloatingContainer
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/serp_floating_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:floatingContainer_twoButtonContainer="@layout/search_map_footer"
+        style="?attr/floatingContainerIncomplete"/>
+</LinearLayout>

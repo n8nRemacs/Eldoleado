@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/car_market_price_container"
+    android:background="@drawable/bg_car_market_price_chart_range"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+    <TextView
+        android:id="@+id/range_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/textS1"/>
+    <TextView
+        android:id="@+id/range_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        style="?attr/textH5"/>
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/video_upload_progress_container"
+    android:background="@drawable/video_upload_progress_bar_bg"
+    android:layout_width="40dp"
+    android:layout_height="40dp">
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:layout_gravity="center"
+        android:id="@+id/progress_bar"
+        android:visibility="visible"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:max="100"
+        android:indeterminate="false"
+        app:indicatorColor="@color/video_upload_progress_bar"
+        app:indicatorDirectionCircular="clockwise"
+        app:indicatorSize="24dp"
+        app:trackColor="?attr/whiteAlpha24"
+        app:trackThickness="2dp"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/stop_uploading_button"
+        android:visibility="visible"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/ic_close_16_white"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/retry_icon"
+        android:visibility="gone"
+        android:layout_width="18dp"
+        android:layout_height="21dp"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/ic_retry_21_white"/>
+</FrameLayout>

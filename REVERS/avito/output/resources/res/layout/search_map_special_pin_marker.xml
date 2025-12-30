@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.map_core.view.marker.MarkerSpecialPinViewImpl xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="60dp"
+    android:layout_height="66dp"
+    android:minWidth="12dp"
+    android:minHeight="12dp"/>

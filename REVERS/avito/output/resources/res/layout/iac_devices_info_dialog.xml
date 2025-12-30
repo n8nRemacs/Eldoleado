@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/iac_devices_info"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:id="@+id/iac_devices_info_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/iac_devices_info_dialog_desc"
+        style="?attr/textBody"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/devices_info_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/iac_devices_info_dialog_ok"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

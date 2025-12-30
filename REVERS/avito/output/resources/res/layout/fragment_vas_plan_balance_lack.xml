@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/vas_plan_balance_lack_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/vas_plan_balance_lack_loading_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"/>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/vas_plan_balance_lack_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textM1"
+            android:id="@+id/vas_plan_balance_lack_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="8dp"/>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

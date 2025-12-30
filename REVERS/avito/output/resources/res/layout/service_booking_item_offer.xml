@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textXs10"
+    android:textColor="?attr/gray54"
+    android:textColorLink="?attr/gray54"
+    android:id="@+id/sb_offer_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="12dp"
+    android:paddingHorizontal="16dp"/>

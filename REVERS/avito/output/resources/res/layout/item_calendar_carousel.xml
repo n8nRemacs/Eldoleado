@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAppearance="?attr/textH5"
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+        <ImageView
+            android:id="@+id/tooltip"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="?attr/ic_help24"
+            android:scaleType="center"
+            app:tint="?attr/gray24"/>
+    </LinearLayout>
+    <com.avito.android.lib.design.select.BaseSelect
+        android:id="@+id/carousel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        style="?attr/baseSelectDefaultM"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/gray54"
+        android:id="@+id/hint"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="6dp"/>
+</LinearLayout>

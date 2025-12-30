@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="true">
+        <ripple android:color="@color/common_green_600">
+            <item android:id="@android:id/mask">
+                <shape>
+                    <corners android:radius="@dimen/design_button_corner_radius"/>
+                    <solid android:color="@color/common_black"/>
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/common_green"/>
+                    <corners android:radius="@dimen/design_button_corner_radius"/>
+                </shape>
+            </item>
+        </ripple>
+    </item>
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/common_green_200"/>
+            <corners android:radius="@dimen/design_button_corner_radius"/>
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/root_input_tracking_number"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="16dp">
+    <com.avito.android.lib.design.component_container.ComponentContainer
+        android:id="@+id/container_tracking_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:componentContainer_message="@string/messenger_input_tracking_number_pass_to_buyer"
+        app:componentContainer_messageColor="@color/txt_component_container_message_tracking_number">
+        <com.avito.android.lib.design.input.Input
+            android:id="@+id/input_tracking_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/messenger_input_tracking_number_hint"
+            android:maxLines="1"
+            android:maxLength="32"
+            android:imeOptions="actionDone"
+            style="?attr/input"/>
+    </com.avito.android.lib.design.component_container.ComponentContainer>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/button_send_number"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="35dp"
+        android:text="@string/messenger_input_tracking_number_send_to_buyer"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

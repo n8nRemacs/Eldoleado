@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/seller_item_gallery_container"
+    android:layout_width="0dp"
+    android:layout_height="0dp">
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/seller_item_gallery_image"
+        android:background="?attr/warmGray4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="@+id/seller_item_gallery_error_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="?attr/ic_logo24"
+        android:contentDescription="@null"
+        app:tint="?attr/white"/>
+</FrameLayout>

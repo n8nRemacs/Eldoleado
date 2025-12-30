@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/portfolio_main_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginVertical="6dp"
+        app:roundedCornerRadius="12dp"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="141dp"
+        android:layout_height="78dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginVertical="6dp">
+        <TextView
+            android:id="@+id/project_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="60dp"
+            style="?attr/textM20"/>
+        <TextView
+            android:textColor="?attr/gray54"
+            android:id="@+id/project_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            style="?attr/textS20"/>
+    </LinearLayout>
+    <TextView
+        android:gravity="end"
+        android:id="@+id/project_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textAlignment="textEnd"
+        android:layout_marginStart="12dp"
+        android:layout_marginVertical="6dp"
+        style="?attr/textH60"/>
+</LinearLayout>

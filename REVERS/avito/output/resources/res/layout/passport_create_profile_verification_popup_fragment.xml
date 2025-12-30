@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/passport_add_profile_verification_popup_root"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        android:id="@+id/toolbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        layout="@layout/appbar_look_and_feel"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/verification_popup_continue_button"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_container">
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/verification_popup_text_container"
+            android:paddingBottom="36dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/extended_profile_creation_horizontal_margin"/>
+    </ScrollView>
+    <View
+        android:background="?attr/white"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/verification_popup_continue_button"/>
+    <com.avito.android.lib.design.button.Button
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:id="@+id/verification_popup_continue_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/passport_add_profile_select_vertical_continue"
+        android:layout_marginHorizontal="@dimen/extended_profile_creation_horizontal_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        style="?attr/buttonPrimaryLarge"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

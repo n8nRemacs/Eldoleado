@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingTop="@dimen/statistics_item_top_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/statistics_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:id="@+id/tv_contacts_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:id="@+id/tv_contacts_title_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/statistics_horizontal_padding"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/ll_contacts_bar"
+        android:paddingTop="@dimen/statistics_item_top_padding"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_contacts_title"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/ll_contacts"
+        android:paddingTop="@dimen/statistics_item_top_padding"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_contacts_bar"/>
+    <Space
+        android:id="@+id/space_contacts"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_contacts"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

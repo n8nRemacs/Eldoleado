@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="@drawable/bg_stub_radius_20"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:id="@+id/plaque_icon_container"
+        android:background="@drawable/bg_stub_radius_18"
+        android:layout_width="48dp"
+        android:layout_height="48dp">
+        <TextView
+            android:textAppearance="?attr/textL20"
+            android:layout_gravity="center"
+            android:id="@+id/plaque_icon"
+            android:paddingBottom="2dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:includeFontPadding="false"/>
+    </FrameLayout>
+    <TextView
+        android:id="@+id/plaque_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"/>
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:id="@+id/chevron"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="4dp"
+        app:srcCompat="?attr/ic_arrowRight16"
+        app:tint="?attr/black"/>
+</LinearLayout>

@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Design.Widget.ToastBar.Default" parent="@style/Design.Widget.ToastBar">
+        <item name="toastBar_backgroundColor">?attr/black</item>
+    </style>
+    <style name="Legacy.Banner.Beige.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Beige.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_beige_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_beige_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_beige_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Beige.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_beige_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Beige.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Beige.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Beige.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Beige.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_beige_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_beige_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_beige_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Beige.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_beige_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Beige.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Beige.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Blue.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Blue.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_blue_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_blue_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_blue_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Blue.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_blue_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Blue.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Blue.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Blue.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Blue.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_blue_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_blue_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_blue_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Blue.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_blue_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Blue.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Blue.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Green.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Green.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_green_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_green_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_green_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Green.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_green_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Green.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Green.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Green.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Green.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_green_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_green_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_green_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Green.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_green_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Green.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Green.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Orange.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Orange.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_orange_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_orange_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_orange_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Orange.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_orange_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Orange.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Orange.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Orange.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Orange.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_orange_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_orange_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_orange_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Orange.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_orange_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Orange.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Orange.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Red.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Red.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_red_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_red_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_red_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Red.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_red_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Red.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Red.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Red.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Red.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_red_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_red_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_red_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Red.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_red_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Red.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Red.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Violet.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Violet.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_violet_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_violet_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_violet_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Violet.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_violet_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Violet.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Violet.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Violet.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/Legacy.Banner.Violet.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/legacy_banner_violet_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderColor">@color/legacy_banner_violet_segmentedcontrol_bordercolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/legacy_violet_400</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/legacy_banner_violet_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/legacy_banner_violet_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Violet.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Violet.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_violet_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_violet_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_violet_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Violet.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_violet_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Violet.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Violet.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_warmgray_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_warmgray_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_warmgray_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_warmgray_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Warmgray.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/Legacy.Banner.Warmgray.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/legacy_banner_warmgray_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderColor">@color/legacy_banner_warmgray_segmentedcontrol_bordercolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/legacy_warm_gray_48</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/legacy_banner_warmgray_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/legacy_banner_warmgray_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.Warmgray.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/Legacy.Banner.Warmgray.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/legacy_banner_warmgray_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/legacy_banner_warmgray_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/legacy_banner_warmgray_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/Legacy.Banner.Warmgray.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/legacy_banner_warmgray_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/Legacy.Banner.Warmgray.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/Legacy.Banner.Warmgray.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="Legacy.Banner.White" parent="@style/Design.Widget.Banner">
+        <item name="banner_backgroundColor">@color/legacy_banner_background_white</item>
+        <item name="banner_bottomShadow">@style/Legacy.Banner.White.BottomShadow</item>
+        <item name="banner_closeAndContentSpacing">4dp</item>
+        <item name="banner_closeMarginRight">10dp</item>
+        <item name="banner_closeMarginTop">10dp</item>
+        <item name="banner_closeStyle">@style/Legacy.Banner.White.CloseButtonStyle</item>
+        <item name="banner_contentPaddingBottom">32dp</item>
+        <item name="banner_contentPaddingLeft">24dp</item>
+        <item name="banner_contentPaddingRight">24dp</item>
+        <item name="banner_contentPaddingTop">20dp</item>
+        <item name="banner_cornerRadius">20dp</item>
+        <item name="banner_shadow">@style/Legacy.Banner.White.UpperShadow</item>
+        <item name="banner_shadowEnabled">false</item>
+        <item name="banner_theme">@style/Legacy.Banner.White.BannerTheme</item>
+        <item name="banner_titleStyle">@style/Legacy.Banner.White.TextStyle</item>
+    </style>
+    <style name="Legacy.Banner.White.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/Legacy.Banner.White.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/legacy_banner_white_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/legacy_beige_400</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/legacy_banner_white_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/legacy_banner_white_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="Legacy.ToastBar.Default" parent="@style/Design.Widget.ToastBar">
+        <item name="toastBar_backgroundColor">@color/legacy_black</item>
+        <item name="toastBar_buttonStyle">@style/Legacy.ToastBar.Default.ButtonStyle</item>
+        <item name="toastBar_cornerRadius">10dp</item>
+        <item name="toastBar_paddingBottom">16dp</item>
+        <item name="toastBar_paddingLeft">16dp</item>
+        <item name="toastBar_paddingRight">16dp</item>
+        <item name="toastBar_paddingTop">16dp</item>
+        <item name="toastBar_rightItemToTextHorizontalPadding">10dp</item>
+        <item name="toastBar_rightItemToTextVerticalPadding">10dp</item>
+        <item name="toastBar_textAppearance">@style/Legacy.ToastBar.Default.TextStyle</item>
+        <item name="toastBar_textColor">@color/legacy_white</item>
+        <item name="toastBar_textPaddingBottom">2dp</item>
+        <item name="toastBar_textVerticalOffset">-2dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Beige.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Beige.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_beige_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_beige_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_beige_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Beige.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_beige_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Beige.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Beige.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Beige.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Beige.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_beige_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_beige_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_beige_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Beige.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_beige_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Beige.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Beige.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Blue.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Blue.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_blue_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_blue_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_blue_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Blue.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_blue_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Blue.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Blue.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Blue.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Blue.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_blue_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_blue_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_blue_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Blue.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_blue_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Blue.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Blue.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Green.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Green.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_green_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_green_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_green_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Green.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_green_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Green.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Green.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Green.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Green.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_green_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_green_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_green_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Green.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_green_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Green.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Green.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Orange.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Orange.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_orange_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_orange_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_orange_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Orange.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_orange_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Orange.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Orange.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Orange.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Orange.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_orange_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_orange_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_orange_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Orange.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_orange_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Orange.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Orange.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Red.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Red.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_red_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_red_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_red_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Red.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_red_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Red.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Red.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Red.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Red.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_red_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_red_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_red_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Red.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_red_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Red.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Red.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Violet.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Violet.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_violet_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_violet_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_violet_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Violet.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_violet_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Violet.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Violet.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Violet.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Violet.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/lookandfeel_banner_violet_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderColor">@color/lookandfeel_banner_violet_segmentedcontrol_bordercolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/look_and_feel_violet_400</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/lookandfeel_banner_violet_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/lookandfeel_banner_violet_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Violet.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Violet.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_violet_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_violet_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_violet_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Violet.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_violet_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Violet.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Violet.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_warmgray_buttonprimarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_warmgray_buttonprimarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_warmgray_buttonprimarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_warmgray_buttonprimarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Warmgray.BannerTheme.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Warmgray.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Warmgray.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/lookandfeel_banner_warmgray_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderColor">@color/lookandfeel_banner_warmgray_segmentedcontrol_bordercolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/look_and_feel_warm_gray_48</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/lookandfeel_banner_warmgray_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/lookandfeel_banner_warmgray_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Warmgray.ButtonPrimaryLarge" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryLarge.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_warmgray_style_button_primarylarge_titlecolor</item>
+        <item name="android:maxHeight">44dp</item>
+        <item name="android:minWidth">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_warmgray_style_button_primarylarge_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_warmgray_style_button_primarylarge_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryLarge.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_warmgray_style_button_primarylarge_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryLarge.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryLarge.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.Warmgray.ButtonPrimaryMedium" parent="@style/Design.Widget.Button">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryMedium.TitleStyle</item>
+        <item name="android:textColor">@color/lookandfeel_banner_warmgray_style_button_primarymedium_titlecolor</item>
+        <item name="android:maxHeight">36dp</item>
+        <item name="android:minWidth">36dp</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="button_backgroundColor">@color/lookandfeel_banner_warmgray_style_button_primarymedium_backgroundcolor</item>
+        <item name="button_backgroundRipple">@color/lookandfeel_banner_warmgray_style_button_primarymedium_backgroundcolor_ripple</item>
+        <item name="button_bottomShadow">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryMedium.BottomShadow</item>
+        <item name="button_cornerRadius">6dp</item>
+        <item name="button_iconColor">@color/lookandfeel_banner_warmgray_style_button_primarymedium_iconcolor</item>
+        <item name="button_shadow">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryMedium.UpperShadow</item>
+        <item name="button_shadowEnabled">false</item>
+        <item name="button_spinnerStyle">@style/LookAndFeel.Banner.Warmgray.ButtonPrimaryMedium.Spinner</item>
+        <item name="button_textPaddingLeft">16dp</item>
+        <item name="button_textPaddingRight">16dp</item>
+        <item name="button_textVerticalOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.Banner.White" parent="@style/Design.Widget.Banner">
+        <item name="banner_backgroundColor">@color/look_and_feel_banner_background_white</item>
+        <item name="banner_bottomShadow">@style/LookAndFeel.Banner.White.BottomShadow</item>
+        <item name="banner_closeAndContentSpacing">4dp</item>
+        <item name="banner_closeMarginRight">10dp</item>
+        <item name="banner_closeMarginTop">10dp</item>
+        <item name="banner_closeStyle">@style/LookAndFeel.Banner.White.CloseButtonStyle</item>
+        <item name="banner_contentPaddingBottom">32dp</item>
+        <item name="banner_contentPaddingLeft">24dp</item>
+        <item name="banner_contentPaddingRight">24dp</item>
+        <item name="banner_contentPaddingTop">20dp</item>
+        <item name="banner_cornerRadius">20dp</item>
+        <item name="banner_shadow">@style/LookAndFeel.Banner.White.UpperShadow</item>
+        <item name="banner_shadowEnabled">false</item>
+        <item name="banner_theme">@style/LookAndFeel.Banner.White.BannerTheme</item>
+        <item name="banner_titleStyle">@style/LookAndFeel.Banner.White.TextStyle</item>
+    </style>
+    <style name="LookAndFeel.Banner.White.BannerTheme.SegmentedControlStyle" parent="@style/Design.Widget.SegmentedControl">
+        <item name="android:textAppearance">@style/LookAndFeel.Banner.White.BannerTheme.SegmentedControlStyle.SegmentedControlFont</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="segmentedControl_backgroundColor">@color/lookandfeel_banner_white_segmentedcontrol_backgroundcolor</item>
+        <item name="segmentedControl_borderWidth">1dp</item>
+        <item name="segmentedControl_cornerRadius">6dp</item>
+        <item name="segmentedControl_highlightAnimationDuration">300</item>
+        <item name="segmentedControl_segmentFillType">equalInsets</item>
+        <item name="segmentedControl_segmentHorizontalInsetLeft">12dp</item>
+        <item name="segmentedControl_segmentHorizontalInsetRight">12dp</item>
+        <item name="segmentedControl_selectionBackgroundColor">@color/look_and_feel_beige_400</item>
+        <item name="segmentedControl_selectionCornerRadius">2dp</item>
+        <item name="segmentedControl_selectionSlidingAnimationDuration">300</item>
+        <item name="segmentedControl_separatorColor">@color/lookandfeel_banner_white_segmentedcontrol_separatorcolor</item>
+        <item name="segmentedControl_separatorHeight">24dp</item>
+        <item name="segmentedControl_separatorWidth">1dp</item>
+        <item name="segmentedControl_textColor">@color/lookandfeel_banner_white_segmentedcontrol_textcolor</item>
+        <item name="segmentedControl_verticalTextOffset">1dp</item>
+    </style>
+    <style name="LookAndFeel.ToastBar.Default" parent="@style/Design.Widget.ToastBar">
+        <item name="toastBar_backgroundColor">@color/look_and_feel_black</item>
+        <item name="toastBar_buttonStyle">@style/LookAndFeel.ToastBar.Default.ButtonStyle</item>
+        <item name="toastBar_cornerRadius">12dp</item>
+        <item name="toastBar_leftItemHorizontalOffset">0dp</item>
+        <item name="toastBar_leftItemToTextPadding">0dp</item>
+        <item name="toastBar_paddingBottom">16dp</item>
+        <item name="toastBar_paddingLeft">16dp</item>
+        <item name="toastBar_paddingRight">16dp</item>
+        <item name="toastBar_paddingTop">16dp</item>
+        <item name="toastBar_rightItemHorizontalOffset">0dp</item>
+        <item name="toastBar_rightItemToTextHorizontalPadding">12dp</item>
+        <item name="toastBar_rightItemToTextVerticalPadding">12dp</item>
+        <item name="toastBar_textAppearance">@style/LookAndFeel.ToastBar.Default.TextStyle</item>
+        <item name="toastBar_textColor">@color/look_and_feel_white</item>
+        <item name="toastBar_textPaddingBottom">2dp</item>
+        <item name="toastBar_textVerticalOffset">-2dp</item>
+    </style>
+    <style name="LookAndFeel.ToastBar.Error" parent="@style/Design.Widget.ToastBar">
+        <item name="toastBar_backgroundColor">@color/look_and_feel_red</item>
+        <item name="toastBar_buttonStyle">@style/LookAndFeel.ToastBar.Error.ButtonStyle</item>
+        <item name="toastBar_cornerRadius">12dp</item>
+        <item name="toastBar_leftItemHorizontalOffset">0dp</item>
+        <item name="toastBar_leftItemToTextPadding">0dp</item>
+        <item name="toastBar_paddingBottom">16dp</item>
+        <item name="toastBar_paddingLeft">16dp</item>
+        <item name="toastBar_paddingRight">16dp</item>
+        <item name="toastBar_paddingTop">16dp</item>
+        <item name="toastBar_rightItemHorizontalOffset">0dp</item>
+        <item name="toastBar_rightItemToTextHorizontalPadding">12dp</item>
+        <item name="toastBar_rightItemToTextVerticalPadding">12dp</item>
+        <item name="toastBar_textAppearance">@style/LookAndFeel.ToastBar.Error.TextStyle</item>
+        <item name="toastBar_textColor">@color/look_and_feel_constant_white</item>
+        <item name="toastBar_textPaddingBottom">2dp</item>
+        <item name="toastBar_textVerticalOffset">-2dp</item>
+    </style>
+    <style name="MapPinShadowLayout" parent="@style/Design.Widget.Avito.ShadowLayout">
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:shadowColor">#4d000000</item>
+        <item name="android:paddingHorizontal">14dp</item>
+        <item name="shadowLayout_shadowBlurRadius">14dp</item>
+        <item name="shadowLayout_shadowColor">#4d000000</item>
+        <item name="shadowLayout_shadowDx">0dp</item>
+        <item name="shadowLayout_shadowDy">0dp</item>
+    </style>
+    <style name="Theme.AppCompat.DayNight" parent="@style/Theme.AppCompat">
+    </style>
+    <style name="Theme.AppCompat.DayNight.DarkActionBar" parent="@style/Theme.AppCompat">
+    </style>
+    <style name="Theme.AppCompat.DayNight.Dialog" parent="@style/Theme.AppCompat.Dialog">
+    </style>
+    <style name="Theme.AppCompat.DayNight.Dialog.Alert" parent="@style/Theme.AppCompat.Dialog.Alert">
+    </style>
+    <style name="Theme.AppCompat.DayNight.Dialog.MinWidth" parent="@style/Theme.AppCompat.Dialog.MinWidth">
+    </style>
+    <style name="Theme.AppCompat.DayNight.DialogWhenLarge" parent="@style/Theme.AppCompat.DialogWhenLarge">
+    </style>
+    <style name="Theme.AppCompat.DayNight.NoActionBar" parent="@style/Theme.AppCompat.NoActionBar">
+    </style>
+    <style name="Theme.Biometry" parent="@style/Base.Theme.Biometry.Dark">
+        <item name="sdkBioAllRecommendationsVisibility">gone</item>
+        <item name="sdkBioBottomSheetCloseButtonStyle">button</item>
+        <item name="sdkBioBulletColor">@color/common_black</item>
+        <item name="sdkBioHorizontalDocumentIntroMainImage">@drawable/img_driver_license</item>
+        <item name="sdkBioIcInfo">@drawable/img_error</item>
+        <item name="sdkBioPassportIntroMainImage">@drawable/img_passport</item>
+        <item name="sdkBioSelfieIntroMainImage">@drawable/img_face</item>
+        <item name="sdkBioTextAppearanceButtonText">@style/Re23m20Text</item>
+        <item name="sdkBioTextAppearanceFooter">@style/Re23s20Text</item>
+        <item name="sdkBioTextAppearanceHeader">@style/Re23h20Text</item>
+        <item name="sdkBioTextAppearanceHints">@style/Re23m10Text</item>
+        <item name="sdkBioTextAppearanceRegularText">@style/Re23m10Text</item>
+        <item name="sdkBioTextAppearanceToolbarTitle">@style/Re23h50Text</item>
+        <item name="sdkBioToolbarStyle">@style/MTSToolbarStyle</item>
+    </style>
+    <style name="Theme.CBRCore" parent="@style/Base.Theme.CBRCore">
+        <item name="android:colorBackground">@color/cbr_color_primary_100</item>
+        <item name="android:textColorPrimary">@color/cbr_color_white_80</item>
+        <item name="android:textColorSecondary">@color/cbr_color_white_60</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="cbr_colorInit">@color/cbr_color_white_5</item>
+        <item name="cbr_colorOnInit">@color/cbr_color_white_40</item>
+        <item name="cbr_colorOnPending">@color/cbr_color_warning_50</item>
+        <item name="cbr_colorOnProcessing">@color/cbr_color_primary_50</item>
+        <item name="cbr_colorOnRejected">@color/cbr_color_critical_50</item>
+        <item name="cbr_colorOnSuccess">@color/cbr_color_success_50</item>
+        <item name="cbr_colorPending">@color/cbr_color_warning_30</item>
+        <item name="cbr_colorProcessing">@color/cbr_color_primary_90</item>
+        <item name="cbr_colorRejected">@color/cbr_color_critical_30</item>
+        <item name="cbr_colorSuccess">@color/cbr_color_success_30</item>
+        <item name="colorControlNormal">@color/cbr_color_neutral_60</item>
+        <item name="colorError">@color/cbr_color_critical_50</item>
+        <item name="colorOnBackground">@color/cbr_color_white_80</item>
+        <item name="colorOnError">@color/cbr_color_critical_50</item>
+        <item name="colorOnPrimary">#ffffff</item>
+        <item name="colorOnSecondary">#ffffff</item>
+        <item name="colorOnSurface">@color/cbr_color_white_40</item>
+        <item name="colorPrimary">@color/cbr_color_primary_60</item>
+        <item name="colorPrimaryVariant">@color/cbr_color_primary_80</item>
+        <item name="colorSecondary">@color/cbr_color_primary_60</item>
+        <item name="colorSecondaryVariant">@color/cbr_color_primary_80</item>
+        <item name="colorSurface">@color/cbr_color_white_5_on_primary</item>
+    </style>
+    <style name="Theme.Material3.DayNight" parent="@style/Theme.Material3.Dark">
+    </style>
+    <style name="Theme.Material3.DayNight.BottomSheetDialog" parent="@style/Theme.Material3.Dark.BottomSheetDialog">
+    </style>
+    <style name="Theme.Material3.DayNight.Dialog" parent="@style/Theme.Material3.Dark.Dialog">
+    </style>
+    <style name="Theme.Material3.DayNight.Dialog.Alert" parent="@style/Theme.Material3.Dark.Dialog.Alert">
+    </style>
+    <style name="Theme.Material3.DayNight.Dialog.MinWidth" parent="@style/Theme.Material3.Dark.Dialog.MinWidth">
+    </style>
+    <style name="Theme.Material3.DayNight.DialogWhenLarge" parent="@style/Theme.Material3.Dark.DialogWhenLarge">
+    </style>
+    <style name="Theme.Material3.DayNight.NoActionBar" parent="@style/Theme.Material3.Dark.NoActionBar">
+    </style>
+    <style name="Theme.Material3.DayNight.SideSheetDialog" parent="@style/Theme.Material3.Dark.SideSheetDialog">
+    </style>
+    <style name="Theme.Material3.DynamicColors.DayNight" parent="@style/Theme.Material3.DynamicColors.Dark">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight" parent="@style/Theme.MaterialComponents">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.BottomSheetDialog" parent="@style/Theme.MaterialComponents.BottomSheetDialog">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Bridge" parent="@style/Theme.MaterialComponents.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.DarkActionBar" parent="@style/Theme.MaterialComponents">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.DarkActionBar.Bridge" parent="@style/Theme.MaterialComponents.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog" parent="@style/Theme.MaterialComponents.Dialog">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Alert" parent="@style/Theme.MaterialComponents.Dialog.Alert">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Alert.Bridge" parent="@style/Theme.MaterialComponents.Dialog.Alert.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.Bridge" parent="@style/Theme.MaterialComponents.Dialog.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.FixedSize" parent="@style/Theme.MaterialComponents.Dialog.FixedSize">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.FixedSize.Bridge" parent="@style/Theme.MaterialComponents.Dialog.FixedSize.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.MinWidth" parent="@style/Theme.MaterialComponents.Dialog.MinWidth">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.Dialog.MinWidth.Bridge" parent="@style/Theme.MaterialComponents.Dialog.MinWidth.Bridge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.DialogWhenLarge" parent="@style/Theme.MaterialComponents.DialogWhenLarge">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.NoActionBar" parent="@style/Theme.MaterialComponents.NoActionBar">
+    </style>
+    <style name="Theme.MaterialComponents.DayNight.NoActionBar.Bridge" parent="@style/Theme.MaterialComponents.NoActionBar.Bridge">
+    </style>
+    <style name="ThemeOverlay.AppCompat.DayNight" parent="@style/ThemeOverlay.AppCompat.Dark">
+    </style>
+    <style name="ThemeOverlay.Material3.DynamicColors.DayNight" parent="@style/ThemeOverlay.Material3.DynamicColors.Dark">
+    </style>
+    <style name="Widget.CBRCore.ModalBottomSheetDialog" parent="@style/Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/cbr_color_primary_100</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.CBRCore.LargeComponent</item>
+    </style>
+    <style name="Widget.MaterialComponents.ActionBar.PrimarySurface" parent="@style/Widget.MaterialComponents.ActionBar.Surface">
+    </style>
+    <style name="Widget.MaterialComponents.AppBarLayout.PrimarySurface" parent="@style/Widget.MaterialComponents.AppBarLayout.Surface">
+    </style>
+    <style name="Widget.MaterialComponents.BottomAppBar.PrimarySurface" parent="@style/Widget.MaterialComponents.BottomAppBar">
+    </style>
+    <style name="Widget.MaterialComponents.BottomNavigationView.PrimarySurface" parent="@style/Widget.MaterialComponents.BottomNavigationView">
+    </style>
+    <style name="Widget.MaterialComponents.NavigationRailView.PrimarySurface" parent="@style/Widget.MaterialComponents.NavigationRailView">
+    </style>
+    <style name="Widget.MaterialComponents.TabLayout.PrimarySurface" parent="@style/Widget.MaterialComponents.TabLayout">
+    </style>
+    <style name="Widget.MaterialComponents.Toolbar.PrimarySurface" parent="@style/Widget.MaterialComponents.Toolbar.Surface">
+    </style>
+    <style name="WidgetFiltersWidgetShadow" parent="">
+        <item name="shadow_shadowBlurRadius">0dp</item>
+        <item name="shadow_shadowDy">0dp</item>
+    </style>
+    <style name="WidgetFiltersWidgetShadowBottom" parent="">
+        <item name="shadow_shadowBlurRadius">0dp</item>
+        <item name="shadow_shadowDy">0dp</item>
+    </style>
+</resources>

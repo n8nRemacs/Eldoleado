@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/passport_merge_accounts_profile_list_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="center"
+        android:id="@+id/passport_merge_accounts_profile_list_item_avatar"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        app:backgroundImage="?attr/gray8"
+        app:placeholderImage="?attr/gray8"
+        app:placeholderImageScaleType="center"
+        app:roundAsCircle="true"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/passport_merge_accounts_profile_list_item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"/>
+</LinearLayout>

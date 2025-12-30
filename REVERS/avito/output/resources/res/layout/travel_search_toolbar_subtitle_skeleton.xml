@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="12dp"
+    app:shimmer_autostart="true">
+    <View
+        android:background="@drawable/toolbar_text_bg_stub"
+        android:layout_width="296dp"
+        android:layout_height="17dp"/>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

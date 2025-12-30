@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpt_info_header_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH10"
+        android:id="@+id/cpt_info_header_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintEnd_toStartOf="@+id/cpt_info_header_item_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.tab_group.TabGroup
+        android:id="@+id/tabs_navigation"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cpt_info_header_item_title"
+        app:tabGroup_horizontalPadding="0dp"
+        style="?attr/tabGroupL"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/cpt_info_header_item_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabs_navigation"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/cpt_info_header_item_button"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        app:layout_constraintBottom_toBottomOf="@+id/cpt_info_header_item_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/cpt_info_header_item_title"
+        style="?attr/buttonDefaultSmall"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

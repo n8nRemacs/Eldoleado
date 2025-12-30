@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/refund_toggle_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:layout_marginHorizontal="@dimen/booking_form_horizontal_margin">
+    <include
+        android:id="@+id/first_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        layout="@layout/item_form_refund_toggle_button"/>
+    <View
+        android:layout_width="6dp"
+        android:layout_height="0dp"/>
+    <include
+        android:id="@+id/second_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        layout="@layout/item_form_refund_toggle_button"/>
+</LinearLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/payment_history_details_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/info_sheet_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/refund_info_sheet_title"
+        android:layout_marginHorizontal="16dp"
+        style="?attr/textH20"/>
+    <TextView
+        android:id="@+id/info_sheet_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/refund_info_sheet_text"
+        android:layout_marginHorizontal="16dp"
+        style="?attr/textM10"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/info_sheet_close_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/refund_info_sheet_button_text"
+        android:layout_marginHorizontal="10dp"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

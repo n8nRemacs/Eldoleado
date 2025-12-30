@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:background="@drawable/design_radio_ripple"
+    android:paddingLeft="@dimen/rds_horizontal_edge_offset"
+    android:paddingRight="@dimen/rds_horizontal_edge_offset"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/switcher_icon"/>
+    <include layout="@layout/switcher_multi_label"/>
+    <include layout="@layout/switcher_toggle_and_loader"/>
+</LinearLayout>

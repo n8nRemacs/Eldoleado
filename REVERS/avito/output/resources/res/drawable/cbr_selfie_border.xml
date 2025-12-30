@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <stroke
+        android:width="@dimen/cbr_viewport_border_width"
+        android:color="@color/cbr_color_primary_50"/>
+    <size
+        android:height="352dp"
+        android:width="244dp"/>
+</shape>

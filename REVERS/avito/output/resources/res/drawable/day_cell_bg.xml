@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?attr/colorControlHighlight">
+    <item>
+        <shape>
+            <corners android:radius="12dp"/>
+            <size
+                android:height="@dimen/flexible_calendar_week_day_item_size"
+                android:width="@dimen/flexible_calendar_week_day_item_size"/>
+            <solid android:color="?attr/white"/>
+        </shape>
+    </item>
+</ripple>

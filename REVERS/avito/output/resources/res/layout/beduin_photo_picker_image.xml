@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/item_photo_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout
+        android:id="@+id/item_photo_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.photo_uploader_image.PhotoUploaderImage
+            android:id="@+id/photo_picker_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:failureImageScaleType="fitCenter">
+            <ImageButton
+                android:layout_gravity="end|bottom"
+                android:id="@+id/control_image_button"
+                android:clickable="false"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                app:tint="?attr/black"
+                style="@style/Widget.Avito.Button.Flat.Gray"/>
+        </com.avito.android.lib.design.photo_uploader_image.PhotoUploaderImage>
+    </com.avito.android.lib.design.photo_uploader_image.PhotoUploaderLayout>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/red600"
+        android:id="@+id/error_message"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"/>
+</LinearLayout>

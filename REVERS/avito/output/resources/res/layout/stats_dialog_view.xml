@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/tv_dialog"
+        android:paddingBottom="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/b_close"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/user_stats_dynamic_tooltip_button"
+        style="?attr/buttonSecondaryMedium"/>
+</LinearLayout>

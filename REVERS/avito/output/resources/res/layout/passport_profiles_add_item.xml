@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/profiles_add_root"
+    android:background="@drawable/passport_profiles_background"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="@dimen/passport_user_hat_item_size"
+    android:layout_height="@dimen/passport_user_hat_item_size">
+    <ImageView
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="?attr/ic_addThin24"
+        app:tint="?attr/black"/>
+</FrameLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/advert_details_contact_bar_root"
+    android:background="@drawable/bg_contact_bar_bottom_sheet_styled"
+    android:padding="@dimen/contact_bar_glow_padding"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:translationY="76dp"
+    android:elevation="30dp">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/contact_bar_buttons_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/contact_bar_buttons_container2"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/contact_bar_bottom_container"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="8dp"/>
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/banner_content"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:layout_marginTop="@dimen/map_banner_margin_bottom_and_top"
+    android:layout_marginBottom="@dimen/map_banner_margin_bottom_and_top"
+    android:layout_marginStart="@dimen/map_banner_margin_start_and_end"
+    android:layout_marginEnd="@dimen/map_banner_margin_start_and_end"
+    app:cardCornerRadius="@dimen/map_banner_radius">
+    <com.avito.android.lib.design.banner.Banner
+        android:id="@+id/mapBanner"
+        android:focusable="true"
+        android:clickable="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:banner_content="@layout/map_banner_content"
+        app:banner_contentPaddingBottom="0dp"
+        app:banner_contentPaddingLeft="0dp"
+        app:banner_contentPaddingRight="0dp"
+        app:banner_contentPaddingTop="0dp"
+        app:banner_roundCorners="false"
+        style="?attr/bannerWhite"/>
+</androidx.cardview.widget.CardView>

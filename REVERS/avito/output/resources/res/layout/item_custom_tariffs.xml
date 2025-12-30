@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_custom_tariffs_root"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="28dp">
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:id="@+id/item_custom_tariffs_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/item_custom_tariffs_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintTop_toBottomOf="@+id/item_custom_tariffs_title"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/item_custom_tariffs_recycler"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        app:layout_constraintTop_toBottomOf="@+id/item_custom_tariffs_description"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/item_custom_tariffs_create_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/custom_tariffs_create_btn"
+        android:layout_marginHorizontal="@dimen/default_horizontal_padding"
+        app:layout_constraintTop_toBottomOf="@+id/item_custom_tariffs_recycler"
+        style="?attr/buttonPrimaryMedium"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

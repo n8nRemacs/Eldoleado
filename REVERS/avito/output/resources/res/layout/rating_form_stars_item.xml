@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="24dp">
+    <com.avito.android.lib.design.rating.RatingBar
+        android:id="@+id/rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:ratingBar_dividerWidth="16dp"
+        app:ratingBar_ratingDrawable="@drawable/ic_rating_star"
+        app:ratingBar_starHeight="52dp"
+        app:ratingBar_starWidth="52dp"
+        style="@style/Design.Widget.Avito.Rating.Large"/>
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:textColor="?attr/gray54"
+        android:id="@+id/rating_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"/>
+</LinearLayout>

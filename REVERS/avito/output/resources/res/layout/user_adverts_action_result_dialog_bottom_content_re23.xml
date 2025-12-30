@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.floating_container.FloatingContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/user_advert_actions_result_info_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/user_adverts_action_result_primary_action"
+    style="?attr/floatingContainerOneButtonPrimary"/>

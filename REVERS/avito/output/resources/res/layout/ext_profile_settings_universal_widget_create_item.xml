@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/extended_profile_universal_widget_create_item_root"
+    android:background="@drawable/bg_universal_widget_section"
+    android:paddingTop="16dp"
+    android:paddingBottom="18dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp"
+    android:layout_marginHorizontal="10dp">
+    <TextView
+        android:textAppearance="?attr/textH50"
+        android:id="@+id/extended_profile_universal_widget_create_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/extended_profile_universal_widget_create_icon"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ImageView
+        android:id="@+id/extended_profile_universal_widget_create_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="?attr/ic_plus20"
+        app:tint="?attr/black"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

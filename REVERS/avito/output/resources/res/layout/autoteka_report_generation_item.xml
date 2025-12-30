@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/autoteka_report_generation_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="24dp">
+    <include layout="@layout/autoteka_car_animate_view"/>
+    <com.avito.android.lib.design.progress_bar.ProgressBar
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/autoteka_report_generation_progress"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:progressBar_barHeight="6dp"
+        app:progressBar_fillColor="?attr/green700"
+        app:progressBar_separatorColor="?attr/warmGray8"
+        app:progressBar_separatorWidth="2dp"/>
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:gravity="center_horizontal"
+        android:id="@+id/autoteka_report_generation_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="34dp"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/autoteka_time_of_data_collection"/>
+</LinearLayout>

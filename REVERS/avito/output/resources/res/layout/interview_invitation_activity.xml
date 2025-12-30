@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ru.avito.component.toolbar.CollapsingTitleAppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stateListAnimator="@drawable/appbar_allways_unelevated"
+        app:expanded="false"
+        app:home_icon="@drawable/ic_close_24"
+        app:short_title="@string/interview_invitation_short_title"
+        app:subtitle="@string/interview_invitation_subtitle"
+        app:title="@string/interview_invitation_title"/>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <FrameLayout
+            android:id="@+id/progress_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <include layout="@layout/interview_invitation_content"/>
+        </FrameLayout>
+    </androidx.core.widget.NestedScrollView>
+    <FrameLayout
+        android:layout_gravity="bottom"
+        android:id="@+id/button_container"
+        android:background="@drawable/bg_transparent_white_gradient"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/invite_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/interview_invitation_invite_button"
+            android:layout_marginHorizontal="16dp"
+            style="?attr/buttonPrimaryLarge"/>
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

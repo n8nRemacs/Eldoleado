@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/legacy_gray_12">
+    <item android:id="@android:id/mask">
+        <shape>
+            <corners android:radius="@dimen/seller_day_item_radius"/>
+            <solid android:color="@color/legacy_gray_48"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:height="@dimen/calendar_recycler_view_day_size"
+                android:width="@dimen/calendar_recycler_view_day_size"/>
+            <corners android:radius="@dimen/seller_day_item_radius"/>
+            <stroke
+                android:width="1dp"
+                android:color="?attr/gray44"/>
+        </shape>
+    </item>
+</ripple>

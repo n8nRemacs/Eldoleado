@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:ellipsize="end"
+        android:id="@+id/top_sellers_serp_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        style="?attr/textH3"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/top_sellers_serp_list"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        android:overScrollMode="never"
+        android:paddingHorizontal="8dp"/>
+</LinearLayout>

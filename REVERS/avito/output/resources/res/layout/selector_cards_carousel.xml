@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:paddingTop="?attr/publish_componentContainer_paddingTop"
+    android:paddingBottom="?attr/publish_componentContainer_paddingBottom"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_contentPaddingTop="?attr/publish_componentContainer_contentPaddingTop"
+    app:componentContainer_textPaddingLeft="@dimen/publish_container_horizontal_padding"
+    app:componentContainer_textPaddingRight="@dimen/publish_container_horizontal_padding"
+    app:componentContainer_titleAppearance="?attr/publish_select_titleTextAppearance"
+    app:componentContainer_titleTipIcon="?attr/publish_componentContainer_titleTipIcon"
+    app:componentContainer_titleTipIconTint="?attr/publish_componentContainer_titleTipIconTint">
+    <com.avito.android.lib.design.selector_card.SelectorCardGroup
+        android:id="@+id/selector_card_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:overScrollMode="never"
+        android:nestedScrollingEnabled="false"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

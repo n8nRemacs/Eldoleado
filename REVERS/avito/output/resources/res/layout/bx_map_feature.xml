@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.map.view.MapCoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/search_map_root"
+    android:background="?attr/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/progress_overlay_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.avito_map.AvitoMapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/search_map_top_panel_expanded_height"
+            android:layout_marginBottom="@dimen/search_map_bottom_panel_height"/>
+    </FrameLayout>
+    <include layout="@layout/search_map_view_buttons"/>
+    <include layout="@layout/search_map_bottom_panel"/>
+    <include layout="@layout/search_map_empty_map"/>
+    <include layout="@layout/search_map_pin_items"/>
+    <include
+        app:layout_anchorGravity="top|right"
+        app:layout_behavior="ru.avito.component.behaviors.MoveAboveSnackBarBehavior"
+        layout="@layout/back_to_map_floating_button"/>
+</com.avito.android.map.view.MapCoordinatorLayout>

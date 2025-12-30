@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/counter_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="12dp"
+    android:layout_marginBottom="20dp">
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:id="@+id/counter_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <com.avito.android.lib.design.progress_bar.ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:progressBar_barHeight="8dp"
+        app:progressBar_fillColor="?attr/green"
+        app:progressBar_progress="0.5"
+        app:progressBar_separatorColor="?attr/white"
+        app:progressBar_separatorWidth="2dp"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:textColor="?attr/gray54"
+        android:id="@+id/counter_details"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"/>
+</LinearLayout>

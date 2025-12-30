@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:state_enabled="false"
+        android:color="?attr/components_control_text_disabled"/>
+    <item
+        android:state_pressed="true"
+        android:color="@color/re23_button_overlay_secondary_extra_small_round_two_rows_subtitle_text_color_pressed_color"/>
+    <item android:color="@color/re23_button_overlay_secondary_extra_small_round_two_rows_subtitle_text_color_default_color"/>
+</selector>

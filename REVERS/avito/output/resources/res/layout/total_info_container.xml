@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/total_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.tariff_lf_constructor.configure.common.ui.PriceDotsView
+        android:id="@+id/discount_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleAppearance="?attr/textM1"
+        app:valueAppearance="?attr/textM1"/>
+    <com.avito.android.tariff_lf_constructor.configure.common.ui.PriceDotsView
+        android:id="@+id/package_price_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:oldValueAppearance="?attr/textM1"
+        app:titleAppearance="?attr/textM1"
+        app:valueAppearance="?attr/textM1"/>
+    <com.avito.android.tariff_lf_constructor.configure.common.ui.PriceDotsView
+        android:id="@+id/total_price_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:titleAppearance="?attr/textH3"
+        app:valueAppearance="?attr/textH3"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/btn_add_placing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

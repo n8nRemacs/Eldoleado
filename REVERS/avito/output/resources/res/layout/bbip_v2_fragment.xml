@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/bbip_v2_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/mnz_functional_toolbar_view"/>
+    <include layout="@layout/bbip_v2_shimmer_view"/>
+    <FrameLayout
+        android:id="@+id/bbip_v2_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/bbip_v2_list"
+            android:clipChildren="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+        <LinearLayout
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:id="@+id/bbip_v2_buttons"
+            android:background="@drawable/bg_transparent_white_gradient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.avito.android.lib.design.button.Button
+                android:id="@+id/bbip_v2_skip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginVertical="16dp"
+                style="?attr/buttonSecondaryLarge"/>
+            <com.avito.android.lib.design.button.Button
+                android:id="@+id/bbip_v2_next"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="16dp"
+                android:layout_marginVertical="16dp"
+                style="?attr/buttonPrimaryLarge"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

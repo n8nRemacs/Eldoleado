@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/pin_container"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:behavior_hideable="true"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+    <com.avito.android.map_core.utils.IgnoreTopPaddingTouchScrollDirectionAwareRecyclerView
+        android:id="@+id/pin_items"
+        android:background="?attr/white"
+        android:paddingLeft="@dimen/serp_horizontal_padding"
+        android:paddingRight="@dimen/serp_horizontal_padding"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="2dp"/>
+    <include
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/search_map_scroll_to_top_button"/>
+</FrameLayout>

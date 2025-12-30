@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.progress_bar.ProgressBar xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpt_info_card_item_progress"
+    android:layout_width="match_parent"
+    android:layout_height="4dp"
+    app:progressBar_barHeight="4dp"
+    app:progressBar_emptyColor="?attr/warmGray12"
+    app:progressBar_fillColor="?attr/black"/>

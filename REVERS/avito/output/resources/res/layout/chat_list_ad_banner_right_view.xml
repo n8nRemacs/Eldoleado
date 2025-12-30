@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <FrameLayout
+        android:id="@+id/chat_list_banner_element_right_view"
+        android:background="?attr/gray48"
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        app:bring_to_clamp="2dp"
+        app:clamp="self"
+        app:gravity="right"
+        app:sticky="none">
+        <Button
+            android:layout_gravity="center"
+            android:id="@+id/chat_list_banner_element_close_button"
+            android:background="@drawable/ic_clear_24"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:backgroundTint="?attr/white"
+            style="@style/AvitoFlatButton"/>
+    </FrameLayout>
+</merge>

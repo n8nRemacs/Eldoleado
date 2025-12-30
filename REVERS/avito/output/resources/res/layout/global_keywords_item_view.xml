@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/keywords_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/filter_item_horizontal_padding">
+    <TextView
+        android:textAppearance="?attr/textH50"
+        android:textColor="@color/global_filter_title_text_color"
+        android:id="@+id/keywords_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ImageView
+        android:id="@+id/keywords_title_tip_icon"
+        android:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?attr/ic_help20"
+        app:layout_constraintBottom_toBottomOf="@+id/keywords_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/keywords_title"
+        app:tint="?attr/warmGray28"/>
+    <com.avito.android.lib.design.input.Input
+        android:ellipsize="end"
+        android:id="@+id/keywords_input"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/keywords_title"
+        style="?attr/inputDefaultM"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/keywords_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/keywords_input"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

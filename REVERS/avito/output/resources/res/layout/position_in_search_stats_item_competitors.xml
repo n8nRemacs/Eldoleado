@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/position_in_search_stats_item_competitors_shimmer"/>
+    <TextView
+        android:textAppearance="?attr/textH30"
+        android:id="@+id/position_in_search_competitors_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <com.avito.android.lib.design.badge.Badge
+        android:id="@+id/position_in_search_competitors_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginHorizontal="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/position_in_search_competitors_title"
+        app:layout_constraintTop_toTopOf="@+id/position_in_search_competitors_title"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/position_in_search_competitors_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/position_in_search_competitors_title"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/position_in_search_competitors_items"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/position_in_search_competitors_description"/>
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/position_in_search_competitors_content_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="position_in_search_competitors_title, position_in_search_competitors_badge, position_in_search_competitors_description, position_in_search_competitors_items"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

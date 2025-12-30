@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/edit_advert_note_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/toolbar"/>
+    <FrameLayout style="@style/ContentHolder">
+        <EditText
+            android:gravity="start"
+            android:id="@+id/edit_text"
+            android:background="?attr/transparentBlack"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/advert_details_edit_note_hint"
+            android:maxLength="180"
+            android:inputType="textMultiLine"/>
+        <FrameLayout
+            android:id="@+id/progress_bar_container"
+            android:background="?attr/whiteAlpha88"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ProgressBar
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </FrameLayout>
+    </FrameLayout>
+</LinearLayout>

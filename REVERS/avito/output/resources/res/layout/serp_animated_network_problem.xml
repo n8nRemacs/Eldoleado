@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.deprecated_design.NetworkProblemView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/network_problem_view"
+    android:background="?attr/white"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/layout_network_problem"/>
+    </androidx.core.widget.NestedScrollView>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/progress_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.lib.design.animation.AnimationView
+            android:layout_gravity="center_horizontal"
+            android:layout_width="268dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1"
+            app:animationView_animationResId="@raw/serp_lottie_loader"
+            app:animationView_autoPlay="true"
+            app:animationView_repeatCount="-1"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:gravity="bottom|center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/long_serp_loading_message_bottom_margin"
+            android:text="@string/long_serp_loading_message"
+            android:layout_marginHorizontal="16dp"/>
+    </LinearLayout>
+</com.avito.android.lib.deprecated_design.NetworkProblemView>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/toastBar_textAppearance"
+        android:textColor="?attr/toastBar_textColor"
+        android:id="@+id/text"
+        android:paddingBottom="?attr/toastBar_textPaddingBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/actionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/toastBar_buttonStyle"/>
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/negativeActionButton"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/toastBar_rightItemToTextHorizontalPadding"
+            style="?attr/toastBar_buttonStyle"/>
+    </LinearLayout>
+</merge>

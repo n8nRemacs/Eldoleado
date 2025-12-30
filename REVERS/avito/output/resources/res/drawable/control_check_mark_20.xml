@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_checked="true"
+        android:drawable="@drawable/ic_check_circle_white_20"/>
+    <item>
+        <shape>
+            <size
+                android:height="20dp"
+                android:width="20dp"/>
+            <solid android:color="@color/legacy_transparent_black"/>
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/category_nodes_shortcut"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="@dimen/redesigned_horizontal_chips_corner_radius"
+    app:cardElevation="@dimen/horizontal_chips_elevation">
+    <LinearLayout
+        android:gravity="center_vertical"
+        android:background="@drawable/redesigned_shortcut_bg"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/redesigned_horizontal_chips_button_height"
+        android:paddingEnd="@dimen/redesigned_horizontal_chips_collapse_container_padding_end"
+        app:button_cornerRadius="@dimen/redesigned_horizontal_chips_corner_radius">
+        <ImageView
+            android:id="@+id/image_left"
+            android:paddingBottom="@dimen/horizontal_chips_bottom_padding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_rubricator"
+            android:layout_marginStart="@dimen/redesigned_horizontal_chips_collapse_image_margin_start"
+            android:layout_marginEnd="@dimen/horizontal_chips_collapse_image_margin_end"
+            app:tint="?attr/white"/>
+        <TextView
+            android:textAppearance="?attr/textS1"
+            android:textColor="?attr/white"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:id="@+id/title"
+            android:paddingBottom="@dimen/horizontal_chips_bottom_padding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:paddingEnd="@dimen/horizontal_chips_collapse_title_padding_end"
+            android:backgroundTint="?attr/warmGray4"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

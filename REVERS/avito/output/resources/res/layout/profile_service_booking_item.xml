@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/user_profile_service_booking_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <com.avito.android.profile.horizontal_scroll_widget.HorizontalScrollView
+        android:id="@+id/service_booking_orders_widget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:horizontalScrollView_actionButtonHorizontalPadding="@dimen/content_horizontal_padding"
+        app:horizontalScrollView_actionButtonTextStyle="@style/Deprecated.Theme.Internal.Button.Flat.Card"
+        app:horizontalScrollView_badgeStyle="?attr/badgeTextSmall"
+        app:horizontalScrollView_skeletonLayout="@layout/user_profile_service_booking_skeleton"
+        app:horizontalScrollView_state="load"
+        app:horizontalScrollView_textStubBottomMargin="4dp"
+        app:horizontalScrollView_textStubLeftMargin="@dimen/content_horizontal_padding"
+        app:horizontalScrollView_textStubRightMargin="@dimen/content_horizontal_padding"
+        app:horizontalScrollView_titleLeftMargin="@dimen/content_horizontal_padding"
+        app:horizontalScrollView_titleRightMargin="@dimen/content_horizontal_padding"/>
+</FrameLayout>

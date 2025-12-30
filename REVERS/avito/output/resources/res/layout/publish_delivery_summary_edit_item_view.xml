@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/delivery_summary_container"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/summary_fee_block"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:descriptionParameterItem_dotsOffset="2dp"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textM10"
+        app:descriptionParameterItem_leftTextIcon="?attr/ic_help20"
+        app:descriptionParameterItem_leftTextIconColor="?attr/components_hint_default"
+        app:descriptionParameterItem_rightTextAppearance="?attr/textM10"/>
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/summary_discount_block"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:descriptionParameterItem_dotsOffset="2dp"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textM10"
+        app:descriptionParameterItem_rightTextAppearance="?attr/textM10"/>
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/summary_total_block"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:descriptionParameterItem_dotsOffset="2dp"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textH50"
+        app:descriptionParameterItem_rightTextAppearance="?attr/textH50"/>
+</LinearLayout>

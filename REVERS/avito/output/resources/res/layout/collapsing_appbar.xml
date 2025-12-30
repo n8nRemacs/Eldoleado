@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
+        android:fitsSystemWindows="true"
+        android:layout_width="match_parent"
+        android:layout_height="106dp"
+        app:elevation="0dp">
+        <net.opacapp.multilinecollapsingtoolbar.CollapsingToolbarLayout
+            android:id="@+id/toolbar_layout"
+            android:fitsSystemWindows="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Avito.Toolbar.Title"
+            app:expandedTitleMarginBottom="8dp"
+            app:expandedTitleMarginStart="@dimen/standard_padding"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Widget.Avito.AppBar.ExpandedTitle.Black.Huge"
+            app:layout_scrollFlags="exitUntilCollapsed|scroll">
+            <include
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                layout="@layout/toolbar"/>
+        </net.opacapp.multilinecollapsingtoolbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+    <include layout="@layout/shadow"/>
+</merge>

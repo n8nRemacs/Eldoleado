@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.util.layout.RatioForegroundFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/warmGray8"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    app:corner_radius="@dimen/ad_media_x2_corner_radius"
+    app:height_ratio="128"
+    app:width_ratio="343"/>

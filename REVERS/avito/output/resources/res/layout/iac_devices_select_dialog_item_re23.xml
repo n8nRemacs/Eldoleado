@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItemCheckbox xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/devices_checkbox_list_item"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding"
+    style="?attr/listItemCheckboxDefaultMedium"/>

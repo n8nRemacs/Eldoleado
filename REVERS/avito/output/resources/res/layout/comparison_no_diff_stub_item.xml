@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:paddingHorizontal="24dp">
+    <TextView
+        android:textAppearance="?attr/textH4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/comparison_no_diff_stub_title"/>
+    <TextView
+        android:textAppearance="?attr/textS1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/comparison_no_diff_stub_subtitle"/>
+</LinearLayout>

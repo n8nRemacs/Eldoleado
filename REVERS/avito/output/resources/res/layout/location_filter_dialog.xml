@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Dialog.LookAndFeel"
+    android:layout_gravity="center_vertical"
+    android:orientation="vertical"
+    android:id="@+id/location_filters_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:paddingBottom="@dimen/location_filter_main_button_offset"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/location_filter_collection_top_margin"
+        android:overScrollMode="ifContentScrolls"/>
+    <FrameLayout
+        android:id="@+id/progress"
+        android:background="?attr/whiteAlpha88"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:visibility="visible"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.lib.deprecated_design.ColoredProgressBar
+            android:layout_gravity="center"
+            android:id="@+id/progress_view"
+            android:layout_width="28dp"
+            android:layout_height="28dp"/>
+    </FrameLayout>
+    <include layout="@layout/design_error_layout"/>
+</FrameLayout>

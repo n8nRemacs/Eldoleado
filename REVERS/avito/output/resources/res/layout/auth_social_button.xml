@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="center"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="@dimen/buttons_margin_small_4_large_8"
+    android:layout_marginEnd="@dimen/buttons_margin_small_4_large_8"
+    style="@style/Widget.Avito.ImageButton.Raised.Share"/>

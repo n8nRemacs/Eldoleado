@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/tariff_lf_publication_region_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        layout="@layout/mnz_functional_toolbar_view"/>
+    <FrameLayout
+        android:id="@+id/tariff_lf_publication_region_content_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mnz_toolbar">
+        <include layout="@layout/tariff_lf_publication_region_skeleton_item"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tariff_lf_publication_region_recycler_view"
+            android:clipChildren="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </FrameLayout>
+    <com.avito.android.lib.design.floating_container.FloatingContainer
+        android:id="@+id/tariff_lf_publication_region_button_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        style="?attr/floatingContainerOneButtonPrimary"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

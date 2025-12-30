@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:height="14dp"
+        android:top="6dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="180dp"
+        android:top="32dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="48dp"
+        android:width="48dp"
+        android:top="58dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="140dp"
+        android:top="69dp"
+        android:start="58dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:width="180dp"
+        android:top="88dp"
+        android:start="58dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="44dp"
+        android:top="122dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="44dp"
+        android:top="172dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="14dp"
+        android:width="192dp"
+        android:top="247dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="62dp"
+        android:width="150dp"
+        android:top="282dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp"/>
+            <solid android:color="?attr/white"/>
+        </shape>
+    </item>
+    <item
+        android:height="40dp"
+        android:width="40dp"
+        android:top="293dp"
+        android:start="12dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="74dp"
+        android:top="299dp"
+        android:start="60dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:width="40dp"
+        android:top="318dp"
+        android:start="60dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="62dp"
+        android:width="150dp"
+        android:top="282dp"
+        android:start="156dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp"/>
+            <solid android:color="?attr/white"/>
+        </shape>
+    </item>
+    <item
+        android:height="40dp"
+        android:width="40dp"
+        android:top="293dp"
+        android:start="168dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="74dp"
+        android:top="299dp"
+        android:start="216dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:width="40dp"
+        android:top="318dp"
+        android:start="216dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="62dp"
+        android:width="150dp"
+        android:top="282dp"
+        android:start="312dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp"/>
+            <solid android:color="?attr/white"/>
+        </shape>
+    </item>
+    <item
+        android:height="40dp"
+        android:width="40dp"
+        android:top="293dp"
+        android:start="324dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="74dp"
+        android:top="299dp"
+        android:start="372dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:width="40dp"
+        android:top="318dp"
+        android:start="372dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:top="359dp"
+        android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+</layer-list>

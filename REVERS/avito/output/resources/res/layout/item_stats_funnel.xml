@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cl_stats_funnel"
+    android:background="?attr/selectableItemBackground"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/funnel_block_padding"
+    android:paddingVertical="@dimen/advert_stats_vertical_padding">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/tv_stats_funnel_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ImageView
+        android:id="@+id/tv_stats_funnel_dots"
+        android:visibility="invisible"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/advert_stats_item_padding"
+        android:src="@drawable/ic_dotted"
+        app:layout_constraintEnd_toEndOf="@+id/tv_stats_funnel_value"
+        app:layout_constraintStart_toStartOf="@+id/tv_stats_funnel_value"
+        app:layout_constraintTop_toBottomOf="@+id/tv_stats_funnel_value"/>
+    <TextView
+        android:textAppearance="?attr/textBodySmall"
+        android:id="@+id/tv_stats_funnel_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@+id/tv_stats_funnel_value"
+        app:layout_constraintTop_toBottomOf="@+id/tv_stats_funnel_value"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

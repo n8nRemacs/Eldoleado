@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.banner.Banner xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/str_booking_banner_section"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="26dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    app:banner_content="@layout/str_booking_banner_item_content"
+    app:banner_contentPaddingBottom="28dp"
+    app:banner_contentPaddingLeft="24dp"
+    app:banner_contentPaddingRight="24dp"
+    app:banner_contentPaddingTop="20dp"
+    style="?attr/banner"/>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItemRadio xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/passport_select_business_vrf_item_root"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>

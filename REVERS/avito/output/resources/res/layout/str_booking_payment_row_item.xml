@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.str_booking.ui.payment_details.PaymentRowDetailsLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/payment_content_details"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/str_booking_payment_item_vertical_padding"/>

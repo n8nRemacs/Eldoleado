@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:height="72dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/garage_compatibility_item_v4_corner_radius"/>
+            <solid android:color="?attr/warmGray4"/>
+        </shape>
+    </item>
+    <item
+        android:height="48dp"
+        android:width="48dp"
+        android:top="12dp"
+        android:start="12dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="10dp"
+        android:width="120dp"
+        android:top="23dp"
+        android:start="72dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+    <item
+        android:height="9dp"
+        android:width="200dp"
+        android:top="42dp"
+        android:start="72dp"
+        android:end="12dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp"/>
+            <solid android:color="?attr/warmGray8"/>
+        </shape>
+    </item>
+</layer-list>

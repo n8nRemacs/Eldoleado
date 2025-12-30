@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="?attr/blackAlpha64"
+    android:paddingRight="@dimen/serp_display_type_hint_padding_right"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:layout_gravity="right"
+        android:id="@+id/btn_display_type_hint"
+        android:background="?attr/transparentBlack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/serp_display_type_hint_btn_top_margin"
+        android:layout_marginRight="@dimen/serp_display_type_hint_btn_right_margin"
+        android:src="@drawable/ic_list_24"
+        app:tint="?attr/blue"/>
+    <FrameLayout
+        android:layout_gravity="right"
+        android:id="@+id/display_type_hint_text_container"
+        android:background="@drawable/bg_coachmark_top_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/serp_display_type_hint_text_top_margin"
+        android:layout_marginRight="@dimen/serp_display_type_hint_text_right_margin">
+        <TextView
+            android:textSize="14sp"
+            android:textColor="?attr/white"
+            android:id="@+id/display_type_hint_text"
+            android:paddingLeft="12dp"
+            android:paddingTop="8dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/serp_display_type_grid_hint"
+            android:lineSpacingExtra="1dp"/>
+    </FrameLayout>
+</FrameLayout>

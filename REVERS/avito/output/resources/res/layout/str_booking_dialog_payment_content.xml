@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/str_booking_payment_content_horizontal_margin">
+    <com.avito.android.str_booking.ui.payment_details.PaymentRowDetailsLayout
+        android:orientation="horizontal"
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/str_booking_payment_item_vertical_padding"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/items"
+        android:paddingBottom="@dimen/str_booking_payment_content_bottom_margin"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        android:nestedScrollingEnabled="false"/>
+</LinearLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:id="@+id/toolbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:paddingHorizontal="@dimen/content_horizontal_padding">
+        <ImageView
+            android:id="@+id/left_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="?attr/ic_arrowBack24"
+            app:tint="?attr/black"/>
+        <TextView
+            android:textAppearance="?attr/textH50"
+            android:gravity="center"
+            android:id="@+id/screen_title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:maxLines="1"
+            android:layout_weight="1"/>
+        <ImageView
+            android:id="@+id/right_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="?attr/ic_close24"
+            app:tint="?attr/black"/>
+    </LinearLayout>
+    <com.avito.android.advert_core.advert.PagerAdaptiveRecyclerView
+        android:id="@+id/advert_details_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

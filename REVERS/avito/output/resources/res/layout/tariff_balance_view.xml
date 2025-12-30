@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/create_discount_dispatch_tariff_balance_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:componentContainer_contentPaddingBottom="8dp"
+    app:componentContainer_contentPaddingTop="8dp"
+    app:componentContainer_messageAppearance="?attr/textS10"
+    app:componentContainer_messageColor="?attr/gray54"
+    app:componentContainer_titleAppearance="?attr/textS10"
+    app:componentContainer_titleColor="?attr/black">
+    <com.avito.android.lib.design.progress_bar.ProgressBar
+        android:id="@+id/create_discount_dispatch_tariff_balance_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:progressBar_barHeight="6dp"
+        app:progressBar_emptyColor="?attr/green200"
+        app:progressBar_fillColor="?attr/green700"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

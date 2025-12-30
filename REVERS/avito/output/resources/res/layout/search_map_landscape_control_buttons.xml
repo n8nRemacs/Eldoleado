@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:id="@+id/map_landscape_control_buttons_container_redesign"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <com.avito.android.map_core.view.draw_button.DrawButtonRedesign
+        android:id="@+id/draw_map_redesign"
+        android:visibility="gone"
+        android:layout_width="@dimen/search_map_controls_size"
+        android:layout_height="@dimen/search_map_controls_size"
+        android:layout_margin="@dimen/search_map_controls_margin_redesign"
+        app:cardBackgroundColor="?attr/white"
+        app:cardCornerRadius="@dimen/search_map_controls_corner_radius_redesign"
+        app:cardElevation="@dimen/search_map_controls_elevation_redesign"/>
+    <com.avito.android.map_core.view.zoom.ZoomButton
+        android:id="@+id/zoom_map_redesign"
+        android:visibility="gone"
+        android:layout_width="88dp"
+        android:layout_height="@dimen/search_map_controls_size"
+        android:layout_marginVertical="@dimen/search_map_controls_margin_redesign"
+        app:cardCornerRadius="@dimen/search_map_controls_corner_radius_redesign"
+        app:cardElevation="@dimen/search_map_controls_elevation_redesign"/>
+    <com.avito.android.map_core.view.find_me.FindMeButton
+        android:id="@+id/find_me_redesign"
+        android:visibility="gone"
+        android:layout_width="@dimen/search_map_controls_size"
+        android:layout_height="@dimen/search_map_controls_size"
+        android:layout_margin="@dimen/search_map_controls_margin_redesign"
+        app:cardBackgroundColor="?attr/white"
+        app:cardCornerRadius="@dimen/search_map_controls_corner_radius_redesign"
+        app:cardElevation="@dimen/search_map_controls_elevation_redesign"/>
+</LinearLayout>

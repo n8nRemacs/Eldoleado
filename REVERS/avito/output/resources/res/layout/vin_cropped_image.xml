@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="?attr/publish_horizontalPadding">
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/cropped_vin_image"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        app:actualImageScaleType="centerCrop"
+        app:backgroundImage="?attr/warmGray4"
+        app:roundedCornerRadius="16dp"/>
+    <TextView
+        android:textAppearance="?attr/textM1"
+        android:id="@+id/description_text"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

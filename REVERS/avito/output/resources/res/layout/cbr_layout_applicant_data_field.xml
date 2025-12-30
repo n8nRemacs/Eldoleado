@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ru.cyberity.cbr.core.widget.CBRSubtitle1TextView
+        android:id="@+id/cbr_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_medium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <ru.cyberity.cbr.core.widget.CBRSubtitle2TextView
+        android:id="@+id/cbr_example"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cbr_label"/>
+    <ru.cyberity.cbr.core.widget.CBRTextInputLayout
+        android:id="@+id/cbr_editor_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/cbr_margin_small"
+        android:layout_marginBottom="@dimen/cbr_margin_small"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cbr_example"
+        style="@style/Widget.CBRTextInputLayout">
+        <ru.cyberity.cbr.core.widget.CBRTextInputEditText
+            android:id="@+id/cbr_editor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.CBRTextEdit"/>
+    </ru.cyberity.cbr.core.widget.CBRTextInputLayout>
+</merge>

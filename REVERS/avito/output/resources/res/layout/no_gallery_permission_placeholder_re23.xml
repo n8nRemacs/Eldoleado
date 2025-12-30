@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:id="@+id/no_gallery_permission_placeholder"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:textStyle="bold"
+        android:gravity="center"
+        android:id="@+id/no_camera_access"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:maxWidth="@dimen/photo_picker_placeholder_text_max_width"
+        android:text="@string/no_gallery_access_title"
+        android:textFontWeight="800"
+        style="?attr/textH25"/>
+    <TextView
+        android:gravity="center"
+        android:id="@+id/allow_camera_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="22dp"
+        android:maxWidth="@dimen/photo_picker_placeholder_text_max_width"
+        android:text="@string/no_gallery_access_subtitle"
+        style="?attr/textM10"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/allow_access_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_gallery_access_button_title"
+        style="?attr/buttonPrimaryLarge"/>
+</LinearLayout>

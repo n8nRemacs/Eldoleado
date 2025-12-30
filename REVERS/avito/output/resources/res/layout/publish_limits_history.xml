@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/limits_history_root_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ru.avito.component.toolbar.CollapsingTitleAppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stateListAnimator="@drawable/appbar_allways_unelevated"
+        app:home_icon="@drawable/ic_close_24">
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Avito.Redesign.TabLayout"/>
+    </ru.avito.component.toolbar.CollapsingTitleAppBarLayout>
+    <com.avito.android.ui.SafeViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    <include layout="@layout/publish_limits_history_skeleton"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

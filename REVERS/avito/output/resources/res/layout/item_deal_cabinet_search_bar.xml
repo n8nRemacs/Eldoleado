@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:hint="@string/das_deal_cabinet_client_list_search_bar_hint"
+        android:drawableRight="?attr/ic_filter20"
+        app:input_clearButton="false"
+        app:input_iconLeftColor="?attr/gray54"
+        app:input_iconRightColor="?attr/black"
+        style="?attr/inputSearch"/>
+    <com.avito.android.lib.design.point.Point
+        android:layout_gravity="end|top"
+        android:id="@+id/filter_point"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginRight="11dp"
+        app:point_color="?attr/red600"
+        app:point_size="5dp"
+        app:point_strokeColor="?attr/warmGray75"
+        app:point_strokeWidth="2dp"
+        app:point_withStroke="true"
+        style="?attr/pointNewSmall"/>
+</FrameLayout>

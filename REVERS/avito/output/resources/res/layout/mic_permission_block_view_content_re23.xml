@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/text_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="@string/mic_permission_block_title"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:id="@+id/text_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/mic_permission_block_info"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/text_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?attr/buttonPrimaryMedium"/>
+</LinearLayout>

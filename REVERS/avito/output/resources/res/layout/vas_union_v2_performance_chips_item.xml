@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.chips.ui.Chips xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vas_union_v2_performance_chips_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:chips_selectStrategy="single"
+    style="?attr/chipsLarge"/>

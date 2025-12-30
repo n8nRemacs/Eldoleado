@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mini_report_card"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:layout_marginHorizontal="12dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp">
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="?attr/gray4"
+        android:paddingTop="16dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp">
+        <TextView
+            android:id="@+id/mini_report_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/textH40"/>
+        <TextView
+            android:textAppearance="?attr/textM10"
+            android:textColor="?attr/gray54"
+            android:id="@+id/mini_report_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/mini_report_insights_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

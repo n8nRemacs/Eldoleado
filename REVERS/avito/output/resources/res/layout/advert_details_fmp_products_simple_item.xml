@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/fmp_products_simple_tile_container"
+    android:background="@drawable/advert_details_fmp_widget_bg"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <FrameLayout
+        android:id="@+id/fmp_simple_image_background"
+        android:background="@drawable/advert_details_fmp_products_icon_bg"
+        android:layout_width="32dp"
+        android:layout_height="32dp">
+        <com.avito.android.fresco.SimpleDraweeView
+            android:gravity="center"
+            android:id="@+id/fmp_simple_card_image"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <TextView
+            android:textAppearance="?attr/textH5"
+            android:gravity="center"
+            android:id="@+id/fmp_simple_card_text_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/black"
+        android:ellipsize="end"
+        android:id="@+id/fmp_simple_card_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:maxLines="2"/>
+</LinearLayout>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="@+id/cpx_configure_landing_info_container"
+    android:background="@drawable/cpx_card_bg"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/cpx_configure_landing_info_text_icon"
+        android:layout_width="16sp"
+        android:layout_height="20sp"
+        android:layout_marginEnd="12dp"/>
+    <TextView
+        android:id="@+id/cpx_configure_landing_info_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

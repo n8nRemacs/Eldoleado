@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:name="vector"
+    android:height="22dp"
+    android:width="22dp"
+    android:viewportWidth="22"
+    android:viewportHeight="22">
+    <group
+        android:name="rotationGroup"
+        android:pivotX="11"
+        android:pivotY="11">
+        <path
+            android:name="circle"
+            android:fillColor="#ffffff"
+            android:pathData="M 22 11.001 C 22 10.328 21.94 9.667 21.823 9.028 L 19.455 10.774 C 19.457 10.85 19.459 10.925 19.459 11.001 C 19.459 15.665 15.665 19.459 11 19.459 C 6.337 19.459 2.543 15.665 2.543 11.001 C 2.543 6.338 6.337 2.541 11 2.541 C 12.768 2.541 14.411 3.087 15.77 4.017 L 17.909 2.44 C 16.021 0.915 13.617 0 11 0 C 4.926 0 0 4.924 0 11.001 C 0 17.076 4.926 22 11 22 C 17.075 22 22 17.076 22 11.001"
+            android:strokeWidth="1"/>
+    </group>
+</vector>

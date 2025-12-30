@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/parameters_list_dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="@dimen/parameters_sheet_dialog_horizontal_padding"
+    android:paddingEnd="@dimen/parameters_sheet_dialog_horizontal_padding">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.avito.android.ui.widget.ScrollDirectionAwareRecyclerView
+            android:id="@+id/recycler_view"
+            android:paddingBottom="@dimen/parameters_sheet_parameters_list_bottom_padding"
+            android:scrollbars="none"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </LinearLayout>
+    <FrameLayout
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/apply_button_container"
+        android:background="@drawable/bg_transparent_white_gradient"
+        android:paddingBottom="@dimen/parameters_sheet_bottom_padding"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/parameters_sheet_apply_btn_container_height">
+        <com.avito.android.lib.design.button.Button
+            android:layout_gravity="top|center_horizontal"
+            android:id="@+id/apply_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ready"
+            android:layout_marginStart="@dimen/parameters_sheet_horizontal_padding"
+            android:layout_marginEnd="@dimen/parameters_sheet_horizontal_padding"
+            style="?attr/buttonPrimaryLarge"/>
+    </FrameLayout>
+</FrameLayout>

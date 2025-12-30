@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/imv_cars_line_chart_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="48dp">
+    <TextView
+        android:textAppearance="?attr/textH3"
+        android:id="@+id/imv_cars_line_chart_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"/>
+    <com.avito.android.imv_cars_details.presentation.items.imv_cars_line_chart.line_chart_view.ImvLineChart
+        android:id="@+id/imv_cars_line_chart"
+        android:paddingTop="36dp"
+        android:paddingBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:paddingHorizontal="24dp"
+        style="@style/ImvChartDefault"/>
+</LinearLayout>

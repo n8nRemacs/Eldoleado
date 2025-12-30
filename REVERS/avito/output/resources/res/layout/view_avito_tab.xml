@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="top"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false">
+    <TextView
+        android:textAppearance="?attr/tabView_textAppearance"
+        android:id="@+id/avito_tab_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/tabView_wrongLineHeightCompensation"/>
+    <Space
+        android:id="@+id/avito_tab_extra_data_spacer"
+        android:visibility="gone"
+        android:layout_width="4dp"
+        android:layout_height="0dp"/>
+    <TextView
+        android:textAppearance="?attr/tabView_counterTextAppearance"
+        android:id="@+id/avito_tab_counter"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <ImageView
+        android:id="@+id/avito_tab_point"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@null"
+        app:srcCompat="@drawable/img_avito_tab_point"
+        app:tint="?attr/tabView_pointColor"/>
+    <Space
+        android:id="@+id/avito_tab_compensation"
+        android:visibility="gone"
+        android:layout_width="?attr/tabView_compensation"
+        android:layout_height="0dp"/>
+</LinearLayout>

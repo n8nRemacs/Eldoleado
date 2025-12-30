@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.bottom_sheet.BoundedFrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center_horizontal"
+    android:background="@drawable/bg_avito_bottom_sheet_with_padding"
+    android:paddingTop="@dimen/avito_bottom_sheet_padding_top"
+    android:clipChildren="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxWidth="@dimen/avito_bottom_sheet_max_width"
+    android:elevation="@dimen/avito_bottom_sheet_elevation"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="@dimen/avito_bottom_sheet_default_peek_height"
+    app:elevation="@dimen/avito_bottom_sheet_elevation"
+    app:layout_behavior="@string/bottom_sheet_behavior">
+    <View
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/avito_bottom_sheet_notch"
+        android:background="@drawable/ic_avito_bottom_sheet_notch"
+        android:visibility="gone"
+        android:layout_width="28dp"
+        android:layout_height="@dimen/avito_bottom_sheet_notch_height"
+        android:layout_marginTop="@dimen/avito_bottom_sheet_notch_margin_top"/>
+</com.avito.android.lib.design.bottom_sheet.BoundedFrameLayout>

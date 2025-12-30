@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:background="@drawable/background_for_onboarding_item"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/onboarding_preview_item_height"
+    android:layout_marginHorizontal="@dimen/onboarding_preview_item_margin_horizontal">
+    <com.avito.android.fresco.SimpleDraweeView
+        android:id="@+id/image"
+        android:duplicateParentState="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:foreground="@drawable/rich_item_fg"
+        app:actualImageScaleType="centerCrop"
+        app:backgroundImage="@color/legacy_white"
+        app:roundedCornerRadius="@dimen/onboarding_preview_item_radius"
+        style="@style/Widget.Avito.Rds.SimpleDraweeView"/>
+    <TextView
+        android:textAppearance="?attr/textM2"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/onboarding_preview_item_title_margin_bottom"
+        android:maxLines="2"
+        android:layout_marginHorizontal="@dimen/onboarding_preview_item_content_margin_horizontal"/>
+</FrameLayout>

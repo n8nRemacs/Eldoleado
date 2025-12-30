@@ -1,0 +1,6 @@
+package androidx.camera.core;
+
+@j.X
+/* loaded from: classes.dex */
+public final class CameraInfoUnavailableException extends Exception {
+}

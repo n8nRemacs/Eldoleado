@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <drawable name="bg_profile_card">@drawable/design_system_bg_profile_card_tablet</drawable>
+    <drawable name="bg_publish_card">@drawable/design_system_bg_card_tablet</drawable>
+</resources>

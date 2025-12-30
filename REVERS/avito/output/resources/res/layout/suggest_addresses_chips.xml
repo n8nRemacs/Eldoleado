@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/chips_block"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp">
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/addresses_chips"
+        android:paddingBottom="6dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:chips_displayType="multipleLines"
+        app:chips_isNotSelectable="true"
+        app:chips_maxLines="3"
+        style="?attr/chipsMedium"/>
+    <com.avito.android.lib.design.button.Button
+        android:id="@+id/show_chips"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:drawableRight="@drawable/common_ic_arrow_expand_less_16"
+        style="?attr/buttonDefaultMedium"/>
+</LinearLayout>

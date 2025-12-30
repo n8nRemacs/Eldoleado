@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="horizontal"
+    android:id="@+id/double_input_container"
+    android:paddingBottom="@dimen/filter_item_compensation_vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/filter_item_horizontal_padding"
+    app:componentContainer_contentPaddingTop="12dp"
+    app:componentContainer_contentSpacing="6dp"
+    app:componentContainer_titleAppearance="?attr/textH50">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input_first"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_weight="1"
+        style="?attr/inputDefaultM"/>
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/input_second"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_weight="1"
+        style="?attr/inputDefaultM"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

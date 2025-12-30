@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textM2"
+    android:id="@+id/campaign_option"
+    android:background="@drawable/bg_rds_gray_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>

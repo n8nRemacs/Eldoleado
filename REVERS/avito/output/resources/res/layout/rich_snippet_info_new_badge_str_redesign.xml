@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textXs10"
+    android:id="@+id/card_new_badge"
+    android:background="@drawable/bg_rich_snippet_info_viewed_badge_str_redesign"
+    android:paddingTop="1dp"
+    android:paddingBottom="2dp"
+    android:layout_marginTop="@dimen/rich_snippet_info_badge_vertical_offset_str_redesign"
+    android:layout_marginStart="@dimen/rich_snippet_info_badge_horizontal_offset_str_redesign"
+    android:layout_marginEnd="@dimen/rich_snippet_favorite_button_size"
+    android:paddingHorizontal="6dp"
+    style="@style/Design.Widget.SnippetBadge"/>

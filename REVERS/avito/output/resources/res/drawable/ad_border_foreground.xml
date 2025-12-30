@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/serp_card_foreground"/>
+    <item
+        android:drawable="@drawable/grid_advert_image_foreground"
+        android:left="@dimen/serp_card_foreground_padding"
+        android:top="@dimen/serp_card_foreground_padding"
+        android:right="@dimen/serp_card_foreground_padding"
+        android:bottom="@dimen/serp_card_foreground_padding"/>
+</layer-list>

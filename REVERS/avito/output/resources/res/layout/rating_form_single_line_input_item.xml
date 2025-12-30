@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.component_container.ComponentContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="@+id/single_line_input_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.input.Input
+        android:id="@+id/single_line_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/input"/>
+</com.avito.android.lib.design.component_container.ComponentContainer>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/map_container"
+    android:layout_width="match_parent"
+    android:layout_height="192dp"
+    app:cardCornerRadius="5dp"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false"
+    style="@style/AvitoCardView">
+    <com.yandex.mapkit.mapview.MapView
+        android:id="@+id/developments_catalog_yandex_map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:movable="true"/>
+</androidx.cardview.widget.CardView>

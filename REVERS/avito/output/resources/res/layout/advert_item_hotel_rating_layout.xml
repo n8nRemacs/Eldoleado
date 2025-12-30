@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/hotel_rating_image"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginEnd="3dp"
+        app:srcCompat="?attr/ic_celeb16"
+        app:tint="?attr/black"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:ellipsize="end"
+        android:id="@+id/hotel_rating_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"/>
+</LinearLayout>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.bottom_sheet.BoundedCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center"
+    android:background="?attr/white"
+    android:paddingTop="16dp"
+    android:clipChildren="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxWidth="@dimen/avito_bottom_sheet_max_width"
+    android:elevation="@dimen/avito_bottom_sheet_elevation"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="@dimen/avito_bottom_sheet_default_peek_height"
+    app:cardCornerRadius="@dimen/avito_bottom_sheet_corner_radius"
+    app:elevation="@dimen/avito_bottom_sheet_elevation"
+    app:layout_behavior="@string/bottom_sheet_behavior">
+    <View
+        android:layout_gravity="top|center_horizontal"
+        android:id="@+id/avito_bottom_sheet_notch"
+        android:background="@drawable/ic_avito_bottom_sheet_notch"
+        android:visibility="gone"
+        android:layout_width="28dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="10dp"/>
+    <ImageView
+        android:id="@+id/bottom_sheet_close_button"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:focusable="true"
+        android:clickable="true"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="8dp"
+        app:srcCompat="@drawable/ic_close_24"/>
+</com.avito.android.lib.design.bottom_sheet.BoundedCardView>

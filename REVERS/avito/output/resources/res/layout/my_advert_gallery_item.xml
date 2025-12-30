@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/my_advert_gallery_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="@layout/part_photo_gallery2"/>
+    <com.avito.android.photo_gallery.ui.FixedRatioImageView
+        android:id="@+id/photo_gallery_stub"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:backgroundImage="?attr/gray8"
+        app:placeholderImage="@drawable/ic_stub_white_34"
+        app:ratio="0.64"
+        style="@style/Widget.Avito.SimpleDraweeView.Serp.Item.Image.List"/>
+</LinearLayout>

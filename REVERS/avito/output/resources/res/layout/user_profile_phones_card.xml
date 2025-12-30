@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:id="@+id/user_profile_phones_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <TextView
+        android:textSize="@dimen/big_text_size"
+        android:textColor="?attr/black"
+        android:id="@+id/phone_card_title"
+        android:paddingLeft="@dimen/profile_inside_horizontal_padding"
+        android:paddingTop="@dimen/standard_padding"
+        android:paddingRight="@dimen/profile_inside_horizontal_padding"
+        android:paddingBottom="@dimen/standard_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/call_settings_item_title"
+        app:fontFamily="?attr/fontHeavy"/>
+    <LinearLayout
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:id="@+id/phone_card_phones_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/phone_card_action_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+        <View
+            android:background="?attr/gray8"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+        <include
+            android:id="@+id/phone_card_action_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            layout="@layout/button_flat_card"/>
+    </LinearLayout>
+</LinearLayout>

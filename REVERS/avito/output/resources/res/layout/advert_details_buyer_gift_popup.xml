@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="@dimen/advert_services_buyer_gift_popup_top_margin"
+    android:paddingBottom="@dimen/advert_services_buyer_gift_popup_bottom_margin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/advert_services_buyer_gift_popup_left_margin"
+    android:paddingEnd="@dimen/advert_services_buyer_gift_popup_right_margin">
+    <TextView
+        android:theme="@style/Theme.DesignSystem.Re23"
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/buyer_gift_popup_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?attr/textS1"
+    android:textColor="?attr/gray54"
+    android:textColorHighlight="?attr/gray54"
+    android:textColorLink="?attr/gray54"
+    android:id="@+id/recall_me_agreement_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:paddingHorizontal="@dimen/recall_me_horizontal_padding"/>

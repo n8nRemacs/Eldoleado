@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="advert_details_equipment_tile_horizontal_padding">128dp</dimen>
+    <dimen name="advert_details_verification_block_horizontal_margin">122dp</dimen>
+    <dimen name="advert_safedeal_button_horizontal_padding">128dp</dimen>
+    <dimen name="auto_catalog_selector_content_horizontal_padding">144dp</dimen>
+    <dimen name="carousel_photo_gallery_height">412dp</dimen>
+    <dimen name="complementary_content_horizontal_padding">122dp</dimen>
+    <dimen name="complementary_shortcut_content_horizontal_padding">122dp</dimen>
+    <dimen name="contact_bar_horizontal_padding">118dp</dimen>
+    <dimen name="content_button_horizontal_padding">122dp</dimen>
+    <dimen name="content_highlight_horizontal_padding">120dp</dimen>
+    <dimen name="content_horizontal_padding">128dp</dimen>
+    <dimen name="content_horizontal_padding_smaller">122dp</dimen>
+    <dimen name="developer_trust_cards_margin_horizontal">112dp</dimen>
+    <dimen name="gallery_height">412dp</dimen>
+    <dimen name="gallery_height_redesign">412dp</dimen>
+    <dimen name="long_serp_loading_message_bottom_margin">48dp</dimen>
+    <dimen name="rds_content_horizontal_padding_left">124dp</dimen>
+    <dimen name="redesign_marketplace_advert_banner_horizontal_margin">128dp</dimen>
+    <dimen name="services_transportation_widget_banner_horizontal_margin">128dp</dimen>
+    <dimen name="shop_content_horizontal_padding">80dp</dimen>
+    <dimen name="shop_detailed_btn_padding">72dp</dimen>
+    <dimen name="str_booking_gallery_height">412dp</dimen>
+    <dimen name="toolbar_text_subtitle">14dp</dimen>
+    <dimen name="toolbar_text_title">18dp</dimen>
+</resources>

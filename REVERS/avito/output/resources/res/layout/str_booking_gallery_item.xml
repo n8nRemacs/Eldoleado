@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.gallery.ui.GalleryView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/str_booking_gallery"
+    android:background="?attr/constantWhite"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/str_booking_gallery_height"
+    android:scaleType="centerCrop"
+    app:gallery_actualImageScaleType="centerCrop"
+    app:indicator_selectedDotColor="?attr/constantWhite"
+    app:indicator_unselectedDotColor="@color/legacy_constant_white_alpha_40"/>

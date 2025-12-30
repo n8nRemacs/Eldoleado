@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include
+        android:id="@+id/delivery_summary_skeleton"
+        layout="@layout/publish_delivery_summary_add_item_skeleton"/>
+    <include
+        android:id="@+id/delivery_summary_container"
+        layout="@layout/publish_delivery_summary_add_item_view"/>
+</FrameLayout>

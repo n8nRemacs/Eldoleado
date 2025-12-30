@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="buttons_on_photo_in_editor_width">42dp</dimen>
+</resources>

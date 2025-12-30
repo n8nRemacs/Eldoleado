@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:id="@+id/autoteka_payment_total_skeleton_view_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="24dp">
+    <com.avito.android.lib.design.description_list.parameter_line.item.DescriptionParameterItem
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        app:descriptionParameterItem_leftTextAppearance="?attr/textH30"/>
+    <com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <View
+            android:background="@drawable/background_stub_6_radius"
+            android:layout_width="55dp"
+            android:layout_height="14dp"/>
+    </com.avito.android.lib.design.skeleton.shimmer.ShimmerFrameLayout>
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.util.ExpandablePanelLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/my_advert_description_container"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:animationDuration="250"
+    app:contentId="@+id/advert_description"
+    app:handleId="@+id/expanding_button">
+    <TextView
+        android:textAppearance="?attr/textBody"
+        android:id="@+id/advert_description"
+        android:focusableInTouchMode="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/content_horizontal_padding"
+        android:layout_marginRight="@dimen/content_horizontal_padding"/>
+    <TextView
+        android:textSize="12sp"
+        android:textColor="?attr/blue"
+        android:gravity="center"
+        android:id="@+id/expanding_button"
+        android:background="@drawable/btn_transparent_rounded_states"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/content_highlight_horizontal_padding"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="@dimen/content_highlight_horizontal_padding"
+        android:minHeight="22dp"
+        android:text="@string/advert_core_show_full_caps"
+        app:fontFamily="?attr/fontHeavy"/>
+</com.avito.android.util.ExpandablePanelLayout>

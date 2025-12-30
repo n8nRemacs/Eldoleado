@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/calendar_settings_list_item_bg"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:drawableLeft="@drawable/common_ic_calendar_20"
+    android:drawableRight="@drawable/common_ic_arrow_right_20"
+    android:layout_marginHorizontal="16dp"
+    app:listItem_backgroundColor="@null"
+    app:listItem_backgroundRipple="@null"
+    app:listItem_iconLeftColor="?attr/black"
+    app:listItem_iconRightColor="?attr/black"/>

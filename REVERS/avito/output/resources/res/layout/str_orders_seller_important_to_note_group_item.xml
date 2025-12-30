@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+    <ImageView
+        android:gravity="center"
+        android:id="@+id/icon_iv"
+        android:background="@drawable/important_to_note_icon_background"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:scaleType="centerInside"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/black"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:ellipsize="end"
+        android:id="@+id/group_title_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:layout_marginStart="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/group_subtitle_tv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@+id/icon_iv"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+    <TextView
+        android:textAppearance="?attr/textM20"
+        android:textColor="?attr/gray64"
+        android:ellipsize="end"
+        android:id="@+id/group_subtitle_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="@+id/group_title_tv"
+        app:layout_constraintTop_toBottomOf="@+id/group_title_tv"
+        app:layout_constraintVertical_chainStyle="packed"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

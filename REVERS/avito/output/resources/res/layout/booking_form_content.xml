@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.avito.android.short_term_rent.bookingform.page.PagerNoTouchEventRecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <FrameLayout
+        android:layout_gravity="bottom"
+        android:id="@+id/footer"
+        android:background="@drawable/bg_booking_form_footer"
+        android:paddingTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/booking_form_footer_height"
+        android:elevation="12dp"
+        android:paddingHorizontal="10dp">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/footerButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/buttonPayLarge"/>
+    </FrameLayout>
+</FrameLayout>

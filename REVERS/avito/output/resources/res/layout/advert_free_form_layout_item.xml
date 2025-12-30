@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:orientation="vertical"
+    android:id="@+id/advert_free_form_root"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="@drawable/item_ripple_fg"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+    <com.avito.android.lib.design.docking_badge.DockingBadge
+        android:id="@+id/viewed_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="6dp"
+        android:text="@string/viewed_on_free_form"
+        app:dockingBadge_end="?attr/dockingBadgeEdgeSquareSmall"
+        app:dockingBadge_start="?attr/dockingBadgeEdgeSquareSmall"
+        style="?attr/dockingBadgeGraySmall"/>
+    <com.avito.android.serp.NoTouchEventRecyclerView
+        android:id="@+id/free_form_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"/>
+</LinearLayout>

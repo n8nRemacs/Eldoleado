@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/vas_bundle_banner_container"
+    android:background="@drawable/vas_bundle_banner_background"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="118dp">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="42dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="102dp"
+        style="?attr/textBody"/>
+    <com.avito.android.fresco.SimpleDraweeView
+        android:layout_gravity="end|bottom"
+        android:id="@+id/picture"
+        android:layout_width="170dp"
+        android:layout_height="118dp"/>
+</FrameLayout>

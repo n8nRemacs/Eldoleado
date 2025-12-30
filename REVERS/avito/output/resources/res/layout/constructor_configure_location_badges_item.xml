@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/location_badges_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.avito.android.lib.design.chips.Chips
+        android:id="@+id/badges"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="6dp"
+        app:chips_displayType="multipleLines"
+        app:chips_isNotSelectable="true"
+        app:chips_maxLines="2"
+        style="?attr/chipsSmall"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:textColor="?attr/gray54"
+        android:id="@+id/show"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+    <TextView
+        android:textAppearance="?attr/textS20"
+        android:textColor="?attr/gray54"
+        android:id="@+id/hide"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

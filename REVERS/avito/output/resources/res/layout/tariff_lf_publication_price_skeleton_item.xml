@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/tariff_lf_publication_price_skeleton_item"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="?attr/shimmerDefault">
+    <com.avito.android.lib.design.skeleton.TextSkeleton
+        android:layout_gravity="start"
+        android:id="@+id/tariff_lf_publication_price_title_stub"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        style="?attr/textH50"/>
+    <com.avito.android.lib.design.skeleton.TextSkeleton
+        android:layout_gravity="end"
+        android:id="@+id/tariff_lf_publication_price_info_stub"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        style="?attr/textH50"/>
+</com.avito.android.lib.design.skeleton.shimmer.ShimmerLayout>

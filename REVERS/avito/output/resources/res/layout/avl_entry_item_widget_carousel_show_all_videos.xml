@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/show_all_root_view"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardBackgroundColor="?attr/warmGray4"
+    app:cardCornerRadius="@dimen/avl_entry_corner_radius"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false">
+    <LinearLayout
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textColor="?attr/black"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            style="?attr/textH6"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/player_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerInside"
+            android:contentDescription="@null"
+            app:srcCompat="@drawable/avl_entry_ic_play"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

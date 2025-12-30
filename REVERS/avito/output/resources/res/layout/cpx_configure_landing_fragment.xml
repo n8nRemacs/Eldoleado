@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cpx_configure_landing_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        layout="@layout/mnz_functional_toolbar_view"/>
+    <FrameLayout
+        android:id="@+id/cpx_configure_landing_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mnz_toolbar">
+        <include layout="@layout/cpx_configure_landing_skeleton_item"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/cpx_configure_landing_recycler_view"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+    </FrameLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/cpx_configure_landing_button_container"
+        android:background="@drawable/tariff_bg_white_gradient"
+        android:paddingTop="16dp"
+        android:paddingBottom="14dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+        <com.avito.android.lib.design.button.Button
+            android:id="@+id/cpx_configure_landing_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="?attr/buttonPrimaryLarge"/>
+        <TextView
+            android:id="@+id/cpx_configure_landing_text_rules"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

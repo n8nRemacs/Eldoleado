@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.avito.android.lib.design.list_item.ListItem xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/order"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="24dp"
+    android:drawableLeft="@drawable/ic_order"
+    app:layout_scrollFlags="snap|enterAlways|scroll"
+    app:listItem_contentMinHeight="0dp"
+    app:listItem_contentSpacing="4dp"
+    app:listItem_iconLeftColor="?attr/black"
+    app:listItem_textMarginBottom="0dp"
+    app:listItem_textMarginTop="0dp"
+    app:listItem_titleAppearance="?attr/textS1"/>

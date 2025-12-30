@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/settings_screen_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.avito.android.lib.design.spinner.overlay.SpinnerOverlay
+            android:id="@+id/spinner_overlay_initial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/settings_list"
+            android:paddingTop="?attr/actionBarSize"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clipToPadding="false"
+            android:descendantFocusability="beforeDescendants"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <com.avito.android.lib.design.spinner.overlay.SpinnerOverlay
+            android:id="@+id/spinner_overlay_updating"
+            android:background="?attr/backdrop_fill"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+    <include layout="@layout/appbar"/>
+</FrameLayout>

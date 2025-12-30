@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:theme="@style/Theme.DesignSystem.Re23"
+    android:id="@+id/cpt_migration_terms_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/cpt_migration_terms_image_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:baselineAlignBottom="true"
+        android:minWidth="16dp"
+        android:minHeight="16dp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/cpt_migration_terms_text_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_marginBaseline="2dp"/>
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/cpt_migration_terms_text_icon"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="true"
+        app:layout_constraintBaseline_toBaselineOf="@+id/cpt_migration_terms_text_title"
+        app:layout_constraintStart_toStartOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textH40"
+        android:id="@+id/cpt_migration_terms_text_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:textAppearance="?attr/textM10"
+        android:id="@+id/cpt_migration_terms_text_subtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="28dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cpt_migration_terms_text_title"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

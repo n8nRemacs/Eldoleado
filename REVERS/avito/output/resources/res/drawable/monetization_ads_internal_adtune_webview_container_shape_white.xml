@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tint="#ffffff"
+    android:shape="rectangle">
+    <solid android:color="#ffffff"/>
+    <corners
+        android:topLeftRadius="@dimen/monetization_ads_internal_adtune_corner_radius"
+        android:topRightRadius="@dimen/monetization_ads_internal_adtune_corner_radius"/>
+</shape>

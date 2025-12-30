@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/profile_auto_clickable_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/UserProfileCardContainer">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/auto_clickable_item_container"
+        android:background="@drawable/bg_btn_flat"
+        android:paddingTop="@dimen/standard_padding"
+        android:paddingBottom="@dimen/standard_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/profile_item_vertical_margin"
+        android:layout_marginBottom="@dimen/profile_item_vertical_margin"
+        android:paddingStart="@dimen/profile_inside_horizontal_padding"
+        android:paddingEnd="@dimen/profile_inside_horizontal_padding">
+        <TextView
+            android:textAppearance="?attr/textBody"
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+        <com.avito.android.lib.design.badge.Badge
+            android:id="@+id/auto_clickable_item_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/profile_new_badge_start_margin"
+            app:layout_constraintBottom_toBottomOf="@+id/text"
+            app:layout_constraintStart_toEndOf="@+id/text"
+            app:layout_constraintTop_toTopOf="@+id/text"
+            style="?attr/badgeNumberMedium"/>
+        <TextView
+            android:textAppearance="?attr/textBodySmall"
+            android:textColor="?attr/gray48"
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/profile_item_vertical_margin"
+            app:layout_constraintStart_toStartOf="@+id/text"
+            app:layout_constraintTop_toBottomOf="@+id/text"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
