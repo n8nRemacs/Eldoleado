@@ -1,0 +1,227 @@
+{
+  "name": "ELO_Context_Router",
+  "description": "Routes extracted context based on tenant domain/vertical connections",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-context-router",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-480, 0],
+      "webhookId": "elo-context-router"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.tenant_id) {\n  throw new Error('Missing required field: tenant_id');\n}\nif (!input.extracted) {\n  throw new Error('Missing required field: extracted');\n}\n\nreturn {\n  tenant_id: input.tenant_id,\n  dialog_id: input.dialog_id,\n  extracted: input.extracted,  // { entities: [...], grouped: { global, domain, vertical } }\n  current_appeal: input.current_appeal || null,\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-256, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.code as domain_code, d.name as domain_name, d.neo4j_database\nFROM elo_t_tenant_domains ttd\nJOIN elo_domains d ON d.id = ttd.domain_id\nWHERE ttd.tenant_id = $1\n  AND ttd.is_active = true\n  AND d.is_active = true;",
+        "options": {
+          "queryReplacement": "={{ [$json.tenant_id] }}"
+        }
+      },
+      "id": "load-domains",
+      "name": "Load Tenant Domains",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-32, -100],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT v.code as vertical_code, v.name as vertical_name, d.code as domain_code\nFROM elo_t_tenant_verticals ttv\nJOIN elo_verticals v ON v.id = ttv.vertical_id\nJOIN elo_domains d ON d.id = v.domain_id\nWHERE ttv.tenant_id = $1\n  AND ttv.is_active = true\n  AND v.is_active = true;",
+        "options": {
+          "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
+        }
+      },
+      "id": "load-verticals",
+      "name": "Load Tenant Verticals",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-32, 100],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.name as tenant_name, t.config\nFROM elo_t_tenants t\nWHERE t.id = $1;",
+        "options": {
+          "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
+        }
+      },
+      "id": "load-tenant",
+      "name": "Load Tenant Info",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-32, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-all",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [192, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst extracted = inputData.extracted;\nconst currentAppeal = inputData.current_appeal;\n\n// Build connected packages\nconst domains = $('Load Tenant Domains').all().map(i => i.json.domain_code);\nconst verticals = $('Load Tenant Verticals').all().map(i => ({\n  code: i.json.vertical_code,\n  domain: i.json.domain_code\n}));\nconst tenantInfo = $('Load Tenant Info').first()?.json || {};\n\nconst connectedDomains = new Set(domains);\nconst connectedVerticals = new Map();\nfor (const v of verticals) {\n  if (!connectedVerticals.has(v.domain)) {\n    connectedVerticals.set(v.domain, new Set());\n  }\n  connectedVerticals.get(v.domain).add(v.code);\n}\n\n// Route extracted context\nconst accepted = [];\nconst rejected = [];\nconst routing = {\n  global: [],\n  domain: {},\n  vertical: {}\n};\n\n// Process global context (always accepted)\nif (extracted.grouped?.global) {\n  for (const entity of extracted.grouped.global) {\n    accepted.push({\n      ...entity,\n      level: 'global',\n      routing: 'accepted'\n    });\n    routing.global.push(entity);\n  }\n}\n\n// Process domain context\nif (extracted.grouped?.domain) {\n  for (const [domainCode, entities] of Object.entries(extracted.grouped.domain)) {\n    if (connectedDomains.has(domainCode)) {\n      // Domain is connected\n      for (const entity of entities) {\n        accepted.push({\n          ...entity,\n          level: 'domain',\n          domain: domainCode,\n          routing: 'accepted'\n        });\n      }\n      routing.domain[domainCode] = entities;\n    } else {\n      // Domain not connected\n      for (const entity of entities) {\n        rejected.push({\n          ...entity,\n          level: 'domain',\n          domain: domainCode,\n          routing: 'rejected',\n          reason: 'domain_not_connected'\n        });\n      }\n    }\n  }\n}\n\n// Process vertical context\nif (extracted.grouped?.vertical) {\n  for (const [verticalCode, entities] of Object.entries(extracted.grouped.vertical)) {\n    // Find which domain this vertical belongs to\n    let foundDomain = null;\n    for (const [domain, verts] of connectedVerticals) {\n      if (verts.has(verticalCode)) {\n        foundDomain = domain;\n        break;\n      }\n    }\n    \n    if (foundDomain) {\n      // Vertical is connected\n      for (const entity of entities) {\n        accepted.push({\n          ...entity,\n          level: 'vertical',\n          vertical: verticalCode,\n          domain: foundDomain,\n          routing: 'accepted'\n        });\n      }\n      routing.vertical[verticalCode] = entities;\n    } else {\n      // Vertical not connected\n      for (const entity of entities) {\n        rejected.push({\n          ...entity,\n          level: 'vertical',\n          vertical: verticalCode,\n          routing: 'rejected',\n          reason: 'vertical_not_connected'\n        });\n      }\n    }\n  }\n}\n\n// Determine if context switch is needed\nlet contextSwitch = null;\n\nif (currentAppeal) {\n  // Check if new entities belong to different domain/vertical\n  const acceptedDomains = new Set(accepted.filter(e => e.domain).map(e => e.domain));\n  const acceptedVerticals = new Set(accepted.filter(e => e.vertical).map(e => e.vertical));\n  \n  // Check for device entity (for same/different device detection)\n  const newDevice = accepted.find(e => e.type === 'device');\n  \n  if (newDevice) {\n    const currentDevice = currentAppeal.device;\n    \n    if (currentDevice) {\n      // Compare devices\n      const sameDevice = (\n        newDevice.brand?.toLowerCase() === currentDevice.brand?.toLowerCase() &&\n        newDevice.model?.toLowerCase() === currentDevice.model?.toLowerCase()\n      );\n      \n      const differentVertical = acceptedVerticals.size > 0 && \n        !acceptedVerticals.has(currentAppeal.vertical);\n      \n      if (sameDevice && differentVertical) {\n        // Same device, different vertical → need clarification\n        contextSwitch = {\n          type: 'clarification_needed',\n          reason: 'same_device_different_vertical',\n          current: {\n            device: currentDevice,\n            vertical: currentAppeal.vertical\n          },\n          new: {\n            device: newDevice,\n            vertical: Array.from(acceptedVerticals)[0]\n          },\n          options: [\n            { code: 'cancel_current', label: 'Cancel current and switch' },\n            { code: 'parallel', label: 'Continue both in parallel' }\n          ]\n        };\n      } else if (!sameDevice) {\n        // Different device → new appeal automatically\n        contextSwitch = {\n          type: 'new_appeal',\n          reason: 'different_device',\n          current: {\n            device: currentDevice,\n            vertical: currentAppeal.vertical\n          },\n          new: {\n            device: newDevice,\n            vertical: Array.from(acceptedVerticals)[0] || currentAppeal.vertical\n          }\n        };\n      }\n    }\n  }\n}\n\n// Build response hints for AI to generate rejection messages\nconst responseHints = [];\n\nif (rejected.length > 0) {\n  const rejectedDomains = [...new Set(rejected.filter(e => e.reason === 'domain_not_connected').map(e => e.domain))];\n  const rejectedVerticals = [...new Set(rejected.filter(e => e.reason === 'vertical_not_connected').map(e => e.vertical))];\n  \n  if (rejectedDomains.length > 0) {\n    responseHints.push({\n      type: 'domain_rejection',\n      domains: rejectedDomains,\n      tenant_specialization: Array.from(connectedDomains)\n    });\n  }\n  \n  if (rejectedVerticals.length > 0) {\n    responseHints.push({\n      type: 'vertical_rejection',\n      verticals: rejectedVerticals,\n      tenant_verticals: Array.from(connectedVerticals.values()).flatMap(v => Array.from(v))\n    });\n  }\n}\n\nreturn {\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id,\n  trace_id: inputData.trace_id,\n  \n  tenant: {\n    name: tenantInfo.tenant_name,\n    domains: Array.from(connectedDomains),\n    verticals: verticals.map(v => v.code)\n  },\n  \n  routing: {\n    accepted: accepted,\n    rejected: rejected,\n    by_level: routing\n  },\n  \n  context_switch: contextSwitch,\n  \n  response_hints: responseHints,\n  \n  summary: {\n    total_extracted: extracted.entities?.length || 0,\n    accepted_count: accepted.length,\n    rejected_count: rejected.length,\n    needs_clarification: contextSwitch?.type === 'clarification_needed',\n    new_appeal_suggested: contextSwitch?.type === 'new_appeal'\n  }\n};"
+      },
+      "id": "route-context",
+      "name": "Route Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [416, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [640, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Load Tenant Domains",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Tenant Verticals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Tenant Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Tenant Domains": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Tenant Info": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Load Tenant Verticals": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Route Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Context": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "id": "8dihLRJvdhkW2kZ1",
+      "name": "AI"
+    },
+    {
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ]
+}

@@ -1,0 +1,525 @@
+{
+  "name": "ELO_Worker_Executor",
+  "description": "Universal worker executor - executes blind workers from DB config",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-worker-executor",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-640, 0],
+      "webhookId": "elo-worker-executor"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.worker_id && !input.worker_code) {\n  throw new Error('Missing required field: worker_id or worker_code');\n}\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\n\nreturn {\n  worker_id: input.worker_id || null,\n  worker_code: input.worker_code || null,\n  tenant_id: input.tenant_id,\n  context: input.context,\n  message: input.message || null,\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-416, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT wc.id, wc.code, wc.worker_type, wc.level, wc.config,\n       wc.cache_enabled, wc.cache_key_template, wc.cache_ttl_minutes,\n       p.system_prompt, p.user_prompt_template, p.output_schema as prompt_output_schema\nFROM elo_worker_configs wc\nLEFT JOIN elo_prompts p ON p.id = wc.prompt_id\nWHERE (wc.id = $1 OR wc.code = $2)\n  AND wc.is_active = true\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [$json.worker_id, $json.worker_code] }}"
+        }
+      },
+      "id": "load-worker-config",
+      "name": "Load Worker Config",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-192, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst workerRow = $input.first()?.json;\n\nif (!workerRow) {\n  throw new Error(`Worker not found: ${inputData.worker_id || inputData.worker_code}`);\n}\n\n// Parse config\nlet config = workerRow.config;\nif (typeof config === 'string') {\n  config = JSON.parse(config);\n}\n\n// Build cache key if enabled\nlet cacheKey = null;\nif (workerRow.cache_enabled && workerRow.cache_key_template) {\n  cacheKey = workerRow.cache_key_template;\n  // Replace placeholders\n  cacheKey = cacheKey.replace(/\\{([^}]+)\\}/g, (match, path) => {\n    const parts = path.split('.');\n    let value = inputData.context;\n    for (const part of parts) {\n      value = value?.[part];\n    }\n    return value || 'null';\n  });\n}\n\nreturn {\n  worker: {\n    id: workerRow.id,\n    code: workerRow.code,\n    type: workerRow.worker_type,\n    level: workerRow.level,\n    config: config\n  },\n  cache: {\n    enabled: workerRow.cache_enabled,\n    key: cacheKey,\n    ttl_minutes: workerRow.cache_ttl_minutes\n  },\n  prompt: {\n    system: workerRow.system_prompt,\n    user_template: workerRow.user_prompt_template,\n    output_schema: workerRow.prompt_output_schema\n  },\n  input: {\n    context: inputData.context,\n    message: inputData.message,\n    tenant_id: inputData.tenant_id,\n    trace_id: inputData.trace_id\n  }\n};"
+      },
+      "id": "prepare-execution",
+      "name": "Prepare Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [32, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "worker-type",
+              "leftValue": "={{ $json.worker.type }}",
+              "rightValue": "extractor",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "switch-type",
+      "name": "Worker Type?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [256, 0],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "outputKey": "extractor",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.worker.type }}",
+                    "rightValue": "extractor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "data_fetch",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.worker.type }}",
+                    "rightValue": "data_fetch",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "generator",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.worker.type }}",
+                    "rightValue": "generator",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "hook_outbound",
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.worker.type }}",
+                    "rightValue": "hook_outbound",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// EXTRACTOR: Call LLM with prompt\nconst data = $json;\nconst config = data.worker.config;\nconst context = data.input.context;\nconst message = data.input.message;\n\n// Build user prompt from template\nlet userPrompt = data.prompt.user_template || 'Extract from: \"{{message}}\"';\nuserPrompt = userPrompt.replace(/\\{\\{message\\}\\}/g, message || '');\nuserPrompt = userPrompt.replace(/\\{\\{([^}]+)\\}\\}/g, (match, path) => {\n  const parts = path.split('.');\n  let value = context;\n  for (const part of parts) {\n    value = value?.[part];\n  }\n  return value !== undefined ? String(value) : match;\n});\n\nreturn {\n  ...data,\n  execution: {\n    type: 'llm_call',\n    system_prompt: data.prompt.system,\n    user_prompt: userPrompt,\n    output_schema: data.prompt.output_schema\n  }\n};"
+      },
+      "id": "prepare-extractor",
+      "name": "Prepare Extractor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, -200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.execution.system_prompt || 'Extract entities and return JSON.' },\n    { role: 'user', content: $json.execution.user_prompt }\n  ],\n  temperature: 0.1,\n  max_tokens: 500\n}) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "call-llm-extractor",
+      "name": "Call LLM (Extractor)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [704, -200],
+      "credentials": {
+        "openRouterApi": {
+          "id": "ameOTCcGgTm3hbtM",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// DATA_FETCH: Execute SQL query\nconst data = $json;\nconst config = data.worker.config;\nconst context = data.input.context;\n\n// Build query params from config\nconst params = (config.params || []).map(p => {\n  const parts = p.path.split('.');\n  let value = context;\n  for (const part of parts) {\n    value = value?.[part];\n  }\n  return value;\n});\n\nreturn {\n  ...data,\n  execution: {\n    type: 'sql_query',\n    query: config.query,\n    params: params,\n    result_mapping: config.result_mapping || {}\n  }\n};"
+      },
+      "id": "prepare-data-fetch",
+      "name": "Prepare Data Fetch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, -50]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.execution.query }}",
+        "options": {
+          "queryReplacement": "={{ JSON.stringify($json.execution.params) }}"
+        }
+      },
+      "id": "execute-sql",
+      "name": "Execute SQL Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [704, -50],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// GENERATOR: Call LLM for response generation\nconst data = $json;\nconst config = data.worker.config;\nconst context = data.input.context;\n\nlet userPrompt = data.prompt.user_template || 'Generate response for context: {{context}}';\nuserPrompt = userPrompt.replace(/\\{\\{context\\}\\}/g, JSON.stringify(context));\nuserPrompt = userPrompt.replace(/\\{\\{([^}]+)\\}\\}/g, (match, path) => {\n  const parts = path.split('.');\n  let value = context;\n  for (const part of parts) {\n    value = value?.[part];\n  }\n  return value !== undefined ? String(value) : match;\n});\n\nreturn {\n  ...data,\n  execution: {\n    type: 'llm_call',\n    system_prompt: data.prompt.system,\n    user_prompt: userPrompt\n  }\n};"
+      },
+      "id": "prepare-generator",
+      "name": "Prepare Generator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.execution.system_prompt || 'Generate a helpful response.' },\n    { role: 'user', content: $json.execution.user_prompt }\n  ],\n  temperature: 0.7,\n  max_tokens: 1000\n}) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "call-llm-generator",
+      "name": "Call LLM (Generator)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [704, 100],
+      "credentials": {
+        "openRouterApi": {
+          "id": "ameOTCcGgTm3hbtM",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// HOOK_OUTBOUND: HTTP request\nconst data = $json;\nconst config = data.worker.config;\nconst context = data.input.context;\n\n// Build URL from template\nlet url = config.url_template || '';\nurl = url.replace(/\\{([^}]+)\\}/g, (match, path) => {\n  const parts = path.split('.');\n  let value = context;\n  for (const part of parts) {\n    value = value?.[part];\n  }\n  return value !== undefined ? encodeURIComponent(String(value)) : '';\n});\n\n// Build body from template\nlet body = config.body_template || {};\nif (typeof body === 'object') {\n  body = JSON.stringify(body).replace(/\\{([^}]+)\\}/g, (match, path) => {\n    const parts = path.split('.');\n    let value = context;\n    for (const part of parts) {\n      value = value?.[part];\n    }\n    return value !== undefined ? String(value) : '';\n  });\n  body = JSON.parse(body);\n}\n\nreturn {\n  ...data,\n  execution: {\n    type: 'http_request',\n    method: config.method || 'POST',\n    url: url,\n    headers: config.headers || {},\n    body: body\n  }\n};"
+      },
+      "id": "prepare-hook-outbound",
+      "name": "Prepare Hook Outbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 250]
+    },
+    {
+      "parameters": {
+        "method": "={{ $json.execution.method }}",
+        "url": "={{ $json.execution.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.execution.body) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "execute-http",
+      "name": "Execute HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [704, 250]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [928, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nconst prepData = $('Prepare Execution').first().json;\n\nlet output = null;\nlet rawResponse = null;\n\n// Parse result based on worker type\nswitch (prepData.worker.type) {\n  case 'extractor':\n  case 'generator':\n    rawResponse = result.choices?.[0]?.message?.content || '';\n    // Clean and parse\n    let cleaned = rawResponse.trim();\n    cleaned = cleaned.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n    try {\n      const jsonMatch = cleaned.match(/[\\[\\{][\\s\\S]*[\\]\\}]/);\n      if (jsonMatch) {\n        output = JSON.parse(jsonMatch[0]);\n      } else {\n        output = cleaned;\n      }\n    } catch (e) {\n      output = cleaned;\n    }\n    break;\n    \n  case 'data_fetch':\n    output = result;\n    // Apply result mapping if configured\n    const mapping = prepData.worker.config.result_mapping;\n    if (mapping && Object.keys(mapping).length > 0) {\n      const mapped = {};\n      for (const [targetPath, sourcePath] of Object.entries(mapping)) {\n        const sourceValue = result[sourcePath];\n        // Set nested path\n        const parts = targetPath.split('.');\n        let obj = mapped;\n        for (let i = 0; i < parts.length - 1; i++) {\n          obj[parts[i]] = obj[parts[i]] || {};\n          obj = obj[parts[i]];\n        }\n        obj[parts[parts.length - 1]] = sourceValue;\n      }\n      output = mapped;\n    }\n    break;\n    \n  case 'hook_outbound':\n    output = result;\n    break;\n    \n  default:\n    output = result;\n}\n\n// Update context at configured path\nlet updatedContext = { ...prepData.input.context };\nconst contextPath = prepData.worker.config.context_path;\nif (contextPath && output) {\n  const parts = contextPath.split('.');\n  let obj = updatedContext;\n  for (let i = 0; i < parts.length - 1; i++) {\n    const part = parts[i];\n    // Handle array notation like appeals[active]\n    if (part.includes('[')) {\n      const [arrName, selector] = part.split('[');\n      const sel = selector.replace(']', '');\n      obj[arrName] = obj[arrName] || [];\n      if (sel === 'active') {\n        // Find or create active item\n        let activeItem = obj[arrName].find(a => a.status === 'active');\n        if (!activeItem) {\n          activeItem = { status: 'active' };\n          obj[arrName].push(activeItem);\n        }\n        obj = activeItem;\n      } else {\n        obj = obj[arrName][parseInt(sel)] || {};\n      }\n    } else {\n      obj[part] = obj[part] || {};\n      obj = obj[part];\n    }\n  }\n  obj[parts[parts.length - 1]] = output;\n}\n\nreturn {\n  worker_id: prepData.worker.id,\n  worker_code: prepData.worker.code,\n  worker_type: prepData.worker.type,\n  tenant_id: prepData.input.tenant_id,\n  trace_id: prepData.input.trace_id,\n  \n  result: {\n    output: output,\n    raw_response: rawResponse,\n    context_path: contextPath\n  },\n  \n  context: updatedContext,\n  \n  cache: prepData.cache,\n  \n  execution_log: {\n    worker_type: prepData.worker.type,\n    executed_at: new Date().toISOString(),\n    success: true\n  }\n};"
+      },
+      "id": "format-output",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1152, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1376, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Load Worker Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Worker Config": {
+      "main": [
+        [
+          {
+            "node": "Prepare Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Execution": {
+      "main": [
+        [
+          {
+            "node": "Worker Type?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Worker Type?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Data Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Hook Outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Extractor": {
+      "main": [
+        [
+          {
+            "node": "Call LLM (Extractor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call LLM (Extractor)": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data Fetch": {
+      "main": [
+        [
+          {
+            "node": "Execute SQL Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute SQL Query": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare Generator": {
+      "main": [
+        [
+          {
+            "node": "Call LLM (Generator)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call LLM (Generator)": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Prepare Hook Outbound": {
+      "main": [
+        [
+          {
+            "node": "Execute HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "id": "8dihLRJvdhkW2kZ1",
+      "name": "AI"
+    },
+    {
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ]
+}
