@@ -1,0 +1,263 @@
+{
+  "name": "ELO_Results_Aggregator",
+  "description": "Polls Redis for results and aggregates extraction output",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "elo-results/:trace_id",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-640, 0],
+      "webhookId": "elo-results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trace_id = $input.first().json.params?.trace_id;\nconst query = $input.first().json.query || {};\n\nif (!trace_id) {\n  throw new Error('Missing trace_id parameter');\n}\n\nreturn {\n  trace_id: trace_id,\n  wait: query.wait === 'true',\n  timeout_ms: parseInt(query.timeout) || 10000\n};"
+      },
+      "id": "parse-params",
+      "name": "Parse Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-416, 0]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ `elo:status:${$json.trace_id}` }}"
+      },
+      "id": "redis-get-status",
+      "name": "Redis Get Status",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [-192, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json }}",
+              "rightValue": "complete",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-complete",
+      "name": "Is Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [32, 0]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ `elo:meta:${$('Parse Params').first().json.trace_id}` }}"
+      },
+      "id": "redis-get-meta",
+      "name": "Redis Get Meta",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [256, -112],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "LRANGE",
+        "arguments": "={{ `elo:results:${$('Parse Params').first().json.trace_id}` }} 0 -1"
+      },
+      "id": "redis-get-results",
+      "name": "Redis Get Results",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [480, -112],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const trace_id = $('Parse Params').first().json.trace_id;\nconst metaJson = $('Redis Get Meta').first().json;\nconst resultsRaw = $('Redis Get Results').first().json;\n\nlet meta = {};\ntry {\n  meta = typeof metaJson === 'string' ? JSON.parse(metaJson) : metaJson;\n} catch (e) {\n  meta = {};\n}\n\n// Parse results array\nlet results = [];\nif (Array.isArray(resultsRaw)) {\n  results = resultsRaw.map(r => {\n    try {\n      return typeof r === 'string' ? JSON.parse(r) : r;\n    } catch (e) {\n      return { error: 'parse_error', raw: r };\n    }\n  });\n}\n\n// Filter by confidence and errors\nconst entities = [];\nconst errors = [];\n\nfor (const r of results) {\n  if (r.error) {\n    errors.push(r);\n  } else if (r.result && (r.confidence >= 0.7 || !r.confidence)) {\n    entities.push({\n      type: r.code,\n      level: r.level,\n      ...r.result,\n      confidence: r.confidence,\n      duration_ms: r.duration_ms\n    });\n  }\n}\n\n// Group by level\nconst grouped = {\n  global: entities.filter(e => e.level === 'global'),\n  domain: {},\n  vertical: {}\n};\n\nfor (const e of entities) {\n  if (e.level === 'domain' && e.domain_code) {\n    if (!grouped.domain[e.domain_code]) grouped.domain[e.domain_code] = [];\n    grouped.domain[e.domain_code].push(e);\n  }\n  if (e.level === 'vertical' && e.vertical_code) {\n    if (!grouped.vertical[e.vertical_code]) grouped.vertical[e.vertical_code] = [];\n    grouped.vertical[e.vertical_code].push(e);\n  }\n}\n\n// Stats\nconst total_duration = results.reduce((a, r) => a + (r.duration_ms || 0), 0);\nconst avg_duration = results.length > 0 ? Math.round(total_duration / results.length) : 0;\n\nreturn {\n  status: 'complete',\n  trace_id: trace_id,\n  \n  entities: entities,\n  grouped: grouped,\n  errors: errors,\n  \n  stats: {\n    total_tasks: meta.total_tasks || results.length,\n    successful: entities.length,\n    failed: errors.length,\n    avg_duration_ms: avg_duration,\n    total_duration_ms: total_duration\n  },\n  \n  meta: {\n    tenant_id: meta.tenant_id,\n    dialog_id: meta.dialog_id,\n    created_at: meta.created_at\n  }\n};"
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Not complete yet - return status\nconst trace_id = $('Parse Params').first().json.trace_id;\nconst status = $('Redis Get Status').first().json;\n\nreturn {\n  status: status || 'pending',\n  trace_id: trace_id,\n  message: 'Tasks still processing. Poll again or use ?wait=true'\n};"
+      },
+      "id": "pending-response",
+      "name": "Pending Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [256, 112]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-complete",
+      "name": "Respond Complete",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [928, -112]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-pending",
+      "name": "Respond Pending",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 112]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Params": {
+      "main": [
+        [
+          {
+            "node": "Redis Get Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Status": {
+      "main": [
+        [
+          {
+            "node": "Is Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Complete?": {
+      "main": [
+        [
+          {
+            "node": "Redis Get Meta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pending Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Meta": {
+      "main": [
+        [
+          {
+            "node": "Redis Get Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Results": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Respond Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "id": "worker-pool",
+      "name": "Workers"
+    }
+  ]
+}

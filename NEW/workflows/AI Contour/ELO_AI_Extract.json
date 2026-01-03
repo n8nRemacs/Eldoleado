@@ -1,41 +1,147 @@
 {
-  "updatedAt": "2025-12-17T08:59:02.934Z",
-  "createdAt": "2025-12-15T17:23:55.368Z",
-  "id": "3ohsxSod82QjGgXB",
-  "name": "ELO_AI_Extract",
-  "description": null,
+  "name": "ELO_AI_Extract_v2",
+  "description": "Four-level context extraction (global, domain, vertical, tenant)",
   "active": false,
-  "isArchived": false,
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "elo-ai-extract",
+        "path": "elo-ai-extract-v2",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "ef98d8ba-4506-472c-838f-ddb214eaf57d",
+      "id": "webhook-1",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -160,
-        -96
-      ],
-      "webhookId": "elo-ai-extract"
+      "position": [-480, 0],
+      "webhookId": "elo-ai-extract-v2"
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\n\nconst schema = input.extraction_schema || {\n  entities: ['device', 'symptom', 'owner', 'intent'],\n  multi_entity: true\n};\n\n// Build extraction prompt\nconst systemPrompt = `You are an entity extraction system for a phone repair service.\nExtract entities from user messages and return ONLY valid JSON.\n\nEntity types to extract:\n- device: {type: \"device\", brand: string, model: string, color?: string}\n- symptom: {type: \"symptom\", text: string, for_device?: string}\n- owner: {type: \"owner\", label: string} (e.g., \"my\", \"wife's\", \"kid's\")\n- intent: {type: \"intent\", value: string} (e.g., \"repair\", \"price_check\", \"book\", \"cancel\")\n\nRULES:\n1. Return ONLY JSON array, no explanations\n2. Extract ALL mentioned devices if multi_entity is true\n3. Brand normalization: \"айфон/iphone\" → \"Apple\", \"самсунг/samsung\" → \"Samsung\", \"сяоми/xiaomi\" → \"Xiaomi\"\n4. If device model unclear, extract what you can\n5. Empty array [] if nothing to extract`;\n\nconst userPrompt = `Extract entities from: \"${input.message}\"\n\nSchema: ${JSON.stringify(schema)}\n\nReturn JSON array:`;\n\nreturn {\n  message: input.message,\n  system_prompt: systemPrompt,\n  user_prompt: userPrompt,\n  schema: schema,\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\nif (!input.tenant_id) {\n  throw new Error('Missing required field: tenant_id');\n}\n\nreturn {\n  message: input.message,\n  tenant_id: input.tenant_id,\n  dialog_id: input.dialog_id || null,\n  context: input.context || {},\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
       },
-      "id": "7c5be5ec-3913-4b88-8126-be3c3bee7b8e",
-      "name": "Build Prompt",
+      "id": "validate-input",
+      "name": "Validate Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        64,
-        -96
-      ]
+      "position": [-256, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT code, name, default_prompt, output_schema\nFROM elo_context_types\nWHERE is_active = true\nORDER BY sort_order;",
+        "options": {}
+      },
+      "id": "load-global-context",
+      "name": "Load Global Context Types",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [0, -200],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT dct.code, dct.name, dct.default_prompt, dct.output_schema, d.code as domain_code\nFROM elo_d_context_types dct\nJOIN elo_domains d ON d.id = dct.domain_id\nJOIN elo_t_tenant_domains ttd ON ttd.domain_id = d.id\nWHERE ttd.tenant_id = $1\n  AND dct.is_active = true\n  AND d.is_active = true\nORDER BY d.code, dct.sort_order;",
+        "options": {
+          "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
+        }
+      },
+      "id": "load-domain-context",
+      "name": "Load Domain Context Types",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [0, -50],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT vct.code, vct.name, vct.default_prompt, vct.output_schema, v.code as vertical_code, d.code as domain_code\nFROM elo_v_context_types vct\nJOIN elo_verticals v ON v.id = vct.vertical_id\nJOIN elo_domains d ON d.id = v.domain_id\nJOIN elo_t_tenant_verticals ttv ON ttv.vertical_id = v.id\nWHERE ttv.tenant_id = $1\n  AND vct.is_active = true\n  AND v.is_active = true\nORDER BY d.code, v.code, vct.sort_order;",
+        "options": {
+          "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
+        }
+      },
+      "id": "load-vertical-context",
+      "name": "Load Vertical Context Types",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [0, 100],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT tco.context_type_source, tco.custom_prompt, tco.custom_output_schema, tco.is_required,\n  COALESCE(dct.code, vct.code) as context_type_code,\n  CASE WHEN tco.d_context_type_id IS NOT NULL THEN 'domain' ELSE 'vertical' END as level\nFROM elo_t_context_type_overrides tco\nLEFT JOIN elo_d_context_types dct ON dct.id = tco.d_context_type_id\nLEFT JOIN elo_v_context_types vct ON vct.id = tco.v_context_type_id\nWHERE tco.tenant_id = $1\n  AND tco.is_active = true;",
+        "options": {
+          "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
+        }
+      },
+      "id": "load-tenant-overrides",
+      "name": "Load Tenant Overrides",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [0, 250],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT field_code, pattern, normalized_value, priority\nFROM elo_normalization_rules\nWHERE is_active = true\nORDER BY priority DESC;",
+        "options": {}
+      },
+      "id": "load-normalization",
+      "name": "Load Normalization Rules",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [0, 400],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sync point: wait for all 5 data sources\n// Data is accessed by name in next node, this just ensures all queries completed\n\nconst globalCount = $('Load Global Context Types').all().length;\nconst domainCount = $('Load Domain Context Types').all().length;\nconst verticalCount = $('Load Vertical Context Types').all().length;\nconst overridesCount = $('Load Tenant Overrides').all().length;\nconst normCount = $('Load Normalization Rules').all().length;\n\nreturn {\n  _sync: true,\n  _counts: {\n    global: globalCount,\n    domain: domainCount,\n    vertical: verticalCount,\n    overrides: overridesCount,\n    normalization: normCount\n  }\n};"
+      },
+      "id": "merge-all",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [256, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all loaded data\nconst inputData = $('Validate Input').first().json;\nconst globalTypes = $('Load Global Context Types').all().map(i => ({ ...i.json, level: 'global' }));\nconst domainTypes = $('Load Domain Context Types').all().map(i => ({ ...i.json, level: 'domain' }));\nconst verticalTypes = $('Load Vertical Context Types').all().map(i => ({ ...i.json, level: 'vertical' }));\nconst overrides = $('Load Tenant Overrides').all().map(i => i.json);\nconst normRules = $('Load Normalization Rules').all().map(i => i.json);\n\n// Build override map\nconst overrideMap = {};\nfor (const o of overrides) {\n  overrideMap[`${o.level}:${o.context_type_code}`] = o;\n}\n\n// Merge all context types with overrides\nconst allTypes = [];\n\nfunction applyOverride(ct, override) {\n  if (!override) return ct;\n  return {\n    ...ct,\n    default_prompt: override.custom_prompt || ct.default_prompt,\n    output_schema: override.custom_output_schema || ct.output_schema\n  };\n}\n\n// Process global types (no overrides for global)\nfor (const ct of globalTypes) {\n  allTypes.push(ct);\n}\n\n// Process domain types\nfor (const ct of domainTypes) {\n  const override = overrideMap[`domain:${ct.code}`];\n  const merged = applyOverride(ct, override);\n  allTypes.push(merged);\n}\n\n// Process vertical types\nfor (const ct of verticalTypes) {\n  const override = overrideMap[`vertical:${ct.code}`];\n  const merged = applyOverride(ct, override);\n  allTypes.push(merged);\n}\n\n// Build unified extraction prompt\nconst entityDescriptions = allTypes.map(ct => {\n  const schema = typeof ct.output_schema === 'string' ? JSON.parse(ct.output_schema) : ct.output_schema;\n  return `- ${ct.code}: ${ct.default_prompt || ct.name}\\n  Schema: ${JSON.stringify(schema)}`;\n}).join('\\n');\n\nconst systemPrompt = `You are a context extraction system.\\nExtract entities from user messages and return ONLY valid JSON.\\n\\nEntity types to extract:\\n${entityDescriptions}\\n\\nRULES:\\n1. Return ONLY JSON array, no explanations\\n2. Extract ALL mentioned entities\\n3. If entity unclear, extract what you can\\n4. Empty array [] if nothing to extract\\n5. Each extracted entity must have \"type\" field matching entity code`;\n\nconst userPrompt = `Extract entities from: \"${inputData.message}\"\\n\\nReturn JSON array:`;\n\nreturn {\n  message: inputData.message,\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id,\n  context: inputData.context,\n  trace_id: inputData.trace_id,\n  system_prompt: systemPrompt,\n  user_prompt: userPrompt,\n  context_types: allTypes,\n  normalization_rules: normRules,\n  _debug: {\n    global_count: globalTypes.length,\n    domain_count: domainTypes.length,\n    vertical_count: verticalTypes.length,\n    overrides_count: overrides.length\n  }\n};"
+      },
+      "id": "build-prompt",
+      "name": "Build Unified Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 100]
     },
     {
       "parameters": {
@@ -45,19 +151,16 @@
         "nodeCredentialType": "openRouterApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_prompt }\n  ],\n  temperature: 0.1,\n  max_tokens: 500\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3-30b-a3b:free',\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_prompt }\n  ],\n  temperature: 0.1,\n  max_tokens: 1000\n}) }}",
         "options": {
           "timeout": 60000
         }
       },
-      "id": "6c26b2c7-da23-4add-b9ce-941d3e98aa92",
+      "id": "call-llm",
       "name": "Call OpenRouter",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        288,
-        -96
-      ],
+      "position": [704, 100],
       "credentials": {
         "openRouterApi": {
           "id": "ameOTCcGgTm3hbtM",
@@ -67,16 +170,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $json;\nconst buildData = $('Build Prompt').first().json;\n\nlet entities = [];\nlet rawContent = '';\n\ntry {\n  rawContent = response.choices?.[0]?.message?.content || '[]';\n  \n  // Clean up response\n  rawContent = rawContent.trim();\n  \n  // Remove thinking tags if present (Qwen3)\n  rawContent = rawContent.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  // Extract JSON from response (may have markdown code blocks)\n  const jsonMatch = rawContent.match(/\\[\\s*[\\s\\S]*?\\]/)\n  if (jsonMatch) {\n    rawContent = jsonMatch[0];\n  }\n  \n  entities = JSON.parse(rawContent);\n  \n  // Ensure it's an array\n  if (!Array.isArray(entities)) {\n    entities = [entities];\n  }\n  \n} catch (e) {\n  // If parsing fails, return empty\n  entities = [];\n}\n\nreturn {\n  entities: entities,\n  raw_response: rawContent,\n  message: buildData.message,\n  trace_id: buildData.trace_id,\n  model: response.model,\n  tokens_used: response.usage?.total_tokens\n};"
+        "jsCode": "const response = $json;\nconst buildData = $('Build Unified Prompt').first().json;\nconst normRules = buildData.normalization_rules;\n\nlet entities = [];\nlet rawContent = '';\n\ntry {\n  rawContent = response.choices?.[0]?.message?.content || '[]';\n  \n  // Clean up response\n  rawContent = rawContent.trim();\n  \n  // Remove thinking tags if present (Qwen3)\n  rawContent = rawContent.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  // Extract JSON from response\n  const jsonMatch = rawContent.match(/\\[[\\s\\S]*\\]/);\n  if (jsonMatch) {\n    rawContent = jsonMatch[0];\n  }\n  \n  entities = JSON.parse(rawContent);\n  \n  if (!Array.isArray(entities)) {\n    entities = [entities];\n  }\n  \n} catch (e) {\n  entities = [];\n}\n\n// Apply normalization rules\nfunction normalize(value, fieldType) {\n  if (!value || typeof value !== 'string') return value;\n  \n  const applicableRules = normRules.filter(r => r.field_code === fieldType || r.field_code === 'all');\n  \n  for (const rule of applicableRules) {\n    try {\n      const pattern = new RegExp(rule.pattern, 'gi');\n      if (pattern.test(value)) {\n        value = value.replace(pattern, rule.normalized_value);\n      }\n    } catch (e) {\n      // Skip invalid patterns\n    }\n  }\n  \n  return value;\n}\n\n// Normalize extracted entities\nfor (const entity of entities) {\n  if (entity.brand) {\n    entity.brand = normalize(entity.brand, 'brand');\n  }\n  if (entity.owner && entity.owner.label) {\n    entity.owner.label = normalize(entity.owner.label, 'owner');\n  }\n}\n\n// Group by level and domain for routing\nconst grouped = {\n  global: [],\n  domain: {},\n  vertical: {}\n};\n\nconst ctMap = {};\nfor (const ct of buildData.context_types) {\n  ctMap[ct.code] = ct;\n}\n\nfor (const entity of entities) {\n  const ct = ctMap[entity.type];\n  if (!ct) {\n    grouped.global.push(entity); // Unknown types go to global\n    continue;\n  }\n  \n  if (ct.level === 'global') {\n    grouped.global.push(entity);\n  } else if (ct.level === 'domain') {\n    const domain = ct.domain_code || 'unknown';\n    if (!grouped.domain[domain]) grouped.domain[domain] = [];\n    grouped.domain[domain].push(entity);\n  } else if (ct.level === 'vertical') {\n    const vertical = ct.vertical_code || 'unknown';\n    if (!grouped.vertical[vertical]) grouped.vertical[vertical] = [];\n    grouped.vertical[vertical].push(entity);\n  }\n}\n\nreturn {\n  entities: entities,\n  grouped: grouped,\n  raw_response: rawContent,\n  message: buildData.message,\n  tenant_id: buildData.tenant_id,\n  dialog_id: buildData.dialog_id,\n  trace_id: buildData.trace_id,\n  model: response.model,\n  tokens_used: response.usage?.total_tokens,\n  _debug: buildData._debug\n};"
       },
-      "id": "8436eabd-e817-4f7d-97bf-92d509a2ba29",
-      "name": "Parse Response",
+      "id": "parse-normalize",
+      "name": "Parse & Normalize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        512,
-        -96
-      ]
+      "position": [928, 100]
     },
     {
       "parameters": {
@@ -84,14 +184,11 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "d08e63f8-77dc-495f-9265-68f53b7bc15c",
+      "id": "respond",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        720,
-        -96
-      ]
+      "position": [1152, 100]
     }
   ],
   "connections": {
@@ -99,14 +196,111 @@
       "main": [
         [
           {
-            "node": "Build Prompt",
+            "node": "Validate Input",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build Prompt": {
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Load Global Context Types",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Domain Context Types",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Vertical Context Types",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Tenant Overrides",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Normalization Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Global Context Types": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Domain Context Types": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Vertical Context Types": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Tenant Overrides": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Normalization Rules": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Build Unified Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Unified Prompt": {
       "main": [
         [
           {
@@ -121,14 +315,14 @@
       "main": [
         [
           {
-            "node": "Parse Response",
+            "node": "Parse & Normalize",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse Response": {
+    "Parse & Normalize": {
       "main": [
         [
           {
@@ -143,71 +337,14 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": null,
-  "pinData": {},
-  "versionId": "308ca8b4-ee06-4014-972c-89b49fca4b57",
-  "activeVersionId": null,
-  "versionCounter": 3,
-  "triggerCount": 0,
-  "shared": [
-    {
-      "updatedAt": "2025-12-15T17:23:55.373Z",
-      "createdAt": "2025-12-15T17:23:55.373Z",
-      "role": "workflow:owner",
-      "workflowId": "3ohsxSod82QjGgXB",
-      "projectId": "x7frUSUEowDAk8Dt",
-      "project": {
-        "updatedAt": "2025-08-25T18:57:22.218Z",
-        "createdAt": "2025-08-25T08:16:18.805Z",
-        "id": "x7frUSUEowDAk8Dt",
-        "name": "Dmitriy Remacs <dk@n8nsrv.ru>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-08-25T08:16:18.805Z",
-            "createdAt": "2025-08-25T08:16:18.805Z",
-            "userId": "1d5222a1-8f53-4940-b7de-93daeae04393",
-            "projectId": "x7frUSUEowDAk8Dt",
-            "user": {
-              "updatedAt": "2025-12-31T08:56:11.000Z",
-              "createdAt": "2025-08-25T08:16:17.784Z",
-              "id": "1d5222a1-8f53-4940-b7de-93daeae04393",
-              "email": "dk@n8nsrv.ru",
-              "firstName": "Dmitriy",
-              "lastName": "Remacs",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "RbSUhceYc7q41M5j",
-                "userActivatedAt": 1756286438389
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2025-12-30",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": [
     {
-      "updatedAt": "2025-12-12T08:39:41.170Z",
-      "createdAt": "2025-12-12T08:39:41.170Z",
       "id": "8dihLRJvdhkW2kZ1",
       "name": "AI"
     },
     {
-      "updatedAt": "2025-12-09T18:50:08.518Z",
-      "createdAt": "2025-12-09T18:50:08.518Z",
       "id": "tMSCjbvPU3xrNUqz",
       "name": "ELO"
     }
-  ],
-  "activeVersion": null
+  ]
 }

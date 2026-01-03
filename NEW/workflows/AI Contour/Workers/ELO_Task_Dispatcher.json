@@ -1,0 +1,262 @@
+{
+  "name": "ELO_Task_Dispatcher",
+  "description": "Creates extraction tasks and pushes to Redis queue",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-dispatch-tasks",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-640, 0],
+      "webhookId": "elo-dispatch-tasks"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.tenant_id) {\n  throw new Error('Missing required field: tenant_id');\n}\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\n\nconst trace_id = input.trace_id || `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  tenant_id: input.tenant_id,\n  dialog_id: input.dialog_id,\n  message: input.message,\n  trace_id: trace_id,\n  context: input.context || {}\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-416, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  ct.code,\n  ct.level,\n  ct.name,\n  ct.extraction_prompt,\n  ct.output_schema,\n  ct.examples,\n  ct.negative_examples,\n  ct.min_confidence,\n  ct.model_preference,\n  d.code as domain_code,\n  v.code as vertical_code\nFROM elo_context_types ct\nLEFT JOIN elo_domains d ON d.id = ct.domain_id\nLEFT JOIN elo_verticals v ON v.id = ct.vertical_id\nWHERE ct.is_active = true\n  AND ct.extraction_prompt IS NOT NULL\n  AND (\n    ct.level = 'global'\n    OR (ct.level = 'domain' AND ct.domain_id IN (\n      SELECT domain_id FROM elo_t_tenant_domains WHERE tenant_id = $1\n    ))\n    OR (ct.level = 'vertical' AND ct.vertical_id IN (\n      SELECT vertical_id FROM elo_t_tenant_verticals WHERE tenant_id = $1\n    ))\n  )\nORDER BY ct.level, ct.code;",
+        "options": {
+          "queryReplacement": "={{ [$json.tenant_id] }}"
+        }
+      },
+      "id": "load-context-types",
+      "name": "Load Context Types",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-192, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst contextTypes = $input.all().map(i => i.json);\n\nconst trace_id = inputData.trace_id;\nconst message = inputData.message;\nconst total_tasks = contextTypes.length;\n\nif (total_tasks === 0) {\n  return {\n    trace_id: trace_id,\n    tasks: [],\n    total_tasks: 0,\n    error: 'No context types found for tenant'\n  };\n}\n\n// Create tasks\nconst tasks = contextTypes.map((ct, index) => ({\n  task_id: `${trace_id}_${index}`,\n  trace_id: trace_id,\n  task_type: 'llm_extraction',\n  \n  config: {\n    model: ct.model_preference === 'accurate' ? 'gpt-4o' : 'gpt-4o-mini',\n    prompt: ct.extraction_prompt,\n    message: message.text || message,\n    output_schema: ct.output_schema,\n    examples: ct.examples,\n    negative_examples: ct.negative_examples,\n    min_confidence: ct.min_confidence || 0.7\n  },\n  \n  meta: {\n    code: ct.code,\n    level: ct.level,\n    domain_code: ct.domain_code,\n    vertical_code: ct.vertical_code,\n    total_tasks: total_tasks,\n    created_at: Date.now()\n  },\n  \n  callback: {\n    result_key: `elo:results:${trace_id}`,\n    status_key: `elo:status:${trace_id}`\n  }\n}));\n\nreturn {\n  trace_id: trace_id,\n  tasks: tasks,\n  total_tasks: total_tasks,\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id\n};"
+      },
+      "id": "create-tasks",
+      "name": "Create Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [32, 0]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ `elo:meta:${$json.trace_id}` }}",
+        "value": "={{ JSON.stringify({ total_tasks: $json.total_tasks, tenant_id: $json.tenant_id, dialog_id: $json.dialog_id, created_at: Date.now() }) }}",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "redis-set-meta",
+      "name": "Redis Set Meta",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [256, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ `elo:status:${$('Create Tasks').first().json.trace_id}` }}",
+        "value": "pending",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "redis-set-status",
+      "name": "Redis Set Status",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [480, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split tasks for individual Redis push\nconst data = $('Create Tasks').first().json;\nconst tasks = data.tasks;\n\nreturn tasks.map(task => ({ task: task }));"
+      },
+      "id": "split-tasks",
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 0]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "elo:tasks:pending",
+        "messageData": "={{ JSON.stringify($json.task) }}",
+        "tail": false
+      },
+      "id": "redis-push-task",
+      "name": "Redis Push Task",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [928, 0],
+      "credentials": {
+        "redis": {
+          "id": "redis-cred",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('Create Tasks').first().json;\n\nreturn {\n  trace_id: data.trace_id,\n  tasks_created: data.total_tasks,\n  status: 'dispatched',\n  poll_url: `/webhook/elo-results/${data.trace_id}`,\n  estimated_time_ms: data.total_tasks * 300 // ~300ms per task\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1152, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1376, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Load Context Types",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Context Types": {
+      "main": [
+        [
+          {
+            "node": "Create Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tasks": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Meta": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Status": {
+      "main": [
+        [
+          {
+            "node": "Split Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tasks": {
+      "main": [
+        [
+          {
+            "node": "Redis Push Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Push Task": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "id": "worker-pool",
+      "name": "Workers"
+    }
+  ]
+}

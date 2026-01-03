@@ -140,34 +140,6 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "rRO6sxLqiCdgvLZz",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
-          "cachedResultName": "ELO_Core_Tenant_Resolver"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        560,
-        144
-      ],
-      "id": "e0b1540a-de77-4f9b-912c-7b5ae3a0504d",
-      "name": "Execute Tenant Resolver"
-    },
-    {
-      "parameters": {
         "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
       },
       "id": "a6535eb9-c938-41a0-88d3-bfb100caa2c2",
@@ -295,7 +267,7 @@
       "main": [
         [
           {
-            "node": "Execute Tenant Resolver",
+            "node": "Prepare for Queue",
             "type": "main",
             "index": 0
           }
@@ -303,17 +275,6 @@
       ]
     },
     "Normalize without Voice": {
-      "main": [
-        [
-          {
-            "node": "Execute Tenant Resolver",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Tenant Resolver": {
       "main": [
         [
           {
@@ -555,34 +516,6 @@
       },
       {
         "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "rRO6sxLqiCdgvLZz",
-            "mode": "list",
-            "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
-            "cachedResultName": "ELO_Core_Tenant_Resolver"
-          },
-          "workflowInputs": {
-            "mappingMode": "defineBelow",
-            "value": {},
-            "matchingColumns": [],
-            "schema": [],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.3,
-        "position": [
-          560,
-          144
-        ],
-        "id": "e0b1540a-de77-4f9b-912c-7b5ae3a0504d",
-        "name": "Execute Tenant Resolver"
-      },
-      {
-        "parameters": {
           "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
         },
         "id": "a6535eb9-c938-41a0-88d3-bfb100caa2c2",
@@ -590,7 +523,7 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          784,
+          560,
           144
         ]
       },
@@ -710,7 +643,7 @@
         "main": [
           [
             {
-              "node": "Execute Tenant Resolver",
+              "node": "Prepare for Queue",
               "type": "main",
               "index": 0
             }
@@ -718,17 +651,6 @@
         ]
       },
       "Normalize without Voice": {
-        "main": [
-          [
-            {
-              "node": "Execute Tenant Resolver",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Execute Tenant Resolver": {
         "main": [
           [
             {

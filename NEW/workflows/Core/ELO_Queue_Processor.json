@@ -1,0 +1,421 @@
+{
+  "name": "ELO_Queue_Processor",
+  "description": "Polls queue:incoming (after batcher), resolves ALL (Tenant→Client→Dialog), saves message, calls Pipeline Orchestrator. NO resolution before queue!",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-800, 0]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "queue:incoming",
+        "tail": true,
+        "options": {
+          "timeout": 2
+        }
+      },
+      "id": "redis-pop",
+      "name": "Redis BRPOP",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [-576, 0],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "check-data",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-message",
+      "name": "Has Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-352, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.data;\nlet message = null;\n\ntry {\n  message = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  throw new Error('Failed to parse message: ' + e.message);\n}\n\n// Generate trace_id if not present\nif (!message.trace_id) {\n  message.trace_id = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n}\n\nreturn message;"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for Tenant Resolver\n// NO resolution happens before queue - all resolution here!\nconst input = $input.first().json;\n\n// Validate required fields for tenant resolution\nif (!input.channel) {\n  throw new Error('Missing channel');\n}\nif (!input.external_chat_id) {\n  throw new Error('Missing external_chat_id');\n}\n\nreturn {\n  channel: input.channel,\n  external_chat_id: input.external_chat_id,\n  external_user_id: input.external_user_id,\n  bot_token: input.bot_token,\n  trace_id: input.trace_id,\n  _original: input\n};"
+      },
+      "id": "prepare-tenant",
+      "name": "Prepare for Tenant Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [96, -112]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ELO_Core_Tenant_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "execute-tenant-resolver",
+      "name": "Execute Tenant Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [320, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for Client Resolver\nconst tenantResult = $input.first().json;\nconst prepared = $('Prepare for Tenant Resolver').first().json;\n\nreturn {\n  tenant_id: tenantResult.tenant_id,\n  channel_id: tenantResult.channel_id,\n  channel_account_id: tenantResult.channel_account_id,\n  channel: prepared.channel,\n  external_user_id: prepared.external_user_id,\n  external_chat_id: prepared.external_chat_id,\n  sender_name: prepared._original.client_name || prepared._original.sender_name || 'Unknown',\n  sender_username: prepared._original.client_username || prepared._original.sender_username || '',\n  trace_id: prepared.trace_id,\n  _original: prepared._original\n};"
+      },
+      "id": "prepare-client",
+      "name": "Prepare for Client Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [544, -112]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ELO_Core_Client_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "execute-client-resolver",
+      "name": "Execute Client Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [768, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data for Dialog Resolver\nconst clientResult = $input.first().json;\nconst prepared = $('Prepare for Client Resolver').first().json;\n\nreturn {\n  tenant_id: prepared.tenant_id,\n  client_id: clientResult.client_id,\n  channel_id: prepared.channel_id,\n  channel: prepared.channel,\n  external_chat_id: prepared.external_chat_id,\n  trace_id: prepared.trace_id,\n  is_new_client: clientResult.is_new_client,\n  _original: prepared._original\n};"
+      },
+      "id": "prepare-dialog",
+      "name": "Prepare for Dialog Resolver",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [992, -112]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ELO_Core_Dialog_Resolver"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "execute-dialog-resolver",
+      "name": "Execute Dialog Resolver",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [1216, -112]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_messages (\n  tenant_id,\n  dialog_id,\n  client_id,\n  direction_id,\n  actor_type,\n  actor_id,\n  content,\n  external_message_id,\n  created_at\n) VALUES (\n  $1::uuid,\n  $2::uuid,\n  $3::uuid,\n  1,\n  'client',\n  $3::uuid,\n  $4,\n  $5,\n  NOW()\n)\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [$json.tenant_id, $json.dialog_id, $json.client_id, ($('Prepare for Tenant Resolver').first().json._original.text || '').replace(/'/g, \"''\"), $json.trace_id] }}"
+        }
+      },
+      "id": "save-message",
+      "name": "Save Incoming Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1440, -112],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final resolved data packet for Pipeline Orchestrator\nconst dialogResult = $('Execute Dialog Resolver').first().json;\nconst preparedDialog = $('Prepare for Dialog Resolver').first().json;\nconst original = $('Prepare for Tenant Resolver').first().json._original;\nconst messageId = $input.first().json[0]?.id;\n\nreturn {\n  // Resolved IDs\n  tenant_id: preparedDialog.tenant_id,\n  client_id: preparedDialog.client_id,\n  dialog_id: dialogResult.dialog_id,\n  channel_id: preparedDialog.channel_id,\n  \n  // Channel info\n  channel: preparedDialog.channel,\n  external_chat_id: preparedDialog.external_chat_id,\n  \n  // Message content\n  text: original.text || '',\n  timestamp: original.timestamp,\n  trace_id: preparedDialog.trace_id,\n  message_id: messageId,\n  \n  // Media (from original)\n  media: original.media,\n  meta: original.meta,\n  \n  // Flags\n  is_new_client: preparedDialog.is_new_client || false,\n  is_new_dialog: dialogResult.is_new_dialog || false\n};"
+      },
+      "id": "build-resolved",
+      "name": "Build Resolved Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1664, -112]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "ELO_Pipeline_Orchestrator"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "execute-orchestrator",
+      "name": "Execute Pipeline Orchestrator",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [1888, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\n\nconsole.log('Pipeline completed:', {\n  status: result.status,\n  channel: result.channel,\n  dialog_id: result.dialog_id,\n  duration_ms: result.pipeline_duration_ms\n});\n\nreturn result;"
+      },
+      "id": "log-result",
+      "name": "Log Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2112, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No message in queue\nreturn { status: 'idle', timestamp: new Date().toISOString() };"
+      },
+      "id": "no-message",
+      "name": "No Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, 112]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis BRPOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis BRPOP": {
+      "main": [
+        [
+          {
+            "node": "Has Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Message?": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Execute Tenant Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Tenant Resolver": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Client Resolver": {
+      "main": [
+        [
+          {
+            "node": "Execute Client Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Client Resolver": {
+      "main": [
+        [
+          {
+            "node": "Prepare for Dialog Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for Dialog Resolver": {
+      "main": [
+        [
+          {
+            "node": "Execute Dialog Resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Dialog Resolver": {
+      "main": [
+        [
+          {
+            "node": "Save Incoming Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Incoming Message": {
+      "main": [
+        [
+          {
+            "node": "Build Resolved Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Resolved Data": {
+      "main": [
+        [
+          {
+            "node": "Execute Pipeline Orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Pipeline Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "id": "eiI07cPEeFxzR69p",
+      "name": "Core"
+    },
+    {
+      "id": "tMSCjbvPU3xrNUqz",
+      "name": "ELO"
+    }
+  ]
+}

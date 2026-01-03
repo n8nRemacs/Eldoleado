@@ -1,78 +1,72 @@
-# Start Session - 2026-01-02
+# Start Session - 2026-01-03 ~18:00
 
-## Текущий статус: 4-Level Context Extraction System
-
-SQL миграция выполнена, workflows созданы. Требуется импорт в n8n и настройка Neo4j.
+## Статус: Pipeline разорван, нужна починка
 
 ---
 
-## СЛЕДУЮЩИЕ ШАГИ
+## КРИТИЧЕСКАЯ ПРОБЛЕМА
 
-### 1. Импорт Workflows в n8n (вручную)
+Pipeline разорван между Resolver и AI Orchestrator:
 
-Открыть https://n8n.n8nsrv.ru и импортировать:
+```
+ELO_Resolver → webhook /elo-core-ingest → Test_Stub [OFF] ← ТУПИК!
 
-| Workflow | Файл |
-|----------|------|
-| ELO_AI_Extract_v2 | `NEW/workflows/AI Contour/ELO_AI_Extract_v2.json` |
-| ELO_Funnel_Controller | `NEW/workflows/AI Contour/ELO_Funnel_Controller.json` |
-| ELO_Context_Router | `NEW/workflows/AI Contour/ELO_Context_Router.json` |
-| ELO_Worker_Executor | `NEW/workflows/AI Contour/ELO_Worker_Executor.json` |
-
-### 2. Neo4j Enterprise
-
-Создать 3 базы данных:
-- `electronics`
-- `auto`
-- `software`
-
-### 3. ELO_Graph_Sync Workflow
-
-Создать workflow для синхронизации PostgreSQL → Neo4j
-
-### 4. REST API Endpoints
-
-Добавить в api-android:
-- `/api/admin/domains` - управление доменами
-- `/api/admin/context-types` - управление типами контекста
-- `/api/admin/verticals` - управление вертикалями
-
-### 5. Тестовый тенант
-
-Создать тенанта и подключить:
-- domain: electronics
-- vertical: repair
+Pipeline_Orchestrator [OFF] ← НИКТО НЕ ВЫЗЫВАЕТ!
+```
 
 ---
 
-## Архитектура системы
+## СЛЕДУЮЩИЕ ШАГИ (Фаза 1 - КРИТИЧНО)
 
+### 1.1 Починить Resolver → Pipeline
+
+**Файл:** `NEW/workflows/Resolve Contour/ELO_Resolver.json`
+
+**Действия:**
+1. Найти ноду "Forward to Core" (HTTP Request → `/elo-core-ingest`)
+2. Заменить на Execute Workflow → ELO_Pipeline_Orchestrator
+3. Передать параметры: tenant_id, client_id, dialog_id, message, operator_id, mode
+
+### 1.2 Добавить Mode Router в Pipeline
+
+**Файл:** `NEW/workflows/AI Contour/ELO_Pipeline_Orchestrator.json`
+
+**Действия:**
+1. После Context Building добавить Switch по mode:
+   - `manual` → Skip Generate → Notify Operator
+   - `semi_auto` → Generate → Notify with Draft
+   - `auto` → Generate → Auto Send / Escalate
+
+### 1.3 Создать ELO_Operator_Notify
+
+**Новый workflow:**
 ```
-Global (elo_)
-    │
-    ├── elo_context_types: greeting, goodbye, sentiment, urgency
-    ├── elo_intent_types: question, complaint, thanks
-    │
-    ▼
-Domain (elo_d_)
-    │
-    ├── electronics → device, owner
-    ├── auto → vehicle, owner
-    ├── software → product, company
-    │
-    ▼
-Vertical (elo_v_)
-    │
-    ├── repair → symptom, warranty, complaint
-    ├── sales → price_expectation, condition
-    │
-    ▼
-Tenant (elo_t_)
-    │
-    ├── tenant_domains - подключенные домены
-    ├── tenant_verticals - подключенные вертикали
-    └── context_type_overrides - переопределения
+Input: { operator_id, dialog_id, notification_type, context, draft }
+Nodes:
+1. Get Operator FCM tokens
+2. Build Notification Payload
+3. Send WebSocket → api-android:8780
+4. Send FCM Push
+5. Log Event
 ```
+
+### 1.4 Включить workflows
+
+- ELO_Resolver → ON
+- ELO_Pipeline_Orchestrator → ON
+
+---
+
+## Режимы оператора (уже спроектировано)
+
+| Режим | Generate | Approve | Описание |
+|-------|----------|---------|----------|
+| `manual` | ❌ | ❌ | Оператор пишет сам |
+| `semi_auto` | ✅ | ✅ | AI генерирует, оператор утверждает |
+| `auto` | ✅ | ❌ | AI отправляет сразу |
+
+**Pipeline работает ОДИНАКОВО для всех режимов!**
+Разница только в генерации/утверждении ответа.
 
 ---
 
@@ -80,24 +74,23 @@ Tenant (elo_t_)
 
 | Файл | Описание |
 |------|----------|
-| `NEW/DOCS/CONTEXT_EXTRACTION_ARCHITECTURE.md` | Архитектура системы |
-| `C:\Users\ELOnout\.claude\plans\polished-foraging-lobster.md` | Детальный план |
-| `Stop.md` | Детали последней сессии |
+| `NEW/DOCS/WORKFLOWS_ANALYSIS.md` | Анализ 57 workflows |
+| `NEW/DOCS/OPERATOR_NOTIFICATION_ARCHITECTURE.md` | Архитектура 3 режимов |
+| `123.md` | Полный отчёт + план |
+| `~/.claude/plans/adaptive-sprouting-stream.md` | План Funnel Behavior |
 
 ---
 
-## Проверка БД
+## Текущее состояние workflows
 
-```bash
-# Домены
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT code, name FROM elo_domains;'"
-
-# Action types
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT code, category FROM elo_action_types;'"
-
-# Funnel stages
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT code, stage_type FROM elo_funnel_stages;'"
-```
+| Категория | Active | Inactive |
+|-----------|--------|----------|
+| Channel In | 8 | 3 |
+| Channel Out | 4 | 3 |
+| API | 11 | 0 |
+| AI Contour | 4 | 11 |
+| Input/Resolve/Core | 2 | 11 |
+| **Total** | **26** | **31** |
 
 ---
 
@@ -110,24 +103,16 @@ ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT cod
 
 ---
 
-## SSH
+## Проверка БД
 
 ```bash
-ssh root@155.212.221.189  # Messenger
-ssh root@185.221.214.83   # n8n / PostgreSQL
+# Режим тенанта
+ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c \"SELECT name, settings->'ai_mode' FROM elo_t_tenants;\""
+
+# Режим оператора
+ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c \"SELECT name, settings->'ai_mode' FROM elo_t_operators;\""
 ```
 
 ---
 
-## Workflows созданные
-
-| Workflow | Endpoint | Описание |
-|----------|----------|----------|
-| ELO_AI_Extract_v2 | `/webhook/elo-ai-extract-v2` | 4-level extraction |
-| ELO_Funnel_Controller | `/webhook/elo-funnel-controller` | Stage transitions |
-| ELO_Context_Router | `/webhook/elo-context-router` | Routing |
-| ELO_Worker_Executor | `/webhook/elo-worker-executor` | Workers |
-
----
-
-*Последнее обновление: 2026-01-02*
+*Последнее обновление: 2026-01-03 ~18:00*

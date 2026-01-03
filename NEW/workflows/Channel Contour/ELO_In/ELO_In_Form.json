@@ -11,7 +11,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "form",
-        "responseMode": "lastNode",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "5fcd2bf8-e6f7-4418-916a-21b282708ebe",
@@ -39,13 +39,12 @@
     },
     {
       "parameters": {
-        "workflowId": "={{ $env.CLIENT_RESOLVER_WORKFLOW_ID }}",
-        "options": {}
+        "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
       },
       "id": "319581cd-6ef0-4909-b31b-d8f191d3167e",
-      "name": "Execute Client Resolver",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1,
+      "name": "Prepare for Queue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         -112,
         -48
@@ -53,8 +52,30 @@
     },
     {
       "parameters": {
+        "operation": "push",
+        "list": "queue:incoming",
+        "messageData": "={{ $json.message_json }}",
+        "tail": true
+      },
+      "id": "37172b86-dbdd-4b31-bab3-e31fb64ebe6c",
+      "name": "Push to Queue",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -48
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { \\\"success\\\": true, \\\"message\\\": \\\"Спасибо! Мы свяжемся с вами в ближайшее время.\\\" } }}",
+        "responseBody": "={{ { \"success\": true, \"queued\": true, \"message\": \"Спасибо! Мы свяжемся с вами в ближайшее время.\", \"batch_key\": $('Prepare for Queue').item.json.batch_key } }}",
         "options": {}
       },
       "id": "e694d3fc-33e0-4a39-bc99-840b7c371509",
@@ -65,34 +86,6 @@
         336,
         -48
       ]
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "rRO6sxLqiCdgvLZz",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
-          "cachedResultName": "ELO_Core_Tenant_Resolver"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        96,
-        -48
-      ],
-      "id": "37172b86-dbdd-4b31-bab3-e31fb64ebe6c",
-      "name": "Execute Tenant Resolver"
     }
   ],
   "connections": {
@@ -111,25 +104,25 @@
       "main": [
         [
           {
-            "node": "Execute Client Resolver",
+            "node": "Prepare for Queue",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Execute Client Resolver": {
+    "Prepare for Queue": {
       "main": [
         [
           {
-            "node": "Execute Tenant Resolver",
+            "node": "Push to Queue",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Execute Tenant Resolver": {
+    "Push to Queue": {
       "main": [
         [
           {

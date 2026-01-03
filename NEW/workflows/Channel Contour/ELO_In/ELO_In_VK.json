@@ -198,34 +198,6 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "rRO6sxLqiCdgvLZz",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/rRO6sxLqiCdgvLZz",
-          "cachedResultName": "ELO_Core_Tenant_Resolver"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        1088,
-        192
-      ],
-      "id": "ee9c582e-62db-41d3-94f4-7ad5866e453f",
-      "name": "Execute Tenant Resolver"
-    },
-    {
-      "parameters": {
         "jsCode": "// Подготавливаем сообщение для Redis очереди\nconst data = $input.first().json;\n\nreturn {\n  message_json: JSON.stringify(data),\n  batch_key: `${data.channel}:${data.external_chat_id}`\n};"
       },
       "id": "c138be9f-f20a-4289-b29b-7e6e758be9ad",
@@ -378,7 +350,7 @@
       "main": [
         [
           {
-            "node": "Execute Tenant Resolver",
+            "node": "Prepare for Queue",
             "type": "main",
             "index": 0
           }
@@ -386,17 +358,6 @@
       ]
     },
     "Normalize without Voice": {
-      "main": [
-        [
-          {
-            "node": "Execute Tenant Resolver",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Tenant Resolver": {
       "main": [
         [
           {

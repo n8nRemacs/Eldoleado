@@ -1,6 +1,6 @@
 # Workflows Analysis
 
-**Last sync:** 2025-12-31
+**Last sync:** 2026-01-03
 
 ---
 
@@ -8,226 +8,254 @@
 
 | Category | Active | Inactive | Total |
 |----------|--------|----------|-------|
-| Channel Contour (In) | 7 | 3 | 10 |
-| Channel Contour (Out) | 3 | 3 | 6 |
-| API | 10 | 0 | 10 |
-| AI Contour | 0 | 10 | 10 |
+| Channel Contour (In) | 8 | 3 | 11 |
+| Channel Contour (Out) | 4 | 3 | 7 |
+| API | 11 | 0 | 11 |
+| AI Contour | 4 | 11 | 15 |
 | Input Contour | 2 | 1 | 3 |
-| Resolve Contour | 0 | 5 | 5 |
-| Core Contour | 0 | 3 | 3 |
+| Resolve Contour | 0 | 6 | 6 |
+| Core Contour | 0 | 4 | 4 |
 | Operator Contour | 1 | 0 | 1 |
 | Graph Contour | 0 | 1 | 1 |
-| Other | 3 | 0 | 3 |
-| **Total n8n ELO** | **26** | **26** | **52** |
+| **Total n8n ELO** | **26** | **31** | **57** |
 
 ---
 
-## CRITICAL GAPS
+## CURRENT ARCHITECTURE
 
-### 1. AI Contour completely inactive
+### Main Data Flow
 
-All 10 AI workflows are disabled. No AI processing in the pipeline.
-
-**Impact:** Messages are received and saved but no AI analysis/response generation.
-
-### 2. Resolve Contour completely inactive
-
-All 5 resolve workflows are disabled:
-- ELO_Resolver
-- ELO_Client_Resolver
-- ELO_Dialog_Resolver
-- ELO_Tenant_Resolver
-- ELO_Unifier
-
-**Impact:** New resolve architecture not integrated.
-
-### 3. Core Contour inactive
-
-All 3 core workflows are disabled:
-- ELO_Core_Batcher
-- ELO_Core_Dialog_Engine
-- ELO_Core_Tenant_Resolver
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CHANNEL INPUT (ELO_In_*)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Telegram  │  WhatsApp  │  Avito  │ Avito_User│  MAX  │  App  │ VK/Form/Ph │
+│   [ON]     │    [ON]    │   [ON]  │    [ON]   │  [ON] │ [ON]  │   [off]    │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │ Push to queue:incoming
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    INPUT CORE (Batching Layer)                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ELO_Input_Batcher [ON]         │  ELO_Input_Processor [ON]                 │
+│  - Cron: every 3 sec            │  - Cron: every 3 sec                      │
+│  - Pop from queue:incoming      │  - Check deadline:* keys                  │
+│  - Push to batch:{key}          │  - Merge batch messages                   │
+│  - Set deadline:{key}           │  - Call ELO_Resolver                      │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │ Execute Workflow
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ELO_Resolver [off]                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Nodes:                                                                     │
+│  1. Validate Input                                                          │
+│  2. Call Tenant Resolver → ELO_Core_Tenant_Resolver                         │
+│  3. Prepare Client → Call Client Resolver → ELO_Client_Resolver             │
+│  4. Prepare Dialog → Call Dialog Resolver → ELO_Dialog_Resolver             │
+│  5. Save Incoming Message                                                   │
+│  6. Build Response                                                          │
+│  7. Forward to Core → ELO_Pipeline_Orchestrator                             │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  ELO_Pipeline_Orchestrator [off]                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Nodes:                                                                     │
+│  1. Resolve Client / Resolve Dialog (merge)                                 │
+│  2. Save Message Event                                                      │
+│  3. Call Task Dispatcher → ELO_Task_Dispatcher [ON]                         │
+│  4. Poll Extraction Results → ELO_Results_Aggregator [ON]                   │
+│  5. Call Funnel Controller → ELO_Funnel_Controller [ON]                     │
+│  6. Needs Response? → Call Response Generator                               │
+│  7. Update Dialog Context                                                   │
+│  8. Channel Router → Send via ELO_Out_*                                     │
+└──────────────────────────────┬──────────────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CHANNEL OUTPUT (ELO_Out_*)                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Telegram_Bot │  WhatsApp  │    MAX   │   Avito   │    VK    │              │
+│    [ON]       │   [ON]     │   [ON]   │   [off]   │   [off]  │              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Data Flow (Current)
+## REDIS KEYS
 
-```
-MCP Webhook -> ELO_In_* -> Redis queue:incoming
-                              |
-                              v
-                    ELO_Input_Batcher (batch:*)
-                              |
-                              v
-                    ELO_Input_Processor
-                              |
-                              v
-                    ELO_Message_Router -> Operator WebSocket
-                              |
-                              v
-                    queue:outgoing -> ELO_Out_*
-```
+| Key Pattern | Purpose | TTL |
+|-------------|---------|-----|
+| `queue:incoming` | Raw incoming messages | - |
+| `batch:{channel}:{chat_id}` | Batched messages per dialog | 120s |
+| `deadline:{channel}:{chat_id}` | When to process batch | 120s |
+| `first_seen:{channel}:{chat_id}` | Batch start time | 120s |
 
 ---
 
 ## Channel Contour
 
-### Inbound (ELO_In_*) - 7 active / 3 inactive
+### Inbound (ELO_In_*) - 8 active / 3 inactive
 
-| Workflow | Active | Trigger | Description |
-|----------|--------|---------|-------------|
-| ELO_In_WhatsApp | **ON** | Webhook | WhatsApp via MCP |
-| ELO_In_Telegram | **ON** | Webhook | Telegram User via MCP |
-| ELO_In_Telegram_Bot | **ON** | Webhook | Telegram Bot API |
-| ELO_In_Avito | **ON** | Webhook | Avito via MCP |
-| ELO_In_Avito_User | **ON** | Webhook | Avito User Android |
-| ELO_In_MAX | **ON** | Webhook | MAX via MCP |
-| ELO_In_App | **ON** | Webhook | Android app messages |
-| ELO_In_VK | off | Webhook | VK via MCP |
-| ELO_In_Form | off | Webhook | Web forms |
-| ELO_In_Phone | off | Webhook | Phone calls |
+| Workflow | ID | Active | Trigger |
+|----------|----|----|---------|
+| ELO_In_Telegram | 4LGno2k7V9EIZOPz | **ON** | Webhook |
+| ELO_In_Telegram_Bot | sGJxAIwGzMrfCjeA | **ON** | Webhook |
+| ELO_In_WhatsApp | PrsqCxCgoZuxnKus | **ON** | Webhook |
+| ELO_In_Avito | 3dZPOQ1WgYCx76Om | **ON** | Webhook |
+| ELO_In_Avito_User | 1Fcexk3PCvHwE2nE | **ON** | Webhook |
+| ELO_In_MAX | X3hqn2RJfBPrN9ld | **ON** | Webhook |
+| ELO_In_App | ZC8ivCruNEq6Vc7b | **ON** | Webhook |
+| ELO_In_VK | ksqmLjxbsBgfkToV | off | Webhook |
+| ELO_In_Form | s1GvbRvYjv88hCdW | off | Webhook |
+| ELO_In_Phone | 1TA6vErCOXG0eChF | off | Webhook |
 
-### Outbound (ELO_Out_*) - 3 active / 3 inactive
+### Outbound (ELO_Out_*) - 4 active / 3 inactive
 
-| Workflow | Active | Trigger | Description |
-|----------|--------|---------|-------------|
-| ELO_Out_Telegram_Bot | **ON** | Schedule | Send via Telegram Bot |
-| ELO_Out_WhatsApp | **ON** | Schedule | Send via WhatsApp MCP |
-| ELO_Out_MAX | **ON** | Schedule | Send via MAX MCP |
-| ELO_Out_Router | off | Execute | Route to channel |
-| ELO_Out_Avito | off | Schedule | Send via Avito |
-| ELO_Out_VK | off | Schedule | Send via VK |
-
----
-
-## API Contour (10 workflows, all ON)
-
-| Workflow | Endpoint | Description |
-|----------|----------|-------------|
-| ELO_API_Android_Auth | POST /auth | Login with PIN |
-| ELO_API_Android_Dialogs | GET /dialogs | Get dialogs list |
-| ELO_API_Android_Messages | GET /messages | Get messages |
-| ELO_API_Android_Send_Message | POST /send | Send message |
-| ELO_API_Android_Logout | POST /logout | Logout |
-| ELO_API_Android_Register_FCM | POST /fcm | Register push token |
-| ELO_API_Android_Normalize | POST /normalize | Normalize data |
-| ELO_API_Android_Register_Channel | POST /register-channel | Register channel |
-| ELO_API_Channel_Setup | POST /channel-setup | Setup channel |
-| ELO_API_Channels_Status | GET /channels-status | Get channels status |
+| Workflow | ID | Active | Trigger |
+|----------|----|----|---------|
+| ELO_Out_Telegram_Bot | GrChisyOV9ajgBDX | **ON** | Execute |
+| ELO_Out_WhatsApp | j8SAGf1ZIC8uqDya | **ON** | Execute |
+| ELO_Out_MAX | 8SxXTnGJe4qnN4Kx | **ON** | Execute |
+| ELO_Out_Router | A924a25CTS3CiJ0N | off | Execute |
+| ELO_Out_Avito | X5hxPPtz3OQGB8SS | off | Execute |
+| ELO_Out_VK | ZqRsbSo0I0z71Bwb | off | Execute |
 
 ---
 
-## AI Contour (10 workflows, all OFF)
+## API Contour (11 workflows, all ON)
 
-| Workflow | Purpose |
-|----------|---------|
-| ELO_AI_Extract | Extract entities from text |
-| ELO_Core_AI_Derive | AI derivation |
-| ELO_Context_Collector | Collect context for AI |
-| ELO_Core_Context_Builder | Build full context |
-| ELO_Core_Stage_Manager | Manage funnel stages |
-| ELO_Core_Triggers_Checker | Check triggers |
-| ELO_Core_Response_Generator | Generate AI response |
-| ELO_Core_Graph_Writer | Write to Neo4j |
-| ELO_Decision | AI decision making |
-| ELO_Executor | Execute AI actions |
-
----
-
-## Input Contour (3 workflows) - 2 active
-
-| Workflow | Active | Trigger | Purpose |
-|----------|--------|---------|---------|
-| ELO_Input_Batcher | **ON** | Schedule | Add to batch |
-| ELO_Input_Processor | **ON** | Schedule | Process batches |
-| ELO_Input_Ingest | off | Webhook | Ingest messages |
+| Workflow | ID | Endpoint |
+|----------|----|----|
+| ELO_API_Android_Auth | FKTNL7yNqFGfRrv3 | POST /auth |
+| ELO_API_Android_Logout | j9VlTpdXIdlfBZhO | POST /logout |
+| ELO_API_Android_Dialogs | 2EH6NEVKrvAuGSo6 | GET /dialogs |
+| ELO_API_Android_Messages | 2uj0zqoqbSRd0iue | GET /messages |
+| ELO_API_Android_Send_Message | 6twQI6tVin73BcN1 | POST /send |
+| ELO_API_Android_Normalize | nsMrS7SmpsxutrfN | POST /normalize |
+| ELO_API_Android_Register_FCM | yW11VXCx1UCfJqXd | POST /fcm |
+| ELO_API_Android_Register_Channel | YZBEIIMfkFN3LBOE | POST /register-channel |
+| ELO_API_Channel_Setup | a3I85vep9LrKZa3C | POST /channel-setup |
+| ELO_API_Channels_Status | 5X0cptV1tGWIer2y | GET /channels-status |
+| ELO_API_Channel_Avito_Auth | wuoTQYQ1vTGB66yn | POST /avito-auth |
 
 ---
 
-## Resolve Contour (5 workflows, all OFF)
+## AI Contour (15 workflows, 4 active)
 
-| Workflow | Purpose |
-|----------|---------|
-| ELO_Resolver | Main orchestrator |
-| ELO_Tenant_Resolver | Resolve tenant |
-| ELO_Client_Resolver | Resolve client |
-| ELO_Dialog_Resolver | Find/create dialog |
-| ELO_Unifier | Unify clients by phone |
-
----
-
-## Core Contour (3 workflows, all OFF)
-
-| Workflow | Purpose |
-|----------|---------|
-| ELO_Core_Batcher | Batch messages |
-| ELO_Core_Dialog_Engine | Main dialog processing |
-| ELO_Core_Tenant_Resolver | Old tenant resolver |
-
----
-
-## Operator Contour (1 workflow, ON)
-
-| Workflow | Active | Purpose |
-|----------|--------|---------|
-| ELO_Message_Router | **ON** | Route messages to operators via WebSocket |
+| Workflow | ID | Active |
+|----------|----|----|
+| ELO_Task_Dispatcher | UBcxoMFDKVYlf59R | **ON** |
+| ELO_Results_Aggregator | RtElCJItu5B6QZsc | **ON** |
+| ELO_Funnel_Controller | GpxaC5zoQMjUjVwe | **ON** |
+| ELO_Pipeline_Orchestrator | EOhQJdfA7XAiRlPO | off |
+| ELO_Blind_Worker | 2p8xW7tUKME4DdYo | off |
+| ELO_AI_Extract | 3ohsxSod82QjGgXB | off |
+| ELO_Core_Response_Generator | vwcZwvOGoLnIrS3e | off |
+| ELO_Core_Context_Builder | 8oyOJpnE7Cc0D27C | off |
+| ELO_Context_Collector | KkCXa38EDLKJwy4i | off |
+| ELO_Context_Router | KSe3p3fQJhj6d0Y2 | off |
+| ELO_Core_Stage_Manager | IKYT3qf3XbmKmse3 | off |
+| ELO_Core_AI_Derive | i9aZ3bd5btVjzZs8 | off |
+| ELO_Worker_Executor | YSAGt05jujR6aQ4z | off |
+| ELO_Executor | i6LnKuEIUETjrNBl | off |
+| ELO_Decision | qaSDHs718S7rl1vX | off |
 
 ---
 
-## Graph Contour (1 workflow, OFF)
+## Resolve Contour (6 workflows, all OFF)
 
-| Workflow | Purpose |
-|----------|---------|
-| ELO_Graph_Query | Query Neo4j graph |
-
----
-
-## Other (3 workflows, all ON)
-
-| Workflow | Active | Purpose |
-|----------|--------|---------|
-| ELO_Core_AI_Test_Stub_WS | **ON** | Test AI stub with WebSocket |
-| ELO_Avito_Session_Refresh | **ON** | Refresh Avito sessions |
-| ELO_API_Channel_Avito_Auth | **ON** | Avito channel auth |
+| Workflow | ID | Purpose |
+|----------|----|----|
+| ELO_Resolver | YAaV3N1PmVgEmbXZ | Main chain: Tenant→Client→Dialog→Pipeline |
+| ELO_Core_Tenant_Resolver | fuRDk8dKF5ViY8ad | Resolve tenant by channel |
+| ELO_Tenant_Resolver | h97a3boAV7LuSBGZ | Old tenant resolver |
+| ELO_Client_Resolver | MOa50VVpseLR5xna | Find/create client |
+| ELO_Dialog_Resolver | bPNUrwJNSyj52z8B | Find/create dialog |
+| ELO_Queue_Processor | Zn5jhbFY1Fuadj14 | Alternative (not used) |
 
 ---
 
-## File Locations
+## Input Contour (3 workflows, 2 active)
 
+| Workflow | ID | Active | Purpose |
+|----------|----|----|---------|
+| ELO_Input_Batcher | 3AfObE32mua4kLmr | **ON** | Batches messages |
+| ELO_Input_Processor | afbJwet95gV9Evc5 | **ON** | Processes batches → calls Resolver |
+| ELO_Input_Ingest | peUaEixC2W6l75s5 | off | Alternative entry |
+
+---
+
+## Core Contour (4 workflows, all OFF)
+
+| Workflow | ID | Purpose |
+|----------|----|----|
+| ELO_Core_Dialog_Engine | LcB53NcwVT0K3K6U | Dialog processing |
+| ELO_Core_Graph_Writer | 2xOOPR7TeNxw9O2D | Write to Neo4j |
+| ELO_Core_Batcher | lmMxcDEJAcverxhC | Alternative batcher |
+| ELO_Core_Triggers_Checker | b9tW1Lfnf4kncdbA | Check triggers |
+
+---
+
+## Other
+
+| Workflow | ID | Active | Purpose |
+|----------|----|----|---------|
+| ELO_Message_Router | EIBalgIkj2XP9iGm | **ON** | Route to operators |
+| ELO_Graph_Query | 2ZzFlQ5LOZzJ5bGo | off | Neo4j queries |
+| ELO_Avito_Session_Refresh | SUEamG8HK42dcj2U | **ON** | Keepalive |
+| ELO_Unifier | K3Sm81ZI3aC12xqN | off | Unify clients |
+| ELO_Core_AI_Test_Stub_WS | kZJ6u5VB4alwVjig | off | Testing |
+
+---
+
+## Database (56 tables)
+
+### Transactional (elo_t_*)
+- Tenants, Clients, Dialogs, Messages
+- Operators, Operator_Devices, Operator_Channels
+- Channel_Accounts, Client_Channels
+- Events, Tasks, AI_Extractions
+- Price_List, Tenant_Domains, Tenant_Verticals
+- Funnel overrides, Context overrides
+
+### Reference Tables
+- Channels, Verticals, Domains, IP_Nodes
+- Symptom/Diagnosis/Repair types and links
+- Problem_Categories, Action_Types
+- Intent_Types, Context_Types, Trigger_Types
+- Funnel_Stages, Stage_Fields, Stage_CTA_Actions
+- Worker_Configs, Funnel_Stage_Workers
+- Prompts, Meta_Prompts, Cypher_Queries
+
+### Views (elo_v_*)
+- v_ai_settings, v_context_types, v_intent_types
+- v_funnel_stages, v_prompts, v_triggers
+- v_ip_usage, v_symptom_mappings
+
+---
+
+## Key Observations
+
+### Working Chain (Active)
 ```
-NEW/workflows/
-├── Channel Contour/
-│   ├── ELO_In/          # 10 workflows
-│   └── ELO_Out/         # 6 workflows
-├── API/                  # 10 workflows
-├── AI Contour/           # 10 workflows
-├── Input Contour/        # 3 workflows
-├── Resolve Contour/      # 5 workflows
-├── Core Contour/         # 3 workflows
-├── Operator Contour/     # 1 workflow
-├── Graph Contour/        # 1 workflow
-└── *.json               # 3 other workflows
+ELO_In_* → queue:incoming → ELO_Input_Batcher → batch:*
+        → ELO_Input_Processor → ELO_Resolver → ELO_Pipeline_Orchestrator
 ```
 
----
+### Active Workers
+- ELO_Task_Dispatcher - dispatches extraction tasks
+- ELO_Results_Aggregator - collects extraction results
+- ELO_Funnel_Controller - manages funnel stages
 
-## Action Items
-
-### Priority 1: Enable AI Processing
-1. Activate ELO_Resolver chain
-2. Connect ELO_Input_Processor to ELO_Resolver
-3. Activate ELO_Core_AI_Test_Stub_WS for testing
-
-### Priority 2: Complete Resolve Chain
-4. Activate ELO_Tenant_Resolver
-5. Activate ELO_Client_Resolver
-6. Activate ELO_Dialog_Resolver
-
-### Priority 3: Enable Full AI
-7. Activate ELO_AI_Extract
-8. Activate ELO_Core_Response_Generator
-9. Connect response to ELO_Out_Router
+### Inactive (need to enable for full AI)
+- ELO_Resolver + sub-resolvers
+- ELO_Pipeline_Orchestrator
+- ELO_Core_Response_Generator
+- ELO_Blind_Worker
 
 ---
 
-*Generated by Claude Code - 2025-12-31*
+*Generated by Claude Code - 2026-01-03*

@@ -1,0 +1,619 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "15167a87-74df-4195-a9cd-2e9788f9578c",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1312,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "elo:tasks:pending",
+        "tail": true,
+        "options": {}
+      },
+      "id": "7f06fe21-30f8-4289-9d5b-b1ae303e86f8",
+      "name": "Redis BRPOP",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        64
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "check-exists",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5e04450a-5fcb-444a-8c54-b51da2539acd",
+      "name": "Task Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const taskJson = $input.first().json.data;\nconst task = JSON.parse(taskJson);\n\nconst startTime = Date.now();\n\nreturn {\n  task_id: task.task_id,\n  trace_id: task.trace_id,\n  task_type: task.task_type,\n  config: task.config,\n  meta: task.meta,\n  callback: task.callback,\n  _start_time: startTime\n};"
+      },
+      "id": "3410ed69-a9ac-4d04-8c79-e72387ab79e5",
+      "name": "Parse Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -608,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.task_type }}",
+                    "rightValue": "llm_extraction",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "llm_extraction"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.task_type }}",
+                    "rightValue": "llm_generation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "llm_generation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.task_type }}",
+                    "rightValue": "http_request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "http_request"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.task_type }}",
+                    "rightValue": "webhook_call",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "webhook_call"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "53fb9dbd-959c-434a-8f71-f910613e95f4",
+      "name": "Task Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const task = $('Parse Task').first().json;\nconst config = task.config;\n\n// Build prompt with message\nlet prompt = config.prompt || '';\nif (config.message) {\n  prompt = prompt.replace('{{message}}', config.message);\n}\n\n// Add examples if provided\nif (config.examples && config.examples.length > 0) {\n  prompt += '\\n\\nExamples:\\n';\n  for (const ex of config.examples) {\n    prompt += `Input: \"${ex.input}\"\\nOutput: ${JSON.stringify(ex.output)}\\n\\n`;\n  }\n}\n\n// Add negative examples\nif (config.negative_examples && config.negative_examples.length > 0) {\n  prompt += '\\nDO NOT extract in these cases:\\n';\n  for (const ex of config.negative_examples) {\n    prompt += `- \"${ex.input}\" → ${ex.reason}\\n`;\n  }\n}\n\nprompt += `\\n\\nNow extract from:\\nInput: \"${config.message}\"\\nOutput (JSON):`;\n\nreturn {\n  prompt: prompt,\n  task: task\n};"
+      },
+      "id": "726e0383-1f5c-4093-8055-dc42114e6d77",
+      "name": "Build LLM Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Parse Task').first().json.config.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Parse Task').first().json.config.body }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "016bd3c2-9b8d-41bb-899c-a9f3eae4d923",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Parse Task').first().json.config.webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Parse Task').first().json.config.payload) }}",
+        "options": {}
+      },
+      "id": "c31a43bd-c47b-47d2-904d-8ad0fb8272fc",
+      "name": "Webhook Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const task = $('Parse Task').first().json;\nconst startTime = task._start_time;\nconst duration_ms = Date.now() - startTime;\n\n// Get result from any handler\nlet result = null;\nlet error = null;\n\ntry {\n  // Try to get from OpenAI\n  const openaiResult = $('OpenAI Extraction').first()?.json;\n  if (openaiResult) {\n    result = typeof openaiResult.text === 'string' \n      ? JSON.parse(openaiResult.text) \n      : openaiResult;\n  }\n} catch (e) {\n  // Try HTTP result\n  try {\n    result = $('HTTP Request').first()?.json || $('Webhook Call').first()?.json;\n  } catch (e2) {\n    error = e.message;\n  }\n}\n\nif (!result && !error) {\n  // Fallback - get from input\n  result = $input.first()?.json;\n}\n\nconst output = {\n  task_id: task.task_id,\n  code: task.meta?.code,\n  level: task.meta?.level,\n  result: result,\n  confidence: result?.confidence || 0.9,\n  duration_ms: duration_ms,\n  error: error\n};\n\nreturn {\n  output: output,\n  callback: task.callback,\n  meta: task.meta\n};"
+      },
+      "id": "c61b4223-3a97-4060-9fec-3ae3c1801d4b",
+      "name": "Format Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $json.callback.result_key }}",
+        "messageData": "={{ JSON.stringify($json.output) }}"
+      },
+      "id": "d94d4b77-60da-4211-80a2-1809d59ce2e0",
+      "name": "Redis Push Result",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        880,
+        112
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $('Format Result').first().json.callback.result_key }}",
+        "options": {}
+      },
+      "id": "e444163f-1d5d-4a48-8dde-ecdcb77eaf49",
+      "name": "Get Results Count",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        112
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $('Format Result').first().json.meta;\nconst callback = $('Format Result').first().json.callback;\n\n// Get list length (approximate from result key)\n// In real implementation, use LLEN command\nconst totalTasks = meta?.total_tasks || 1;\n\n// For now, we'll mark complete after each task\n// The aggregator will handle the actual completion check\n\nreturn {\n  status_key: callback.status_key,\n  total_tasks: totalTasks,\n  should_complete: true // Simplified - aggregator handles\n};"
+      },
+      "id": "ddd6f4a4-0bce-4e46-94d9-cb6d636afb4d",
+      "name": "Check Completion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json.should_complete }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7cbaea55-11b2-47e9-92c6-46f730954653",
+      "name": "All Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $('Check Completion').first().json.status_key }}",
+        "value": "complete",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "90f7e182-69f6-49a9-9c34-62c80ecbc1e3",
+      "name": "Set Status Complete",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        0
+      ],
+      "credentials": {
+        "redis": {
+          "id": "7FQcEivUY94atW24",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        304,
+        -480
+      ],
+      "id": "5bb871ae-fbf2-46c6-94c6-2ba28191c21f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-14b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -272
+      ],
+      "id": "d6396494-6dab-4e40-a9e2-cea062a71385",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ameOTCcGgTm3hbtM",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Redis BRPOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis BRPOP": {
+      "main": [
+        [
+          {
+            "node": "Task Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Exists?": {
+      "main": [
+        [
+          {
+            "node": "Parse Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Task": {
+      "main": [
+        [
+          {
+            "node": "Task Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Router": {
+      "main": [
+        [
+          {
+            "node": "Build LLM Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build LLM Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build LLM Prompt": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Call": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Redis Push Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Push Result": {
+      "main": [
+        [
+          {
+            "node": "Get Results Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Results Count": {
+      "main": [
+        [
+          {
+            "node": "Check Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Completion": {
+      "main": [
+        [
+          {
+            "node": "All Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All Complete?": {
+      "main": [
+        [
+          {
+            "node": "Set Status Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ae77ca901b15c37bb42b26ea9b5a21b78217dd557a563108d875a64964c49bb"
+  }
+}

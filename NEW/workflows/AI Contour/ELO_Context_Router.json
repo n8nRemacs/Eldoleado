@@ -30,7 +30,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT d.code as domain_code, d.name as domain_name, d.neo4j_database\nFROM elo_t_tenant_domains ttd\nJOIN elo_domains d ON d.id = ttd.domain_id\nWHERE ttd.tenant_id = $1\n  AND ttd.is_active = true\n  AND d.is_active = true;",
+        "query": "SELECT d.code as domain_code, d.name as domain_name, d.neo4j_database\nFROM elo_t_tenant_domains ttd\nJOIN elo_domains d ON d.id = ttd.domain_id\nWHERE ttd.tenant_id = $1\n  AND d.is_active = true;",
         "options": {
           "queryReplacement": "={{ [$json.tenant_id] }}"
         }
@@ -50,7 +50,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT v.code as vertical_code, v.name as vertical_name, d.code as domain_code\nFROM elo_t_tenant_verticals ttv\nJOIN elo_verticals v ON v.id = ttv.vertical_id\nJOIN elo_domains d ON d.id = v.domain_id\nWHERE ttv.tenant_id = $1\n  AND ttv.is_active = true\n  AND v.is_active = true;",
+        "query": "SELECT v.code as vertical_code, v.name as vertical_name, d.code as domain_code\nFROM elo_t_tenant_verticals ttv\nJOIN elo_verticals v ON v.id = ttv.vertical_id\nJOIN elo_domains d ON d.id = v.domain_id\nWHERE ttv.tenant_id = $1\n  AND v.is_active = true;",
         "options": {
           "queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"
         }
@@ -89,14 +89,12 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "combinationMode": "multiplex",
-        "options": {}
+        "jsCode": "// Sync point: wait for all 3 data sources\nconst domainsCount = $('Load Tenant Domains').all().length;\nconst verticalsCount = $('Load Tenant Verticals').all().length;\nconst tenantFound = $('Load Tenant Info').all().length > 0;\n\nreturn {\n  _sync: true,\n  _counts: {\n    domains: domainsCount,\n    verticals: verticalsCount,\n    tenant: tenantFound ? 1 : 0\n  }\n};"
       },
       "id": "merge-all",
       "name": "Merge All Data",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [192, 0]
     },
     {
@@ -172,7 +170,7 @@
           {
             "node": "Merge All Data",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -183,7 +181,7 @@
           {
             "node": "Merge All Data",
             "type": "main",
-            "index": 2
+            "index": 0
           }
         ]
       ]

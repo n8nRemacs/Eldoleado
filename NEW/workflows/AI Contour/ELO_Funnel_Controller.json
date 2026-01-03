@@ -1,12 +1,12 @@
 {
-  "name": "ELO_Funnel_Controller",
-  "description": "Manages funnel stage transitions and context switching",
+  "name": "ELO_Funnel_Controller_v2",
+  "description": "Universal funnel controller with behavior types, field collection, and binary masks",
   "active": false,
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "elo-funnel-controller",
+        "path": "elo-funnel-controller-v2",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -14,32 +14,32 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-640, 0],
-      "webhookId": "elo-funnel-controller"
+      "position": [-800, 0],
+      "webhookId": "elo-funnel-controller-v2"
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\n\nconst context = input.context;\n\nreturn {\n  context: context,\n  tenant_id: context.tenant_id,\n  dialog_id: context.dialog_id,\n  current_stage: context.current_stage || 'lead',\n  vertical_id: context.vertical_id,\n  extracted_context: input.extracted_context || {},\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\n\nconst context = input.context;\n\n// Initialize stage_masks if not present\nif (!context.stage_masks) {\n  context.stage_masks = {};\n}\n\nreturn {\n  context: context,\n  tenant_id: context.tenant_id,\n  dialog_id: context.dialog_id,\n  client_id: context.client_id,\n  current_stage: context.current_stage || 'lead',\n  vertical_id: context.vertical_id,\n  message: input.message || null,\n  extracted_context: input.extracted_context || {},\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
       },
       "id": "validate-input",
       "name": "Validate Input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-416, 0]
+      "position": [-576, 0]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH tenant_stages AS (\n  -- System stages (required)\n  SELECT fs.id, fs.code, fs.name, fs.sort_order, fs.stage_type,\n         fs.entry_conditions, fs.exit_conditions,\n         fs.on_enter_actions, fs.on_exit_actions,\n         fs.is_required, NULL as vertical_id,\n         COALESCE(tso.sort_order, fs.sort_order) as effective_sort,\n         COALESCE(tso.exit_conditions, fs.exit_conditions) as effective_exit,\n         COALESCE(tso.is_disabled, false) as is_disabled\n  FROM elo_funnel_stages fs\n  LEFT JOIN elo_t_funnel_stage_overrides tso ON tso.stage_id = fs.id AND tso.tenant_id = $1\n  WHERE fs.stage_type = 'system' AND fs.is_active = true\n  \n  UNION ALL\n  \n  -- Vertical stages\n  SELECT fs.id, fs.code, fs.name, fs.sort_order, fs.stage_type,\n         fs.entry_conditions, fs.exit_conditions,\n         fs.on_enter_actions, fs.on_exit_actions,\n         fs.is_required, fs.vertical_id,\n         COALESCE(tso.sort_order, fs.sort_order) as effective_sort,\n         COALESCE(tso.exit_conditions, fs.exit_conditions) as effective_exit,\n         COALESCE(tso.is_disabled, false) as is_disabled\n  FROM elo_funnel_stages fs\n  LEFT JOIN elo_t_funnel_stage_overrides tso ON tso.stage_id = fs.id AND tso.tenant_id = $1\n  WHERE fs.stage_type = 'vertical' \n    AND fs.vertical_id = $2\n    AND fs.is_active = true\n  \n  UNION ALL\n  \n  -- Custom tenant stages\n  SELECT tcs.id, tcs.code, tcs.name, tcs.sort_order, 'tenant' as stage_type,\n         tcs.entry_conditions, tcs.exit_conditions,\n         tcs.on_enter_actions, tcs.on_exit_actions,\n         false as is_required, NULL as vertical_id,\n         tcs.sort_order as effective_sort,\n         tcs.exit_conditions as effective_exit,\n         false as is_disabled\n  FROM elo_t_funnel_custom_stages tcs\n  WHERE tcs.tenant_id = $1 AND tcs.is_active = true\n)\nSELECT * FROM tenant_stages\nWHERE is_disabled = false\nORDER BY effective_sort;",
+        "query": "SELECT \n  fs.id, fs.code, fs.name, fs.sort_order, fs.stage_type,\n  fs.behavior_type, fs.behavior_config,\n  fs.entry_conditions, fs.exit_conditions,\n  fs.on_enter_actions, fs.on_exit_actions,\n  fs.on_complete_transitions,\n  fs.qa_handler_enabled, fs.max_attempts_global,\n  fs.is_required,\n  COALESCE(tso.sort_order, fs.sort_order) as effective_sort,\n  COALESCE(tso.is_disabled, false) as is_disabled,\n  (\n    SELECT jsonb_agg(jsonb_build_object(\n      'field_path', sf.field_path,\n      'field_name', sf.field_name,\n      'is_required', sf.is_required,\n      'sort_order', sf.sort_order,\n      'depends_on_field', sf.depends_on_field,\n      'ask_prompt', sf.ask_prompt,\n      'clarify_prompt', sf.clarify_prompt,\n      'extraction_type', sf.extraction_type,\n      'max_attempts', sf.max_attempts,\n      'on_max_attempts', sf.on_max_attempts,\n      'default_value', sf.default_value\n    ) ORDER BY sf.sort_order)\n    FROM elo_stage_fields sf WHERE sf.stage_id = fs.id\n  ) as fields,\n  (\n    SELECT jsonb_agg(jsonb_build_object(\n      'action_code', ca.action_code,\n      'action_label', ca.action_label,\n      'detection_type', ca.detection_type,\n      'detection_config', ca.detection_config,\n      'on_success_transition', ca.on_success_transition,\n      'on_success_actions', ca.on_success_actions\n    ) ORDER BY ca.sort_order)\n    FROM elo_stage_cta_actions ca WHERE ca.stage_id = fs.id AND ca.is_active = true\n  ) as cta_actions\nFROM elo_funnel_stages fs\nLEFT JOIN elo_t_funnel_stage_overrides tso ON tso.stage_id = fs.id AND tso.tenant_id = $1\nWHERE fs.is_active = true\n  AND (fs.stage_type = 'system' OR fs.vertical_id = $2)\n  AND COALESCE(tso.is_disabled, false) = false\nORDER BY COALESCE(tso.sort_order, fs.sort_order);",
         "options": {
           "queryReplacement": "={{ [$json.tenant_id, $json.vertical_id] }}"
         }
       },
-      "id": "load-stages",
-      "name": "Load Funnel Stages",
+      "id": "load-stage-config",
+      "name": "Load Stage Config",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [-192, 0],
+      "position": [-352, 0],
       "credentials": {
         "postgres": {
           "id": "n2SyhP9QhMnp1ryk",
@@ -49,13 +49,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const inputData = $('Validate Input').first().json;\nconst context = inputData.context;\nconst currentStageCode = inputData.current_stage;\nconst extractedContext = inputData.extracted_context;\n\n// Build stages map\nconst stages = $input.all().map(i => i.json);\nconst stageMap = {};\nconst stageOrder = [];\n\nfor (const stage of stages) {\n  stageMap[stage.code] = stage;\n  stageOrder.push(stage.code);\n}\n\nconst currentStage = stageMap[currentStageCode];\nif (!currentStage) {\n  // Default to first stage if current is invalid\n  return {\n    context: context,\n    current_stage: stageOrder[0] || 'lead',\n    stage_changed: true,\n    transition: {\n      from: currentStageCode,\n      to: stageOrder[0],\n      reason: 'invalid_stage_reset'\n    },\n    actions_to_execute: [],\n    stages: stageOrder\n  };\n}\n\n// Check exit conditions\nfunction evaluateCondition(condition, ctx, extracted) {\n  if (!condition) return false;\n  \n  const { type, field, op, value, conditions } = condition;\n  \n  // Get field value from context or extracted\n  function getFieldValue(fieldPath) {\n    const parts = fieldPath.split('.');\n    let val = ctx;\n    \n    // Check in extracted context first\n    for (const entity of (extracted.entities || [])) {\n      if (entity.type === parts[0]) {\n        if (parts.length === 1) return entity;\n        val = entity;\n        for (let i = 1; i < parts.length; i++) {\n          val = val?.[parts[i]];\n        }\n        if (val !== undefined) return val;\n      }\n    }\n    \n    // Then check in context\n    val = ctx;\n    for (const part of parts) {\n      val = val?.[part];\n    }\n    return val;\n  }\n  \n  switch (type) {\n    case 'all_of':\n      return (conditions || []).every(c => evaluateCondition(c, ctx, extracted));\n    \n    case 'any_of':\n      return (conditions || []).some(c => evaluateCondition(c, ctx, extracted));\n    \n    case 'none_of':\n      return !(conditions || []).some(c => evaluateCondition(c, ctx, extracted));\n    \n    default:\n      // Single condition\n      const fieldValue = getFieldValue(field);\n      \n      switch (op) {\n        case 'exists':\n          return fieldValue !== null && fieldValue !== undefined;\n        case 'not_exists':\n          return fieldValue === null || fieldValue === undefined;\n        case 'eq':\n          return fieldValue === value;\n        case 'ne':\n          return fieldValue !== value;\n        case 'gt':\n          return fieldValue > value;\n        case 'gte':\n          return fieldValue >= value;\n        case 'lt':\n          return fieldValue < value;\n        case 'lte':\n          return fieldValue <= value;\n        case 'in':\n          return Array.isArray(value) && value.includes(fieldValue);\n        case 'contains':\n          return typeof fieldValue === 'string' && fieldValue.includes(value);\n        default:\n          return false;\n      }\n  }\n}\n\n// Parse exit conditions\nlet exitConditions = currentStage.effective_exit || currentStage.exit_conditions;\nif (typeof exitConditions === 'string') {\n  try {\n    exitConditions = JSON.parse(exitConditions);\n  } catch (e) {\n    exitConditions = null;\n  }\n}\n\nconst shouldTransition = exitConditions ? evaluateCondition(exitConditions, context, extractedContext) : false;\n\nlet result = {\n  context: context,\n  current_stage: currentStageCode,\n  stage_changed: false,\n  transition: null,\n  actions_to_execute: [],\n  stages: stageOrder,\n  exit_conditions_met: shouldTransition\n};\n\nif (shouldTransition) {\n  // Find next stage\n  const currentIndex = stageOrder.indexOf(currentStageCode);\n  const nextStageCode = currentIndex < stageOrder.length - 1 ? stageOrder[currentIndex + 1] : null;\n  \n  if (nextStageCode) {\n    const nextStage = stageMap[nextStageCode];\n    \n    // Collect actions\n    const actions = [];\n    \n    // On exit actions from current stage\n    let onExitActions = currentStage.on_exit_actions;\n    if (typeof onExitActions === 'string') {\n      try { onExitActions = JSON.parse(onExitActions); } catch (e) { onExitActions = null; }\n    }\n    if (onExitActions?.actions) {\n      actions.push(...onExitActions.actions.map(a => ({ ...a, stage: currentStageCode, event: 'on_exit' })));\n    }\n    \n    // On enter actions for next stage\n    let onEnterActions = nextStage.on_enter_actions;\n    if (typeof onEnterActions === 'string') {\n      try { onEnterActions = JSON.parse(onEnterActions); } catch (e) { onEnterActions = null; }\n    }\n    if (onEnterActions?.actions) {\n      actions.push(...onEnterActions.actions.map(a => ({ ...a, stage: nextStageCode, event: 'on_enter' })));\n    }\n    \n    result.stage_changed = true;\n    result.transition = {\n      from: currentStageCode,\n      to: nextStageCode,\n      reason: 'exit_conditions_met'\n    };\n    result.current_stage = nextStageCode;\n    result.actions_to_execute = actions;\n    \n    // Update context\n    context.previous_stage = currentStageCode;\n    context.current_stage = nextStageCode;\n    context.stage_entered_at = new Date().toISOString();\n    result.context = context;\n  } else {\n    // Final stage reached\n    let onExitActions = currentStage.on_exit_actions;\n    if (typeof onExitActions === 'string') {\n      try { onExitActions = JSON.parse(onExitActions); } catch (e) { onExitActions = null; }\n    }\n    \n    result.transition = {\n      from: currentStageCode,\n      to: null,\n      reason: 'funnel_complete'\n    };\n    \n    if (onExitActions?.actions) {\n      result.actions_to_execute = onExitActions.actions.map(a => ({ ...a, stage: currentStageCode, event: 'on_complete' }));\n    }\n  }\n}\n\nreturn result;"
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst context = inputData.context;\nconst currentStageCode = inputData.current_stage;\nconst extractedContext = inputData.extracted_context;\nconst message = inputData.message;\n\n// Build stages map\nconst stages = $input.all().map(i => i.json);\nconst stageMap = {};\nconst stageOrder = [];\n\nfor (const stage of stages) {\n  stageMap[stage.code] = stage;\n  stageOrder.push(stage.code);\n}\n\nconst currentStage = stageMap[currentStageCode];\nif (!currentStage) {\n  return {\n    context: context,\n    current_stage: stageOrder[0] || 'lead',\n    stage_changed: true,\n    behavior_type: 'COLLECT_REQUIRED',\n    transition: { from: currentStageCode, to: stageOrder[0], reason: 'invalid_stage_reset' },\n    actions_to_execute: [],\n    stages: stageOrder,\n    stageMap: stageMap\n  };\n}\n\n// Parse fields\nlet fields = currentStage.fields || [];\nif (typeof fields === 'string') {\n  try { fields = JSON.parse(fields); } catch (e) { fields = []; }\n}\n\n// Build required mask for current stage\nconst requiredFields = fields.filter(f => f.is_required);\nconst requiredMask = fields.map(f => f.is_required ? '1' : '0').join('');\n\n// Get current mask from context or initialize\nlet currentMask = context.stage_masks?.[currentStageCode]?.current || '0'.repeat(fields.length);\n\n// Update mask based on extracted context\nfunction getFieldValue(fieldPath, ctx, extracted) {\n  const parts = fieldPath.split('.');\n  \n  // Check extracted entities\n  for (const entity of (extracted.entities || [])) {\n    if (entity.type === parts[0]) {\n      if (parts.length === 1) return entity;\n      let val = entity;\n      for (let i = 1; i < parts.length; i++) {\n        val = val?.[parts[i]];\n      }\n      if (val !== undefined) return val;\n    }\n  }\n  \n  // Check context\n  let val = ctx;\n  for (const part of parts) {\n    val = val?.[part];\n  }\n  return val;\n}\n\n// Update current mask based on extracted data\nconst maskArray = currentMask.split('');\nfor (let i = 0; i < fields.length; i++) {\n  const field = fields[i];\n  const value = getFieldValue(field.field_path, context, extractedContext);\n  if (value !== null && value !== undefined) {\n    maskArray[i] = '1';\n  }\n}\ncurrentMask = maskArray.join('');\n\n// Update context with new mask\nif (!context.stage_masks[currentStageCode]) {\n  context.stage_masks[currentStageCode] = {};\n}\ncontext.stage_masks[currentStageCode].current = currentMask;\ncontext.stage_masks[currentStageCode].required = requiredMask;\n\n// Check if stage is complete (binary mask comparison)\nfunction checkMaskComplete(current, required) {\n  if (!required || required.length === 0) return true;\n  for (let i = 0; i < required.length; i++) {\n    if (required[i] === '1' && current[i] !== '1') {\n      return false;\n    }\n  }\n  return true;\n}\n\nconst isStageComplete = checkMaskComplete(currentMask, requiredMask);\n\n// Find next unfilled required field\nlet nextFieldToAsk = null;\nlet fieldIndex = -1;\nfor (let i = 0; i < fields.length; i++) {\n  const field = fields[i];\n  if (maskArray[i] === '0') {\n    // Check dependency\n    if (field.depends_on_field) {\n      const depIndex = fields.findIndex(f => f.field_path === field.depends_on_field);\n      if (depIndex >= 0 && maskArray[depIndex] === '0') {\n        continue; // Dependency not filled\n      }\n    }\n    if (field.is_required || currentStage.behavior_type === 'COLLECT_OPTIONAL') {\n      nextFieldToAsk = field;\n      fieldIndex = i;\n      break;\n    }\n  }\n}\n\nreturn {\n  context: context,\n  current_stage: currentStageCode,\n  current_stage_data: currentStage,\n  behavior_type: currentStage.behavior_type || 'COLLECT_REQUIRED',\n  behavior_config: currentStage.behavior_config || {},\n  fields: fields,\n  cta_actions: currentStage.cta_actions || [],\n  qa_handler_enabled: currentStage.qa_handler_enabled,\n  \n  // Mask data\n  current_mask: currentMask,\n  required_mask: requiredMask,\n  is_stage_complete: isStageComplete,\n  \n  // Next action\n  next_field_to_ask: nextFieldToAsk,\n  next_field_index: fieldIndex,\n  \n  // Message\n  message: message,\n  extracted_context: extractedContext,\n  \n  // Stages\n  stages: stageOrder,\n  stageMap: stageMap,\n  \n  stage_changed: false,\n  transition: null,\n  actions_to_execute: []\n};"
       },
-      "id": "evaluate-transition",
-      "name": "Evaluate Transition",
+      "id": "process-stage",
+      "name": "Process Stage & Masks",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [32, 0]
+      "position": [-128, 0]
     },
     {
       "parameters": {
@@ -67,8 +67,8 @@
           },
           "conditions": [
             {
-              "id": "check-stage-changed",
-              "leftValue": "={{ $json.stage_changed }}",
+              "id": "check-complete",
+              "leftValue": "={{ $json.is_stage_complete }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -80,41 +80,183 @@
         },
         "options": {}
       },
-      "id": "if-changed",
-      "name": "Stage Changed?",
+      "id": "if-complete",
+      "name": "Stage Complete?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [256, 0]
+      "position": [96, 0]
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO elo_t_dialog_stage_history (dialog_id, stage_code, entered_at, exited_at, transition_reason)\nVALUES ($1, $2, $3, NOW(), $4);",
-        "options": {
-          "queryReplacement": "={{ [$('Validate Input').first().json.dialog_id, $json.transition.from, $('Validate Input').first().json.context.stage_entered_at || new Date().toISOString(), $json.transition.reason] }}"
-        }
+        "jsCode": "// Stage is complete - evaluate transitions\nconst data = $input.first().json;\nconst context = data.context;\nconst currentStageCode = data.current_stage;\nconst currentStage = data.current_stage_data;\nconst stageOrder = data.stages;\nconst stageMap = data.stageMap;\n\n// Parse on_complete_transitions\nlet transitions = currentStage.on_complete_transitions || [];\nif (typeof transitions === 'string') {\n  try { transitions = JSON.parse(transitions); } catch (e) { transitions = []; }\n}\n\n// Evaluate conditions helper\nfunction evaluateCondition(condition, ctx) {\n  if (!condition || condition === 'default') return true;\n  \n  const { type, field, op, value, conditions } = condition;\n  \n  function getFieldValue(fieldPath) {\n    const parts = fieldPath.split('.');\n    let val = ctx;\n    for (const part of parts) {\n      val = val?.[part];\n    }\n    return val;\n  }\n  \n  switch (type) {\n    case 'all_of':\n      return (conditions || []).every(c => evaluateCondition(c, ctx));\n    case 'any_of':\n      return (conditions || []).some(c => evaluateCondition(c, ctx));\n    case 'none_of':\n      return !(conditions || []).some(c => evaluateCondition(c, ctx));\n    default:\n      const fieldValue = getFieldValue(field);\n      switch (op) {\n        case 'exists': return fieldValue !== null && fieldValue !== undefined;\n        case 'not_exists': return fieldValue === null || fieldValue === undefined;\n        case 'eq': return fieldValue === value;\n        case 'ne': return fieldValue !== value;\n        default: return false;\n      }\n  }\n}\n\n// Find matching transition\nlet nextStage = null;\nlet transitionActions = [];\n\nfor (const trans of transitions) {\n  if (evaluateCondition(trans.condition, context)) {\n    nextStage = trans.next_stage;\n    if (trans.action) {\n      transitionActions.push(trans.action);\n    }\n    break;\n  }\n}\n\n// Default: next stage in order\nif (!nextStage) {\n  const currentIndex = stageOrder.indexOf(currentStageCode);\n  nextStage = currentIndex < stageOrder.length - 1 ? stageOrder[currentIndex + 1] : null;\n}\n\nconst result = {\n  ...data,\n  stage_changed: nextStage !== null && nextStage !== currentStageCode,\n  transition: nextStage ? {\n    from: currentStageCode,\n    to: nextStage,\n    reason: 'stage_complete'\n  } : null,\n  actions_to_execute: transitionActions\n};\n\nif (nextStage && nextStage !== currentStageCode) {\n  context.previous_stage = currentStageCode;\n  context.current_stage = nextStage;\n  context.stage_entered_at = new Date().toISOString();\n  result.current_stage = nextStage;\n  result.context = context;\n}\n\nreturn result;"
       },
-      "id": "log-transition",
-      "name": "Log Stage Transition",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [480, -112],
-      "credentials": {
-        "postgres": {
-          "id": "n2SyhP9QhMnp1ryk",
-          "name": "Postgres account"
-        }
-      }
+      "id": "evaluate-transitions",
+      "name": "Evaluate Transitions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, -112]
     },
     {
       "parameters": {
-        "jsCode": "// Format response with actions\nconst data = $('Evaluate Transition').first().json;\nconst inputData = $('Validate Input').first().json;\n\nreturn {\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id,\n  trace_id: inputData.trace_id,\n  \n  stage: {\n    current: data.current_stage,\n    previous: data.transition?.from || null,\n    changed: data.stage_changed,\n    reason: data.transition?.reason || null\n  },\n  \n  actions: data.actions_to_execute,\n  \n  context: data.context,\n  \n  stages_available: data.stages\n};"
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.behavior_type }}",
+                    "rightValue": "COLLECT_REQUIRED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "COLLECT_REQUIRED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.behavior_type }}",
+                    "rightValue": "COLLECT_OPTIONAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "COLLECT_OPTIONAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.behavior_type }}",
+                    "rightValue": "SEND_PROMO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SEND_PROMO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.behavior_type }}",
+                    "rightValue": "CTA_WAIT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CTA_WAIT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "behavior-router",
+      "name": "Behavior Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [96, 224]
+    },
+    {
+      "parameters": {
+        "jsCode": "// COLLECT_REQUIRED: Ask for next missing field\nconst data = $input.first().json;\nconst nextField = data.next_field_to_ask;\n\nif (!nextField) {\n  // All fields collected (shouldn't reach here due to mask check)\n  return {\n    ...data,\n    response: {\n      type: 'continue',\n      message: null\n    }\n  };\n}\n\n// Generate prompt for the field\nconst prompt = nextField.ask_prompt;\n\nreturn {\n  ...data,\n  response: {\n    type: 'ask_field',\n    field: nextField.field_path,\n    prompt: prompt,\n    clarify_prompt: nextField.clarify_prompt,\n    extraction_type: nextField.extraction_type\n  }\n};"
+      },
+      "id": "collect-required",
+      "name": "COLLECT_REQUIRED Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// COLLECT_OPTIONAL: Ask if within ask_count limit\nconst data = $input.first().json;\nconst config = data.behavior_config || {};\nconst askCount = config.ask_count || 1;\nconst currentAttempts = data.context.optional_attempts?.[data.current_stage] || 0;\n\nif (currentAttempts >= askCount) {\n  // Skip to next stage\n  return {\n    ...data,\n    is_stage_complete: true,\n    response: {\n      type: 'skip',\n      reason: 'max_optional_attempts'\n    }\n  };\n}\n\nconst nextField = data.next_field_to_ask;\nif (!nextField) {\n  return {\n    ...data,\n    is_stage_complete: true,\n    response: { type: 'continue' }\n  };\n}\n\nreturn {\n  ...data,\n  response: {\n    type: 'ask_optional',\n    field: nextField.field_path,\n    prompt: nextField.ask_prompt,\n    attempt: currentAttempts + 1,\n    max_attempts: askCount\n  }\n};"
+      },
+      "id": "collect-optional",
+      "name": "COLLECT_OPTIONAL Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 224]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SEND_PROMO: Send content and auto-advance\nconst data = $input.first().json;\nconst config = data.behavior_config || {};\n\nreturn {\n  ...data,\n  is_stage_complete: true,\n  response: {\n    type: 'send_promo',\n    template_id: config.template_id,\n    auto_advance: config.auto_advance !== false\n  },\n  actions_to_execute: [\n    { type: 'send_template', template_id: config.template_id }\n  ]\n};"
+      },
+      "id": "send-promo",
+      "name": "SEND_PROMO Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 336]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CTA_WAIT: Check if action detected in message\nconst data = $input.first().json;\nconst ctaActions = data.cta_actions || [];\nconst message = data.message;\nconst extracted = data.extracted_context;\n\nlet detectedAction = null;\n\n// Check each CTA action\nfor (const cta of ctaActions) {\n  const config = cta.detection_config || {};\n  \n  if (cta.detection_type === 'intent') {\n    // Check if any intent matches\n    const intents = config.intents || [];\n    const extractedIntent = extracted.intent?.type || extracted.intent;\n    \n    if (intents.includes(extractedIntent)) {\n      detectedAction = cta;\n      break;\n    }\n    \n    // Also check in message text for keywords\n    if (message?.text) {\n      const text = message.text.toLowerCase();\n      for (const intent of intents) {\n        if (text.includes(intent)) {\n          detectedAction = cta;\n          break;\n        }\n      }\n    }\n  }\n  \n  if (detectedAction) break;\n}\n\nif (detectedAction) {\n  return {\n    ...data,\n    is_stage_complete: true,\n    detected_cta: detectedAction,\n    response: {\n      type: 'cta_detected',\n      action: detectedAction.action_code,\n      next_stage: detectedAction.on_success_transition\n    },\n    transition: {\n      from: data.current_stage,\n      to: detectedAction.on_success_transition,\n      reason: `cta_${detectedAction.action_code}`\n    },\n    actions_to_execute: detectedAction.on_success_actions || []\n  };\n}\n\n// No action detected - wait\nreturn {\n  ...data,\n  response: {\n    type: 'waiting',\n    available_actions: ctaActions.map(a => ({\n      code: a.action_code,\n      label: a.action_label\n    }))\n  }\n};"
+      },
+      "id": "cta-wait",
+      "name": "CTA_WAIT Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 448]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all behavior handler outputs\nconst data = $input.first().json;\n\nreturn data;"
+      },
+      "id": "merge-behaviors",
+      "name": "Merge Behaviors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [544, 224]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format final response\nconst data = $input.first().json;\nconst inputData = $('Validate Input').first().json;\n\nreturn {\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id,\n  trace_id: inputData.trace_id,\n  \n  stage: {\n    current: data.current_stage,\n    previous: data.transition?.from || null,\n    changed: data.stage_changed || false,\n    reason: data.transition?.reason || null,\n    behavior_type: data.behavior_type\n  },\n  \n  masks: {\n    current: data.current_mask,\n    required: data.required_mask,\n    complete: data.is_stage_complete\n  },\n  \n  response: data.response || null,\n  actions: data.actions_to_execute || [],\n  context: data.context,\n  stages_available: data.stages\n};"
       },
       "id": "format-response",
       "name": "Format Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [704, 0]
+      "position": [768, 112]
     },
     {
       "parameters": {
@@ -126,7 +268,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [928, 0]
+      "position": [992, 112]
     }
   ],
   "connections": {
@@ -145,44 +287,55 @@
       "main": [
         [
           {
-            "node": "Load Funnel Stages",
+            "node": "Load Stage Config",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Load Funnel Stages": {
+    "Load Stage Config": {
       "main": [
         [
           {
-            "node": "Evaluate Transition",
+            "node": "Process Stage & Masks",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Evaluate Transition": {
+    "Process Stage & Masks": {
       "main": [
         [
           {
-            "node": "Stage Changed?",
+            "node": "Stage Complete?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Stage Changed?": {
+    "Stage Complete?": {
       "main": [
         [
           {
-            "node": "Log Stage Transition",
+            "node": "Evaluate Transitions",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "Behavior Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Transitions": {
+      "main": [
         [
           {
             "node": "Format Response",
@@ -192,7 +345,83 @@
         ]
       ]
     },
-    "Log Stage Transition": {
+    "Behavior Router": {
+      "main": [
+        [
+          {
+            "node": "COLLECT_REQUIRED Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "COLLECT_OPTIONAL Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SEND_PROMO Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CTA_WAIT Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COLLECT_REQUIRED Handler": {
+      "main": [
+        [
+          {
+            "node": "Merge Behaviors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COLLECT_OPTIONAL Handler": {
+      "main": [
+        [
+          {
+            "node": "Merge Behaviors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEND_PROMO Handler": {
+      "main": [
+        [
+          {
+            "node": "Merge Behaviors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CTA_WAIT Handler": {
+      "main": [
+        [
+          {
+            "node": "Merge Behaviors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Behaviors": {
       "main": [
         [
           {

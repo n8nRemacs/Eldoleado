@@ -1,95 +1,103 @@
-# Stop Session - 2026-01-02
+# Stop Session - 2026-01-03 ~18:00
 
-## Four-Level Context Extraction System - IMPLEMENTED
-
-Создана полная система настраиваемого извлечения контекста с четырёхуровневой иерархией.
+## Анализ AI Pipeline + Архитектура уведомлений операторов
 
 ---
 
 ## Что сделано сегодня
 
-### 1. SQL Migration 007 (ВЫПОЛНЕНА)
+### 1. Очистка ELO_In_* workflows
 
-**Файл:** `NEW/migrations/007_domains_context_extraction.sql`
+Удалены избыточные вызовы Tenant Resolver (резольвинг после батчинга):
 
-**Выполнена на сервере:** 185.221.214.83
+| Workflow | Изменения |
+|----------|-----------|
+| ELO_In_Telegram | Удалён Tenant Resolver |
+| ELO_In_Telegram_Bot | Удалён Tenant Resolver |
+| ELO_In_Avito | Удалён Tenant Resolver |
+| ELO_In_MAX | Удалён Tenant Resolver (вкл. activeVersion) |
+| ELO_In_Form | **Полностью переделан** — добавлена очередь |
+| ELO_In_Phone | **Полностью переделан** — добавлена очередь |
 
-**Созданные таблицы:**
-- `elo_domains` - 3 домена (electronics, auto, software)
-- `elo_context_types` - глобальные типы контекста
-- `elo_intent_types` - глобальные интенты
-- `elo_d_context_types` - доменные типы контекста
-- `elo_d_intent_types` - доменные интенты
-- `elo_v_context_types` - вертикальные типы контекста
-- `elo_v_intent_types` - вертикальные интенты
-- `elo_t_tenant_domains` - подключенные домены тенанта
-- `elo_t_tenant_verticals` - подключенные вертикали тенанта
-- `elo_t_context_type_overrides` - переопределения
-- `elo_custom_fields` - кастомные поля
-- `elo_funnel_stages` - этапы воронки
-- `elo_prompts` - промпты для воркеров
-- `elo_worker_configs` - конфигурации воркеров
-- `elo_action_types` - 13 типов действий
-- `elo_trigger_types` - 15 типов триггеров
-- `elo_triggers` - триггеры
+### 2. Синхронизация с n8n
 
-### 2. Документация
+| Категория | Active | Inactive | Total |
+|-----------|--------|----------|-------|
+| Channel Contour (In) | 8 | 3 | 11 |
+| Channel Contour (Out) | 4 | 3 | 7 |
+| API | 11 | 0 | 11 |
+| AI Contour | 4 | 11 | 15 |
+| Input/Resolve/Core | 2 | 11 | 13 |
+| **Total** | **26** | **31** | **57** |
 
-**Файл:** `NEW/DOCS/CONTEXT_EXTRACTION_ARCHITECTURE.md`
+### 3. Анализ AI Contour — НАЙДЕН РАЗРЫВ
 
-Полная документация архитектуры системы.
+```
+ELO_Resolver → webhook /elo-core-ingest → ELO_Core_AI_Test_Stub_WS [OFF]
+                                                   ↓
+                                        (тестовая заглушка!)
 
-### 3. Workflows (JSON файлы для импорта)
+ELO_Pipeline_Orchestrator [OFF] ← НИКТО НЕ ВЫЗЫВАЕТ!
+```
 
-| Workflow | Файл | Описание |
-|----------|------|----------|
-| ELO_AI_Extract_v2 | `NEW/workflows/AI Contour/ELO_AI_Extract_v2.json` | 4-level extraction |
-| ELO_Funnel_Controller | `NEW/workflows/AI Contour/ELO_Funnel_Controller.json` | Stage transitions |
-| ELO_Context_Router | `NEW/workflows/AI Contour/ELO_Context_Router.json` | Domain/vertical routing |
-| ELO_Worker_Executor | `NEW/workflows/AI Contour/ELO_Worker_Executor.json` | Universal workers |
+### 4. Архитектура уведомлений операторов
 
-### 4. Git
+**Три режима:**
 
-**Commit:** `702f89a58` - feat: Add 4-level context extraction system for AI Contour
+| Режим | Generate | Approve |
+|-------|----------|---------|
+| `manual` | ❌ | ❌ |
+| `semi_auto` | ✅ | ✅ |
+| `auto` | ✅ | ❌ |
 
-**Pushed:** origin/main
+**Ключевой принцип:** Pipeline работает ОДИНАКОВО для всех. Разница только в генерации/утверждении ответа.
 
----
-
-## Текущее состояние
-
-| Компонент | Статус |
-|-----------|--------|
-| SQL миграция | DONE - выполнена на сервере |
-| Документация | DONE |
-| Workflows JSON | DONE - файлы созданы |
-| Импорт в n8n | NOT DONE - требуется вручную |
-| Neo4j Enterprise | NOT DONE - нужно создать 3 базы |
-| ELO_Graph_Sync | NOT DONE - workflow не создан |
-| REST API endpoints | NOT DONE |
-| Тестирование | NOT DONE |
+**Хранение:** `operator.settings.ai_mode` → `tenant.settings.ai_mode` → `'manual'`
 
 ---
 
-## Проверка БД
+## Созданная документация
 
-```bash
-# Проверить домены
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT * FROM elo_domains;'"
+| Файл | Описание |
+|------|----------|
+| `NEW/DOCS/WORKFLOWS_ANALYSIS.md` | Анализ 57 workflows |
+| `NEW/DOCS/OPERATOR_NOTIFICATION_ARCHITECTURE.md` | Архитектура 3 режимов |
+| `123.md` | Полный отчёт + план |
 
-# Проверить action types
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT code, name FROM elo_action_types;'"
+---
 
-# Проверить trigger types
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c 'SELECT code, name FROM elo_trigger_types;'"
+## Текущее состояние Pipeline
+
+```
+ELO_In_* → queue:incoming → Batcher → Processor → Resolver [OFF]
+                                                      ↓
+                                        webhook → Test_Stub [OFF] ← РАЗРЫВ!
+
+Pipeline_Orchestrator [OFF] ← НЕ ПОДКЛЮЧЕН
+  ├─ Task_Dispatcher [ON]
+  ├─ Results_Aggregator [ON]
+  └─ Funnel_Controller [ON]
 ```
 
 ---
 
-## План архитектуры
+## Следующие шаги (Фаза 1 - КРИТИЧНО)
 
-**Файл:** `C:\Users\ELOnout\.claude\plans\polished-foraging-lobster.md`
+1. **Починить Resolver → Pipeline** — заменить webhook на Execute Workflow
+2. **Добавить Mode Router** — в Pipeline_Orchestrator
+3. **Создать ELO_Operator_Notify** — для уведомлений
+4. **Включить ELO_Resolver + Pipeline_Orchestrator**
 
 ---
 
-*Сессия завершена: 2026-01-02*
+## Файлы для изменения
+
+| Файл | Действие |
+|------|----------|
+| `ELO_Resolver.json` | Заменить HTTP на Execute Workflow |
+| `ELO_Pipeline_Orchestrator.json` | Добавить Mode Router |
+| `NEW: ELO_Operator_Notify.json` | Создать |
+
+---
+
+*Сессия завершена: 2026-01-03 ~18:00*
