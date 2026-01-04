@@ -5,7 +5,18 @@
       "mcp__ssh__ssh_exec",
       "mcp__ssh__ssh_list_servers",
       "Bash(cd:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: Remove mcp-whatsapp-baileys + update web-app channel modals\n\n- Remove mcp-whatsapp-baileys folder\n- Update channel setup modals \\(Telegram, WhatsApp, MAX\\)\n- Update channelSetup API\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Add 4-level context extraction system for AI Contour\n\n- Add SQL migration 007_domains_context_extraction.sql with:\n  - Global/Domain/Vertical/Tenant hierarchy tables\n  - 3 domains seeded \\(electronics, auto, software\\)\n  - 14 action types + 15 trigger types catalogs\n  - Universal workers system tables\n  - Funnel stages with inheritance\n\n- Add architecture documentation CONTEXT_EXTRACTION_ARCHITECTURE.md\n\n- Add n8n workflows \\(for manual import\\):\n  - ELO_AI_Extract_v2: 4-level context extraction\n  - ELO_Funnel_Controller: stage transitions\n  - ELO_Context_Router: domain/vertical routing\n  - ELO_Worker_Executor: universal worker execution\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(cat:*)",
+      "Bash(ssh root@185.221.214.83 \"docker exec -i supabase-db psql -U postgres\")",
+      "Bash(ssh root@185.221.214.83 \"docker exec supabase-db psql -U postgres -c \"\"SELECT table_name FROM information_schema.tables WHERE table_schema = ''public'' AND table_name LIKE ''elo_%'' ORDER BY table_name;\"\" | head -40\")",
+      "Bash(ssh root@185.221.214.83 \"docker exec supabase-db psql -U postgres -c \"\"SELECT code, name, neo4j_database FROM elo_domains;\"\"\")",
+      "Bash(ssh:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
