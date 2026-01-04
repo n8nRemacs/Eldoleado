@@ -1,19 +1,17 @@
 {
   "name": "ELO_Blind_Worker",
-  "description": "Universal blind worker: polls Redis, executes tasks (LLM, HTTP, Webhook), returns results. Model is dynamic from config.",
+  "description": "Universal blind worker with 5 AI Agent tiers (LangChain). Supports: llm_extraction (base free), ai_agent_* (nano/small/optima/pro/expert with billing), http_request, webhook_call.",
   "active": false,
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [{"field": "seconds", "secondsInterval": 2}]
-        }
+        "rule": {"interval": [{"field": "seconds", "secondsInterval": 2}]}
       },
       "id": "schedule-trigger",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-1312, 64]
+      "position": [-1312, 300]
     },
     {
       "parameters": {
@@ -26,21 +24,14 @@
       "name": "Redis Pop Task",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [-1088, 64],
-      "credentials": {
-        "redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}
-      }
+      "position": [-1088, 300],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
     },
     {
       "parameters": {
         "conditions": {
           "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose"},
-          "conditions": [{
-            "id": "check-exists",
-            "leftValue": "={{ $json.data }}",
-            "rightValue": "",
-            "operator": {"type": "string", "operation": "isNotEmpty"}
-          }],
+          "conditions": [{"id": "check-exists", "leftValue": "={{ $json.data }}", "rightValue": "", "operator": {"type": "string", "operation": "isNotEmpty"}}],
           "combinator": "and"
         },
         "options": {}
@@ -49,7 +40,7 @@
       "name": "Task Exists?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-864, 64]
+      "position": [-864, 300]
     },
     {
       "parameters": {
@@ -59,48 +50,20 @@
       "name": "Parse Task",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-608, 64]
+      "position": [-608, 300]
     },
     {
       "parameters": {
         "rules": {
           "values": [
-            {
-              "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-                "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "llm_extraction", "operator": {"type": "string", "operation": "equals"}}],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "llm_extraction"
-            },
-            {
-              "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-                "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "llm_generation", "operator": {"type": "string", "operation": "equals"}}],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "llm_generation"
-            },
-            {
-              "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-                "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "http_request", "operator": {"type": "string", "operation": "equals"}}],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "http_request"
-            },
-            {
-              "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-                "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "webhook_call", "operator": {"type": "string", "operation": "equals"}}],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "webhook_call"
-            }
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "llm_extraction", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "llm_extraction"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "ai_agent_nano", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "ai_agent_nano"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "ai_agent_small", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "ai_agent_small"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "ai_agent_optima", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "ai_agent_optima"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "ai_agent_pro", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "ai_agent_pro"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "ai_agent_expert", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "ai_agent_expert"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "http_request", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "http_request"},
+            {"conditions": {"options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"}, "conditions": [{"leftValue": "={{ $json.task_type }}", "rightValue": "webhook_call", "operator": {"type": "string", "operation": "equals"}}], "combinator": "and"}, "renameOutput": true, "outputKey": "webhook_call"}
           ]
         },
         "options": {"fallbackOutput": "extra"}
@@ -109,17 +72,17 @@
       "name": "Task Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [-384, 64]
+      "position": [-384, 300]
     },
     {
       "parameters": {
-        "jsCode": "const task = $('Parse Task').first().json;\nconst config = task.config;\n\n// Agent Tiers mapping (hardcoded for speed)\nconst AGENT_TIERS = {\n  nano: 'qwen/qwen3-4b:free',\n  small: 'qwen/qwen3-8b',\n  optima: 'anthropic/claude-3-haiku',\n  pro: 'openai/gpt-4o-mini',\n  expert: 'anthropic/claude-3-5-sonnet'\n};\n\n// Get model: agent_tier -> model -> default\nlet model;\nif (config.agent_tier && AGENT_TIERS[config.agent_tier]) {\n  model = AGENT_TIERS[config.agent_tier];\n} else {\n  model = config.model || 'qwen/qwen3-4b:free';\n}\n\n// Build system prompt\nlet systemPrompt = config.system_prompt || 'You are an entity extraction assistant. Return ONLY valid JSON.';\n\n// Build user prompt\nlet userPrompt = config.prompt || '';\nif (config.message) {\n  userPrompt = userPrompt.replace('{{message}}', config.message);\n}\n\n// Add output schema if provided\nif (config.output_schema) {\n  const schema = typeof config.output_schema === 'string' ? config.output_schema : JSON.stringify(config.output_schema);\n  systemPrompt += `\\n\\nExpected output schema: ${schema}`;\n}\n\n// Add examples if provided\nif (config.examples && config.examples.length > 0) {\n  userPrompt += '\\n\\nExamples:\\n';\n  for (const ex of config.examples) {\n    userPrompt += `Input: \"${ex.input}\"\\nOutput: ${JSON.stringify(ex.output)}\\n\\n`;\n  }\n}\n\n// Final message\nif (config.message) {\n  userPrompt += `\\n\\nNow extract from: \"${config.message}\"\\nReturn JSON only:`;\n}\n\nreturn {\n  model: model,\n  system_prompt: systemPrompt,\n  user_prompt: userPrompt,\n  temperature: config.temperature || 0.1,\n  max_tokens: config.max_tokens || 500,\n  task: task\n};"
+        "jsCode": "// Build prompt for base LLM extraction (free, no billing)\nconst task = $('Parse Task').first().json;\nconst config = task.config;\nconst model = 'qwen/qwen3-4b:free';\n\nlet systemPrompt = config.system_prompt || 'You are an entity extraction assistant. Return ONLY valid JSON.';\nlet userPrompt = config.prompt || '';\n\nif (config.message) {\n  userPrompt = userPrompt.replace('{{message}}', config.message);\n}\nif (config.output_schema) {\n  const schema = typeof config.output_schema === 'string' ? config.output_schema : JSON.stringify(config.output_schema);\n  systemPrompt += `\\n\\nExpected output schema: ${schema}`;\n}\nif (config.message) {\n  userPrompt += `\\n\\nNow extract from: \"${config.message}\"\\nReturn JSON only:`;\n}\n\nreturn {\n  model: model,\n  system_prompt: systemPrompt,\n  user_prompt: userPrompt,\n  temperature: config.temperature || 0.1,\n  max_tokens: config.max_tokens || 500,\n  task: task\n};"
       },
       "id": "build-llm-prompt",
       "name": "Build LLM Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-96, -100]
+      "position": [-96, 100]
     },
     {
       "parameters": {
@@ -132,34 +95,158 @@
         "jsonBody": "={{ JSON.stringify({\n  model: $json.model,\n  messages: [\n    { role: 'system', content: $json.system_prompt },\n    { role: 'user', content: $json.user_prompt }\n  ],\n  temperature: $json.temperature,\n  max_tokens: $json.max_tokens\n}) }}",
         "options": {"timeout": 60000}
       },
-      "id": "call-openrouter",
-      "name": "Call OpenRouter (Dynamic)",
+      "id": "call-openrouter-base",
+      "name": "Call OpenRouter (Base)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [160, -100],
-      "credentials": {
-        "httpHeaderAuth": {"id": "openrouter-header", "name": "OpenRouter API Key"}
-      },
+      "position": [160, 100],
+      "credentials": {"httpHeaderAuth": {"id": "openrouter-header", "name": "OpenRouter API Key"}},
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "// Parse LLM response\nconst response = $json;\nconst promptData = $('Build LLM Prompt').first().json;\nconst task = promptData.task;\n\nlet result = null;\nlet error = null;\nlet rawContent = '';\n\ntry {\n  rawContent = response.choices?.[0]?.message?.content || '';\n  \n  // Clean up response\n  let content = rawContent.trim();\n  \n  // Remove thinking tags if present (Qwen3)\n  content = content.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  // Extract JSON from response\n  const jsonMatch = content.match(/[\\[\\{][\\s\\S]*[\\]\\}]/);\n  if (jsonMatch) {\n    result = JSON.parse(jsonMatch[0]);\n  } else {\n    // Try to parse as-is\n    result = JSON.parse(content);\n  }\n} catch (e) {\n  error = e.message;\n  result = { raw: rawContent, parse_error: e.message };\n}\n\n// Extract usage details\nconst usage = response.usage || {};\n\nreturn {\n  task_id: task.task_id,\n  trace_id: task.trace_id,\n  code: task.meta?.code,\n  level: task.meta?.level,\n  result: result,\n  model_used: response.model || promptData.model,\n  agent_tier: task.config?.agent_tier || null,\n  prompt_tokens: usage.prompt_tokens || 0,\n  completion_tokens: usage.completion_tokens || 0,\n  tokens_used: usage.total_tokens || 0,\n  raw_response: rawContent,\n  duration_ms: Date.now() - task._start_time,\n  error: error,\n  callback: task.callback,\n  meta: task.meta,\n  tenant_id: task.meta?.tenant_id || null\n};"
+        "jsCode": "// Parse LLM response (base extraction - no billing)\nconst response = $json;\nconst promptData = $('Build LLM Prompt').first().json;\nconst task = promptData.task;\n\nlet result = null;\nlet error = null;\nlet rawContent = '';\n\ntry {\n  rawContent = response.choices?.[0]?.message?.content || '';\n  let content = rawContent.trim();\n  content = content.replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\n  \n  const jsonMatch = content.match(/[\\[\\{][\\s\\S]*[\\]\\}]/);\n  if (jsonMatch) {\n    result = JSON.parse(jsonMatch[0]);\n  } else {\n    result = JSON.parse(content);\n  }\n} catch (e) {\n  error = e.message;\n  result = { raw: rawContent, parse_error: e.message };\n}\n\nreturn {\n  task_id: task.task_id,\n  trace_id: task.trace_id,\n  code: task.meta?.code,\n  level: task.meta?.level,\n  result: result,\n  model_used: response.model || promptData.model,\n  tokens_used: response.usage?.total_tokens || 0,\n  duration_ms: Date.now() - task._start_time,\n  error: error,\n  callback: task.callback,\n  meta: task.meta\n};"
       },
       "id": "parse-llm-response",
       "name": "Parse LLM Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [416, -100]
+      "position": [416, 100]
     },
+
+    {
+      "parameters": {"options": {}},
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-64, -100],
+      "id": "ai-agent-nano",
+      "name": "AI Agent Nano"
+    },
+    {
+      "parameters": {"model": "qwen/qwen3-4b:free", "options": {}},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-208, 100],
+      "id": "openrouter-nano",
+      "name": "OpenRouter Nano",
+      "credentials": {"openRouterApi": {"id": "ameOTCcGgTm3hbtM", "name": "OpenRouter account"}}
+    },
+
+    {
+      "parameters": {"options": {}},
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-64, -300],
+      "id": "ai-agent-small",
+      "name": "AI Agent Small"
+    },
+    {
+      "parameters": {"model": "qwen/qwen3-8b", "options": {}},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-208, -100],
+      "id": "openrouter-small",
+      "name": "OpenRouter Small",
+      "credentials": {"openRouterApi": {"id": "ameOTCcGgTm3hbtM", "name": "OpenRouter account"}}
+    },
+
+    {
+      "parameters": {"options": {}},
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-64, -500],
+      "id": "ai-agent-optima",
+      "name": "AI Agent Optima"
+    },
+    {
+      "parameters": {"model": "anthropic/claude-3-haiku", "options": {}},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-208, -300],
+      "id": "openrouter-optima",
+      "name": "OpenRouter Optima",
+      "credentials": {"openRouterApi": {"id": "ameOTCcGgTm3hbtM", "name": "OpenRouter account"}}
+    },
+
+    {
+      "parameters": {"options": {}},
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-64, -700],
+      "id": "ai-agent-pro",
+      "name": "AI Agent Pro"
+    },
+    {
+      "parameters": {"model": "openai/gpt-4o-mini", "options": {}},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-208, -500],
+      "id": "openrouter-pro",
+      "name": "OpenRouter Pro",
+      "credentials": {"openRouterApi": {"id": "ameOTCcGgTm3hbtM", "name": "OpenRouter account"}}
+    },
+
+    {
+      "parameters": {"options": {}},
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [-64, -900],
+      "id": "ai-agent-expert",
+      "name": "AI Agent Expert"
+    },
+    {
+      "parameters": {"model": "anthropic/claude-3-5-sonnet", "options": {}},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-208, -700],
+      "id": "openrouter-expert",
+      "name": "OpenRouter Expert",
+      "credentials": {"openRouterApi": {"id": "ameOTCcGgTm3hbtM", "name": "OpenRouter account"}}
+    },
+
+    {
+      "parameters": {
+        "jsCode": "// Parse AI Agent response and prepare for logging\nconst task = $('Parse Task').first().json;\nconst response = $input.first().json;\nconst agentTier = task.task_type.replace('ai_agent_', '');\n\nreturn {\n  task_id: task.task_id,\n  trace_id: task.trace_id,\n  code: task.meta?.code,\n  level: task.meta?.level,\n  result: { text: response.output || response.text || '' },\n  model_used: response.model || null,\n  agent_tier: agentTier,\n  prompt_tokens: response.tokenUsage?.promptTokens || 0,\n  completion_tokens: response.tokenUsage?.completionTokens || 0,\n  tokens_used: response.tokenUsage?.totalTokens || 0,\n  duration_ms: Date.now() - task._start_time,\n  error: null,\n  callback: task.callback,\n  meta: task.meta,\n  tenant_id: task.meta?.tenant_id || null\n};"
+      },
+      "id": "parse-agent-response",
+      "name": "Parse Agent Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [192, -500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO elo_t_token_usage (tenant_id, trace_id, task_id, model_id, agent_tier, prompt_tokens, completion_tokens, total_tokens, cost_usd, task_type, context_type_code) SELECT $1::uuid, $2, $3, $4, $5, $6::int, $7::int, $8::int, COALESCE((SELECT ($6 * input_cost_per_1m + $7 * output_cost_per_1m) / 1000000.0 FROM elo_model_pricing WHERE model_id = $4), 0), 'ai_agent', $9 WHERE $1 IS NOT NULL AND $1 != '' AND $5 IS NOT NULL AND $5 != 'nano';",
+        "options": {
+          "queryReplacement": "={{ [$json.tenant_id || '', $json.trace_id || '', $json.task_id || '', $json.model_used || '', $json.agent_tier || '', $json.prompt_tokens || 0, $json.completion_tokens || 0, $json.tokens_used || 0, $json.code || ''] }}"
+        }
+      },
+      "id": "log-token-usage",
+      "name": "Log Token Usage",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [448, -500],
+      "credentials": {"postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}},
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Passthrough after token logging\nreturn $('Parse Agent Response').first().json;"
+      },
+      "id": "agent-passthrough",
+      "name": "Agent Passthrough",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, -500]
+    },
+
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $('Parse Task').first().json.config.url }}",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [{"name": "Content-Type", "value": "application/json"}]
-        },
+        "headerParameters": {"parameters": [{"name": "Content-Type", "value": "application/json"}]},
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ $('Parse Task').first().json.config.body }}",
@@ -169,7 +256,7 @@
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [0, 100],
+      "position": [0, 500],
       "continueOnFail": true
     },
     {
@@ -185,7 +272,7 @@
       "name": "Webhook Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [0, 260],
+      "position": [0, 700],
       "continueOnFail": true
     },
     {
@@ -196,7 +283,7 @@
       "name": "Format HTTP Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [256, 180]
+      "position": [256, 600]
     },
     {
       "parameters": {
@@ -206,57 +293,48 @@
       "name": "Handle Unknown",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [0, 420]
+      "position": [0, 900]
     },
     {
       "parameters": {
         "operation": "push",
         "list": "={{ $json.callback?.result_key || 'elo:results:unknown' }}",
-        "messageData": "={{ JSON.stringify({\n  task_id: $json.task_id,\n  code: $json.code,\n  level: $json.level,\n  result: $json.result,\n  model_used: $json.model_used,\n  tokens_used: $json.tokens_used,\n  duration_ms: $json.duration_ms,\n  error: $json.error\n}) }}"
+        "messageData": "={{ JSON.stringify({\n  task_id: $json.task_id,\n  code: $json.code,\n  level: $json.level,\n  result: $json.result,\n  model_used: $json.model_used,\n  agent_tier: $json.agent_tier,\n  tokens_used: $json.tokens_used,\n  duration_ms: $json.duration_ms,\n  error: $json.error\n}) }}"
       },
       "id": "redis-push-result",
       "name": "Redis Push Result",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [672, 100],
-      "credentials": {
-        "redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}
-      }
+      "position": [960, 300],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
     },
     {
       "parameters": {
         "operation": "incr",
-        "key": "={{ $('Parse LLM Response').first()?.json?.callback?.counter_key || $('Format HTTP Result').first()?.json?.callback?.counter_key || $('Handle Unknown').first()?.json?.callback?.counter_key || 'elo:counter:unknown' }}"
+        "key": "={{ $json.callback?.counter_key || 'elo:counter:unknown' }}"
       },
       "id": "redis-incr-counter",
       "name": "Redis Incr Counter",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [896, 100],
-      "credentials": {
-        "redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}
-      }
+      "position": [1184, 300],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
     },
     {
       "parameters": {
-        "jsCode": "// Check if all tasks complete\nconst counter = parseInt($json.data || '0');\nconst meta = $('Parse LLM Response').first()?.json?.meta || \n             $('Format HTTP Result').first()?.json?.meta || \n             $('Handle Unknown').first()?.json?.meta || {};\n             \nconst callback = $('Parse LLM Response').first()?.json?.callback || \n                 $('Format HTTP Result').first()?.json?.callback || \n                 $('Handle Unknown').first()?.json?.callback || {};\n\nconst totalTasks = meta.total_tasks || 1;\nconst isComplete = counter >= totalTasks;\n\nreturn {\n  counter: counter,\n  total_tasks: totalTasks,\n  is_complete: isComplete,\n  status_key: callback.status_key,\n  notify_webhook: callback.notify_webhook\n};"
+        "jsCode": "// Check if all tasks complete\nconst counter = parseInt($json.data || '0');\nconst prevNode = $('Redis Push Result').first()?.json || {};\nconst meta = prevNode.meta || {};\nconst callback = prevNode.callback || {};\n\nconst totalTasks = meta.total_tasks || 1;\nconst isComplete = counter >= totalTasks;\n\nreturn {\n  counter: counter,\n  total_tasks: totalTasks,\n  is_complete: isComplete,\n  status_key: callback.status_key,\n  notify_webhook: callback.notify_webhook\n};"
       },
       "id": "check-completion",
       "name": "Check Completion",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 100]
+      "position": [1408, 300]
     },
     {
       "parameters": {
         "conditions": {
           "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-          "conditions": [{
-            "id": "is-complete",
-            "leftValue": "={{ $json.is_complete }}",
-            "rightValue": true,
-            "operator": {"type": "boolean", "operation": "equals"}
-          }],
+          "conditions": [{"id": "is-complete", "leftValue": "={{ $json.is_complete }}", "rightValue": true, "operator": {"type": "boolean", "operation": "equals"}}],
           "combinator": "and"
         },
         "options": {}
@@ -265,7 +343,7 @@
       "name": "All Complete?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1344, 100]
+      "position": [1632, 300]
     },
     {
       "parameters": {
@@ -279,10 +357,8 @@
       "name": "Set Status Complete",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [1568, 0],
-      "credentials": {
-        "redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}
-      }
+      "position": [1856, 200],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
     },
     {
       "parameters": {
@@ -290,102 +366,65 @@
         "url": "={{ $('Check Completion').first().json.notify_webhook }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  status: 'complete',\n  trace_id: $('Parse Task').first().json.trace_id,\n  counter: $('Check Completion').first().json.counter,\n  total_tasks: $('Check Completion').first().json.total_tasks\n}) }}",
+        "jsonBody": "={{ JSON.stringify({ status: 'complete', trace_id: $('Parse Task').first().json.trace_id, counter: $('Check Completion').first().json.counter, total_tasks: $('Check Completion').first().json.total_tasks }) }}",
         "options": {"timeout": 5000}
       },
       "id": "notify-complete",
       "name": "Notify Complete",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1792, 0],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO elo_t_token_usage (tenant_id, trace_id, task_id, model_id, agent_tier, prompt_tokens, completion_tokens, total_tokens, cost_usd, task_type, context_type_code) SELECT $1::uuid, $2, $3, $4, $5, $6::int, $7::int, $8::int, COALESCE((SELECT ($6 * input_cost_per_1m + $7 * output_cost_per_1m) / 1000000.0 FROM elo_model_pricing WHERE model_id = $4), 0), $9, $10 WHERE $1 IS NOT NULL AND $1 != '' AND $5 IS NOT NULL AND $5 != 'nano';",
-        "options": {
-          "queryReplacement": "={{ [$json.tenant_id || '', $json.trace_id || '', $json.task_id || '', $json.model_used || '', $json.agent_tier || '', $json.prompt_tokens || 0, $json.completion_tokens || 0, $json.tokens_used || 0, $('Parse Task').first().json.task_type || 'llm_extraction', $json.code || ''] }}"
-        }
-      },
-      "id": "log-token-usage",
-      "name": "Log Token Usage",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [640, -100],
-      "credentials": {
-        "postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}
-      },
+      "position": [2080, 200],
       "continueOnFail": true
     }
   ],
   "connections": {
-    "Schedule Trigger": {
-      "main": [[{"node": "Redis Pop Task", "type": "main", "index": 0}]]
-    },
-    "Redis Pop Task": {
-      "main": [[{"node": "Task Exists?", "type": "main", "index": 0}]]
-    },
-    "Task Exists?": {
-      "main": [
-        [{"node": "Parse Task", "type": "main", "index": 0}],
-        []
-      ]
-    },
-    "Parse Task": {
-      "main": [[{"node": "Task Router", "type": "main", "index": 0}]]
-    },
+    "Schedule Trigger": {"main": [[{"node": "Redis Pop Task", "type": "main", "index": 0}]]},
+    "Redis Pop Task": {"main": [[{"node": "Task Exists?", "type": "main", "index": 0}]]},
+    "Task Exists?": {"main": [[{"node": "Parse Task", "type": "main", "index": 0}], []]},
+    "Parse Task": {"main": [[{"node": "Task Router", "type": "main", "index": 0}]]},
     "Task Router": {
       "main": [
         [{"node": "Build LLM Prompt", "type": "main", "index": 0}],
-        [{"node": "Build LLM Prompt", "type": "main", "index": 0}],
+        [{"node": "AI Agent Nano", "type": "main", "index": 0}],
+        [{"node": "AI Agent Small", "type": "main", "index": 0}],
+        [{"node": "AI Agent Optima", "type": "main", "index": 0}],
+        [{"node": "AI Agent Pro", "type": "main", "index": 0}],
+        [{"node": "AI Agent Expert", "type": "main", "index": 0}],
         [{"node": "HTTP Request", "type": "main", "index": 0}],
         [{"node": "Webhook Call", "type": "main", "index": 0}],
         [{"node": "Handle Unknown", "type": "main", "index": 0}]
       ]
     },
-    "Build LLM Prompt": {
-      "main": [[{"node": "Call OpenRouter (Dynamic)", "type": "main", "index": 0}]]
-    },
-    "Call OpenRouter (Dynamic)": {
-      "main": [[{"node": "Parse LLM Response", "type": "main", "index": 0}]]
-    },
-    "Parse LLM Response": {
-      "main": [[
-        {"node": "Log Token Usage", "type": "main", "index": 0},
-        {"node": "Redis Push Result", "type": "main", "index": 0}
-      ]]
-    },
-    "HTTP Request": {
-      "main": [[{"node": "Format HTTP Result", "type": "main", "index": 0}]]
-    },
-    "Webhook Call": {
-      "main": [[{"node": "Format HTTP Result", "type": "main", "index": 0}]]
-    },
-    "Format HTTP Result": {
-      "main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]
-    },
-    "Handle Unknown": {
-      "main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]
-    },
-    "Redis Push Result": {
-      "main": [[{"node": "Redis Incr Counter", "type": "main", "index": 0}]]
-    },
-    "Redis Incr Counter": {
-      "main": [[{"node": "Check Completion", "type": "main", "index": 0}]]
-    },
-    "Check Completion": {
-      "main": [[{"node": "All Complete?", "type": "main", "index": 0}]]
-    },
-    "All Complete?": {
-      "main": [
-        [{"node": "Set Status Complete", "type": "main", "index": 0}],
-        []
-      ]
-    },
-    "Set Status Complete": {
-      "main": [[{"node": "Notify Complete", "type": "main", "index": 0}]]
-    }
+    "Build LLM Prompt": {"main": [[{"node": "Call OpenRouter (Base)", "type": "main", "index": 0}]]},
+    "Call OpenRouter (Base)": {"main": [[{"node": "Parse LLM Response", "type": "main", "index": 0}]]},
+    "Parse LLM Response": {"main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]},
+
+    "OpenRouter Nano": {"ai_languageModel": [[{"node": "AI Agent Nano", "type": "ai_languageModel", "index": 0}]]},
+    "OpenRouter Small": {"ai_languageModel": [[{"node": "AI Agent Small", "type": "ai_languageModel", "index": 0}]]},
+    "OpenRouter Optima": {"ai_languageModel": [[{"node": "AI Agent Optima", "type": "ai_languageModel", "index": 0}]]},
+    "OpenRouter Pro": {"ai_languageModel": [[{"node": "AI Agent Pro", "type": "ai_languageModel", "index": 0}]]},
+    "OpenRouter Expert": {"ai_languageModel": [[{"node": "AI Agent Expert", "type": "ai_languageModel", "index": 0}]]},
+
+    "AI Agent Nano": {"main": [[{"node": "Parse Agent Response", "type": "main", "index": 0}]]},
+    "AI Agent Small": {"main": [[{"node": "Parse Agent Response", "type": "main", "index": 0}]]},
+    "AI Agent Optima": {"main": [[{"node": "Parse Agent Response", "type": "main", "index": 0}]]},
+    "AI Agent Pro": {"main": [[{"node": "Parse Agent Response", "type": "main", "index": 0}]]},
+    "AI Agent Expert": {"main": [[{"node": "Parse Agent Response", "type": "main", "index": 0}]]},
+
+    "Parse Agent Response": {"main": [[{"node": "Log Token Usage", "type": "main", "index": 0}]]},
+    "Log Token Usage": {"main": [[{"node": "Agent Passthrough", "type": "main", "index": 0}]]},
+    "Agent Passthrough": {"main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]},
+
+    "HTTP Request": {"main": [[{"node": "Format HTTP Result", "type": "main", "index": 0}]]},
+    "Webhook Call": {"main": [[{"node": "Format HTTP Result", "type": "main", "index": 0}]]},
+    "Format HTTP Result": {"main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]},
+    "Handle Unknown": {"main": [[{"node": "Redis Push Result", "type": "main", "index": 0}]]},
+
+    "Redis Push Result": {"main": [[{"node": "Redis Incr Counter", "type": "main", "index": 0}]]},
+    "Redis Incr Counter": {"main": [[{"node": "Check Completion", "type": "main", "index": 0}]]},
+    "Check Completion": {"main": [[{"node": "All Complete?", "type": "main", "index": 0}]]},
+    "All Complete?": {"main": [[{"node": "Set Status Complete", "type": "main", "index": 0}], []]},
+    "Set Status Complete": {"main": [[{"node": "Notify Complete", "type": "main", "index": 0}]]}
   },
   "settings": {"executionOrder": "v1"},
   "tags": [
