@@ -1,0 +1,168 @@
+{
+  "name": "ELO_Funnel_Controller_v2",
+  "description": "Universal funnel controller with dynamic behavior handling, field collection, and binary masks",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-funnel-controller-v2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-800, 0],
+      "webhookId": "elo-funnel-controller-v2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.context) {\n  throw new Error('Missing required field: context');\n}\n\nconst context = input.context;\n\n// Initialize stage_masks if not present\nif (!context.stage_masks) {\n  context.stage_masks = {};\n}\n\nreturn {\n  context: context,\n  tenant_id: context.tenant_id,\n  dialog_id: context.dialog_id,\n  client_id: context.client_id,\n  current_stage: context.current_stage,\n  vertical_id: context.vertical_id,\n  message: input.message || null,\n  extracted_context: input.extracted_context || {},\n  trace_id: input.trace_id || `trace_${Date.now()}`\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-576, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  fs.id, fs.code, fs.name, fs.sort_order, fs.stage_type,\n  fs.behavior_type, fs.behavior_config,\n  fs.entry_conditions, fs.exit_conditions,\n  fs.on_enter_actions, fs.on_exit_actions,\n  fs.on_complete_transitions,\n  fs.qa_handler_enabled, fs.max_attempts_global,\n  fs.is_required,\n  COALESCE(tso.sort_order, fs.sort_order) as effective_sort,\n  COALESCE(tso.is_disabled, false) as is_disabled,\n  (\n    SELECT jsonb_agg(jsonb_build_object(\n      'field_path', sf.field_path,\n      'field_name', sf.field_name,\n      'is_required', sf.is_required,\n      'sort_order', sf.sort_order,\n      'depends_on_field', sf.depends_on_field,\n      'ask_prompt', sf.ask_prompt,\n      'clarify_prompt', sf.clarify_prompt,\n      'extraction_type', sf.extraction_type,\n      'max_attempts', sf.max_attempts,\n      'on_max_attempts', sf.on_max_attempts,\n      'default_value', sf.default_value\n    ) ORDER BY sf.sort_order)\n    FROM elo_stage_fields sf WHERE sf.stage_id = fs.id\n  ) as fields,\n  (\n    SELECT jsonb_agg(jsonb_build_object(\n      'action_code', ca.action_code,\n      'action_label', ca.action_label,\n      'detection_type', ca.detection_type,\n      'detection_config', ca.detection_config,\n      'on_success_transition', ca.on_success_transition,\n      'on_success_actions', ca.on_success_actions\n    ) ORDER BY ca.sort_order)\n    FROM elo_stage_cta_actions ca WHERE ca.stage_id = fs.id AND ca.is_active = true\n  ) as cta_actions\nFROM elo_funnel_stages fs\nLEFT JOIN elo_t_funnel_stage_overrides tso ON tso.stage_id = fs.id AND tso.tenant_id = $1\nWHERE fs.is_active = true\n  AND (fs.stage_type = 'system' OR fs.vertical_id = $2)\n  AND COALESCE(tso.is_disabled, false) = false\nORDER BY COALESCE(tso.sort_order, fs.sort_order);",
+        "options": {
+          "queryReplacement": "={{ [$json.tenant_id, $json.vertical_id] }}"
+        }
+      },
+      "id": "load-stage-config",
+      "name": "Load Stage Config",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-352, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst context = inputData.context;\nconst currentStageCode = inputData.current_stage;\nconst extractedContext = inputData.extracted_context;\nconst message = inputData.message;\n\n// Build stages map\nconst stages = $input.all().map(i => i.json);\nconst stageMap = {};\nconst stageOrder = [];\n\nfor (const stage of stages) {\n  stageMap[stage.code] = stage;\n  stageOrder.push(stage.code);\n}\n\n// Get first stage as default if current not found\nconst defaultStage = stageOrder[0] || null;\nconst currentStage = stageMap[currentStageCode] || stageMap[defaultStage];\n\nif (!currentStage) {\n  // No stages configured - return error state\n  return {\n    context: context,\n    current_stage: null,\n    stage_changed: false,\n    behavior_type: null,\n    error: 'No stages configured for this vertical',\n    stages: stageOrder,\n    stageMap: stageMap\n  };\n}\n\n// If current stage was not found, reset to first stage\nconst effectiveStageCode = stageMap[currentStageCode] ? currentStageCode : defaultStage;\nif (effectiveStageCode !== currentStageCode) {\n  context.current_stage = effectiveStageCode;\n}\n\n// Parse fields\nlet fields = currentStage.fields || [];\nif (typeof fields === 'string') {\n  try { fields = JSON.parse(fields); } catch (e) { fields = []; }\n}\nif (!Array.isArray(fields)) fields = [];\n\n// Build required mask for current stage\nconst requiredMask = fields.map(f => f.is_required ? '1' : '0').join('');\n\n// Get current mask from context or initialize\nlet currentMask = context.stage_masks?.[effectiveStageCode]?.current || '0'.repeat(fields.length);\n\n// Ensure mask length matches fields length\nif (currentMask.length !== fields.length) {\n  currentMask = '0'.repeat(fields.length);\n}\n\n// Update mask based on extracted context\nfunction getFieldValue(fieldPath, ctx, extracted) {\n  const parts = fieldPath.split('.');\n  \n  // Check extracted entities\n  for (const entity of (extracted.entities || [])) {\n    if (entity.type === parts[0]) {\n      if (parts.length === 1) return entity;\n      let val = entity;\n      for (let i = 1; i < parts.length; i++) {\n        val = val?.[parts[i]];\n      }\n      if (val !== undefined) return val;\n    }\n  }\n  \n  // Check context\n  let val = ctx;\n  for (const part of parts) {\n    val = val?.[part];\n  }\n  return val;\n}\n\n// Update current mask based on extracted data\nconst maskArray = currentMask.split('');\nfor (let i = 0; i < fields.length; i++) {\n  const field = fields[i];\n  const value = getFieldValue(field.field_path, context, extractedContext);\n  if (value !== null && value !== undefined) {\n    maskArray[i] = '1';\n  }\n}\ncurrentMask = maskArray.join('');\n\n// Update context with new mask\nif (!context.stage_masks) context.stage_masks = {};\nif (!context.stage_masks[effectiveStageCode]) {\n  context.stage_masks[effectiveStageCode] = {};\n}\ncontext.stage_masks[effectiveStageCode].current = currentMask;\ncontext.stage_masks[effectiveStageCode].required = requiredMask;\n\n// Check if stage is complete (binary mask comparison)\nfunction checkMaskComplete(current, required) {\n  if (!required || required.length === 0) return true;\n  for (let i = 0; i < required.length; i++) {\n    if (required[i] === '1' && current[i] !== '1') {\n      return false;\n    }\n  }\n  return true;\n}\n\nconst isStageComplete = checkMaskComplete(currentMask, requiredMask);\n\n// Find next unfilled field (required first, then optional)\nlet nextFieldToAsk = null;\nlet fieldIndex = -1;\n\n// First pass: required fields only\nfor (let i = 0; i < fields.length; i++) {\n  const field = fields[i];\n  if (maskArray[i] === '0' && field.is_required) {\n    // Check dependency\n    if (field.depends_on_field) {\n      const depIndex = fields.findIndex(f => f.field_path === field.depends_on_field);\n      if (depIndex >= 0 && maskArray[depIndex] === '0') {\n        continue; // Dependency not filled\n      }\n    }\n    nextFieldToAsk = field;\n    fieldIndex = i;\n    break;\n  }\n}\n\n// Second pass: optional fields (only if behavior allows)\nconst behaviorType = (currentStage.behavior_type || '').toUpperCase();\nif (!nextFieldToAsk && behaviorType.includes('OPTIONAL')) {\n  for (let i = 0; i < fields.length; i++) {\n    const field = fields[i];\n    if (maskArray[i] === '0' && !field.is_required) {\n      if (field.depends_on_field) {\n        const depIndex = fields.findIndex(f => f.field_path === field.depends_on_field);\n        if (depIndex >= 0 && maskArray[depIndex] === '0') {\n          continue;\n        }\n      }\n      nextFieldToAsk = field;\n      fieldIndex = i;\n      break;\n    }\n  }\n}\n\n// Parse behavior_config\nlet behaviorConfig = currentStage.behavior_config || {};\nif (typeof behaviorConfig === 'string') {\n  try { behaviorConfig = JSON.parse(behaviorConfig); } catch (e) { behaviorConfig = {}; }\n}\n\n// Parse cta_actions\nlet ctaActions = currentStage.cta_actions || [];\nif (typeof ctaActions === 'string') {\n  try { ctaActions = JSON.parse(ctaActions); } catch (e) { ctaActions = []; }\n}\n\nreturn {\n  context: context,\n  current_stage: effectiveStageCode,\n  current_stage_data: currentStage,\n  behavior_type: currentStage.behavior_type,\n  behavior_config: behaviorConfig,\n  fields: fields,\n  cta_actions: ctaActions,\n  qa_handler_enabled: currentStage.qa_handler_enabled,\n  \n  // Mask data\n  current_mask: currentMask,\n  required_mask: requiredMask,\n  is_stage_complete: isStageComplete,\n  \n  // Next action\n  next_field_to_ask: nextFieldToAsk,\n  next_field_index: fieldIndex,\n  \n  // Message\n  message: message,\n  extracted_context: extractedContext,\n  \n  // Stages\n  stages: stageOrder,\n  stageMap: stageMap,\n  \n  stage_changed: effectiveStageCode !== currentStageCode,\n  transition: effectiveStageCode !== currentStageCode ? {\n    from: currentStageCode,\n    to: effectiveStageCode,\n    reason: 'invalid_stage_reset'\n  } : null,\n  actions_to_execute: []\n};"
+      },
+      "id": "process-stage",
+      "name": "Process Stage & Masks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json.is_stage_complete }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-complete",
+      "name": "Stage Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [96, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Stage is complete - evaluate transitions\nconst data = $input.first().json;\nconst context = data.context;\nconst currentStageCode = data.current_stage;\nconst currentStage = data.current_stage_data;\nconst stageOrder = data.stages;\nconst stageMap = data.stageMap;\n\n// Parse on_complete_transitions\nlet transitions = currentStage.on_complete_transitions || [];\nif (typeof transitions === 'string') {\n  try { transitions = JSON.parse(transitions); } catch (e) { transitions = []; }\n}\n\n// Evaluate conditions helper\nfunction evaluateCondition(condition, ctx) {\n  if (!condition || condition === 'default') return true;\n  \n  const { type, field, op, value, conditions } = condition;\n  \n  function getFieldValue(fieldPath) {\n    const parts = fieldPath.split('.');\n    let val = ctx;\n    for (const part of parts) {\n      val = val?.[part];\n    }\n    return val;\n  }\n  \n  switch (type) {\n    case 'all_of':\n      return (conditions || []).every(c => evaluateCondition(c, ctx));\n    case 'any_of':\n      return (conditions || []).some(c => evaluateCondition(c, ctx));\n    case 'none_of':\n      return !(conditions || []).some(c => evaluateCondition(c, ctx));\n    default:\n      const fieldValue = getFieldValue(field);\n      switch (op) {\n        case 'exists': return fieldValue !== null && fieldValue !== undefined;\n        case 'not_exists': return fieldValue === null || fieldValue === undefined;\n        case 'eq': return fieldValue === value;\n        case 'neq': return fieldValue !== value;\n        case 'gt': return fieldValue > value;\n        case 'gte': return fieldValue >= value;\n        case 'lt': return fieldValue < value;\n        case 'lte': return fieldValue <= value;\n        case 'contains': return String(fieldValue).includes(value);\n        case 'in': return Array.isArray(value) && value.includes(fieldValue);\n        default: return false;\n      }\n  }\n}\n\n// Find matching transition\nlet nextStage = null;\nlet transitionActions = [];\n\nfor (const trans of transitions) {\n  if (evaluateCondition(trans.condition, context)) {\n    nextStage = trans.next_stage;\n    if (trans.action) {\n      transitionActions.push(trans.action);\n    }\n    if (trans.actions) {\n      transitionActions.push(...trans.actions);\n    }\n    break;\n  }\n}\n\n// Default: next stage in order\nif (!nextStage) {\n  const currentIndex = stageOrder.indexOf(currentStageCode);\n  nextStage = currentIndex < stageOrder.length - 1 ? stageOrder[currentIndex + 1] : null;\n}\n\nconst result = {\n  ...data,\n  response: {\n    type: 'stage_complete',\n    next_stage: nextStage\n  },\n  stage_changed: nextStage !== null && nextStage !== currentStageCode,\n  transition: nextStage ? {\n    from: currentStageCode,\n    to: nextStage,\n    reason: 'stage_complete'\n  } : null,\n  actions_to_execute: [...(data.actions_to_execute || []), ...transitionActions]\n};\n\nif (nextStage && nextStage !== currentStageCode) {\n  context.previous_stage = currentStageCode;\n  context.current_stage = nextStage;\n  context.stage_entered_at = new Date().toISOString();\n  result.current_stage = nextStage;\n  result.context = context;\n}\n\nreturn result;"
+      },
+      "id": "evaluate-transitions",
+      "name": "Evaluate Transitions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, -112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dynamic Behavior Handler\n// Handles ANY behavior_type from database without hardcoding\n\nconst data = $input.first().json;\nconst behaviorType = (data.behavior_type || '').toUpperCase();\nconst behaviorConfig = data.behavior_config || {};\nconst nextField = data.next_field_to_ask;\nconst ctaActions = data.cta_actions || [];\nconst message = data.message;\nconst extracted = data.extracted_context;\nconst context = data.context;\n\n// Initialize response\nlet response = null;\nlet actions = [...(data.actions_to_execute || [])];\nlet stageComplete = data.is_stage_complete;\n\n// Helper: Check CTA detection\nfunction checkCtaDetection() {\n  for (const cta of ctaActions) {\n    const config = cta.detection_config || {};\n    \n    if (cta.detection_type === 'intent') {\n      const intents = config.intents || [];\n      const extractedIntent = extracted?.intent?.type || extracted?.intent;\n      \n      if (extractedIntent && intents.includes(extractedIntent)) {\n        return cta;\n      }\n      \n      // Keyword matching in message\n      if (message?.text) {\n        const text = message.text.toLowerCase();\n        for (const intent of intents) {\n          if (text.includes(intent.toLowerCase())) {\n            return cta;\n          }\n        }\n      }\n    } else if (cta.detection_type === 'keyword') {\n      const keywords = config.keywords || [];\n      if (message?.text) {\n        const text = message.text.toLowerCase();\n        for (const kw of keywords) {\n          if (text.includes(kw.toLowerCase())) {\n            return cta;\n          }\n        }\n      }\n    } else if (cta.detection_type === 'regex') {\n      const pattern = config.pattern;\n      if (pattern && message?.text) {\n        try {\n          const regex = new RegExp(pattern, 'i');\n          if (regex.test(message.text)) {\n            return cta;\n          }\n        } catch (e) {}\n      }\n    }\n  }\n  return null;\n}\n\n// Behavior handling based on patterns\n// This allows ANY behavior_type from DB to work\n\nif (behaviorType.includes('COLLECT') || behaviorType.includes('ITERATIVE') || behaviorType.includes('BATCH')) {\n  // COLLECTION behaviors: COLLECT_REQUIRED, COLLECT_OPTIONAL, collect_iterative, collect_batch\n  \n  const isOptional = behaviorType.includes('OPTIONAL') || behaviorType.includes('BATCH');\n  \n  if (isOptional) {\n    // Optional collection - respect ask_count limit\n    const askCount = behaviorConfig.ask_count || behaviorConfig.max_asks || 1;\n    const stageKey = data.current_stage;\n    const currentAttempts = context.optional_attempts?.[stageKey] || 0;\n    \n    if (currentAttempts >= askCount) {\n      // Max attempts reached - skip and continue\n      response = {\n        type: 'skip',\n        reason: 'max_optional_attempts',\n        attempts: currentAttempts\n      };\n      stageComplete = true;\n    } else if (nextField) {\n      // Ask for optional field\n      response = {\n        type: 'ask_optional',\n        field: nextField.field_path,\n        prompt: nextField.ask_prompt,\n        clarify_prompt: nextField.clarify_prompt,\n        extraction_type: nextField.extraction_type,\n        attempt: currentAttempts + 1,\n        max_attempts: askCount\n      };\n      // Increment attempt counter\n      if (!context.optional_attempts) context.optional_attempts = {};\n      context.optional_attempts[stageKey] = currentAttempts + 1;\n    } else {\n      // No more fields\n      response = { type: 'continue' };\n      stageComplete = true;\n    }\n  } else {\n    // Required collection\n    if (nextField) {\n      response = {\n        type: 'ask_field',\n        field: nextField.field_path,\n        prompt: nextField.ask_prompt,\n        clarify_prompt: nextField.clarify_prompt,\n        extraction_type: nextField.extraction_type\n      };\n    } else {\n      // All fields collected\n      response = { type: 'continue' };\n      stageComplete = true;\n    }\n  }\n  \n} else if (behaviorType.includes('PROMO') || behaviorType.includes('SEND') || behaviorType.includes('PRESENT')) {\n  // SEND/PRESENT behaviors: SEND_PROMO, present_and_confirm\n  \n  const needsConfirm = behaviorType.includes('CONFIRM');\n  \n  response = {\n    type: needsConfirm ? 'present_and_confirm' : 'send_promo',\n    template_id: behaviorConfig.template_id,\n    content: behaviorConfig.content,\n    auto_advance: behaviorConfig.auto_advance !== false\n  };\n  \n  if (behaviorConfig.template_id) {\n    actions.push({ \n      type: 'send_template', \n      template_id: behaviorConfig.template_id \n    });\n  }\n  \n  if (!needsConfirm || behaviorConfig.auto_advance !== false) {\n    stageComplete = true;\n  }\n  \n} else if (behaviorType.includes('WAIT') || behaviorType.includes('CTA') || behaviorType.includes('EXTERNAL')) {\n  // WAIT behaviors: CTA_WAIT, wait_external\n  \n  const detectedCta = checkCtaDetection();\n  \n  if (detectedCta) {\n    response = {\n      type: 'cta_detected',\n      action: detectedCta.action_code,\n      label: detectedCta.action_label,\n      next_stage: detectedCta.on_success_transition\n    };\n    \n    if (detectedCta.on_success_actions) {\n      const successActions = Array.isArray(detectedCta.on_success_actions) \n        ? detectedCta.on_success_actions \n        : [detectedCta.on_success_actions];\n      actions.push(...successActions);\n    }\n    \n    stageComplete = true;\n    \n    // Set transition\n    if (detectedCta.on_success_transition) {\n      data.transition = {\n        from: data.current_stage,\n        to: detectedCta.on_success_transition,\n        reason: `cta_${detectedCta.action_code}`\n      };\n      data.stage_changed = true;\n    }\n  } else {\n    // No action detected - wait\n    response = {\n      type: 'waiting',\n      available_actions: ctaActions.map(a => ({\n        code: a.action_code,\n        label: a.action_label\n      })),\n      timeout_minutes: behaviorConfig.timeout_minutes\n    };\n  }\n  \n} else if (behaviorType.includes('TERMINAL') || behaviorType.includes('SUCCESS') || behaviorType.includes('CANCEL') || behaviorType.includes('CLOSED')) {\n  // TERMINAL behaviors: terminal_success, terminal_cancelled\n  \n  const isSuccess = behaviorType.includes('SUCCESS');\n  \n  response = {\n    type: isSuccess ? 'terminal_success' : 'terminal_cancelled',\n    close_dialog: behaviorConfig.close_dialog !== false\n  };\n  \n  if (behaviorConfig.close_dialog !== false) {\n    actions.push({ \n      type: 'close_dialog', \n      reason: isSuccess ? 'completed' : 'cancelled' \n    });\n  }\n  \n  stageComplete = true;\n  \n} else if (behaviorType.includes('ESCALATE') || behaviorType.includes('OPERATOR')) {\n  // ESCALATE behaviors: escalate\n  \n  response = {\n    type: 'escalate',\n    reason: behaviorConfig.reason || 'behavior_escalate',\n    priority: behaviorConfig.priority || 'normal'\n  };\n  \n  actions.push({ \n    type: 'notify_operator',\n    reason: behaviorConfig.reason || 'escalation',\n    priority: behaviorConfig.priority || 'normal'\n  });\n  \n  // Don't mark as complete - operator will handle\n  \n} else {\n  // UNKNOWN behavior type - default to collection if has fields, otherwise continue\n  \n  if (nextField) {\n    response = {\n      type: 'ask_field',\n      field: nextField.field_path,\n      prompt: nextField.ask_prompt,\n      clarify_prompt: nextField.clarify_prompt,\n      extraction_type: nextField.extraction_type,\n      _note: `Unknown behavior_type: ${data.behavior_type}`\n    };\n  } else {\n    response = { \n      type: 'continue',\n      _note: `Unknown behavior_type: ${data.behavior_type}, no fields to ask`\n    };\n    stageComplete = true;\n  }\n}\n\nreturn {\n  ...data,\n  context: context,\n  is_stage_complete: stageComplete,\n  response: response,\n  actions_to_execute: actions\n};"
+      },
+      "id": "dynamic-behavior-handler",
+      "name": "Dynamic Behavior Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format final response\nconst data = $input.first().json;\nconst inputData = $('Validate Input').first().json;\n\nreturn {\n  tenant_id: inputData.tenant_id,\n  dialog_id: inputData.dialog_id,\n  trace_id: inputData.trace_id,\n  \n  stage: {\n    current: data.current_stage,\n    previous: data.transition?.from || null,\n    changed: data.stage_changed || false,\n    reason: data.transition?.reason || null,\n    behavior_type: data.behavior_type\n  },\n  \n  masks: {\n    current: data.current_mask,\n    required: data.required_mask,\n    complete: data.is_stage_complete\n  },\n  \n  response: data.response || null,\n  actions: data.actions_to_execute || [],\n  context: data.context,\n  stages_available: data.stages\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [544, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [768, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Validate Input", "type": "main", "index": 0}]]
+    },
+    "Validate Input": {
+      "main": [[{"node": "Load Stage Config", "type": "main", "index": 0}]]
+    },
+    "Load Stage Config": {
+      "main": [[{"node": "Process Stage & Masks", "type": "main", "index": 0}]]
+    },
+    "Process Stage & Masks": {
+      "main": [[{"node": "Stage Complete?", "type": "main", "index": 0}]]
+    },
+    "Stage Complete?": {
+      "main": [
+        [{"node": "Evaluate Transitions", "type": "main", "index": 0}],
+        [{"node": "Dynamic Behavior Handler", "type": "main", "index": 0}]
+      ]
+    },
+    "Evaluate Transitions": {
+      "main": [[{"node": "Format Response", "type": "main", "index": 0}]]
+    },
+    "Dynamic Behavior Handler": {
+      "main": [[{"node": "Format Response", "type": "main", "index": 0}]]
+    },
+    "Format Response": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {"id": "8dihLRJvdhkW2kZ1", "name": "AI"},
+    {"id": "tMSCjbvPU3xrNUqz", "name": "ELO"}
+  ]
+}

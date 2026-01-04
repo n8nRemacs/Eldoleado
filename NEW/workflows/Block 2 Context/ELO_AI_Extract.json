@@ -1,0 +1,391 @@
+{
+  "name": "ELO_AI_Extract_v2",
+  "description": "Context extraction via Redis queue. Publishes tasks to ELO_Blind_Worker, waits for results, aggregates.",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-ai-extract-v2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-960, 300],
+      "webhookId": "elo-ai-extract-v2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\n\nif (!input.message) {\n  throw new Error('Missing required field: message');\n}\nif (!input.tenant_id) {\n  throw new Error('Missing required field: tenant_id');\n}\n\nconst traceId = input.trace_id || `extract_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  message: input.message,\n  tenant_id: input.tenant_id,\n  dialog_id: input.dialog_id || null,\n  context: input.context || {},\n  trace_id: traceId,\n  model: input.model || 'qwen/qwen3-4b:free',\n  _start_time: Date.now()\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-736, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT code, name, default_prompt, output_schema, 'global' as level, NULL as domain_code, NULL as vertical_code\nFROM elo_context_types\nWHERE is_active = true\nORDER BY sort_order;",
+        "options": {}
+      },
+      "id": "load-global",
+      "name": "Load Global",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-480, 100],
+      "credentials": {"postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT dct.code, dct.name, \n  COALESCE(tco.custom_prompt, dct.default_prompt) as default_prompt, \n  COALESCE(tco.custom_output_schema, dct.output_schema) as output_schema,\n  'domain' as level, d.code as domain_code, NULL as vertical_code\nFROM elo_d_context_types dct\nJOIN elo_domains d ON d.id = dct.domain_id\nJOIN elo_t_tenant_domains ttd ON ttd.domain_id = d.id\nLEFT JOIN elo_t_context_type_overrides tco ON tco.d_context_type_id = dct.id AND tco.tenant_id = $1\nWHERE ttd.tenant_id = $1\n  AND dct.is_active = true AND d.is_active = true\n  AND COALESCE(tco.is_active, true) = true\nORDER BY d.code, dct.sort_order;",
+        "options": {"queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"}
+      },
+      "id": "load-domain",
+      "name": "Load Domain",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-480, 300],
+      "credentials": {"postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT vct.code, vct.name, \n  COALESCE(tco.custom_prompt, vct.default_prompt) as default_prompt, \n  COALESCE(tco.custom_output_schema, vct.output_schema) as output_schema,\n  'vertical' as level, d.code as domain_code, v.code as vertical_code\nFROM elo_v_context_types vct\nJOIN elo_verticals v ON v.id = vct.vertical_id\nJOIN elo_domains d ON d.id = v.domain_id\nJOIN elo_t_tenant_verticals ttv ON ttv.vertical_id = v.id\nLEFT JOIN elo_t_context_type_overrides tco ON tco.v_context_type_id = vct.id AND tco.tenant_id = $1\nWHERE ttv.tenant_id = $1\n  AND vct.is_active = true AND v.is_active = true\n  AND COALESCE(tco.is_active, true) = true\nORDER BY d.code, v.code, vct.sort_order;",
+        "options": {"queryReplacement": "={{ [$('Validate Input').first().json.tenant_id] }}"}
+      },
+      "id": "load-vertical",
+      "name": "Load Vertical",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-480, 500],
+      "credentials": {"postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT field_code, pattern, normalized_value, priority\nFROM elo_normalization_rules WHERE is_active = true\nORDER BY priority DESC;",
+        "options": {}
+      },
+      "id": "load-normalization",
+      "name": "Load Normalization",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-480, 700],
+      "credentials": {"postgres": {"id": "n2SyhP9QhMnp1ryk", "name": "Postgres account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all context types and create tasks for Redis\nconst input = $('Validate Input').first().json;\nconst globalTypes = $('Load Global').all().map(i => i.json);\nconst domainTypes = $('Load Domain').all().map(i => i.json);\nconst verticalTypes = $('Load Vertical').all().map(i => i.json);\nconst normRules = $('Load Normalization').all().map(i => i.json);\n\nconst allTypes = [...globalTypes, ...domainTypes, ...verticalTypes];\n\nif (allTypes.length === 0) {\n  // No types to extract\n  return {\n    skip: true,\n    trace_id: input.trace_id,\n    tasks: [],\n    normalization_rules: normRules\n  };\n}\n\n// Create task for each context type\nconst tasks = allTypes.map((ct, idx) => {\n  const schema = typeof ct.output_schema === 'string' \n    ? ct.output_schema \n    : JSON.stringify(ct.output_schema || {});\n    \n  const systemPrompt = `You extract \"${ct.code}\" from messages.\\n${ct.default_prompt || ct.name}\\nReturn JSON matching schema: ${schema}\\nRules: JSON only, no explanations.`;\n  \n  return {\n    task_id: `${input.trace_id}_${ct.code}_${idx}`,\n    trace_id: input.trace_id,\n    task_type: 'llm_extraction',\n    config: {\n      model: input.model,\n      message: input.message,\n      system_prompt: systemPrompt,\n      prompt: `Extract \"${ct.code}\" from message.`,\n      output_schema: ct.output_schema,\n      temperature: 0.1,\n      max_tokens: 200\n    },\n    meta: {\n      code: ct.code,\n      level: ct.level,\n      domain_code: ct.domain_code,\n      vertical_code: ct.vertical_code,\n      total_tasks: allTypes.length\n    },\n    callback: {\n      result_key: `elo:results:${input.trace_id}`,\n      counter_key: `elo:counter:${input.trace_id}`,\n      status_key: `elo:status:${input.trace_id}`\n    }\n  };\n});\n\nreturn {\n  skip: false,\n  trace_id: input.trace_id,\n  total_tasks: tasks.length,\n  tasks: tasks,\n  normalization_rules: normRules,\n  result_key: `elo:results:${input.trace_id}`,\n  counter_key: `elo:counter:${input.trace_id}`,\n  status_key: `elo:status:${input.trace_id}`,\n  input: input\n};"
+      },
+      "id": "create-tasks",
+      "name": "Create Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-192, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{
+            "id": "has-tasks",
+            "leftValue": "={{ $json.skip }}",
+            "rightValue": true,
+            "operator": {"type": "boolean", "operation": "notEquals"}
+          }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-tasks",
+      "name": "Has Tasks?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [32, 300]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.counter_key }}",
+        "value": "0",
+        "expire": true,
+        "ttl": 300
+      },
+      "id": "init-counter",
+      "name": "Init Counter",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [256, 200],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $('Create Tasks').first().json.status_key }}",
+        "value": "pending",
+        "expire": true,
+        "ttl": 300
+      },
+      "id": "init-status",
+      "name": "Init Status",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [480, 200],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare tasks for split\nconst data = $('Create Tasks').first().json;\nreturn data.tasks.map(t => ({ task: t }));"
+      },
+      "id": "split-tasks",
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 200]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "elo:tasks:pending",
+        "messageData": "={{ JSON.stringify($json.task) }}"
+      },
+      "id": "push-to-redis",
+      "name": "Push Tasks to Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [928, 200],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// All tasks pushed, now wait for completion\nconst data = $('Create Tasks').first().json;\n\nreturn {\n  status_key: data.status_key,\n  result_key: data.result_key,\n  counter_key: data.counter_key,\n  total_tasks: data.total_tasks,\n  trace_id: data.trace_id,\n  normalization_rules: data.normalization_rules,\n  input: data.input,\n  poll_count: 0,\n  max_polls: 30\n};"
+      },
+      "id": "prepare-wait",
+      "name": "Prepare Wait",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1152, 200]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "wait-1s",
+      "name": "Wait 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1376, 200],
+      "webhookId": "wait-extract"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $('Prepare Wait').first().json.status_key }}"
+      },
+      "id": "check-status",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1600, 200],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const status = $json.data;\nconst waitData = $('Prepare Wait').first().json;\nconst pollCount = (waitData.poll_count || 0) + 1;\n\nconst isComplete = status === 'complete';\nconst isTimeout = pollCount >= waitData.max_polls;\n\nreturn {\n  ...waitData,\n  status: status,\n  poll_count: pollCount,\n  is_complete: isComplete,\n  is_timeout: isTimeout,\n  should_continue: !isComplete && !isTimeout\n};"
+      },
+      "id": "eval-status",
+      "name": "Evaluate Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1824, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{
+            "id": "check-complete",
+            "leftValue": "={{ $json.is_complete }}",
+            "rightValue": true,
+            "operator": {"type": "boolean", "operation": "equals"}
+          }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-complete",
+      "name": "Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2048, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{
+            "id": "should-continue",
+            "leftValue": "={{ $json.should_continue }}",
+            "rightValue": true,
+            "operator": {"type": "boolean", "operation": "equals"}
+          }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-continue",
+      "name": "Continue Poll?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2272, 400]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $('Prepare Wait').first().json.result_key }}",
+        "options": {"dotNotation": false}
+      },
+      "id": "get-results",
+      "name": "Get All Results",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2272, 100],
+      "credentials": {"redis": {"id": "7FQcEivUY94atW24", "name": "Redis account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all results from Redis list\nconst rawResults = $json.data;\nconst waitData = $('Prepare Wait').first().json;\nconst normRules = waitData.normalization_rules;\n\nlet results = [];\n\n// Parse results - Redis returns list as JSON string or array\nif (typeof rawResults === 'string') {\n  try {\n    const parsed = JSON.parse(rawResults);\n    results = Array.isArray(parsed) ? parsed : [parsed];\n  } catch(e) {\n    // Try line-by-line\n    results = rawResults.split('\\n').filter(Boolean).map(line => {\n      try { return JSON.parse(line); } catch(e) { return null; }\n    }).filter(Boolean);\n  }\n} else if (Array.isArray(rawResults)) {\n  results = rawResults.map(r => typeof r === 'string' ? JSON.parse(r) : r);\n}\n\n// Flatten and normalize\nconst entities = [];\nconst grouped = { global: [], domain: {}, vertical: {} };\n\nfor (const r of results) {\n  if (!r || r.error) continue;\n  \n  const entity = {\n    type: r.code,\n    level: r.level,\n    value: r.result,\n    model_used: r.model_used,\n    duration_ms: r.duration_ms\n  };\n  \n  entities.push(entity);\n  \n  // Group by level\n  if (r.level === 'global') {\n    grouped.global.push(entity);\n  } else if (r.level === 'domain') {\n    const key = r.domain_code || 'unknown';\n    if (!grouped.domain[key]) grouped.domain[key] = [];\n    grouped.domain[key].push(entity);\n  } else if (r.level === 'vertical') {\n    const key = r.vertical_code || 'unknown';\n    if (!grouped.vertical[key]) grouped.vertical[key] = [];\n    grouped.vertical[key].push(entity);\n  }\n}\n\n// Apply normalization rules\nfunction normalize(value, fieldType) {\n  if (!value || typeof value !== 'string') return value;\n  const rules = normRules.filter(r => r.field_code === fieldType || r.field_code === 'all');\n  for (const rule of rules) {\n    try {\n      const pattern = new RegExp(rule.pattern, 'gi');\n      if (pattern.test(value)) {\n        value = value.replace(pattern, rule.normalized_value);\n      }\n    } catch (e) {}\n  }\n  return value;\n}\n\nfor (const entity of entities) {\n  if (entity.value?.brand) {\n    entity.value.brand = normalize(entity.value.brand, 'device.brand');\n  }\n}\n\nreturn {\n  entities: entities,\n  grouped: grouped,\n  message: waitData.input.message,\n  tenant_id: waitData.input.tenant_id,\n  dialog_id: waitData.input.dialog_id,\n  trace_id: waitData.trace_id,\n  total_tasks: waitData.total_tasks,\n  duration_ms: Date.now() - waitData.input._start_time,\n  _debug: {\n    results_count: results.length,\n    poll_count: waitData.poll_count\n  }\n};"
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2496, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2720, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: 'timeout', trace_id: $('Prepare Wait').first().json.trace_id, poll_count: $('Eval Status').first().json.poll_count }) }}",
+        "options": {"responseCode": 408}
+      },
+      "id": "respond-timeout",
+      "name": "Respond Timeout",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2720, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ entities: [], grouped: { global: [], domain: {}, vertical: {} }, message: $('Validate Input').first().json.message, trace_id: $('Validate Input').first().json.trace_id, _debug: { skipped: true, reason: 'no context types' } }) }}",
+        "options": {}
+      },
+      "id": "respond-empty",
+      "name": "Respond Empty",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [256, 400]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Validate Input", "type": "main", "index": 0}]]
+    },
+    "Validate Input": {
+      "main": [[
+        {"node": "Load Global", "type": "main", "index": 0},
+        {"node": "Load Domain", "type": "main", "index": 0},
+        {"node": "Load Vertical", "type": "main", "index": 0},
+        {"node": "Load Normalization", "type": "main", "index": 0}
+      ]]
+    },
+    "Load Global": {
+      "main": [[{"node": "Create Tasks", "type": "main", "index": 0}]]
+    },
+    "Load Domain": {
+      "main": [[{"node": "Create Tasks", "type": "main", "index": 0}]]
+    },
+    "Load Vertical": {
+      "main": [[{"node": "Create Tasks", "type": "main", "index": 0}]]
+    },
+    "Load Normalization": {
+      "main": [[{"node": "Create Tasks", "type": "main", "index": 0}]]
+    },
+    "Create Tasks": {
+      "main": [[{"node": "Has Tasks?", "type": "main", "index": 0}]]
+    },
+    "Has Tasks?": {
+      "main": [
+        [{"node": "Init Counter", "type": "main", "index": 0}],
+        [{"node": "Respond Empty", "type": "main", "index": 0}]
+      ]
+    },
+    "Init Counter": {
+      "main": [[{"node": "Init Status", "type": "main", "index": 0}]]
+    },
+    "Init Status": {
+      "main": [[{"node": "Split Tasks", "type": "main", "index": 0}]]
+    },
+    "Split Tasks": {
+      "main": [[{"node": "Push Tasks to Redis", "type": "main", "index": 0}]]
+    },
+    "Push Tasks to Redis": {
+      "main": [[{"node": "Prepare Wait", "type": "main", "index": 0}]]
+    },
+    "Prepare Wait": {
+      "main": [[{"node": "Wait 1s", "type": "main", "index": 0}]]
+    },
+    "Wait 1s": {
+      "main": [[{"node": "Check Status", "type": "main", "index": 0}]]
+    },
+    "Check Status": {
+      "main": [[{"node": "Evaluate Status", "type": "main", "index": 0}]]
+    },
+    "Evaluate Status": {
+      "main": [[{"node": "Complete?", "type": "main", "index": 0}]]
+    },
+    "Complete?": {
+      "main": [
+        [{"node": "Get All Results", "type": "main", "index": 0}],
+        [{"node": "Continue Poll?", "type": "main", "index": 0}]
+      ]
+    },
+    "Continue Poll?": {
+      "main": [
+        [{"node": "Wait 1s", "type": "main", "index": 0}],
+        [{"node": "Respond Timeout", "type": "main", "index": 0}]
+      ]
+    },
+    "Get All Results": {
+      "main": [[{"node": "Aggregate Results", "type": "main", "index": 0}]]
+    },
+    "Aggregate Results": {
+      "main": [[{"node": "Respond Success", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [
+    {"id": "8dihLRJvdhkW2kZ1", "name": "AI"},
+    {"id": "tMSCjbvPU3xrNUqz", "name": "ELO"}
+  ],
+  "meta": {"templateCredsSetupCompleted": true}
+}

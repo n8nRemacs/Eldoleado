@@ -1,0 +1,218 @@
+{
+  "name": "ELO_Context_Collector",
+  "description": "Block 2: Context Collection. Uses workers: ELO_AI_Extract_v2, ELO_Funnel_Controller_v2",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elo-core-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-800, 0],
+      "webhookId": "elo-core-ingest"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Block 2: Context Collector\n// Input: resolved data from ELO_Resolver\nconst input = $input.first().json;\n\nconst trace_id = input.trace_id || `ctx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn {\n  // From ELO_Resolver (already resolved)\n  tenant_id: input.tenant_id,\n  client_id: input.client_id,\n  dialog_id: input.dialog_id,\n  channel_id: input.channel_id,\n  channel_account_id: input.channel_account_id,\n  channel: input.channel,\n  external_chat_id: input.external_chat_id,\n  \n  // Message\n  text: input.text || '',\n  media: input.media || null,\n  \n  // Flags\n  is_new_client: input.is_new_client || false,\n  is_new_dialog: input.is_new_dialog || false,\n  \n  // Meta\n  trace_id: trace_id,\n  block2_start: Date.now()\n};"
+      },
+      "id": "prepare-input",
+      "name": "Prepare Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-576, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  d.id as dialog_id,\n  d.current_stage,\n  d.context,\n  d.vertical_id,\n  fs.code as stage_code\nFROM elo_t_dialogs d\nLEFT JOIN elo_funnel_stages fs ON fs.id = d.current_stage\nWHERE d.id = $1::uuid;",
+        "options": {
+          "queryReplacement": "={{ [$json.dialog_id] }}"
+        }
+      },
+      "id": "get-dialog-state",
+      "name": "Get Dialog State",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [-352, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge input with dialog state\nconst input = $('Prepare Input').first().json;\nconst dialogState = $input.first().json || {};\n\nreturn {\n  ...input,\n  current_stage: dialogState.stage_code || 'lead',\n  vertical_id: dialogState.vertical_id || 1,\n  existing_context: dialogState.context || {}\n};"
+      },
+      "id": "merge-state",
+      "name": "Merge State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-128, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-ai-extract-v2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  message: $json.text,\n  tenant_id: $json.tenant_id,\n  dialog_id: $json.dialog_id,\n  context: $json.existing_context,\n  trace_id: $json.trace_id\n}) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "call-extract",
+      "name": "Call ELO_AI_Extract_v2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [96, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge extraction results with input\nconst input = $('Merge State').first().json;\nconst extractResult = $input.first().json || {};\n\n// Merge extracted entities with existing context\nconst mergedContext = { ...input.existing_context };\n\n// Add extracted entities to context\nfor (const entity of (extractResult.entities || [])) {\n  if (entity.type && entity.value !== undefined) {\n    mergedContext[entity.type] = entity.value;\n  } else if (entity.type) {\n    // Entity without explicit value field - store the whole entity\n    mergedContext[entity.type] = entity;\n  }\n}\n\nreturn {\n  ...input,\n  extracted: {\n    entities: extractResult.entities || [],\n    grouped: extractResult.grouped || {},\n    model: extractResult.model,\n    tokens_used: extractResult.tokens_used\n  },\n  merged_context: mergedContext\n};"
+      },
+      "id": "merge-extraction",
+      "name": "Merge Extraction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-funnel-controller-v2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  context: {\n    tenant_id: $json.tenant_id,\n    dialog_id: $json.dialog_id,\n    client_id: $json.client_id,\n    current_stage: $json.current_stage,\n    vertical_id: $json.vertical_id,\n    stage_masks: {},\n    ...$json.merged_context\n  },\n  message: { text: $json.text },\n  extracted_context: $json.extracted,\n  trace_id: $json.trace_id\n}) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "call-funnel",
+      "name": "Call ELO_Funnel_Controller_v2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [544, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge funnel results\nconst input = $('Merge Extraction').first().json;\nconst funnelResult = $input.first().json || {};\n\nreturn {\n  ...input,\n  funnel: {\n    stage: funnelResult.stage || {},\n    masks: funnelResult.masks || {},\n    response: funnelResult.response || null,\n    actions: funnelResult.actions || []\n  },\n  // Update context from funnel if provided\n  final_context: funnelResult.context || input.merged_context\n};"
+      },
+      "id": "merge-funnel",
+      "name": "Merge Funnel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [768, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE elo_t_dialogs\nSET \n  context = $1::jsonb,\n  current_stage = COALESCE(\n    (SELECT id FROM elo_funnel_stages WHERE code = $2 LIMIT 1),\n    current_stage\n  ),\n  last_message_at = NOW(),\n  updated_at = NOW()\nWHERE id = $3::uuid\nRETURNING id, current_stage;",
+        "options": {
+          "queryReplacement": "={{ [JSON.stringify($json.final_context), $json.funnel.stage.current || $json.current_stage, $json.dialog_id] }}"
+        }
+      },
+      "id": "update-dialog",
+      "name": "Update Dialog",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [992, 0],
+      "credentials": {
+        "postgres": {
+          "id": "n2SyhP9QhMnp1ryk",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build output for Block 3\nconst input = $('Merge Funnel').first().json;\n\nreturn {\n  // Routing info\n  tenant_id: input.tenant_id,\n  client_id: input.client_id,\n  dialog_id: input.dialog_id,\n  channel: input.channel,\n  channel_id: input.channel_id,\n  channel_account_id: input.channel_account_id,\n  external_chat_id: input.external_chat_id,\n  \n  // Original message\n  text: input.text,\n  media: input.media,\n  \n  // Context (from workers)\n  context: input.final_context,\n  extracted: input.extracted,\n  \n  // Funnel state (from ELO_Funnel_Controller_v2)\n  funnel: {\n    previous_stage: input.current_stage,\n    current_stage: input.funnel.stage.current || input.current_stage,\n    changed: input.funnel.stage.changed || false,\n    behavior_type: input.funnel.stage.behavior_type,\n    masks: input.funnel.masks,\n    response: input.funnel.response,\n    actions: input.funnel.actions\n  },\n  \n  // Flags\n  is_new_client: input.is_new_client,\n  is_new_dialog: input.is_new_dialog,\n  \n  // Meta\n  trace_id: input.trace_id,\n  block2_duration_ms: Date.now() - input.block2_start,\n  workers_used: ['ELO_AI_Extract_v2', 'ELO_Funnel_Controller_v2']\n};"
+      },
+      "id": "build-output",
+      "name": "Build Block 2 Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1216, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.n8nsrv.ru/webhook/elo-block3-planner",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "forward-block3",
+      "name": "Forward to Block 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  status: 'ok',\n  trace_id: $('Build Block 2 Output').first().json.trace_id,\n  stage: $('Build Block 2 Output').first().json.funnel.current_stage,\n  response: $('Build Block 2 Output').first().json.funnel.response\n}) }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1664, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Prepare Input", "type": "main", "index": 0}]]
+    },
+    "Prepare Input": {
+      "main": [[{"node": "Get Dialog State", "type": "main", "index": 0}]]
+    },
+    "Get Dialog State": {
+      "main": [[{"node": "Merge State", "type": "main", "index": 0}]]
+    },
+    "Merge State": {
+      "main": [[{"node": "Call ELO_AI_Extract_v2", "type": "main", "index": 0}]]
+    },
+    "Call ELO_AI_Extract_v2": {
+      "main": [[{"node": "Merge Extraction", "type": "main", "index": 0}]]
+    },
+    "Merge Extraction": {
+      "main": [[{"node": "Call ELO_Funnel_Controller_v2", "type": "main", "index": 0}]]
+    },
+    "Call ELO_Funnel_Controller_v2": {
+      "main": [[{"node": "Merge Funnel", "type": "main", "index": 0}]]
+    },
+    "Merge Funnel": {
+      "main": [[{"node": "Update Dialog", "type": "main", "index": 0}]]
+    },
+    "Update Dialog": {
+      "main": [[{"node": "Build Block 2 Output", "type": "main", "index": 0}]]
+    },
+    "Build Block 2 Output": {
+      "main": [[{"node": "Forward to Block 3", "type": "main", "index": 0}]]
+    },
+    "Forward to Block 3": {
+      "main": [[{"node": "Respond OK", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {"id": "eiI07cPEeFxzR69p", "name": "Core"},
+    {"id": "tMSCjbvPU3xrNUqz", "name": "ELO"}
+  ]
+}

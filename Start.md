@@ -1,72 +1,113 @@
-# Start Session - 2026-01-03 ~18:00
+# Start Session - 2026-01-04
 
-## Статус: Pipeline разорван, нужна починка
-
----
-
-## КРИТИЧЕСКАЯ ПРОБЛЕМА
-
-Pipeline разорван между Resolver и AI Orchestrator:
-
-```
-ELO_Resolver → webhook /elo-core-ingest → Test_Stub [OFF] ← ТУПИК!
-
-Pipeline_Orchestrator [OFF] ← НИКТО НЕ ВЫЗЫВАЕТ!
-```
+## Статус: Block 2 Architecture v2.0 Ready
 
 ---
 
-## СЛЕДУЮЩИЕ ШАГИ (Фаза 1 - КРИТИЧНО)
+## ВЫПОЛНЕНО (2026-01-04)
 
-### 1.1 Починить Resolver → Pipeline
+### Block 2: Redis Queue Architecture
 
-**Файл:** `NEW/workflows/Resolve Contour/ELO_Resolver.json`
+**Принцип:** "Маленькие фокусные промпты → меньше галлюцинаций"
 
-**Действия:**
-1. Найти ноду "Forward to Core" (HTTP Request → `/elo-core-ingest`)
-2. Заменить на Execute Workflow → ELO_Pipeline_Orchestrator
-3. Передать параметры: tenant_id, client_id, dialog_id, message, operator_id, mode
+**Ключевые изменения:**
 
-### 1.2 Добавить Mode Router в Pipeline
+| Компонент | Было | Стало |
+|-----------|------|-------|
+| ELO_AI_Extract | 1-3 больших AI вызова | N задач через Redis Queue |
+| ELO_Funnel_Controller | Hardcoded Switch | Dynamic pattern matching |
+| ELO_Blind_Worker | Hardcoded model | Dynamic `config.model` |
+| Масштабирование | 1 workflow | N параллельных воркеров |
 
-**Файл:** `NEW/workflows/AI Contour/ELO_Pipeline_Orchestrator.json`
+**Обновлённые файлы:**
+- `NEW/workflows/Block 2 Context/ELO_AI_Extract.json` — Redis publisher + aggregator
+- `NEW/workflows/Block 2 Context/ELO_Funnel_Controller.json` — Dynamic behaviors
+- `NEW/workflows/AI Contour/Workers/ELO_Blind_Worker.json` — Universal worker
 
-**Действия:**
-1. После Context Building добавить Switch по mode:
-   - `manual` → Skip Generate → Notify Operator
-   - `semi_auto` → Generate → Notify with Draft
-   - `auto` → Generate → Auto Send / Escalate
+**Redis Keys:**
+- `elo:tasks:pending` — очередь задач
+- `elo:results:{trace_id}` — результаты
+- `elo:counter:{trace_id}` — счётчик
+- `elo:status:{trace_id}` — статус (pending/complete)
 
-### 1.3 Создать ELO_Operator_Notify
-
-**Новый workflow:**
-```
-Input: { operator_id, dialog_id, notification_type, context, draft }
-Nodes:
-1. Get Operator FCM tokens
-2. Build Notification Payload
-3. Send WebSocket → api-android:8780
-4. Send FCM Push
-5. Log Event
-```
-
-### 1.4 Включить workflows
-
-- ELO_Resolver → ON
-- ELO_Pipeline_Orchestrator → ON
+**База данных:**
+- Добавлены `output_schema` для всех global context types
+- Унифицирован формат JSON схем
 
 ---
 
-## Режимы оператора (уже спроектировано)
+## СЛЕДУЮЩИЕ ШАГИ
 
-| Режим | Generate | Approve | Описание |
-|-------|----------|---------|----------|
-| `manual` | ❌ | ❌ | Оператор пишет сам |
-| `semi_auto` | ✅ | ✅ | AI генерирует, оператор утверждает |
-| `auto` | ✅ | ❌ | AI отправляет сразу |
+### Фаза 1: Оптимизация Block 2
 
-**Pipeline работает ОДИНАКОВО для всех режимов!**
-Разница только в генерации/утверждении ответа.
+1. **Импорт workflows в n8n**
+   - ELO_AI_Extract.json
+   - ELO_Funnel_Controller.json
+   - ELO_Blind_Worker.json
+
+2. **Создать HTTP Header Auth для OpenRouter**
+   - ID: `openrouter-header`
+   - Header: `Authorization: Bearer sk-or-...`
+
+3. **Тестирование**
+   - Проверить Redis connectivity
+   - Тест single extraction
+   - Тест full pipeline
+
+4. **Оптимизации**
+   - Redis connection pooling
+   - Batch similar extractions
+   - Add metrics/logging
+
+### Фаза 2: Интеграция
+
+1. Подключить Block 1 → Block 2
+2. Создать Block 3 (Planning)
+3. End-to-end test
+
+---
+
+## Архитектура Pipeline
+
+```
+Block 1 (Input)           Block 2 (Context)              Block 3 (Planning)
+    │                           │                              │
+    ▼                           ▼                              ▼
+ELO_Resolver ───────► ELO_Context_Collector ───────► ELO_Planner
+                             │                              │
+                    ┌────────┴────────┐                     ▼
+                    ▼                 ▼               Block 4 (Execution)
+            ELO_AI_Extract    ELO_Funnel_Controller        │
+                    │                                       ▼
+                    ▼                                 Block 5 (Output)
+              Redis Queue
+                    │
+         ┌─────────┴─────────┐
+         ▼                   ▼
+   ELO_Blind_Worker    ELO_Blind_Worker (N instances)
+```
+
+---
+
+## Текущее состояние
+
+### Block 2 Workflows (ready for import)
+
+| Workflow | Status | Location |
+|----------|--------|----------|
+| ELO_Context_Collector | Ready | `NEW/workflows/Block 2 Context/` |
+| ELO_AI_Extract | Ready (v2.0) | `NEW/workflows/Block 2 Context/` |
+| ELO_Funnel_Controller | Ready (v2.0) | `NEW/workflows/Block 2 Context/` |
+| ELO_Blind_Worker | Ready | `NEW/workflows/AI Contour/Workers/` |
+
+### Database (context types)
+
+| Level | Table | Count |
+|-------|-------|-------|
+| Global | elo_context_types | 6 |
+| Domain | elo_d_context_types | 6 |
+| Vertical | elo_v_context_types | 4 |
+| Normalization | elo_normalization_rules | 10+ |
 
 ---
 
@@ -74,23 +115,10 @@ Nodes:
 
 | Файл | Описание |
 |------|----------|
-| `NEW/DOCS/WORKFLOWS_ANALYSIS.md` | Анализ 57 workflows |
-| `NEW/DOCS/OPERATOR_NOTIFICATION_ARCHITECTURE.md` | Архитектура 3 режимов |
-| `123.md` | Полный отчёт + план |
-| `~/.claude/plans/adaptive-sprouting-stream.md` | План Funnel Behavior |
-
----
-
-## Текущее состояние workflows
-
-| Категория | Active | Inactive |
-|-----------|--------|----------|
-| Channel In | 8 | 3 |
-| Channel Out | 4 | 3 |
-| API | 11 | 0 |
-| AI Contour | 4 | 11 |
-| Input/Resolve/Core | 2 | 11 |
-| **Total** | **26** | **31** |
+| `NEW/DOCS/BLOCKS/BLOCK_2_CONTEXT_COLLECTION.md` | ТЗ Block 2 (v2.0) |
+| `NEW/DOCS/BLOCKS/BLOCK_3_PLANNING.md` | ТЗ Block 3 |
+| `NEW/DOCS/BLOCKS/BLOCK_4_EXECUTION.md` | ТЗ Block 4 |
+| `NEW/DOCS/BLOCKS/BLOCK_5_OUTPUT.md` | ТЗ Block 5 |
 
 ---
 
@@ -98,21 +126,9 @@ Nodes:
 
 | Сервер | IP | Сервисы |
 |--------|-----|---------|
-| **Messenger** | 155.212.221.189 | mcp-* :876x, api-android :8780 |
-| **n8n** | 185.221.214.83 | n8n :5678, PostgreSQL :6544 |
+| **n8n** | 185.221.214.83 | n8n :5678, PostgreSQL :6544, Redis :6379 |
+| **Messenger** | 155.212.221.189 | mcp-* :876x |
 
 ---
 
-## Проверка БД
-
-```bash
-# Режим тенанта
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c \"SELECT name, settings->'ai_mode' FROM elo_t_tenants;\""
-
-# Режим оператора
-ssh root@185.221.214.83 "docker exec supabase-db psql -U postgres -c \"SELECT name, settings->'ai_mode' FROM elo_t_operators;\""
-```
-
----
-
-*Последнее обновление: 2026-01-03 ~18:00*
+*Последнее обновление: 2026-01-04*
